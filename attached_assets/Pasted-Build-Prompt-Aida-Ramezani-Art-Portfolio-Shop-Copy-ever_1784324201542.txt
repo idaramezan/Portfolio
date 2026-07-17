@@ -1,0 +1,157 @@
+Build Prompt: Aida Ramezani Art Portfolio + Shop
+
+Copy everything below into your VS Code AI assistant.
+
+
+Project Brief
+
+Build a portfolio and e-commerce website for Aida Ramezani, a self-taught oil pastel artist working in an "imperfection art" style. The site needs to:
+
+
+Showcase her artwork in a gallery
+Sell original paintings (one-of-a-kind, in-stock inventory)
+Sell prints fulfilled via Printful (print-on-demand)
+Process payments through Paddle (Paddle Billing / Checkout)
+Collect newsletter signups
+Display banners for upcoming events (live-painting sessions, pop-ups) with their own signup
+
+
+Tech Stack
+
+
+Framework: Next.js 14+ (App Router), TypeScript
+Styling: Tailwind CSS with a custom design token config (see Design System below) — no default Tailwind palette, override tailwind.config.ts fully
+Database: PostgreSQL via Prisma (for originals inventory, orders, event signups, newsletter list) — or Supabase if simpler to stand up
+Payments: Paddle Billing (paddle-js on the client, Paddle webhooks on the server)
+Print fulfillment: Printful API (Product/Order endpoints)
+Email/newsletter: simple provider-agnostic integration — store emails in the DB and expose a way to sync to an ESP (e.g., Mailchimp/ConvertKit) via a documented function stub, since the ESP choice may change
+Image hosting: local /public for now, structured so it can move to S3/Cloudinary later without changing component code
+Deployment target: Vercel
+
+
+Design System (apply exactly — do not substitute default Tailwind grays/blues)
+
+Palette
+
+--color-paper:      #F6F1E7   /* warm paper-white background */
+--color-ink:        #1B1A17   /* near-black text */
+--color-blue:       #1B3A6B   /* deep ultramarine — headers, dark sections */
+--color-green:      #5C7A3B   /* grass green — secondary accent */
+--color-ochre:      #D9A441   /* mustard/ochre — highlights, tags */
+--color-coral:      #C4432E   /* coral-red — CTAs, "sold" tags, price accents */
+
+Typography
+
+
+Display/headline font: a bold, slightly irregular humanist serif or grotesk (e.g. Fraunces, or Libre Caslon Display) — used large, a little uneven, never perfectly uniform tracking
+Body font: a plain warm sans (e.g. Inter or General Sans) for legibility in shop listings, bios, prices
+Accent/handwritten font: a scrawl-style font (e.g. Caveat or Kalam) used sparingly for price tags, "sold" stamps, event dates, and the newsletter card — never for body copy
+
+
+Signature visual motif
+
+
+Every card, section divider, and image frame should use a torn/deckled paper edge (implement as an SVG clip-path or mask, not a plain rounded rect) — this is the unifying "imperfection art" signature across the whole site
+Artwork thumbnails sit at slight random rotations (-3deg to 3deg) like a pinboard/sketchbook spread, not a rigid grid
+Avoid: stock rounded-corner cards, drop shadows that look like Material Design defaults, generic gradient hero sections, numbered "01/02/03" step markers unless genuinely sequential
+Motion: minimal. A hand-drawn underline that draws itself on nav hover is enough. No scroll-jacking, no heavy parallax.
+
+
+Site Structure
+
+1. Home / Hero
+
+
+One large, uncropped artwork show as the hero, tilted 2–4 degrees like a print pinned to a wall
+Headline in her voice (something like "Self-taught. Unpolished on purpose.") — write 2–3 headline options for her to choose from
+Nav: Gallery / Shop / Prints / Events / About / Newsletter (anchor or route as appropriate)
+
+
+2. Gallery
+
+
+Masonry/pinboard layout, irregular grid, slight rotation per tile
+Filter or tag by subject/medium if useful (e.g. "Animals," "Portraits," "Still Life")
+Clicking a piece opens a detail view/modal: image, title, medium, size, year, and — if for sale — a price and "Buy Original" or "Order a Print" CTA
+
+
+3. Shop — Originals
+
+
+Each original is a single unit of inventory (one-of-a-kind)
+Data model: Artwork { id, title, description, medium, sizeInches, year, imageUrl, priceCents, currency, status: AVAILABLE | SOLD | RESERVED }
+When status is SOLD, show a hand-drawn "Sold" stamp overlay instead of hiding the piece (she wants sold work still visible as portfolio proof)
+"Buy Original" triggers a Paddle Checkout for that specific artwork; on successful webhook, flip status to SOLD and store the order
+
+
+4. Shop — Prints (Printful integration)
+
+
+Sync Printful catalog products/variants (e.g. fine-art prints, posters, canvases) mapped to her artwork images
+Build a lightweight admin/config file or DB table mapping Artwork.id -> Printful product/variant IDs so she can decide which pieces are available as prints and in which sizes
+Print product page: size/paper selector pulled from Printful variants, live price from Printful, "Add to Cart" -> Paddle Checkout
+On Paddle payment success webhook: create the corresponding Printful order via the Printful Orders API, passing shipping address collected at checkout
+Handle Printful order status webhooks (or polling) to update an internal Order.fulfillmentStatus field (draft/fulfilled/shipped) — surface this in a simple order-lookup or account page if time allows, otherwise just log/store it
+
+
+5. Events
+
+
+Event { id, title, description, dateTime, location (or "online"), imageUrl, signupUrl | signupFormEnabled }
+Home page and a dedicated /events page show event banners with torn-paper edges
+Each event has its own signup: capture name + email into an EventSignup table tied to Event.id
+Admin should be able to add/edit events without a redeploy — a simple authenticated admin page or a CMS (e.g. a Prisma-backed /admin route gated by a password/session) is fine; don't over-engineer a full CMS
+
+
+6. Newsletter
+
+
+A postcard/torn-sketchbook-page styled signup module, reusable as a component (footer, home page, and a dedicated section)
+Store email + timestamp in NewsletterSubscriber table
+Include a clearly documented function/stub for syncing to an external ESP later — don't hard-code a specific ESP's API key handling unless asked
+
+
+7. About
+
+
+Bio, her process (self-taught, oil pastel, "imperfection art" philosophy), and a photo/portrait section
+Link out to her social presence if she wants it included later — leave a placeholder component
+
+
+Payments — Paddle
+
+
+Use Paddle Billing (not the deprecated Classic API)
+Client: Paddle.js overlay or inline checkout for both originals and prints
+Server: implement the Paddle webhook endpoint (/api/webhooks/paddle) with signature verification, handling at minimum:
+
+transaction.completed → mark artwork sold / create Printful order / store order record
+transaction.payment_failed → log and leave inventory untouched
+
+
+
+Keep all Paddle secrets in environment variables (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET, NEXT_PUBLIC_PADDLE_CLIENT_TOKEN), never hard-coded
+
+
+Printful Integration
+
+
+Use the Printful REST API (v2 if stable, else v1) with a server-side API key (PRINTFUL_API_KEY) — never expose it client-side
+Endpoints needed: list products/variants (for size/paper options + live pricing), create order (on payment success), get order status
+Build a small internal service module (/lib/printful.ts) wrapping these calls so the rest of the app doesn't touch the API directly
+
+
+Non-functional requirements
+
+
+Fully responsive down to mobile (this is likely her primary traffic source given her TikTok/Instagram audience)
+Visible keyboard focus states on all interactive elements
+Respect prefers-reduced-motion
+Reasonably fast image loading (Next/Image, proper sizing) since paintings are the whole point
+Clean, typed API layer — no any types where avoidable
+Include a README.md explaining env vars needed (Paddle keys, Printful key, DB connection string) and how to run locally and seed sample artwork/event data
+
+
+Deliverable
+
+Scaffold the full Next.js project with the pages/components above, working Prisma schema and migrations, the Paddle webhook handler, the Printful service module, and placeholder/sample content wired to the real data models (not lorem ipsum) so it's immediately previewable. Ask me before assuming an ESP, admin-auth method, or Printful API version if those are ambiguous.

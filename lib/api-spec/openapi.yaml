@@ -3,20 +3,30 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Aida Ramezani Art Portfolio & Shop API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: artworks
+    description: Artwork gallery and shop
+  - name: events
+    description: Events and signups
+  - name: newsletter
+    description: Newsletter subscriptions
+  - name: checkout
+    description: Payment checkout
+  - name: webhooks
+    description: Payment webhooks
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,262 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /artworks:
+    get:
+      operationId: listArtworks
+      tags: [artworks]
+      summary: List all artworks
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [AVAILABLE, SOLD, RESERVED]
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of artworks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artwork"
+
+  /artworks/stats:
+    get:
+      operationId: getArtworkStats
+      tags: [artworks]
+      summary: Get artwork statistics (counts by status and category)
+      responses:
+        "200":
+          description: Artwork stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtworkStats"
+
+  /artworks/{id}:
+    get:
+      operationId: getArtwork
+      tags: [artworks]
+      summary: Get a single artwork by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artwork detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artwork"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateArtwork
+      tags: [artworks]
+      summary: Update an artwork (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtworkUpdate"
+      responses:
+        "200":
+          description: Updated artwork
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artwork"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List upcoming and past events
+      parameters:
+        - name: upcoming
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a new event (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get a single event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /events/{id}/signup:
+    post:
+      operationId: signupForEvent
+      tags: [events]
+      summary: Sign up for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventSignupInput"
+      responses:
+        "201":
+          description: Signup confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventSignup"
+        "400":
+          description: Already signed up or validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /newsletter:
+    post:
+      operationId: subscribeNewsletter
+      tags: [newsletter]
+      summary: Subscribe to the newsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsletterInput"
+      responses:
+        "201":
+          description: Subscribed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsletterSubscriber"
+        "400":
+          description: Already subscribed or invalid email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /checkout/initiate:
+    post:
+      operationId: initiateCheckout
+      tags: [checkout]
+      summary: Initiate a Paddle checkout for an artwork or print
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutRequest"
+      responses:
+        "200":
+          description: Checkout details (Paddle transaction ID or redirect URL)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutResponse"
+        "400":
+          description: Item not available or invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /webhooks/paddle:
+    post:
+      operationId: paddleWebhook
+      tags: [webhooks]
+      summary: Handle Paddle payment webhooks
+      responses:
+        "200":
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookAck"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +300,246 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Artwork:
+      type: object
+      required:
+        - id
+        - title
+        - imageUrl
+        - status
+        - category
+        - medium
+        - year
+        - createdAt
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        medium:
+          type: string
+        sizeInches:
+          type: ["string", "null"]
+        year:
+          type: integer
+        imageUrl:
+          type: string
+        priceCents:
+          type: ["integer", "null"]
+        currency:
+          type: string
+          default: USD
+        status:
+          type: string
+          enum: [AVAILABLE, SOLD, RESERVED]
+        category:
+          type: string
+        availableAsPrint:
+          type: boolean
+        printfulProductId:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ArtworkUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, SOLD, RESERVED]
+        priceCents:
+          type: integer
+        category:
+          type: string
+        availableAsPrint:
+          type: boolean
+        printfulProductId:
+          type: string
+
+    ArtworkStats:
+      type: object
+      required:
+        - total
+        - available
+        - sold
+        - reserved
+        - byCategory
+      properties:
+        total:
+          type: integer
+        available:
+          type: integer
+        sold:
+          type: integer
+        reserved:
+          type: integer
+        byCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
+
+    CategoryCount:
+      type: object
+      required:
+        - category
+        - count
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+
+    Event:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - dateTime
+        - location
+        - createdAt
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        dateTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        signupCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    EventInput:
+      type: object
+      required:
+        - title
+        - description
+        - dateTime
+        - location
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        dateTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        imageUrl:
+          type: string
+
+    EventSignup:
+      type: object
+      required:
+        - id
+        - eventId
+        - name
+        - email
+        - createdAt
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    EventSignupInput:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+
+    NewsletterSubscriber:
+      type: object
+      required:
+        - id
+        - email
+        - createdAt
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NewsletterInput:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+
+    CheckoutRequest:
+      type: object
+      required:
+        - type
+        - artworkId
+      properties:
+        type:
+          type: string
+          enum: [original, print]
+        artworkId:
+          type: integer
+        printSize:
+          type: string
+        customerEmail:
+          type: string
+
+    CheckoutResponse:
+      type: object
+      required:
+        - checkoutUrl
+      properties:
+        checkoutUrl:
+          type: string
+        transactionId:
+          type: ["string", "null"]
+
+    WebhookAck:
+      type: object
+      required:
+        - received
+      properties:
+        received:
+          type: boolean

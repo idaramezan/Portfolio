@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Aida Ramezani Art Portfolio & Shop"
+version = "1.0.0"
+id = "artifacts/aida-portfolio"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23535
+
+[services.development]
+run = "pnpm --filter @workspace/aida-portfolio run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aida-portfolio", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aida-portfolio/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23535"
+BASE_PATH = "/"
