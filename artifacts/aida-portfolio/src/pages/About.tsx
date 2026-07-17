@@ -49,7 +49,7 @@ export default function About() {
                 <a href="https://instagram.com/aedaart" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
                   Instagram
                 </a>
-                <a href="https://tiktok.com/aedapaints" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-2 hover:bg-ink hover:text-paper transition-colors">
+                <a href="https://www.tiktok.com/@aedapaints?_r=1&_t=ZS-987Z29KJiK4" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-2 hover:bg-ink hover:text-paper transition-colors">
                   TikTok
                 </a>
                 <a href="https://www.youtube.com/@AedaArt" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-3 hover:bg-ink hover:text-paper transition-colors">

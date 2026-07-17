@@ -27,12 +27,6 @@ export default function Home() {
             >
               Enter the Studio
             </Link>
-            <Link 
-              href="/prints" 
-              className="bg-transparent text-ink border-2 border-ink font-serif text-xl px-8 py-4 torn-edge-3 hover:bg-ink hover:text-paper transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-            >
-              Shop Originals
-            </Link>
           </div>
         </div>
         

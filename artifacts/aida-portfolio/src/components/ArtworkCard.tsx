@@ -1,6 +1,5 @@
 import { Artwork } from "@workspace/api-client-react";
 import { getArtworkImage } from "@/lib/assets";
-import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface ArtworkCardProps {
@@ -42,21 +41,11 @@ export default function ArtworkCard({ artwork, index, onClick }: ArtworkCardProp
           loading="lazy"
         />
 
-        {/* Sold Stamp */}
-        {artwork.status === "SOLD" && (
-          <div className="absolute top-4 right-4 transform -rotate-12 bg-transparent border-4 border-coral text-coral px-4 py-1 z-20 opacity-90 mix-blend-multiply">
-            <span className="font-hand text-3xl font-bold tracking-widest uppercase block translate-y-1">Sold</span>
-          </div>
-        )}
-
         {/* Info overlay (shows on hover for desktop) */}
         <div className="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 z-10 text-paper torn-edge hidden md:flex">
           <h3 className="font-serif text-2xl font-bold mb-1">{artwork.title}</h3>
           <div className="flex justify-between items-center text-sm font-sans">
             <span>{artwork.medium}</span>
-            {artwork.priceCents && artwork.status !== "SOLD" && (
-              <span className="font-hand text-2xl text-ochre">{formatPrice(artwork.priceCents)}</span>
-            )}
           </div>
         </div>
       </div>
@@ -66,9 +55,6 @@ export default function ArtworkCard({ artwork, index, onClick }: ArtworkCardProp
         <h3 className="font-serif text-xl font-bold text-ink">{artwork.title}</h3>
         <div className="flex justify-between items-center">
           <span className="bg-ochre/20 text-ink/80 text-xs px-2 py-1 rounded-sm">{artwork.category}</span>
-          {artwork.priceCents && artwork.status !== "SOLD" && (
-            <span className="font-hand text-xl text-ink font-bold">{formatPrice(artwork.priceCents)}</span>
-          )}
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import ArtworkCard from "@/components/ArtworkCard";
 import ArtworkModal from "@/components/ArtworkModal";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES = ["All", "Animals", "Portraits", "Still Life", "Other"];
+const CATEGORIES = ["All", "Animals", "Other", "Portraits", "Still Life"];
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState("All");

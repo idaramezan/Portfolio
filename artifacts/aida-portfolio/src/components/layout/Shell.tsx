@@ -79,7 +79,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </p>
             <div className="flex gap-4">
               <a href="https://instagram.com/aedaart" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">Instagram</a>
-              <a href="https://tiktok.com/aedapaints" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">TikTok</a>
+              <a href="https://www.tiktok.com/@aedapaints?_r=1&_t=ZS-987Z29KJiK4" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">TikTok</a>
               <a href="https://www.youtube.com/@AedaArt" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">YouTube</a>
             </div>
           </div>
