@@ -10,7 +10,7 @@ function getMailer() {
   if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: "gmail",
-    auth: { user, pass },
+    auth: { user, pass: pass.replace(/\s+/g, "") },
   });
 }
 
