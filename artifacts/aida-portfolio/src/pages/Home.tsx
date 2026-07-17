@@ -1,6 +1,10 @@
 import { Link } from "wouter";
-import { heroImage, assetImages } from "@/lib/assets";
+import { assetImages, portrait } from "@/lib/assets";
 import Newsletter from "@/components/layout/Newsletter";
+import HeroFlipCard from "@/components/HeroFlipCard";
+
+// Use paintings starting from index 1 (skip heroImage at 0, use the rest as the flip deck)
+const flipPaintings = assetImages.slice(1, 8);
 
 export default function Home() {
   return (
@@ -18,7 +22,7 @@ export default function Home() {
           </p>
           <div className="pt-4 flex flex-wrap gap-6">
             <Link 
-              href="/gallery" 
+              href="/shop" 
               className="bg-coral text-paper font-serif text-xl px-8 py-4 torn-edge hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
             >
               Enter the Studio
@@ -32,16 +36,9 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="flex-1 relative w-full max-w-lg md:max-w-none animate-in fade-in zoom-in-95 duration-1000">
-          <div className="absolute inset-0 bg-ochre/20 transform rotate-6 scale-105 torn-edge-2 z-0"></div>
-          <img 
-            src={heroImage} 
-            alt="I Identify as a Dinosaur" 
-            className="w-full h-auto object-cover transform -rotate-3 torn-edge shadow-xl relative z-10"
-          />
-          <div className="absolute -bottom-6 -right-6 z-20 bg-paper px-4 py-2 border border-ink/10 shadow-md transform rotate-6">
-            <p className="font-hand text-2xl text-ink">"I Identify as a Dinosaur"</p>
-          </div>
+        {/* Paper-flip card: portrait ↔ paintings */}
+        <div className="flex-1 relative w-full max-w-lg md:max-w-none pb-16 animate-in fade-in zoom-in-95 duration-1000">
+          <HeroFlipCard portrait={portrait} paintings={flipPaintings} />
         </div>
       </section>
 
@@ -50,7 +47,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex justify-between items-end mb-16">
             <h2 className="text-4xl md:text-5xl font-serif text-paper">Recent Work</h2>
-            <Link href="/gallery" className="hidden md:inline-block font-sans text-lg text-paper/80 hover:text-ochre link-underline">
+            <Link href="/shop" className="hidden md:inline-block font-sans text-lg text-paper/80 hover:text-ochre link-underline">
               View all
             </Link>
           </div>
@@ -72,7 +69,7 @@ export default function Home() {
           </div>
           
           <div className="mt-12 text-center md:hidden">
-            <Link href="/gallery" className="font-sans text-lg text-paper/80 hover:text-ochre link-underline">
+            <Link href="/shop" className="font-sans text-lg text-paper/80 hover:text-ochre link-underline">
               View all works
             </Link>
           </div>

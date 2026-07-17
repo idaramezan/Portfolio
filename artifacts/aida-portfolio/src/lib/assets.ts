@@ -1,4 +1,5 @@
 import img0556 from '@assets/IMG_0556_1784324397579.JPG';
+import aidaPortrait from '@assets/F32B16AC-6790-4733-A787-D0258611E589_1784325156252.JPG';
 import img0287 from '@assets/IMG_0287_1784324425753.JPG';
 import img0288 from '@assets/IMG_0288_1784324425754.JPG';
 import img0289 from '@assets/IMG_0289_1784324425755.JPG';
@@ -27,3 +28,4 @@ export const getArtworkImage = (artwork: any, index: number) => {
 };
 
 export const heroImage = img0556;
+export const portrait = aidaPortrait;

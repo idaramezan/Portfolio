@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import Newsletter from "./Newsletter";
 
 const NAV_LINKS = [
-  { href: "/gallery", label: "Gallery" },
   { href: "/shop", label: "Shop" },
   { href: "/prints", label: "Prints" },
   { href: "/events", label: "Events" },
@@ -72,7 +71,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="mt-24 border-t border-ink/10 bg-card py-16">
+      <footer className="mt-12 border-t border-ink/10 bg-card py-10">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-16">
           <div className="max-w-md">
             <h2 className="font-serif text-2xl font-bold mb-4">Aida Ramezani</h2>
@@ -89,7 +88,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <Newsletter />
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-16 pt-8 border-t border-ink/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8 pt-6 border-t border-ink/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} Aida Ramezani. All rights reserved.</p>
           <p>Handmade in the studio.</p>
         </div>

@@ -6,7 +6,6 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 
 import Shell from '@/components/layout/Shell';
 import Home from '@/pages/Home';
-import Gallery from '@/pages/Gallery';
 import Shop from '@/pages/Shop';
 import Prints from '@/pages/Prints';
 import Events from '@/pages/Events';
@@ -19,8 +18,7 @@ function Router() {
     <Shell>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/gallery" component={Gallery} />
-        <Route path="/shop" component={Shop} />
+<Route path="/shop" component={Shop} />
         <Route path="/prints" component={Prints} />
         <Route path="/events" component={Events} />
         <Route path="/about" component={About} />
