@@ -12,7 +12,7 @@ export default function About() {
         <div className="max-w-4xl mx-auto px-4 md:px-8 relative z-10 text-center">
           <h1 className="text-5xl md:text-8xl font-serif text-paper mb-12">About the Artist</h1>
           <p className="text-2xl md:text-4xl font-serif leading-snug text-paper/90 mb-8 max-w-3xl mx-auto italic">
-            "Aida Ramezani is a self-taught artist working in oil pastel. Her work celebrates the beauty of imperfection — every smudge, every uneven line is intentional. She calls it imperfection art."
+            "Aida Ramezani is a self-taught artist working in oil pastel. Her work celebrates the beauty of imperfection. Every smudge, every uneven line is intentional. She calls it imperfection art."
           </p>
         </div>
       </section>
@@ -33,13 +33,13 @@ export default function About() {
             <h2 className="text-4xl md:text-6xl font-serif text-ink mb-8">The Process</h2>
             <div className="space-y-6 font-sans text-xl text-ink/80 leading-relaxed">
               <p>
-                "I've never had formal training. I paint from feeling, not technique. The oil pastel is unforgiving and immediate — you can't undo it. That's what I love about it."
+                "I've never had formal training. I paint from feeling, not technique. The oil pastel is unforgiving and immediate. You can't undo it. That's what I love about it."
               </p>
               <p>
                 Every piece begins as an emotional impulse. I don't sketch perfectly measured outlines or mix pristine colors on a palette. I push raw pigment directly onto paper, using my hands to blend, smudge, and scrape.
               </p>
               <p>
-                The resulting textures, the accidental color mixes, the fingerprints left behind — these aren't mistakes to be covered up. They are the record of a human being making something. In a world increasingly obsessed with flawless digital generation, I want to make art that is stubbornly, irreducibly analog.
+                The resulting textures, the accidental color mixes, the fingerprints left behind. These aren't mistakes to be covered up. They are the record of a human being making something. In a world increasingly obsessed with flawless digital generation, I want to make art that is stubbornly, irreducibly analog.
               </p>
             </div>
             

@@ -5,9 +5,7 @@ import { cn } from "@/lib/utils";
 import Newsletter from "./Newsletter";
 
 const NAV_LINKS = [
-  { href: "/shop", label: "Shop" },
-  { href: "/prints", label: "Prints" },
-  { href: "/events", label: "Events" },
+  { href: "/prints", label: "Shop" },
   { href: "/about", label: "About" },
 ];
 

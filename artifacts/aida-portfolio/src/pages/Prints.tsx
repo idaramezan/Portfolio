@@ -23,15 +23,14 @@ async function fetchPrints(): Promise<FourthwallProduct[]> {
   return res.json();
 }
 
-function formatPrice(price: number | null, currency: string, hasVariants: boolean): string {
-  if (price === null) return "—";
-  const formatted = new Intl.NumberFormat("en-CA", {
+function formatPrice(price: number | null, currency: string): string {
+  if (price === null) return "See shop";
+  return new Intl.NumberFormat("en-CA", {
     style: "currency",
     currency,
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(price);
-  return hasVariants ? `from ${formatted}` : formatted;
 }
 
 function ProductCard({ product, index }: { product: FourthwallProduct; index: number }) {
@@ -85,7 +84,7 @@ function ProductCard({ product, index }: { product: FourthwallProduct; index: nu
 
         <div className="mt-auto flex items-center justify-between gap-4 pt-2">
           <span className="font-hand text-2xl text-ochre">
-            {formatPrice(product.price, product.currency, product.hasVariants)}
+            {formatPrice(product.price, product.currency)}
           </span>
 
           <a
@@ -134,9 +133,9 @@ export default function Prints() {
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24">
       {/* Header */}
       <div className="max-w-3xl mb-16">
-        <h1 className="text-5xl md:text-7xl font-serif text-ink mb-6">Shop &amp; Prints</h1>
+        <h1 className="text-5xl md:text-7xl font-serif text-ink mb-6">Prints, Tees &amp; Mugs</h1>
         <p className="text-xl text-ink/80 font-sans leading-relaxed">
-          Prints, tees, and originals — all made with the same unpolished energy as the paintings. Ships worldwide via Fourthwall.
+          Oil pastel energy on things you actually use. Fine art prints, cozy tees, mugs and more. Every piece ships worldwide straight from the studio via Fourthwall.
         </p>
       </div>
 

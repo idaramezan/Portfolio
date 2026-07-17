@@ -22,13 +22,13 @@ export default function Home() {
           </p>
           <div className="pt-4 flex flex-wrap gap-6">
             <Link 
-              href="/shop" 
+              href="/prints" 
               className="bg-coral text-paper font-serif text-xl px-8 py-4 torn-edge hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
             >
               Enter the Studio
             </Link>
             <Link 
-              href="/shop" 
+              href="/prints" 
               className="bg-transparent text-ink border-2 border-ink font-serif text-xl px-8 py-4 torn-edge-3 hover:bg-ink hover:text-paper transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
             >
               Shop Originals
