@@ -47,7 +47,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex justify-between items-end mb-16">
             <h2 className="text-4xl md:text-5xl font-serif text-paper">Recent Work</h2>
-            <Link href="/shop" className="hidden md:inline-block font-sans text-lg text-paper/80 hover:text-ochre link-underline">
+            <Link href="/gallery" className="hidden md:inline-block font-sans text-lg text-paper/80 hover:text-ochre link-underline">
               View all
             </Link>
           </div>
@@ -69,7 +69,7 @@ export default function Home() {
           </div>
           
           <div className="mt-12 text-center md:hidden">
-            <Link href="/shop" className="font-sans text-lg text-paper/80 hover:text-ochre link-underline">
+            <Link href="/gallery" className="font-sans text-lg text-paper/80 hover:text-ochre link-underline">
               View all works
             </Link>
           </div>

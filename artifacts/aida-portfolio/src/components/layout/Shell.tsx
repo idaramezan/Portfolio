@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Newsletter from "./Newsletter";
 
 const NAV_LINKS = [
+  { href: "/gallery", label: "Gallery" },
   { href: "/prints", label: "Shop" },
   { href: "/about", label: "About" },
 ];
@@ -77,8 +78,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               Self-taught oil pastel artist. Embracing the beauty of imperfection, one smudge at a time.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">Instagram</a>
-              <a href="#" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">TikTok</a>
+              <a href="https://instagram.com/aedaart" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">Instagram</a>
+              <a href="https://tiktok.com/aedapaints" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">TikTok</a>
+              <a href="https://www.youtube.com/@AedaArt" target="_blank" rel="noopener noreferrer" className="font-hand text-xl text-ink hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral">YouTube</a>
             </div>
           </div>
           

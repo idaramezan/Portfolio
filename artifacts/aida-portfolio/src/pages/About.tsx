@@ -46,14 +46,20 @@ export default function About() {
             <div className="mt-16">
               <h3 className="font-serif text-2xl font-bold mb-6">Follow the Studio</h3>
               <div className="flex flex-wrap gap-4">
-                <a href="#" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
+                <a href="https://instagram.com/aedaart" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
                   Instagram
                 </a>
-                <a href="#" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-2 hover:bg-ink hover:text-paper transition-colors">
+                <a href="https://tiktok.com/aedapaints" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-2 hover:bg-ink hover:text-paper transition-colors">
                   TikTok
                 </a>
+                <a href="https://www.youtube.com/@AedaArt" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-3 hover:bg-ink hover:text-paper transition-colors">
+                  YouTube
+                </a>
+                <a href="mailto:idaramezan@gmail.com" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
+                  Email
+                </a>
               </div>
-              <p className="mt-4 font-hand text-2xl text-muted-foreground">@aidaramezani</p>
+              <p className="mt-4 font-hand text-2xl text-muted-foreground">@aedaart</p>
             </div>
           </div>
         </div>
