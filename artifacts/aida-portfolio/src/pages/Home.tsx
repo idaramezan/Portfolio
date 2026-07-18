@@ -47,15 +47,15 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-            {[1, 2, 3].map((idx) => {
+            {([13, 14, 15] as const).map((idx, i) => {
               const rotations = ["rotate-2", "-rotate-3", "rotate-1"];
-              const edges = ["torn-edge", "torn-edge-2", "torn-edge-3"];
+              const edges = ["torn-edge", "torn-edge-2", "torn-edge-3"] as const;
               return (
-                <div key={idx} className={`relative flex flex-col gap-4 transform ${rotations[idx-1]} transition-transform hover:rotate-0 duration-500`}>
+                <div key={idx} className={`relative flex flex-col gap-4 transform ${rotations[i]} transition-transform hover:rotate-0 duration-500`}>
                   <img 
                     src={assetImages[idx]} 
                     alt="Featured artwork" 
-                    className={`w-full aspect-[4/5] object-cover ${edges[idx-1]} shadow-lg`} 
+                    className={`w-full aspect-[4/5] object-cover ${edges[i]} shadow-lg`} 
                   />
                 </div>
               );

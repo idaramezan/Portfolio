@@ -12,9 +12,13 @@ import img0295 from '@assets/IMG_0295_1784324425757.JPG';
 import img0297 from '@assets/IMG_0297_1784324425757.JPG';
 import img0298 from '@assets/IMG_0298_1784324425757.JPG';
 import img0299 from '@assets/IMG_0299_1784324425757.JPG';
+import img0592 from '@assets/IMG_0592_1784393730538.JPG';
+import img0593 from '@assets/IMG_0593_1784393730539.JPG';
+import img0594 from '@assets/IMG_0594_1784393730539.JPG';
 
 export const assetImages = [
-  img0556, img0287, img0288, img0289, img0290, img0291, img0292, img0293, img0294, img0295, img0297, img0298, img0299
+  img0556, img0287, img0288, img0289, img0290, img0291, img0292, img0293, img0294, img0295, img0297, img0298, img0299,
+  img0592, img0593, img0594,
 ];
 
 export const getArtworkImage = (artwork: any, index: number) => {
