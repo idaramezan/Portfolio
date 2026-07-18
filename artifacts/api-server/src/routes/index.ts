@@ -6,6 +6,7 @@ import newsletterRouter from "./newsletter";
 import checkoutRouter from "./checkout";
 import webhooksRouter from "./webhooks";
 import printsRouter from "./prints";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/newsletter", newsletterRouter);
 router.use("/checkout", checkoutRouter);
 router.use("/webhooks", webhooksRouter);
 router.use("/prints", printsRouter);
+router.use("/admin", adminRouter);
 
 export default router;

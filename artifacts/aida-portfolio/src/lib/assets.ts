@@ -21,13 +21,19 @@ export const assetImages = [
   img0592, img0593, img0594,
 ];
 
-export const getArtworkImage = (artwork: any, index: number) => {
+export const getArtworkImage = (artwork: any, index: number): string => {
   if (!artwork.imageUrl) return assetImages[index % assetImages.length];
-  
-  const id = artwork.imageUrl.split('/').pop()?.split('.')[0] || '';
-  const match = assetImages.find(img => img.includes(id));
+
+  // Directly-served URLs: API uploads or external http(s)
+  if (artwork.imageUrl.startsWith('/api/uploads/') || artwork.imageUrl.startsWith('http')) {
+    return artwork.imageUrl;
+  }
+
+  // Legacy: match filename fragment against Vite-imported assets
+  const filename = artwork.imageUrl.split('/').pop()?.split('.')[0] || '';
+  const match = assetImages.find(img => img.includes(filename));
   if (match) return match;
-  
+
   return assetImages[index % assetImages.length];
 };
 

@@ -9,20 +9,29 @@ import Home from '@/pages/Home';
 import Prints from '@/pages/Prints';
 import About from '@/pages/About';
 import Gallery from '@/pages/Gallery';
+import Admin from '@/pages/Admin';
 
 const queryClient = new QueryClient();
 
 function Router() {
   return (
-    <Shell>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/gallery" component={Gallery} />
-        <Route path="/prints" component={Prints} />
-        <Route path="/about" component={About} />
-        <Route component={NotFound} />
-      </Switch>
-    </Shell>
+    <Switch>
+      {/* Admin — no Shell nav/footer */}
+      <Route path="/admin" component={Admin} />
+
+      {/* Public site */}
+      <Route>
+        <Shell>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/gallery" component={Gallery} />
+            <Route path="/prints" component={Prints} />
+            <Route path="/about" component={About} />
+            <Route component={NotFound} />
+          </Switch>
+        </Shell>
+      </Route>
+    </Switch>
   );
 }
 
