@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X } from "lucide-react";
-import { Artwork, useInitiateCheckout } from "@workspace/api-client-react";
+import { Artwork } from "@workspace/api-client-react";
 import { getArtworkImage } from "@/lib/assets";
-import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface ArtworkModalProps {
@@ -12,9 +11,6 @@ interface ArtworkModalProps {
 }
 
 export default function ArtworkModal({ artwork, index, onClose }: ArtworkModalProps) {
-  const checkout = useInitiateCheckout();
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -31,22 +27,7 @@ export default function ArtworkModal({ artwork, index, onClose }: ArtworkModalPr
 
   if (!artwork) return null;
 
-  const handleCheckout = (type: 'original' | 'print') => {
-    checkout.mutate({ data: { type, artworkId: artwork.id } }, {
-      onSuccess: (data) => {
-        if (data.checkoutUrl) {
-          window.location.href = data.checkoutUrl;
-        } else {
-          setToastMessage("Online checkout coming soon! To purchase this piece, email studio@aidaramezani.com");
-          setTimeout(() => setToastMessage(null), 5000);
-        }
-      },
-      onError: () => {
-        setToastMessage("Online checkout coming soon! To purchase this piece, email studio@aidaramezani.com");
-        setTimeout(() => setToastMessage(null), 5000);
-      }
-    });
-  };
+  const mailtoHref = `mailto:idaramezan@gmail.com?subject=Interested in buying "${artwork.title}"&body=Hi%2C%20I%27m%20interested%20in%20buying%20%22${encodeURIComponent(artwork.title)}%22.%20Can%20you%20send%20me%20the%20details%20of%20it%3F`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-12 animate-in fade-in duration-300">
@@ -100,54 +81,16 @@ export default function ArtworkModal({ artwork, index, onClose }: ArtworkModalPr
           
           <div className="mt-auto pt-8 border-t border-ink/10">
             {artwork.status === "SOLD" ? (
-              <div className="flex flex-col items-start gap-4">
-                <div className="transform -rotate-6 bg-transparent border-4 border-coral text-coral px-6 py-2 mix-blend-multiply self-start">
-                  <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">Sold Out</span>
-                </div>
-                {artwork.availableAsPrint && (
-                  <div className="mt-6 w-full">
-                    <p className="font-sans text-sm text-muted-foreground mb-3">Available as a Fine Art Print</p>
-                    <button
-                      onClick={() => handleCheckout('print')}
-                      disabled={checkout.isPending}
-                      className="w-full bg-blue text-paper font-serif font-bold text-xl px-8 py-4 torn-edge hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2"
-                    >
-                      {checkout.isPending ? "Loading..." : "Order a Print"}
-                    </button>
-                  </div>
-                )}
+              <div className="transform -rotate-6 bg-transparent border-4 border-coral text-coral px-6 py-2 mix-blend-multiply self-start inline-block">
+                <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">Sold Out</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
-                <div className="flex items-end justify-between">
-                  <span className="font-sans text-muted-foreground uppercase tracking-widest text-sm font-bold">Original</span>
-                  <span className="font-hand text-5xl text-ochre">{artwork.priceCents ? formatPrice(artwork.priceCents) : "Price on Request"}</span>
-                </div>
-                
-                <button
-                  onClick={() => handleCheckout('original')}
-                  disabled={checkout.isPending}
-                  className="w-full bg-coral text-paper font-serif font-bold text-xl px-8 py-4 torn-edge-2 hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
-                >
-                  {checkout.isPending ? "Loading..." : "Buy Original"}
-                </button>
-                
-                {artwork.availableAsPrint && (
-                  <button
-                    onClick={() => handleCheckout('print')}
-                    disabled={checkout.isPending}
-                    className="w-full bg-transparent text-ink border-2 border-ink font-serif font-bold text-lg px-8 py-3 torn-edge-3 hover:bg-ink hover:text-paper transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                  >
-                    Order a Print Instead
-                  </button>
-                )}
-              </div>
-            )}
-            
-            {toastMessage && (
-              <div className="mt-4 p-4 bg-ochre/20 border-l-4 border-ochre text-ink font-sans text-sm animate-in fade-in slide-in-from-bottom-2">
-                {toastMessage}
-              </div>
+              <a
+                href={mailtoHref}
+                className="block w-full text-center bg-coral text-paper font-serif font-bold text-xl px-8 py-4 torn-edge-2 hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
+              >
+                Buy Original
+              </a>
             )}
           </div>
         </div>
