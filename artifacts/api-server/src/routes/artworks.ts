@@ -32,7 +32,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 // ── GET /artworks ─────────────────────────────────────────────────────────────
 router.get("/", async (req, res) => {
   try {
-    const { status, category, limit } = req.query;
+    const { status, category, forSale, limit } = req.query;
     let query = db.select().from(artworksTable).$dynamic();
 
     if (status && typeof status === "string") {
@@ -40,6 +40,9 @@ router.get("/", async (req, res) => {
     }
     if (category && typeof category === "string") {
       query = query.where(eq(artworksTable.category, category));
+    }
+    if (forSale !== undefined) {
+      query = query.where(eq(artworksTable.forSale, forSale === "true"));
     }
 
     const limitNum = limit ? Math.min(parseInt(limit as string) || 100, 200) : 100;
@@ -80,7 +83,7 @@ router.get("/stats", async (req, res) => {
 // ── POST /artworks — create (admin) ──────────────────────────────────────────
 router.post("/", requireAdmin, async (req, res) => {
   try {
-    const { title, description, medium, sizeInches, year, priceCents, currency, status, category, availableAsPrint, imageUrl } = req.body;
+    const { title, description, medium, sizeInches, year, priceCents, currency, status, category, forSale, availableAsPrint, imageUrl } = req.body;
 
     if (!title) return res.status(400).json({ error: "Title is required" });
 
@@ -96,6 +99,7 @@ router.post("/", requireAdmin, async (req, res) => {
         currency: currency ?? "USD",
         status: status ?? "AVAILABLE",
         category: category ?? "Other",
+        forSale: forSale ?? false,
         availableAsPrint: availableAsPrint ?? false,
         imageUrl: imageUrl ?? "",
       })
@@ -125,7 +129,7 @@ router.get("/:id", async (req, res) => {
 router.patch("/:id", requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { title, description, status, priceCents, category, sizeInches, year, availableAsPrint, printfulProductId } = req.body;
+    const { title, description, status, priceCents, category, sizeInches, year, forSale, availableAsPrint, printfulProductId } = req.body;
 
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
@@ -135,6 +139,7 @@ router.patch("/:id", requireAdmin, async (req, res) => {
     if (category !== undefined) updateData.category = category;
     if (sizeInches !== undefined) updateData.sizeInches = sizeInches;
     if (year !== undefined) updateData.year = Number(year);
+    if (forSale !== undefined) updateData.forSale = forSale;
     if (availableAsPrint !== undefined) updateData.availableAsPrint = availableAsPrint;
     if (printfulProductId !== undefined) updateData.printfulProductId = printfulProductId;
 

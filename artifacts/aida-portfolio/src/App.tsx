@@ -9,6 +9,7 @@ import Home from '@/pages/Home';
 import Prints from '@/pages/Prints';
 import About from '@/pages/About';
 import Gallery from '@/pages/Gallery';
+import ShopOriginals from '@/pages/ShopOriginals';
 import Admin from '@/pages/Admin';
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/gallery" component={Gallery} />
+            <Route path="/originals" component={ShopOriginals} />
             <Route path="/prints" component={Prints} />
             <Route path="/about" component={About} />
             <Route component={NotFound} />

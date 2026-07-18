@@ -6,7 +6,8 @@ import Newsletter from "./Newsletter";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
-  { href: "/prints", label: "Shop" },
+  { href: "/originals", label: "Shop Originals" },
+  { href: "/prints", label: "Prints & Merch" },
   { href: "/about", label: "About" },
 ];
 

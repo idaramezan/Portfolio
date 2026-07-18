@@ -6,22 +6,24 @@ import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Animals", "Other", "Portraits", "Still Life"];
 
-export default function Gallery() {
+export default function ShopOriginals() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selectedArtwork, setSelectedArtwork] = useState<{artwork: Artwork, index: number} | null>(null);
+  const [selectedArtwork, setSelectedArtwork] = useState<{ artwork: Artwork; index: number } | null>(null);
 
-  const queryParams = activeCategory === "All" ? {} : { category: activeCategory };
-  const { data: artworks, isLoading } = useListArtworks(queryParams, { 
-    query: { queryKey: getListArtworksQueryKey(queryParams) } 
+  const queryParams: Record<string, string> = { forSale: "true" };
+  if (activeCategory !== "All") queryParams.category = activeCategory;
+
+  const { data: artworks, isLoading } = useListArtworks(queryParams, {
+    query: { queryKey: getListArtworksQueryKey(queryParams) },
   });
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
         <div>
-          <h1 className="text-5xl md:text-7xl font-serif text-ink mb-4">Gallery</h1>
+          <h1 className="text-5xl md:text-7xl font-serif text-ink mb-4">Shop Originals</h1>
           <p className="text-xl text-muted-foreground font-sans max-w-xl">
-            A complete archive of selected oil pastel works.
+            Own an original oil pastel. Each piece is one-of-a-kind — reach out via WhatsApp to purchase.
           </p>
         </div>
 
@@ -32,14 +34,17 @@ export default function Gallery() {
               onClick={() => setActiveCategory(cat)}
               className={cn(
                 "font-sans text-sm md:text-base px-4 py-2 border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral",
-                activeCategory === cat 
-                  ? "border-ink bg-ink text-paper" 
+                activeCategory === cat
+                  ? "border-ink bg-ink text-paper"
                   : "border-ink/20 text-ink hover:border-ink"
               )}
               style={{
-                clipPath: cat === "All" ? "polygon(2% 0, 100% 2%, 98% 100%, 0 98%)" : 
-                          cat === "Animals" ? "polygon(0 2%, 98% 0, 100% 98%, 2% 100%)" : 
-                          "polygon(1% 1%, 99% 0, 100% 99%, 0 100%)"
+                clipPath:
+                  cat === "All"
+                    ? "polygon(2% 0, 100% 2%, 98% 100%, 0 98%)"
+                    : cat === "Animals"
+                    ? "polygon(0 2%, 98% 0, 100% 98%, 2% 100%)"
+                    : "polygon(1% 1%, 99% 0, 100% 99%, 0 100%)",
               }}
             >
               {cat}
@@ -55,24 +60,18 @@ export default function Gallery() {
       ) : artworks && artworks.length > 0 ? (
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
           {artworks.map((artwork, idx) => (
-            <ArtworkCard 
-              key={artwork.id} 
-              artwork={artwork} 
-              index={idx} 
-              onClick={() => setSelectedArtwork({ artwork, index: idx })} 
+            <ArtworkCard
+              key={artwork.id}
+              artwork={artwork}
+              index={idx}
+              onClick={() => setSelectedArtwork({ artwork, index: idx })}
             />
           ))}
         </div>
       ) : (
         <div className="w-full py-32 flex flex-col items-center justify-center text-center bg-ink/5 torn-edge-2">
-          <h3 className="font-serif text-3xl text-ink mb-4">No artworks found</h3>
-          <p className="text-muted-foreground font-sans text-lg">Try selecting a different category.</p>
-          <button 
-            onClick={() => setActiveCategory("All")}
-            className="mt-8 font-serif text-coral link-underline text-xl"
-          >
-            Clear filters
-          </button>
+          <h3 className="font-serif text-3xl text-ink mb-4">No originals available right now</h3>
+          <p className="text-muted-foreground font-sans text-lg">Check back soon — new work drops regularly.</p>
         </div>
       )}
 
@@ -80,7 +79,7 @@ export default function Gallery() {
         artwork={selectedArtwork?.artwork || null}
         index={selectedArtwork?.index || 0}
         onClose={() => setSelectedArtwork(null)}
-        showBuyButton={false}
+        showBuyButton
       />
     </div>
   );

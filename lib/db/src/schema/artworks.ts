@@ -16,6 +16,7 @@ export const artworksTable = pgTable("artworks", {
   currency: text("currency").notNull().default("USD"),
   status: artworkStatusEnum("status").notNull().default("AVAILABLE"),
   category: text("category").notNull().default("Other"),
+  forSale: boolean("for_sale").notNull().default(false),
   availableAsPrint: boolean("available_as_print").notNull().default(false),
   printfulProductId: text("printful_product_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

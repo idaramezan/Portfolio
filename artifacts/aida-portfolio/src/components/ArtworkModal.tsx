@@ -7,6 +7,8 @@ interface ArtworkModalProps {
   artwork: Artwork | null;
   index: number;
   onClose: () => void;
+  /** Show price + WhatsApp buy button. False in Gallery (showcase), true in Shop Originals. */
+  showBuyButton?: boolean;
 }
 
 // Detect if visitor is from Turkey and return TRY-converted price string
@@ -54,7 +56,7 @@ function formatUSD(amount: number, currency: string) {
   }).format(amount);
 }
 
-export default function ArtworkModal({ artwork, index, onClose }: ArtworkModalProps) {
+export default function ArtworkModal({ artwork, index, onClose, showBuyButton = false }: ArtworkModalProps) {
   const priceDisplay = usePriceDisplay(artwork?.priceCents ?? null, artwork?.currency ?? "USD");
 
   useEffect(() => {
@@ -128,30 +130,32 @@ export default function ArtworkModal({ artwork, index, onClose }: ArtworkModalPr
             </div>
           )}
 
-          <div className="mt-auto pt-8 border-t border-ink/10">
-            {artwork.status === "SOLD" ? (
-              <div className="inline-block transform -rotate-6 border-4 border-coral text-coral px-6 py-2 mix-blend-multiply">
-                <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">Sold Out</span>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {priceDisplay && (
-                  <div className="flex items-end justify-between">
-                    <span className="font-sans text-muted-foreground uppercase tracking-widest text-sm font-bold">Price</span>
-                    <span className="font-hand text-4xl text-ochre">{priceDisplay}</span>
-                  </div>
-                )}
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center bg-coral text-paper font-serif font-bold text-xl px-8 py-4 torn-edge-2 hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
-                >
-                  Buy Original
-                </a>
-              </div>
-            )}
-          </div>
+          {showBuyButton && (
+            <div className="mt-auto pt-8 border-t border-ink/10">
+              {artwork.status === "SOLD" ? (
+                <div className="inline-block transform -rotate-6 border-4 border-coral text-coral px-6 py-2 mix-blend-multiply">
+                  <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">Sold Out</span>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {priceDisplay && (
+                    <div className="flex items-end justify-between">
+                      <span className="font-sans text-muted-foreground uppercase tracking-widest text-sm font-bold">Price</span>
+                      <span className="font-hand text-4xl text-ochre">{priceDisplay}</span>
+                    </div>
+                  )}
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-center bg-coral text-paper font-serif font-bold text-xl px-8 py-4 torn-edge-2 hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
+                  >
+                    Buy Original
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

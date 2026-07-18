@@ -13,7 +13,7 @@ const labelCls = "block font-sans text-xs text-ink/50 mb-1 uppercase tracking-wi
 type ArtRow = {
   id: number; title: string; category: string; year: number;
   sizeInches: string | null; priceCents: number | null; currency: string;
-  status: string; imageUrl: string; medium: string;
+  status: string; imageUrl: string; medium: string; forSale: boolean;
 };
 
 async function adminFetch(path: string, pw: string, opts: RequestInit = {}) {
@@ -42,7 +42,7 @@ export default function Admin() {
 
   // Add form
   const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ title: "", category: "Still Life", year: 2026, sizeInches: "15x10", priceInput: "", status: "AVAILABLE" });
+  const [addForm, setAddForm] = useState({ title: "", category: "Still Life", year: 2026, sizeInches: "15x10", priceInput: "", status: "AVAILABLE", forSale: false });
   const [addFile, setAddFile] = useState<File | null>(null);
   const [addPreview, setAddPreview] = useState<string | null>(null);
   const [addBusy, setAddBusy] = useState(false);
@@ -141,6 +141,7 @@ export default function Admin() {
           sizeInches: addForm.sizeInches || null,
           priceCents: addForm.priceInput === "" ? null : Math.round(Number(addForm.priceInput) * 100),
           status: addForm.status,
+          forSale: addForm.forSale,
           medium: "Oil pastel",
           currency: "USD",
           availableAsPrint: false,
@@ -153,7 +154,7 @@ export default function Admin() {
       const withImage: ArtRow = await adminFetch(`/artworks/${created.id}/image`, pw, { method: "POST", body: fd });
       setArtworks((p) => [...p, withImage]);
       setAddOpen(false);
-      setAddForm({ title: "", category: "Still Life", year: 2026, sizeInches: "15x10", priceInput: "", status: "AVAILABLE" });
+      setAddForm({ title: "", category: "Still Life", year: 2026, sizeInches: "15x10", priceInput: "", status: "AVAILABLE", forSale: false });
       setAddFile(null); setAddPreview(null);
     } catch (e: any) {
       setAddErr("Failed: " + e.message);
@@ -261,6 +262,16 @@ export default function Admin() {
                       {STATUSES.map((s) => <option key={s}>{s}</option>)}
                     </select>
                   </Field>
+                  <label className="flex items-center gap-3 cursor-pointer select-none mt-1">
+                    <input
+                      type="checkbox"
+                      checked={addForm.forSale}
+                      onChange={(e) => setAddForm((p) => ({ ...p, forSale: e.target.checked }))}
+                      className="w-5 h-5 accent-coral"
+                    />
+                    <span className="font-sans text-sm text-ink font-medium">List in Shop Originals</span>
+                    <span className="font-sans text-xs text-ink/40">(shows price + buy button)</span>
+                  </label>
                   {addErr && <p className="text-coral font-sans text-sm">{addErr}</p>}
                   <button
                     onClick={handleAdd}
@@ -344,6 +355,19 @@ export default function Admin() {
                         className={inputCls}
                       />
                     </div>
+                  </div>
+
+                  {/* For Sale toggle */}
+                  <div className="col-span-2 md:col-span-1 flex items-start pt-5">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={ed.forSale !== undefined ? !!ed.forSale : !!art.forSale}
+                        onChange={(e) => setField(art.id, "forSale", e.target.checked)}
+                        className="w-5 h-5 accent-coral"
+                      />
+                      <span className="font-sans text-xs text-ink font-medium leading-tight">Shop<br/>Originals</span>
+                    </label>
                   </div>
 
                   {/* Action buttons */}
