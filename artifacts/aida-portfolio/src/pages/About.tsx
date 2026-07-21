@@ -1,94 +1,89 @@
 import { assetImages } from "@/lib/assets";
 
+const processPrinciples = [
+  "I paint directly with oil pastel.",
+  "No sketches. No digital corrections.",
+  "Fingerprints stay.",
+  "Imperfection is part of the artwork.",
+];
+
 export default function About() {
   return (
     <div className="w-full">
-      {/* Header section */}
-      <section className="bg-ink text-paper py-20 md:py-32 overflow-hidden relative">
-        <div className="absolute right-[-10%] top-[-10%] opacity-10 rotate-[15deg] pointer-events-none mix-blend-overlay">
-          <img src={assetImages[0]} alt="Background texture" className="w-[800px] h-[800px] object-cover blur-sm" />
+      <section className="bg-ink text-paper py-20 md:py-28 overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <img src={assetImages[0]} alt="Background texture" className="w-full h-full object-cover" />
         </div>
-        
         <div className="max-w-4xl mx-auto px-4 md:px-8 relative z-10 text-center">
-          <h1 className="text-5xl md:text-8xl font-serif text-paper mb-12">About the Artist</h1>
-          <p className="text-2xl md:text-4xl font-serif leading-snug text-paper/90 mb-8 max-w-3xl mx-auto italic">
-            "Aida Ramezani is a self-taught artist working in oil pastel. Her work celebrates the beauty of imperfection. Every smudge, every uneven line is intentional. She calls it imperfection art."
+          <p className="text-xs uppercase tracking-[0.4em] text-paper/70 mb-4">About the Artist</p>
+          <h1 className="text-5xl md:text-7xl font-serif text-paper mb-8">A studio practice rooted in presence, texture, and honesty.</h1>
+          <p className="text-xl md:text-2xl font-serif leading-snug text-paper/90 max-w-3xl mx-auto">
+            Aida paints with oil pastel on paper, embracing the marks that come from hands, breath, and the unpredictability of each gesture.
           </p>
         </div>
       </section>
 
-      {/* Main content */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-20 md:py-32">
-        <div className="flex flex-col md:flex-row gap-16 md:gap-24 items-center">
-          <div className="flex-1 w-full order-2 md:order-1 relative">
-            <div className="absolute inset-0 bg-blue/10 transform rotate-3 scale-105 torn-edge-3 -z-10"></div>
-            <img 
-              src={assetImages[1]} 
-              alt="Artist workspace" 
-              className="w-full aspect-[4/5] object-cover torn-edge shadow-xl transform -rotate-2"
-            />
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-20 md:py-24">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] items-start">
+          <div className="space-y-6">
+            <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">About the Artist</p>
+            <h2 className="text-4xl font-serif text-ink">A self-taught practice that celebrates the handmade.</h2>
+            <p className="text-lg text-ink/80 leading-relaxed">
+              She began painting without formal training, drawn to the immediacy and sensitivity of oil pastel. Every mark is a choice, every smudge is kept, and the final work carries the trace of a hand that made it.
+            </p>
           </div>
-          
-          <div className="flex-1 order-1 md:order-2">
-            <h2 className="text-4xl md:text-6xl font-serif text-ink mb-8">The Process</h2>
-            <div className="space-y-6 font-sans text-xl text-ink/80 leading-relaxed">
-              <p>
-                "I've never had formal training. I paint from feeling, not technique. The oil pastel is unforgiving and immediate. You can't undo it. That's what I love about it."
-              </p>
-              <p>
-                Every piece begins as an emotional impulse. I don't sketch perfectly measured outlines or mix pristine colors on a palette. I push raw pigment directly onto paper, using my hands to blend, smudge, and scrape.
-              </p>
-              <p>
-                The resulting textures, the accidental color mixes, the fingerprints left behind. These aren't mistakes to be covered up. They are the record of a human being making something. In a world increasingly obsessed with flawless digital generation, I want to make art that is stubbornly, irreducibly analog.
+
+          <div className="space-y-6">
+            <div className="rounded-none border border-ink/10 bg-paper p-8">
+              <h3 className="font-serif text-2xl text-ink mb-4">Materials</h3>
+              <p className="text-ink/80 leading-relaxed">
+                Pigment is layered, blended, and pushed into paper. The work is made with oil pastel, textured paper, and simple studio tools — no edits, no filters, no digital smoothing.
               </p>
             </div>
-            
-            <div className="mt-16">
-              <h3 className="font-serif text-2xl font-bold mb-6">Follow the Studio</h3>
-              <div className="flex flex-wrap gap-4">
-                <a href="https://instagram.com/aedaart" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
-                  Instagram
-                </a>
-                <a href="https://www.tiktok.com/@aedapaints?_r=1&_t=ZS-987Z29KJiK4" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-2 hover:bg-ink hover:text-paper transition-colors">
-                  TikTok
-                </a>
-                <a href="https://www.youtube.com/@AedaArt" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge-3 hover:bg-ink hover:text-paper transition-colors">
-                  YouTube
-                </a>
-                <a href="mailto:idaramezan@gmail.com" className="flex items-center justify-center gap-3 bg-paper border-2 border-ink px-6 py-4 font-serif text-xl torn-edge hover:bg-ink hover:text-paper transition-colors">
-                  Email
-                </a>
-              </div>
-              <p className="mt-4 font-hand text-2xl text-muted-foreground">@aedaart</p>
+            <div className="rounded-none border border-ink/10 bg-paper p-8">
+              <h3 className="font-serif text-2xl text-ink mb-4">Philosophy</h3>
+              <p className="text-ink/80 leading-relaxed">
+                Aida makes work that feels lived-in, imperfect, and quietly precious. Each piece is offered as a collectible object, not a commodity.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Visual Texture Grid */}
-      <section className="bg-ochre py-24 px-4 md:px-8 overflow-hidden relative border-t-8 border-ink">
-        {/* Wavy edge top using SVG */}
-        <div className="absolute top-0 left-0 w-full h-8 overflow-hidden leading-[0] -mt-[1px]">
-          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-[calc(100%+1.3px)] h-[32px] transform rotate-180">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-ink"></path>
-          </svg>
+      <section className="bg-paper border-t border-b border-ink/10 py-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 grid gap-12 lg:grid-cols-[0.8fr_1.2fr] items-start">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Process</p>
+            <h2 className="mt-4 text-4xl font-serif text-ink">A handful of studio principles</h2>
+          </div>
+          <div className="space-y-4">
+            <p className="text-lg text-ink/80 leading-relaxed">
+              The work is made with immediacy. It’s not polished. It’s made to feel as if the paper has been pulled from a handmade sketchbook and left to breathe.
+            </p>
+            <ul className="grid gap-3 text-ink/80 text-sm leading-relaxed list-disc list-inside">
+              {processPrinciples.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
         </div>
+      </section>
 
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-center font-hand text-5xl text-ink mb-16 rotate-[-2deg]">Details & Textures</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {[3, 4, 7, 8].map((imgIndex, i) => {
-              const rotations = ["rotate-3", "-rotate-6", "rotate-2", "-rotate-2"];
-              return (
-                <div key={i} className={`aspect-square overflow-hidden border-4 border-paper shadow-2xl transform ${rotations[i]}`}>
-                  <img 
-                    src={assetImages[imgIndex]} 
-                    alt={`Texture detail ${i+1}`} 
-                    className="w-full h-full object-cover scale-150 transform hover:scale-100 transition-transform duration-1000"
-                  />
-                </div>
-              );
-            })}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-24">
+        <div className="grid gap-10 lg:grid-cols-[1fr_0.95fr] items-start">
+          <div className="space-y-6">
+            <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Studio</p>
+            <h2 className="text-4xl font-serif text-ink">The room where the work is made</h2>
+            <p className="text-lg text-ink/80 leading-relaxed">
+              The studio is a quiet place with taped edges, layered paper, and the slow accumulation of material. Every parcel is packed with care, signed, and sent from here.
+            </p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {[1, 2, 3, 4].map((idx) => (
+              <div key={idx} className="overflow-hidden rounded-none border border-ink/10 bg-ink/5">
+                <img src={assetImages[idx]} alt={`Studio detail ${idx}`} className="w-full h-full object-cover" />
+              </div>
+            ))}
           </div>
         </div>
       </section>

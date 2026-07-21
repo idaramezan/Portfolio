@@ -117,6 +117,8 @@ export default function Events() {
     query: { queryKey: getListEventsQueryKey({ upcoming: true }) } 
   });
 
+  const validEvents = Array.isArray(events) ? events : [];
+
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-12 md:py-24">
       <div className="mb-16">
@@ -130,9 +132,9 @@ export default function Events() {
         <div className="w-full h-64 flex items-center justify-center">
           <div className="font-hand text-3xl text-ink animate-pulse">Checking the calendar...</div>
         </div>
-      ) : events && events.length > 0 ? (
+      ) : validEvents.length > 0 ? (
         <div className="flex flex-col gap-12">
-          {events.map((event, idx) => (
+          {validEvents.map((event, idx) => (
             <EventCard key={event.id} event={event} index={idx} />
           ))}
         </div>

@@ -22,21 +22,26 @@ export default function Newsletter({ className }: { className?: string }) {
   return (
     <div className={cn("bg-ochre/10 p-6 md:p-8 torn-edge-2 relative", className)}>
       <h3 className="font-hand text-3xl md:text-4xl text-ink mb-2 -rotate-2 origin-left">
-        Stay in the loop
+        Join the Studio Letter
       </h3>
       
       {submitted ? (
         <div className="py-8 animate-in fade-in zoom-in duration-500">
           <p className="font-sans text-lg text-ink">
-            You're in! Expect occasional updates on new work and events.
+            You're in. Expect early access to new collections, studio updates, and behind-the-scenes notes.
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-          <p className="font-sans text-sm text-muted-foreground mb-2">
-            Join the studio newsletter for early access to new collections.
+          <p className="font-sans text-sm text-muted-foreground mb-4">
+            A monthly note from the studio with:
           </p>
-          <div className="flex flex-col gap-3">
+          <ul className="space-y-2 text-sm text-ink/80 list-disc list-inside ml-3">
+            <li>Early access to new originals</li>
+            <li>Studio updates and behind-the-scenes stories</li>
+            <li>First notice of limited collections</li>
+          </ul>
+          <div className="flex flex-col gap-3 mt-6">
             <input
               type="text"
               placeholder="First name (optional)"
@@ -56,9 +61,9 @@ export default function Newsletter({ className }: { className?: string }) {
           <button
             type="submit"
             disabled={subscribe.isPending}
-            className="mt-2 bg-ink text-paper font-serif font-bold text-lg px-6 py-3 hover:bg-coral transition-colors torn-edge-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-2 rounded-none bg-ink text-paper font-serif font-bold text-lg px-6 py-3 hover:bg-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {subscribe.isPending ? "Subscribing..." : "Subscribe"}
+            {subscribe.isPending ? "Joining..." : "Join"}
           </button>
         </form>
       )}

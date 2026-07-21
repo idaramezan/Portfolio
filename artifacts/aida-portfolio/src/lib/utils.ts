@@ -11,3 +11,7 @@ export function formatPrice(cents: number) {
     currency: 'USD',
   }).format(cents / 100);
 }
+
+export function safeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? value : [];
+}
