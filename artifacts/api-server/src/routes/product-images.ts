@@ -19,6 +19,7 @@ router.get("/product-images/:id", async (request, response) => {
       "Content-Length": String(image.byte_size),
       "Cache-Control": "public, max-age=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
+      "X-Product-Image-Storage": "postgres",
     });
     return response.send(image.data);
   } catch (error) {
