@@ -457,6 +457,10 @@ components:
         createdAt:
           type: string
           format: date-time
+        emailSent:
+          type: boolean
+        alreadySubscribed:
+          type: boolean
 
     NewsletterInput:
       type: object
@@ -467,3 +471,13 @@ components:
           type: string
         name:
           type: string
+        locale:
+          type: string
+          enum: [en, tr]
+        source:
+          type: string
+          enum:
+            [homepage, turkiye-shop, international-shop, mystery-mail, footer]
+        subscribedAt:
+          type: string
+          format: date-time

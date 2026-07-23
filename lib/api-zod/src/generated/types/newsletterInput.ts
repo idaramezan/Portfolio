@@ -9,4 +9,12 @@
 export interface NewsletterInput {
   email: string;
   name?: string;
+  locale?: "en" | "tr";
+  source?:
+    | "homepage"
+    | "turkiye-shop"
+    | "international-shop"
+    | "mystery-mail"
+    | "footer";
+  subscribedAt?: string;
 }

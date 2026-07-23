@@ -11,13 +11,10 @@ import {
   getMysteryMailCountdown,
   getMysteryMailUrgency,
 } from "@/lib/mystery-mail";
-import {
-  addItemToCart,
-  DEFAULT_MYSTERY_MAIL_EMPTY_STATE,
-  setActiveShoppingRegion,
-} from "@/lib/store";
+import { addItemToCart, setActiveShoppingRegion } from "@/lib/store";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useLocale } from "@/lib/locale";
+import StudioLetterSignup from "@/components/StudioLetterSignup";
 
 const TITLE = "Mystery Mail Art Package in Türkiye | Aida Ramezani";
 const DESCRIPTION =
@@ -26,6 +23,48 @@ const CANONICAL_PATH = "/shop/turkiye/mystery-mail";
 const EMPTY_TITLE = "Mystery Mail Art Editions | Aida Ramezani";
 const EMPTY_DESCRIPTION =
   "Discover Aida Ramezani’s limited Mystery Mail art editions, released for a short time with exclusive art postcards, stickers and studio surprises in Türkiye.";
+
+const MYSTERY_NEWSLETTER_COPY = {
+  en: {
+    comingEyebrow: "THE NEXT MYSTERY IS BEING PREPARED",
+    comingHeading: "The next Mystery Mail is still sealed.",
+    comingBody:
+      "Aida is preparing a new limited parcel with an exclusive mini print and a few unrevealed studio surprises. Join the free Studio Letter and be among the first to know when it becomes available.",
+    reassurance: "One-time purchase. Never a subscription.",
+    comingSubmit: "Tell me when it opens",
+    comingTrust:
+      "Free to join. You’ll also receive occasional stories and updates from Aida’s studio.",
+    closedEyebrow: "THIS EDITION HAS CLOSED",
+    closedHeading: "This Mystery Mail has left the studio.",
+    closedBody:
+      "This limited edition is no longer available. Join the free Studio Letter to hear about the next Mystery Mail before it opens.",
+    closedSubmit: "Be first to know",
+    secondaryHeading: "Want first notice of the next edition?",
+    secondaryBody:
+      "Join the free Studio Letter for early news about future Mystery Mail releases and new work from the studio.",
+    secondarySubmit: "Join the Studio Letter",
+  },
+  tr: {
+    comingEyebrow: "YENİ GİZEM HAZIRLANIYOR",
+    comingHeading: "Yeni Mystery Mail henüz mühürlü.",
+    comingBody:
+      "Aida; yalnızca bu edisyona özel bir mini baskı ve henüz açıklanmayan birkaç atölye sürprizi içeren yeni, sınırlı bir paket hazırlıyor. Satışa çıktığında ilk öğrenenlerden olmak için ücretsiz Stüdyo Mektubu’na katıl.",
+    reassurance: "Tek seferlik satın alma. Abonelik değildir.",
+    comingSubmit: "Satışa çıktığında haber ver",
+    comingTrust:
+      "Katılım ücretsizdir. Ayrıca Aida’nın atölyesinden ara sıra hikâyeler ve güncellemeler alırsın.",
+    closedEyebrow: "BU EDİSYON SONA ERDİ",
+    closedHeading: "Bu Mystery Mail atölyeden ayrıldı.",
+    closedBody:
+      "Bu sınırlı edisyon artık satışta değil. Yeni Mystery Mail açılmadan önce haberdar olmak için ücretsiz Stüdyo Mektubu’na katıl.",
+    closedSubmit: "İlk öğrenenlerden ol",
+    secondaryHeading:
+      "Bir sonraki edisyonu ilk öğrenenlerden olmak ister misin?",
+    secondaryBody:
+      "Gelecek Mystery Mail edisyonlarından ve atölyedeki yeni çalışmalardan erken haberdar olmak için ücretsiz Stüdyo Mektubu’na katıl.",
+    secondarySubmit: "Stüdyo Mektubu’na katıl",
+  },
+} as const;
 
 function upsertMeta(selector: string, attributes: Record<string, string>) {
   let element = document.head.querySelector(selector) as HTMLMetaElement | null;
@@ -40,9 +79,7 @@ function upsertMeta(selector: string, attributes: Record<string, string>) {
 }
 
 function ShopTabs() {
-  return (
-    <ShopPageHeader region="TR" />
-  );
+  return <ShopPageHeader region="TR" />;
 }
 
 export function CompactCountdown({ remaining }: { remaining: number }) {
@@ -140,9 +177,7 @@ export default function MysteryMail() {
       : current.title
     : "The next secret is taking shape.";
   const displayName =
-    locale === "tr" && current?.titleTr
-      ? current.titleTr
-      : englishDisplayName;
+    locale === "tr" && current?.titleTr ? current.titleTr : englishDisplayName;
   const localizedTeaser =
     locale === "tr" && current?.shortDescriptionTr
       ? current.shortDescriptionTr
@@ -365,51 +400,55 @@ export default function MysteryMail() {
     [],
   );
 
-  if (betweenEditions) {
-    const empty = {
-      ...DEFAULT_MYSTERY_MAIL_EMPTY_STATE,
-      ...settings.mysteryMail.emptyState,
-    };
+  if (betweenEditions || closed || soldOut) {
+    const copy = MYSTERY_NEWSLETTER_COPY[locale];
+    const isClosed = Boolean(current) && (closed || soldOut);
     return (
       <div>
         <ShopTabs />
-        <section className="bg-ink text-paper">
+        <section className="bg-ink text-paper" data-no-translate>
           <div className="section-shell mystery-mail-hero-grid">
             <div className="self-center">
-              <p className="eyebrow !text-paper/55">{empty.eyebrow}</p>
+              <p className="eyebrow !text-coral">
+                {isClosed ? copy.closedEyebrow : copy.comingEyebrow}
+              </p>
               <h1 className="mt-4 max-w-3xl text-5xl text-paper md:text-7xl">
-                {empty.heading}
+                {isClosed ? copy.closedHeading : copy.comingHeading}
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/75">
-                {empty.description}
+                {isClosed ? copy.closedBody : copy.comingBody}
               </p>
-              <p className="mt-5 max-w-xl text-sm font-semibold text-paper/60">
-                {empty.supportingLine}
-              </p>
-              <div className="mt-7 flex flex-wrap items-center gap-5">
-                <Link href={empty.primaryCtaUrl} className="button-primary">
-                  {empty.primaryCtaLabel}
-                </Link>
-                <a
-                  href={settings.siteLinks.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold text-paper underline underline-offset-4"
-                >
-                  Follow the studio for the next reveal
-                </a>
-              </div>
+              {!isClosed && (
+                <p className="mt-5 max-w-xl text-sm font-semibold text-paper/60">
+                  {copy.reassurance}
+                </p>
+              )}
             </div>
-            <div className="relative min-w-0 overflow-hidden border border-paper/15 bg-[#24231f]">
+            <div className="min-w-0 border border-paper/15 bg-[#24231f]">
               <img
                 src={mysteryMailCoverImage}
                 alt="A sealed Mystery Mail art parcel from Aida Ramezani’s studio between editions."
-                className="aspect-[4/3] w-full object-cover opacity-75 contrast-75"
+                className="aspect-[16/9] w-full object-cover opacity-70 contrast-75"
               />
-              <div
-                className="pointer-events-none absolute inset-0 bg-[#a67855]/10"
-                aria-hidden="true"
-              />
+              <div className="border-t border-paper/15 p-5 md:p-7">
+                <StudioLetterSignup
+                  variant="compact"
+                  context="mystery-mail"
+                  dark
+                  submitLabel={{
+                    en: isClosed
+                      ? MYSTERY_NEWSLETTER_COPY.en.closedSubmit
+                      : MYSTERY_NEWSLETTER_COPY.en.comingSubmit,
+                    tr: isClosed
+                      ? MYSTERY_NEWSLETTER_COPY.tr.closedSubmit
+                      : MYSTERY_NEWSLETTER_COPY.tr.comingSubmit,
+                  }}
+                  trustText={{
+                    en: MYSTERY_NEWSLETTER_COPY.en.comingTrust,
+                    tr: MYSTERY_NEWSLETTER_COPY.tr.comingTrust,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -430,51 +469,19 @@ export default function MysteryMail() {
             <h1 className="mt-4 max-w-3xl text-5xl text-paper md:text-7xl">
               {displayName}
             </h1>
-            {closed ? (
-              <>
-                <p className="eyebrow mt-6 !text-coral">
-                  This edition is closed
-                </p>
-                <p className="mt-3 max-w-xl text-lg text-paper/75">
-                  This Mystery Mail is no longer available.
-                  <br />
-                  <br />
-                  The next edition will appear when something new is ready in
-                  the studio.
-                </p>
-              </>
-            ) : soldOut ? (
-              <>
-                <p className="eyebrow mt-6 !text-coral">Sold out</p>
-                <p className="mt-3 max-w-xl text-lg text-paper/75">
-                  This edition found all of its collectors before the closing
-                  date.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="mt-5 max-w-xl text-lg leading-relaxed text-paper/75">
-                  {localizedTeaser || "A sealed art parcel from Aida’s Istanbul studio."}
-                </p>
-                <p className="mt-3 max-w-xl leading-relaxed text-paper/75">
-                  Inside is one exclusive art postcard created only for this
-                  edition, studio stickers and a few small surprises that remain
-                  secret until the parcel reaches you.
-                </p>
-                <p className="mt-5 text-sm font-semibold text-paper/65">
-                  One-time purchase · Not a subscription · Free shipping within
-                  Türkiye
-                </p>
-              </>
-            )}
-            {(closed || soldOut) && (
-              <Link
-                href="/shop/turkiye"
-                className="button-secondary mt-7 !border-paper/35 !text-paper"
-              >
-                Explore the Türkiye Shop
-              </Link>
-            )}
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-paper/75">
+              {localizedTeaser ||
+                "A sealed art parcel from Aida’s Istanbul studio."}
+            </p>
+            <p className="mt-3 max-w-xl leading-relaxed text-paper/75">
+              Inside is one exclusive art postcard created only for this
+              edition, studio stickers and a few small surprises that remain
+              secret until the parcel reaches you.
+            </p>
+            <p className="mt-5 text-sm font-semibold text-paper/65">
+              One-time purchase · Not a subscription · Free shipping within
+              Türkiye
+            </p>
           </div>
 
           <div className="min-w-0">
@@ -511,13 +518,7 @@ export default function MysteryMail() {
                   onClick={add}
                   className={`button-primary mt-5 w-auto min-w-64 disabled:opacity-70 ${added ? "!bg-green !text-paper" : ""}`}
                 >
-                  {added
-                    ? "Added to the basket"
-                    : active
-                      ? "Add Mystery Mail to basket"
-                      : soldOut
-                        ? "Sold out"
-                        : "Edition closed"}
+                  {added ? "Added to the basket" : "Add Mystery Mail to basket"}
                 </button>
                 <p className="mt-3 text-xs text-paper/55">
                   Your selection is confirmed personally with Aida on WhatsApp.
@@ -531,6 +532,31 @@ export default function MysteryMail() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      <section
+        className="section-shell !py-10"
+        aria-labelledby="mystery-next-edition-heading"
+        data-no-translate
+      >
+        <div className="grid items-center gap-7 border-l-2 border-coral bg-ochre/10 p-6 md:grid-cols-[1fr_minmax(320px,.8fr)] md:p-8">
+          <div>
+            <h2 id="mystery-next-edition-heading" className="text-3xl">
+              {MYSTERY_NEWSLETTER_COPY[locale].secondaryHeading}
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/65">
+              {MYSTERY_NEWSLETTER_COPY[locale].secondaryBody}
+            </p>
+          </div>
+          <StudioLetterSignup
+            variant="compact"
+            context="mystery-mail"
+            submitLabel={{
+              en: MYSTERY_NEWSLETTER_COPY.en.secondarySubmit,
+              tr: MYSTERY_NEWSLETTER_COPY.tr.secondarySubmit,
+            }}
+          />
         </div>
       </section>
 

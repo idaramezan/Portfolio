@@ -5,6 +5,7 @@ import { productRepository } from "@/lib/productRepository";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
+import StudioLetterSignup from "@/components/StudioLetterSignup";
 import turkiyeFlagBackground from "@assets/home-turkiye-flag.jpg";
 import internationalFlagsBackground from "@assets/home-international-flags.jpg";
 
@@ -105,8 +106,8 @@ export default function Home() {
                 <p className="eyebrow">International</p>
                 <h3 className="mt-3 text-3xl">Shop internationally</h3>
                 <p className="mt-4 flex-1 leading-relaxed text-ink/70">
-                  Collect an original directly from Aida or explore international
-                  prints available through Fourthwall.
+                  Collect an original directly from Aida or explore
+                  international prints available through Fourthwall.
                 </p>
                 <p className="mt-5 text-sm font-semibold">
                   Originals · International Prints
@@ -128,6 +129,8 @@ export default function Home() {
       </section>
 
       <TikTokLiveSection tiktokUrl={links.tiktokUrl} />
+
+      <StudioLetterSignup variant="editorial" context="home" />
 
       <section className="border-y border-ink/10 bg-ochre/10">
         <div className="section-shell grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">

@@ -25,6 +25,7 @@ import {
 } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { originalDetailHref } from "@/lib/market";
+import StudioLetterSignup from "@/components/StudioLetterSignup";
 
 const turkiyeFaq = [
   [
@@ -255,13 +256,13 @@ function MysteryFeature() {
             {localizedTitle}
           </h2>
           <p className="mt-5 text-paper/70">{localizedTeaser}</p>
-        <Money
-          baseAmountUsdCents={edition.priceUsdCents}
-          canonicalCurrency="TRY"
-          className="mt-5 block text-2xl font-bold"
-          />
           {active && (
             <>
+              <Money
+                baseAmountUsdCents={edition.priceUsdCents}
+                canonicalCurrency="TRY"
+                className="mt-5 block text-2xl font-bold"
+              />
               <p className="eyebrow mt-7 !text-paper/60">Ends in</p>
               <div className="mt-3 grid grid-cols-2 border border-paper/15 sm:grid-cols-4">
                 {Object.entries(parts).map(([label, value]) => (
@@ -280,7 +281,9 @@ function MysteryFeature() {
               </div>
             </>
           )}
-          <p className="sr-only">Orders close on {deadline} Istanbul time.</p>
+          {active && (
+            <p className="sr-only">Orders close on {deadline} Istanbul time.</p>
+          )}
           {active ? (
             <Link
               href="/shop/turkiye/mystery-mail"
@@ -488,6 +491,10 @@ export default function RegionalLanding({
           </Link>
         </section>
       )}
+      <StudioLetterSignup
+        variant="editorial"
+        context={tr ? "turkiye" : "international"}
+      />
       {tr ? (
         <section className="section-shell">
           <p className="eyebrow">How collecting works</p>

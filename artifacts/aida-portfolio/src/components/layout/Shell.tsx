@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Menu, ShoppingBag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Newsletter from "./Newsletter";
+import { studioLetterCopy } from "@/components/StudioLetterSignup";
 import CartDrawer from "@/components/CartDrawer";
 import {
   getCartCount,
@@ -43,6 +44,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       : "TR";
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
   const { locale, setLocale } = useLocale();
+  const newsletterCopy = studioLetterCopy[locale];
   const siteLinks = loadShopSettings().siteLinks;
 
   useEffect(() => {
@@ -129,9 +131,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-            <label className="sr-only" htmlFor="language-select">Language</label>
-            <select id="language-select" value={locale} onChange={(event) => setLocale(event.target.value as "en" | "tr")} className="min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral" aria-label="Language">
-              <option value="tr">TR</option><option value="en">EN</option>
+            <label className="sr-only" htmlFor="language-select">
+              Language
+            </label>
+            <select
+              id="language-select"
+              value={locale}
+              onChange={(event) => setLocale(event.target.value as "en" | "tr")}
+              className="min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral"
+              aria-label="Language"
+            >
+              <option value="tr">TR</option>
+              <option value="en">EN</option>
             </select>
             <button
               ref={menuButtonRef}
@@ -169,8 +180,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div className="mb-6 border-b border-ink/10 pb-6">
               <label className="text-xs font-bold uppercase tracking-wider">
                 Language
-                <select value={locale} onChange={(event) => setLocale(event.target.value as "en" | "tr")} className="mt-2 min-h-11 w-full border border-ink/15 bg-paper px-3">
-                  <option value="tr">Türkçe</option><option value="en">English</option>
+                <select
+                  value={locale}
+                  onChange={(event) =>
+                    setLocale(event.target.value as "en" | "tr")
+                  }
+                  className="mt-2 min-h-11 w-full border border-ink/15 bg-paper px-3"
+                >
+                  <option value="tr">Türkçe</option>
+                  <option value="en">English</option>
                 </select>
               </label>
             </div>
@@ -290,15 +308,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <section
             className="footer-newsletter"
             aria-labelledby="studio-letter-heading"
+            data-no-translate
           >
             <p className="footer-eyebrow footer-eyebrow--accent">
-              Studio Letter
+              {newsletterCopy.footerHeading}
             </p>
-            <h2 id="studio-letter-heading">Notes from the studio.</h2>
-            <p>
-              Occasional studio updates, early access to new originals, and
-              first notice of limited editions.
-            </p>
+            <h2 id="studio-letter-heading">{newsletterCopy.footerHeading}</h2>
+            <p>{newsletterCopy.footerSubheading}</p>
             <Newsletter />
           </section>
         </div>

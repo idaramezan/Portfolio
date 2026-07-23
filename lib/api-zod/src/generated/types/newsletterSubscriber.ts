@@ -10,4 +10,6 @@ export interface NewsletterSubscriber {
   id: number;
   email: string;
   createdAt: Date;
+  emailSent?: boolean;
+  alreadySubscribed?: boolean;
 }

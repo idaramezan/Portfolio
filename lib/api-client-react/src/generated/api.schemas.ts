@@ -13,13 +13,12 @@ export interface ErrorResponse {
   error: string;
 }
 
-export type ArtworkStatus = typeof ArtworkStatus[keyof typeof ArtworkStatus];
-
+export type ArtworkStatus = (typeof ArtworkStatus)[keyof typeof ArtworkStatus];
 
 export const ArtworkStatus = {
-  AVAILABLE: 'AVAILABLE',
-  SOLD: 'SOLD',
-  RESERVED: 'RESERVED',
+  AVAILABLE: "AVAILABLE",
+  SOLD: "SOLD",
+  RESERVED: "RESERVED",
 } as const;
 
 export interface Artwork {
@@ -43,13 +42,13 @@ export interface Artwork {
   createdAt: string;
 }
 
-export type ArtworkUpdateStatus = typeof ArtworkUpdateStatus[keyof typeof ArtworkUpdateStatus];
-
+export type ArtworkUpdateStatus =
+  (typeof ArtworkUpdateStatus)[keyof typeof ArtworkUpdateStatus];
 
 export const ArtworkUpdateStatus = {
-  AVAILABLE: 'AVAILABLE',
-  SOLD: 'SOLD',
-  RESERVED: 'RESERVED',
+  AVAILABLE: "AVAILABLE",
+  SOLD: "SOLD",
+  RESERVED: "RESERVED",
 } as const;
 
 export interface ArtworkUpdate {
@@ -112,29 +111,38 @@ export interface NewsletterSubscriber {
   id: number;
   email: string;
   createdAt: string;
+  emailSent?: boolean;
+  alreadySubscribed?: boolean;
 }
 
 export interface NewsletterInput {
   email: string;
   name?: string;
+  locale?: "en" | "tr";
+  source?:
+    | "homepage"
+    | "turkiye-shop"
+    | "international-shop"
+    | "mystery-mail"
+    | "footer";
+  subscribedAt?: string;
 }
 
 export type ListArtworksParams = {
-status?: ListArtworksStatus;
-category?: string;
-limit?: number;
+  status?: ListArtworksStatus;
+  category?: string;
+  limit?: number;
 };
 
-export type ListArtworksStatus = typeof ListArtworksStatus[keyof typeof ListArtworksStatus];
-
+export type ListArtworksStatus =
+  (typeof ListArtworksStatus)[keyof typeof ListArtworksStatus];
 
 export const ListArtworksStatus = {
-  AVAILABLE: 'AVAILABLE',
-  SOLD: 'SOLD',
-  RESERVED: 'RESERVED',
+  AVAILABLE: "AVAILABLE",
+  SOLD: "SOLD",
+  RESERVED: "RESERVED",
 } as const;
 
 export type ListEventsParams = {
-upcoming?: boolean;
+  upcoming?: boolean;
 };
-
