@@ -492,7 +492,7 @@ export default function RegionalLanding({
         </section>
       )}
       <StudioLetterSignup
-        variant="editorial"
+        variant="story-preview"
         context={tr ? "turkiye" : "international"}
       />
       {tr ? (

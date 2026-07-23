@@ -130,7 +130,7 @@ export default function Home() {
 
       <TikTokLiveSection tiktokUrl={links.tiktokUrl} />
 
-      <StudioLetterSignup variant="editorial" context="home" />
+      <StudioLetterSignup variant="story-preview" context="home" />
 
       <section className="border-y border-ink/10 bg-ochre/10">
         <div className="section-shell grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">

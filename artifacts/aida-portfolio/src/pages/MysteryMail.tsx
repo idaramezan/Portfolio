@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { BadgeCheck, Check, PackageCheck, ShieldCheck } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  Mail,
+  PackageCheck,
+  ShieldCheck,
+} from "lucide-react";
 import { Link } from "wouter";
 import Money from "@/components/Money";
 import { ShopPageHeader } from "@/components/RegionalShop";
@@ -26,12 +32,12 @@ const EMPTY_DESCRIPTION =
 
 const MYSTERY_NEWSLETTER_COPY = {
   en: {
-    comingEyebrow: "THE NEXT MYSTERY IS BEING PREPARED",
-    comingHeading: "The next Mystery Mail is still sealed.",
+    comingEyebrow: "THE NEXT MYSTERY IS FORMING",
+    comingHeading: "Be first to know when the next Mystery Mail opens.",
     comingBody:
-      "Aida is preparing a new limited parcel with an exclusive mini print and a few unrevealed studio surprises. Join the free Studio Letter and be among the first to know when it becomes available.",
+      "Aida is preparing a new sealed art parcel with an exclusive mini print and a few unrevealed studio surprises. Join the free Studio Letter and receive first notice when the next edition becomes available.",
     reassurance: "One-time purchase. Never a subscription.",
-    comingSubmit: "Tell me when it opens",
+    comingSubmit: "Notify me through the Studio Letter",
     comingTrust:
       "Free to join. You’ll also receive occasional stories and updates from Aida’s studio.",
     closedEyebrow: "THIS EDITION HAS CLOSED",
@@ -46,11 +52,11 @@ const MYSTERY_NEWSLETTER_COPY = {
   },
   tr: {
     comingEyebrow: "YENİ GİZEM HAZIRLANIYOR",
-    comingHeading: "Yeni Mystery Mail henüz mühürlü.",
+    comingHeading: "Yeni Mystery Mail açıldığında ilk öğrenenlerden ol.",
     comingBody:
-      "Aida; yalnızca bu edisyona özel bir mini baskı ve henüz açıklanmayan birkaç atölye sürprizi içeren yeni, sınırlı bir paket hazırlıyor. Satışa çıktığında ilk öğrenenlerden olmak için ücretsiz Stüdyo Mektubu’na katıl.",
+      "Aida; yalnızca bu edisyona özel bir mini baskı ve henüz açıklanmayan birkaç atölye sürprizi içeren yeni, mühürlü bir sanat paketi hazırlıyor. Yeni edisyon satışa çıktığında ilk haberi almak için ücretsiz Stüdyo Mektubu’na katıl.",
     reassurance: "Tek seferlik satın alma. Abonelik değildir.",
-    comingSubmit: "Satışa çıktığında haber ver",
+    comingSubmit: "Stüdyo Mektubu ile haber ver",
     comingTrust:
       "Katılım ücretsizdir. Ayrıca Aida’nın atölyesinden ara sıra hikâyeler ve güncellemeler alırsın.",
     closedEyebrow: "BU EDİSYON SONA ERDİ",
@@ -400,29 +406,67 @@ export default function MysteryMail() {
     [],
   );
 
-  if (betweenEditions || closed || soldOut) {
+  if (betweenEditions) {
     const copy = MYSTERY_NEWSLETTER_COPY[locale];
-    const isClosed = Boolean(current) && (closed || soldOut);
+    return (
+      <div>
+        <ShopTabs />
+        <section className="bg-ochre/10" data-no-translate>
+          <div className="section-shell !py-14 md:!py-16">
+            <div className="grid items-center gap-9 border border-ink/15 bg-[#f6efdf] p-6 md:p-9 lg:grid-cols-[1.08fr_.92fr] lg:gap-14 lg:p-12">
+              <div className="max-w-2xl border-l-2 border-coral pl-5">
+                <p className="eyebrow text-coral">{copy.comingEyebrow}</p>
+                <h1 className="mt-4 text-4xl md:text-5xl">
+                  {copy.comingHeading}
+                </h1>
+                <p className="mt-5 max-w-xl leading-relaxed text-ink/70">
+                  {copy.comingBody}
+                </p>
+                <p className="mt-5 text-sm font-semibold text-ink/60">
+                  {copy.reassurance}
+                </p>
+              </div>
+              <div className="border border-ink/15 bg-paper p-5 md:p-7">
+                <Mail
+                  className="mb-5 text-coral"
+                  size={24}
+                  aria-hidden="true"
+                />
+                <StudioLetterSignup
+                  variant="compact"
+                  context="mystery-mail"
+                  submitLabel={{
+                    en: MYSTERY_NEWSLETTER_COPY.en.comingSubmit,
+                    tr: MYSTERY_NEWSLETTER_COPY.tr.comingSubmit,
+                  }}
+                  trustText={{
+                    en: MYSTERY_NEWSLETTER_COPY.en.comingTrust,
+                    tr: MYSTERY_NEWSLETTER_COPY.tr.comingTrust,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (closed || soldOut) {
+    const copy = MYSTERY_NEWSLETTER_COPY[locale];
     return (
       <div>
         <ShopTabs />
         <section className="bg-ink text-paper" data-no-translate>
           <div className="section-shell mystery-mail-hero-grid">
             <div className="self-center">
-              <p className="eyebrow !text-coral">
-                {isClosed ? copy.closedEyebrow : copy.comingEyebrow}
-              </p>
+              <p className="eyebrow !text-coral">{copy.closedEyebrow}</p>
               <h1 className="mt-4 max-w-3xl text-5xl text-paper md:text-7xl">
-                {isClosed ? copy.closedHeading : copy.comingHeading}
+                {copy.closedHeading}
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/75">
-                {isClosed ? copy.closedBody : copy.comingBody}
+                {copy.closedBody}
               </p>
-              {!isClosed && (
-                <p className="mt-5 max-w-xl text-sm font-semibold text-paper/60">
-                  {copy.reassurance}
-                </p>
-              )}
             </div>
             <div className="min-w-0 border border-paper/15 bg-[#24231f]">
               <img
@@ -436,12 +480,8 @@ export default function MysteryMail() {
                   context="mystery-mail"
                   dark
                   submitLabel={{
-                    en: isClosed
-                      ? MYSTERY_NEWSLETTER_COPY.en.closedSubmit
-                      : MYSTERY_NEWSLETTER_COPY.en.comingSubmit,
-                    tr: isClosed
-                      ? MYSTERY_NEWSLETTER_COPY.tr.closedSubmit
-                      : MYSTERY_NEWSLETTER_COPY.tr.comingSubmit,
+                    en: MYSTERY_NEWSLETTER_COPY.en.closedSubmit,
+                    tr: MYSTERY_NEWSLETTER_COPY.tr.closedSubmit,
                   }}
                   trustText={{
                     en: MYSTERY_NEWSLETTER_COPY.en.comingTrust,

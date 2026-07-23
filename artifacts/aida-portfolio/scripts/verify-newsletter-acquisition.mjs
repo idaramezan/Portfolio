@@ -16,8 +16,8 @@ const backend = read("../../api-server/src/routes/newsletter.ts");
 
 const checks = [
   [
-    "homepage editorial section",
-    home.includes('variant="editorial" context="home"'),
+    "homepage story-preview section",
+    home.includes('variant="story-preview" context="home"'),
   ],
   [
     "Türkiye shop editorial source",
@@ -67,8 +67,8 @@ const checks = [
   ],
   [
     "coming-soon signup state",
-    mystery.includes("THE NEXT MYSTERY IS BEING PREPARED") &&
-      mystery.includes("Tell me when it opens"),
+    mystery.includes("THE NEXT MYSTERY IS FORMING") &&
+      mystery.includes("Notify me through the Studio Letter"),
   ],
   [
     "closed signup state",
@@ -77,8 +77,7 @@ const checks = [
   ],
   [
     "unavailable state exits before product price",
-    mystery.indexOf("if (betweenEditions || closed || soldOut)") <
-      mystery.indexOf("Edition price"),
+    mystery.indexOf("if (betweenEditions)") < mystery.indexOf("Edition price"),
   ],
   [
     "countdown only renders for active edition",
@@ -86,13 +85,34 @@ const checks = [
   ],
   [
     "English and Turkish copy",
-    signup.includes("Stories from the studio, sent to you.") &&
-      signup.includes("Atölyeden hikâyeler, doğrudan sana."),
+    signup.includes("Every painting begins somewhere.") &&
+      signup.includes("Her resim bir yerde başlar."),
   ],
   [
-    "responsive editorial layout",
-    signup.includes("lg:grid-cols-[1.1fr_.9fr]") &&
-      signup.includes("px-6 py-12"),
+    "responsive story-preview layout",
+    signup.includes("lg:grid-cols-[.88fr_1.12fr]") &&
+      signup.includes("sm:min-h-[680px]") &&
+      signup.includes("motion-reduce:transition-none"),
+  ],
+  [
+    "exact story assets and non-cropping painting",
+    signup.includes("memories-of-summer-reference-photo.png") &&
+      signup.includes("memories-of-summer-painting.JPG") &&
+      signup.includes("object-contain"),
+  ],
+  [
+    "accessible image viewer",
+    signup.includes('role="dialog"') &&
+      signup.includes('aria-modal="true"') &&
+      signup.includes('event.key === "Escape"') &&
+      signup.includes("image.trigger.focus()") &&
+      signup.includes("closeLabel={copy.closeImage}"),
+  ],
+  [
+    "Mystery unavailable state stays compact and subscriber focused",
+    mystery.includes("bg-ochre/10") &&
+      mystery.includes('context="mystery-mail"') &&
+      mystery.includes("Yeni Mystery Mail açıldığında ilk öğrenenlerden ol."),
   ],
   ["unique form IDs", signup.includes("useId()")],
   [
