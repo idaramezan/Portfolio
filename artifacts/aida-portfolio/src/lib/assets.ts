@@ -1,29 +1,50 @@
-import img0556 from "@assets/IMG_0556_1784324397579.JPG";
+import img0556 from "@assets/optimized/IMG_0556_1784324397579-1400.jpg";
 import aidaPortrait from "@assets/F32B16AC-6790-4733-A787-D0258611E589_1784325156252.JPG";
-import img0287 from "@assets/IMG_0287_1784324425753.JPG";
-import img0288 from "@assets/IMG_0288_1784324425754.JPG";
-import img0289 from "@assets/IMG_0289_1784324425755.JPG";
-import img0290 from "@assets/IMG_0290_1784324425755.JPG";
-import img0291 from "@assets/IMG_0291_1784324425755.JPG";
-import img0292 from "@assets/IMG_0292_1784324425755.JPG";
-import img0293 from "@assets/IMG_0293_1784324425756.JPG";
-import img0294 from "@assets/IMG_0294_1784324425756.JPG";
-import img0295 from "@assets/IMG_0295_1784324425757.JPG";
-import img0297 from "@assets/IMG_0297_1784324425757.JPG";
-import img0298 from "@assets/IMG_0298_1784324425757.JPG";
-import img0299 from "@assets/IMG_0299_1784324425757.JPG";
-import img0592 from "@assets/IMG_0592_1784393730538.JPG";
-import img0593 from "@assets/IMG_0593_1784393730539.JPG";
-import img0594 from "@assets/IMG_0594_1784393730539.JPG";
-import studioMailPacking from "@assets/studio-mail-packing.png";
-import originalsSharedCover from "@assets/originals-shared-cover.jpg";
-import homeStudioMailPackaging from "@assets/home-studio-mail-packaging.png";
-import homeAboutArtist from "@assets/home-about-artist.png";
+import img0287 from "@assets/optimized/IMG_0287_1784324425753-1400.jpg";
+import img0288 from "@assets/optimized/IMG_0288_1784324425754-1400.jpg";
+import img0289 from "@assets/optimized/IMG_0289_1784324425755-1400.jpg";
+import img0290 from "@assets/optimized/IMG_0290_1784324425755-1400.jpg";
+import img0291 from "@assets/optimized/IMG_0291_1784324425755-1400.jpg";
+import img0292 from "@assets/optimized/IMG_0292_1784324425755-1400.jpg";
+import img0293 from "@assets/optimized/IMG_0293_1784324425756-1400.jpg";
+import img0294 from "@assets/optimized/IMG_0294_1784324425756-1400.jpg";
+import img0295 from "@assets/optimized/IMG_0295_1784324425757-1400.jpg";
+import img0297 from "@assets/optimized/IMG_0297_1784324425757-1400.jpg";
+import img0298 from "@assets/optimized/IMG_0298_1784324425757-1400.jpg";
+import img0299 from "@assets/optimized/IMG_0299_1784324425757-1400.jpg";
+import img0592 from "@assets/optimized/IMG_0592_1784393730538-1400.jpg";
+import img0593 from "@assets/optimized/IMG_0593_1784393730539-1400.jpg";
+import img0594 from "@assets/optimized/IMG_0594_1784393730539-1400.jpg";
+import studioMailPacking from "@assets/optimized/studio-mail-packing-1400.jpg";
+import studioMailPackingSmall from "@assets/optimized/studio-mail-packing-800.jpg";
+import originalsSharedCover from "@assets/optimized/originals-shared-cover-1400.jpg";
+import originalsSharedCoverSmall from "@assets/optimized/originals-shared-cover-800.jpg";
+import homeStudioMailPackaging from "@assets/optimized/home-studio-mail-packaging-1400.jpg";
+import homeStudioMailPackagingSmall from "@assets/optimized/home-studio-mail-packaging-800.jpg";
+import homeAboutArtist from "@assets/optimized/home-about-artist-1400.jpg";
+import homeAboutArtistSmall from "@assets/optimized/home-about-artist-800.jpg";
 import aboutPaintingVideo from "@assets/about-painting-process.m4v?url";
-import aboutPaintingVideoPoster from "@assets/about-painting-process-poster.png";
-import sharedArtistHero from "@assets/shared-artist-hero.png";
-import homeSignedPrints from "@assets/home-signed-prints.jpg";
-import mysteryMailCover from "@assets/mystery-mail-cover.png";
+import aboutPaintingVideoPoster from "@assets/optimized/about-painting-process-poster-1400.jpg";
+import aboutPaintingVideoPosterSmall from "@assets/optimized/about-painting-process-poster-800.jpg";
+import sharedArtistHero from "@assets/optimized/shared-artist-hero-1400.jpg";
+import sharedArtistHeroSmall from "@assets/optimized/shared-artist-hero-800.jpg";
+import homeSignedPrints from "@assets/optimized/home-signed-prints-1400.jpg";
+import homeSignedPrintsSmall from "@assets/optimized/home-signed-prints-800.jpg";
+import mysteryMailCover from "@assets/optimized/mystery-mail-cover-1400.jpg";
+import mysteryMailCoverSmall from "@assets/optimized/mystery-mail-cover-800.jpg";
+
+const responsiveSources = new Map<string, string>([
+  [studioMailPacking, `${studioMailPackingSmall} 800w, ${studioMailPacking} 1400w`],
+  [originalsSharedCover, `${originalsSharedCoverSmall} 800w, ${originalsSharedCover} 1400w`],
+  [homeStudioMailPackaging, `${homeStudioMailPackagingSmall} 800w, ${homeStudioMailPackaging} 1400w`],
+  [homeAboutArtist, `${homeAboutArtistSmall} 800w, ${homeAboutArtist} 1400w`],
+  [aboutPaintingVideoPoster, `${aboutPaintingVideoPosterSmall} 800w, ${aboutPaintingVideoPoster} 1400w`],
+  [sharedArtistHero, `${sharedArtistHeroSmall} 800w, ${sharedArtistHero} 1400w`],
+  [homeSignedPrints, `${homeSignedPrintsSmall} 800w, ${homeSignedPrints} 1400w`],
+  [mysteryMailCover, `${mysteryMailCoverSmall} 800w, ${mysteryMailCover} 1400w`],
+]);
+
+export const getResponsiveImageSrcSet = (src: string) => responsiveSources.get(src);
 
 export const assetImages = [
   img0556,

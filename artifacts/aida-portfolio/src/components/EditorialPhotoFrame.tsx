@@ -1,3 +1,5 @@
+import { getResponsiveImageSrcSet } from "@/lib/assets";
+
 interface EditorialPhotoFrameProps {
   src: string;
   alt: string;
@@ -21,6 +23,8 @@ export default function EditorialPhotoFrame({
         <div className="editorial-photo__image">
           <img
             src={src}
+            srcSet={getResponsiveImageSrcSet(src)}
+            sizes="(max-width: 768px) 92vw, 50vw"
             alt={alt}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}

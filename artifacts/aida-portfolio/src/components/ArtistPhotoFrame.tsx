@@ -1,3 +1,5 @@
+import { getResponsiveImageSrcSet } from "@/lib/assets";
+
 interface ArtistPhotoFrameProps {
   src: string;
   alt: string;
@@ -22,6 +24,8 @@ export default function ArtistPhotoFrame({
           <div className="artist-photo-frame__image">
             <img
               src={src}
+              srcSet={getResponsiveImageSrcSet(src)}
+              sizes={variant === "hero" ? "(max-width: 768px) 92vw, 46vw" : "(max-width: 768px) 92vw, 50vw"}
               alt={alt}
               loading={variant === "hero" ? "eager" : "lazy"}
               fetchPriority={variant === "hero" ? "high" : "auto"}

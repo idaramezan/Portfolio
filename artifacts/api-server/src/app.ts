@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded artwork images
 const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use("/api/uploads", express.static(uploadsDir));
+app.use("/api/uploads", express.static(uploadsDir, { maxAge: "1y", immutable: true }));
 
 app.use("/api", router);
 
@@ -41,7 +41,7 @@ if (process.env.NODE_ENV === "production") {
     frontendCandidates.find((candidate) =>
       fs.existsSync(path.join(candidate, "index.html")),
     ) || frontendCandidates[0];
-  app.use(express.static(frontendDir));
+  app.use(express.static(frontendDir, { maxAge: "1y", immutable: true, index: false }));
   app.use((request, response, next) => {
     if (request.method !== "GET" || request.path.startsWith("/api/")) return next();
     return response.sendFile(path.join(frontendDir, "index.html"));
