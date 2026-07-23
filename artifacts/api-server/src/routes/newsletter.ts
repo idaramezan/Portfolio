@@ -23,11 +23,10 @@ async function notifyOwner(email: string, name: string | null) {
 }
 
 async function welcomeSubscriber(email: string, name: string | null) {
-  const greeting = name?.trim() ? `Dear ${escapeHtml(name.trim())},` : "Hello art lover,";
   await sendEmail({
     to: email,
     subject: "You’re officially in Aida’s Art Club ✨",
-    html: emailShell(`<p style="font-size:17px">${greeting}</p><h1 style="margin:12px 0 18px;font-size:34px;line-height:1.15">Welcome to the Art Club—you’re in.</h1><p style="font-size:16px;line-height:1.75">I’m so happy you found your way here. You’re now part of a small circle of people who get to see what is taking shape in my studio a little closer and a little sooner.</p><p style="font-size:16px;line-height:1.75">From now on, I’ll email you private studio notes, first looks at new artwork, and special offers created for Art Club members. Think of this as your members-only corner—little treats and surprises that won’t be shared with everyone else.</p><p style="font-size:16px;line-height:1.75">Thank you for supporting an independent artist and giving my work a place in your world. It truly means more than you know.</p>`),
+    html: emailShell(`<p style="font-size:17px">Hello, art lover!</p><p style="font-size:16px;line-height:1.75">I'm so happy you're here. ❤️ Welcome to the Art Club!</p><p style="font-size:16px;line-height:1.75">This little community means a lot to me, and I'm excited to share more of my creative world with you. You'll get early access to new paintings, behind-the-scenes moments from my studio, exclusive offers, and the occasional surprise; things I don't share anywhere else.</p><p style="font-size:16px;line-height:1.75">More than anything, thank you for supporting independent artists. Every print, painting, message, and subscription helps me keep creating, and I'm truly grateful that you've chosen to be part of this journey.</p><p style="font-size:16px;line-height:1.75">I can't wait to share what's coming next.</p>`),
   });
 }
 
