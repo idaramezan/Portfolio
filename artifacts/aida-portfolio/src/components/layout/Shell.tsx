@@ -283,7 +283,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </Link>
               ))}
               <Link href="/links">Links</Link>
-              <a href="mailto:hello@aidaramezani.com">Contact</a>
+              <a href="mailto:idaramezan@gmail.com">Contact</a>
             </div>
           </nav>
 

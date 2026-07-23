@@ -1840,3 +1840,8 @@
     max-height: 440px;
   }
 }
+@layer components {
+  .admin-input {
+    @apply min-h-11 w-full border border-ink/15 bg-paper px-3 text-sm outline-none focus:border-coral;
+  }
+}

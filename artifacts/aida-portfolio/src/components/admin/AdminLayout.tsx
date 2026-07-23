@@ -30,7 +30,7 @@ const groups = [
     ],
   ],
   ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2]]],
-  ["Store management", [["/admin/inventory", "Inventory", Boxes]]],
+  ["Store management", [["/admin/orders", "Orders", ShoppingBag], ["/admin/inventory", "Inventory", Boxes]]],
   ["Links", [["/admin/settings/links", "Link Hub & Social", Instagram]]],
   [
     "Settings",

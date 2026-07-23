@@ -185,8 +185,16 @@ export default function Links() {
           </button>
         ))}
       </div>
+      <Link
+        href={region === "turkiye" ? "/shop/turkiye" : "/shop/international"}
+        className="button-primary mt-4 flex min-h-14 w-full items-center justify-center text-center"
+      >
+        {region === "turkiye"
+          ? "Go to Türkiye Shop"
+          : "Go to International Shop"}
+      </Link>
       {region === "turkiye" ? (
-        <section id="turkiye-panel" role="tabpanel" className="mt-6">
+        <section id="turkiye-panel" role="tabpanel" className="mt-4">
           <div className="grid grid-cols-2 gap-3">
             {localLinks.map((link) => (
               <ImageLinkCard key={link.title} {...link} />
@@ -205,7 +213,7 @@ export default function Links() {
         <section
           id="international-panel"
           role="tabpanel"
-          className="mt-6"
+          className="mt-4"
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {internationalLinks.map((link) => (
@@ -245,7 +253,7 @@ export default function Links() {
             About Aida
           </Link>
           <a
-            href="mailto:hello@aidaramezani.com"
+            href="mailto:idaramezan@gmail.com"
             className="underline underline-offset-4"
           >
             Contact
