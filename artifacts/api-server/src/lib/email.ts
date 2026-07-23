@@ -21,9 +21,12 @@ export { escapeHtml, OWNER_EMAIL };
 
 export async function sendEmail(input: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM;
-  if (!apiKey || !from) {
-    throw new Error("RESEND_API_KEY and RESEND_FROM_EMAIL must be configured");
+  const from =
+    process.env.RESEND_FROM_EMAIL ||
+    process.env.EMAIL_FROM ||
+    "Aida Ramezani <studio@aidaramezani.com>";
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY must be configured");
   }
 
   const response = await fetch(RESEND_ENDPOINT, {

@@ -1,8 +1,16 @@
 import { Router } from "express";
-import { db, newsletterSubscribersTable } from "@workspace/db";
+import { pool } from "@workspace/db";
 import { emailShell, escapeHtml, OWNER_EMAIL, sendEmail } from "../lib/email";
 
 const router = Router();
+
+async function ensureDeliveryColumns() {
+  await pool.query(`
+    ALTER TABLE newsletter_subscribers
+      ADD COLUMN IF NOT EXISTS welcome_email_sent_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS owner_notification_sent_at TIMESTAMPTZ
+  `);
+}
 
 async function notifyOwner(email: string, name: string | null) {
   const displayName = name?.trim() || email;
@@ -31,29 +39,48 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Valid email is required" });
     }
 
-    const [subscriber] = await db
-      .insert(newsletterSubscribersTable)
-      .values({ email: email.toLowerCase().trim(), name: name ?? null })
-      .onConflictDoNothing()
-      .returning();
-
-    if (!subscriber) {
-      // Already subscribed — return success anyway (don't leak info)
-      return res.status(201).json({ id: 0, email, createdAt: new Date().toISOString() });
-    }
+    await ensureDeliveryColumns();
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedName = typeof name === "string" && name.trim() ? name.trim() : null;
+    const result = await pool.query(
+      `INSERT INTO newsletter_subscribers (email, name)
+       VALUES ($1, $2)
+       ON CONFLICT (email) DO UPDATE
+       SET name = COALESCE(newsletter_subscribers.name, EXCLUDED.name)
+       RETURNING id, email, name, created_at, welcome_email_sent_at, owner_notification_sent_at`,
+      [normalizedEmail, normalizedName],
+    );
+    const subscriber = result.rows[0];
 
     const subscriberEmail = subscriber.email;
     const subscriberName = subscriber.name;
-    const emailResults = await Promise.allSettled([
-      welcomeSubscriber(subscriberEmail, subscriberName),
-      notifyOwner(subscriberEmail, subscriberName),
-    ]);
-    emailResults.forEach((result, index) => {
-      if (result.status === "rejected")
-        req.log.error({ err: result.reason }, index === 0 ? "Failed to send newsletter welcome email" : "Failed to send owner notification email");
+    const emailTasks = [
+      subscriber.welcome_email_sent_at
+        ? Promise.resolve("already-sent")
+        : welcomeSubscriber(subscriberEmail, subscriberName).then(async () => {
+            await pool.query("UPDATE newsletter_subscribers SET welcome_email_sent_at = NOW() WHERE id = $1", [subscriber.id]);
+            return "sent";
+          }),
+      subscriber.owner_notification_sent_at
+        ? Promise.resolve("already-sent")
+        : notifyOwner(subscriberEmail, subscriberName).then(async () => {
+            await pool.query("UPDATE newsletter_subscribers SET owner_notification_sent_at = NOW() WHERE id = $1", [subscriber.id]);
+            return "sent";
+          }),
+    ];
+    const emailResults = await Promise.allSettled(emailTasks);
+    emailResults.forEach((delivery, index) => {
+      if (delivery.status === "rejected")
+        req.log.error({ err: delivery.reason }, index === 0 ? "Failed to send newsletter welcome email" : "Failed to send owner notification email");
     });
 
-    return res.status(201).json(subscriber);
+    return res.status(201).json({
+      id: subscriber.id,
+      email: subscriber.email,
+      name: subscriber.name,
+      createdAt: subscriber.created_at,
+      emailSent: emailResults.every((delivery) => delivery.status === "fulfilled"),
+    });
   } catch (err) {
     req.log.error({ err }, "Failed to subscribe to newsletter");
     return res.status(500).json({ error: "Failed to subscribe" });
