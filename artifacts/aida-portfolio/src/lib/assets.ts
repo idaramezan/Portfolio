@@ -71,6 +71,7 @@ export const getArtworkImage = (artwork: any, index: number): string => {
   // Directly-served URLs: API uploads or external http(s)
   if (
     artwork.imageUrl.startsWith("/api/uploads/") ||
+    artwork.imageUrl.startsWith("/api/product-images/") ||
     artwork.imageUrl.startsWith("http")
   ) {
     return artwork.imageUrl;

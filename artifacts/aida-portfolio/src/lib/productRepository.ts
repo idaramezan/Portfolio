@@ -73,6 +73,7 @@ export function isPermanentProductImage(value: string) {
   if (!value) return true;
   return (
     value.startsWith("/api/uploads/") ||
+    value.startsWith("/api/product-images/") ||
     value.startsWith("/assets/") ||
     /^https:\/\//i.test(value)
   );

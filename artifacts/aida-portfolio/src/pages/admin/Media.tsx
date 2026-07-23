@@ -45,7 +45,7 @@ export default function Media() {
         <div>
           <h2 className="text-lg font-bold">Project images</h2>
           <p className="text-sm text-ink/50">
-            Existing local assets available to the storefront.
+            Project assets and images stored persistently in PostgreSQL.
           </p>
         </div>
         <label className="button-primary cursor-pointer">
@@ -81,7 +81,7 @@ export default function Media() {
           ? "Image uploaded successfully."
           : state === "error"
             ? "Image upload failed. Existing media was preserved."
-            : "Uploaded images are stored as permanent server-managed assets."}
+            : "Uploaded images are stored persistently in the database and are available on every device."}
       </p>
     </AdminLayout>
   );
