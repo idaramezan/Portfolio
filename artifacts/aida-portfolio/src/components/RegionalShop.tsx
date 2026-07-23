@@ -59,7 +59,7 @@ export function ShopPageHeader({ region, category }: { region: ShoppingRegion; c
         <div className="shipping-banner !mx-0 !mt-8 !max-w-none">
           <PackageCheck aria-hidden="true" />
           <p>
-            <strong>{category === "prints" ? "Shipping confirmed separately" : "Free shipping within Türkiye"}</strong>
+            <strong>{category === "prints" ? "Shipping price will be calculated based on the package size" : "Free shipping within Türkiye"}</strong>
             <br />
             Add your chosen pieces to the Collection Basket, then continue on
             WhatsApp to confirm availability and details.
@@ -213,7 +213,7 @@ export default function RegionalShop({
       : "International Shop — Aida Ramezani",
     region === "TR"
       ? category === "prints"
-        ? "Shop signed prints and studio goods by Aida Ramezani in Türkiye. Shipping is confirmed separately."
+        ? "Shop signed prints and studio goods by Aida Ramezani in Türkiye. Shipping price is calculated based on package size."
         : "Shop original oil pastel paintings by Aida Ramezani in Türkiye."
       : "Collect original paintings directly from Aida Ramezani or shop international prints through Fourthwall.",
   );

@@ -103,7 +103,7 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
       "",
       region === "TR"
         ? hasSeparatelyConfirmedShipping
-          ? "Shipping: Confirmed separately with Aida"
+          ? "Shipping price will be calculated based on the package size"
           : "Shipping within Türkiye: Free"
         : "International shipping: Not included\nShipping will be calculated separately based on destination.",
       "",
@@ -291,7 +291,7 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
             <p className="mt-4 text-sm font-semibold">
               {region === "TR"
                 ? hasSeparatelyConfirmedShipping
-                  ? "Shipping: Confirmed separately"
+                  ? "Shipping price will be calculated based on the package size"
                   : "Shipping: Free within Türkiye"
                 : "International shipping: Calculated separately"}
             </p>

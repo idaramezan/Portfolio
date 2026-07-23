@@ -128,7 +128,7 @@ export default function ManagedProductCard({
         </div>
         <p className={`mt-4 text-sm font-semibold ${region === "TR" ? "text-green" : "text-ink/60"}`}>
           {region === "TR" ? (
-            <span className="flex items-center gap-2"><PackageCheck size={17} aria-hidden="true" />{original ? "Free shipping within Türkiye" : "Shipping confirmed separately"}</span>
+            <span className="flex items-center gap-2"><PackageCheck size={17} aria-hidden="true" />{original ? "Free shipping within Türkiye" : "Shipping price will be calculated based on the package size"}</span>
           ) : (
             "International shipping is calculated separately."
           )}

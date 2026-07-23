@@ -523,7 +523,7 @@ export default function TurkeyProductDialog({
             </div>
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <PackageCheck size={17} aria-hidden="true" />
-              Shipping confirmed separately
+              Shipping price will be calculated based on the package size
             </p>
           </section>
 

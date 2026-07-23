@@ -112,7 +112,7 @@ export default function CartDrawer({
           {region === "TR" ? (
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
-              {hasSeparatelyConfirmedShipping ? "Shipping confirmed separately" : "Free shipping within Türkiye"}
+              {hasSeparatelyConfirmedShipping ? "Shipping price will be calculated based on the package size" : "Free shipping within Türkiye"}
             </p>
           ) : (
             <p className="mt-3 text-sm font-semibold">
