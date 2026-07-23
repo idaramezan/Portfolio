@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
 import { PackageCheck, X } from "lucide-react";
-import { loadCart, removeCartItem } from "@/lib/store";
+import { FaWhatsapp } from "react-icons/fa";
+import {
+  getCanonicalCartItemPricing,
+  loadCart,
+  loadShopSettings,
+  removeCartItem,
+} from "@/lib/store";
 import Money from "@/components/Money";
 import { cn } from "@/lib/utils";
+import { formatCurrencyMinor } from "@/lib/currency";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -14,6 +20,12 @@ export default function CartDrawer({
   region?: "TR" | "INTERNATIONAL";
 }) {
   const [cart, setCart] = useState(loadCart(region));
+  const [runtimeWhatsapp, setRuntimeWhatsapp] = useState<{
+    configured: boolean;
+    enabled: boolean;
+    number: string | null;
+  } | null>(null);
+  const settings = loadShopSettings();
   useEffect(() => {
     const sync = () => setCart(loadCart(region));
     window.addEventListener("cart:updated", sync);
@@ -22,8 +34,66 @@ export default function CartDrawer({
   useEffect(() => {
     if (open) setCart(loadCart(region));
   }, [open, region]);
-  const subtotal = cart.reduce((n, x) => n + x.priceUsdCents * x.quantity, 0);
+  useEffect(() => {
+    fetch("/api/storefront-config")
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload) => setRuntimeWhatsapp(payload.whatsapp || null))
+      .catch(() => setRuntimeWhatsapp(null));
+  }, []);
+  const canonicalUnitPrice = (item: (typeof cart)[number]) =>
+    getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
+    item.priceUsdCents;
+  const subtotal = cart.reduce(
+    (total, item) => total + canonicalUnitPrice(item) * item.quantity,
+    0,
+  );
+  const basketCurrency = region === "TR" ? "TRY" : "USD";
   const hasSeparatelyConfirmedShipping = cart.some((item) => item.kind === "print" || item.kind === "product");
+  const effectiveWhatsappNumber = runtimeWhatsapp?.configured
+    ? runtimeWhatsapp.number || ""
+    : settings.whatsapp.number;
+  const whatsappEnabled = runtimeWhatsapp?.configured
+    ? runtimeWhatsapp.enabled
+    : settings.whatsapp.enabled;
+  const orderMessage = [
+    settings.whatsapp.greeting,
+    "",
+    region === "TR"
+      ? "I would like to complete my order for these items:"
+      : "I would like to complete my international order for these artworks:",
+    "",
+    ...cart.flatMap((item, index) =>
+      [
+        `${index + 1}. ${item.title}`,
+        item.printConfiguration ? `Size: ${item.printConfiguration.sizeLabel}` : "",
+        item.printConfiguration
+          ? `Framing: ${item.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`
+          : "",
+        item.selectedColor ? `Color: ${item.selectedColor}` : "",
+        `Quantity: ${item.quantity}`,
+        `Line total: ${formatCurrencyMinor(canonicalUnitPrice(item) * item.quantity, basketCurrency)}`,
+        "",
+      ].filter(Boolean),
+    ),
+    `${region === "TR" ? "Items" : "Artwork"} subtotal: ${formatCurrencyMinor(subtotal, basketCurrency)}`,
+    region === "TR"
+      ? hasSeparatelyConfirmedShipping
+        ? "Shipping price will be calculated based on the package size."
+        : "Shipping within Türkiye: Free"
+      : "International shipping will be calculated separately based on destination.",
+    "",
+    "My name:",
+    region === "TR" ? "Delivery city:" : "Delivery country and city:",
+    "Questions or notes:",
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+  const whatsappUrl =
+    cart.length > 0 &&
+    whatsappEnabled &&
+    /^\d{8,15}$/.test(effectiveWhatsappNumber)
+      ? `https://wa.me/${effectiveWhatsappNumber}?text=${encodeURIComponent(orderMessage)}`
+      : null;
   return (
     <div
       className={cn(
@@ -86,7 +156,8 @@ export default function CartDrawer({
                   <h3 className="text-xl">{x.title}</h3>
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
                   <Money
-                    baseAmountUsdCents={x.priceUsdCents * x.quantity}
+                    baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
+                    canonicalCurrency={basketCurrency}
                     className="mt-2 block text-sm font-bold"
                   />
                 </div>
@@ -105,7 +176,7 @@ export default function CartDrawer({
             <span>{region === "TR" ? "Items" : "Artwork"} subtotal</span>
             <Money
               baseAmountUsdCents={subtotal}
-              showBase
+              canonicalCurrency={basketCurrency}
               className="font-bold"
             />
           </div>
@@ -119,13 +190,27 @@ export default function CartDrawer({
               International shipping is not included
             </p>
           )}
-          <Link
-            href={`/basket/${region === "TR" ? "turkiye" : "international"}`}
-            onClick={() => onOpenChange(false)}
-            className="button-primary mt-6 w-full"
-          >
-            Review your selection
-          </Link>
+          {whatsappUrl ? (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => onOpenChange(false)}
+              className="button-primary mt-6 w-full"
+            >
+              <FaWhatsapp size={20} aria-hidden="true" />
+              Complete Order with Aida
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="button-primary mt-6 w-full opacity-45"
+            >
+              <FaWhatsapp size={20} aria-hidden="true" />
+              Complete Order with Aida
+            </button>
+          )}
           <p className="mt-3 text-xs text-ink/55">
             Your basket does not reserve artwork or change inventory.
           </p>

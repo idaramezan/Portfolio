@@ -13,14 +13,12 @@ import About from "@/pages/About";
 import Admin from "@/pages/Admin";
 import StudioMail from "@/pages/StudioMail";
 import StudioMailDetail from "@/pages/StudioMailDetail";
-import Basket from "@/pages/Basket";
 import HowToCollect from "@/pages/HowToCollect";
 import { CurrencyProvider } from "@/lib/currency";
 import { LocaleProvider } from "@/lib/locale";
 import International from "@/pages/International";
 import Links from "@/pages/Links";
 import RegionalShop, { type ShopCategory } from "@/components/RegionalShop";
-import { getActiveShoppingRegion } from "@/lib/store";
 import MysteryMail from "@/pages/MysteryMail";
 import RegionalLanding from "@/pages/RegionalLanding";
 import OriginalDetail from "@/pages/OriginalDetail";
@@ -31,14 +29,6 @@ function RedirectTo({ to }: { to: string }) {
   const search = window.location.search;
   window.location.replace(`${to}${search}`);
   return null;
-}
-
-function BasketRedirect() {
-  return (
-    <RedirectTo
-      to={`/basket/${getActiveShoppingRegion() === "INTERNATIONAL" ? "international" : "turkiye"}`}
-    />
-  );
 }
 
 const regional =
@@ -104,20 +94,17 @@ function Router() {
             <Route path="/studio-mail/:slug">
               <RedirectTo to="/shop/turkiye/mystery-mail" />
             </Route>
-            <Route path="/basket/turkiye">{() => <Basket region="TR" />}</Route>
+            <Route path="/basket/turkiye">
+              <RedirectTo to="/shop/turkiye" />
+            </Route>
             <Route path="/basket/international">
-              {() => <Basket region="INTERNATIONAL" />}
+              <RedirectTo to="/shop/international" />
             </Route>
             <Route path="/basket">
-              <BasketRedirect />
+              <RedirectTo to="/shop/turkiye" />
             </Route>
             <Route path="/cart">
-              {() => {
-                window.location.replace(
-                  `/basket/${getActiveShoppingRegion() === "INTERNATIONAL" ? "international" : "turkiye"}`,
-                );
-                return null;
-              }}
+              <RedirectTo to="/shop/turkiye" />
             </Route>
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />

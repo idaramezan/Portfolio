@@ -34,11 +34,6 @@ const localLinks = [
     "How to Collect",
     "Learn how the personal WhatsApp collecting process works.",
   ],
-  [
-    "/basket/turkiye",
-    "Collection Basket",
-    "Review your selected pieces and continue directly with Aida.",
-  ],
 ];
 export default function Links() {
   usePageMeta(

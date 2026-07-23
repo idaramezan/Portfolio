@@ -179,7 +179,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {[
               { href: "/shop/turkiye", label: "Shop home" },
               ...TURKIYE_LINKS,
-              { href: "/basket/turkiye", label: "Basket" },
             ].map((link) => (
               <Link
                 key={link.href}
@@ -198,7 +197,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               { href: "/shop/international", label: "Shop home" },
               { href: "/shop/international/originals", label: "Originals" },
               { href: "/shop/international/prints", label: "Prints" },
-              { href: "/basket/international", label: "International Basket" },
             ].map((link) => (
               <Link
                 key={link.href}
