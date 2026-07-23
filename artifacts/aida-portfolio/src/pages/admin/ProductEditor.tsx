@@ -15,7 +15,10 @@ import {
   type StudioMailPackage,
 } from "@/lib/store";
 import { DEFAULT_MYSTERY_MAIL_EMPTY_STATE } from "@/lib/store";
-import { productRepository } from "@/lib/productRepository";
+import {
+  isPermanentProductImage,
+  productRepository,
+} from "@/lib/productRepository";
 import {
   normalizeOriginalStatus,
   normalizeProductStatus,
@@ -238,6 +241,14 @@ export default function ProductEditor({
       next.image = "Add a product image before publishing.";
     if (
       !isMail &&
+      draft.imageUrl &&
+      !pendingImage &&
+      !isPermanentProductImage(String(draft.imageUrl))
+    )
+      next.image =
+        "The selected image is only a temporary browser preview. Choose the image file again before saving.";
+    if (
+      !isMail &&
       String(draft.imageUrl || "").startsWith("/api/uploads/") &&
       !pendingImage
     )
@@ -310,7 +321,10 @@ export default function ProductEditor({
         );
       throw new Error(`Image upload failed (HTTP ${response.status}).`);
     }
-    return String(payload.imageUrl);
+    const permanentUrl = String(payload.imageUrl).trim();
+    if (!isPermanentProductImage(permanentUrl))
+      throw new Error("The upload service did not return a permanent image URL.");
+    return permanentUrl;
   };
   const persist = async (publish = false) => {
     if (savingRef.current) return;

@@ -85,6 +85,7 @@ router.post(
       );
       return response.status(201).json({
         imageUrl: `/api/product-images/${id}`,
+        storage: "postgres",
       });
     } catch (error) {
       request.log.error({ error }, "Failed to persist product media");

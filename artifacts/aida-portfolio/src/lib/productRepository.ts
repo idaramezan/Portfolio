@@ -71,11 +71,11 @@ export const mergeProductRecord = <
 
 export function isPermanentProductImage(value: string) {
   if (!value) return true;
+  const normalized = value.trim();
+  if (/^(blob:|data:)/i.test(normalized)) return false;
   return (
-    value.startsWith("/api/uploads/") ||
-    value.startsWith("/api/product-images/") ||
-    value.startsWith("/assets/") ||
-    /^https:\/\//i.test(value)
+    (normalized.startsWith("/") && !normalized.startsWith("//")) ||
+    /^https:\/\//i.test(normalized)
   );
 }
 const key = (kind: CatalogKind) =>
