@@ -8,7 +8,8 @@ async function ensureDeliveryColumns() {
   await pool.query(`
     ALTER TABLE newsletter_subscribers
       ADD COLUMN IF NOT EXISTS welcome_email_sent_at TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS owner_notification_sent_at TIMESTAMPTZ
+      ADD COLUMN IF NOT EXISTS owner_notification_sent_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS welcome_email_version INTEGER NOT NULL DEFAULT 0
   `);
 }
 
@@ -25,8 +26,8 @@ async function welcomeSubscriber(email: string, name: string | null) {
   const greeting = name?.trim() ? `Dear ${escapeHtml(name.trim())},` : "Hello art lover,";
   await sendEmail({
     to: email,
-    subject: "Welcome to Aida’s Studio Letter",
-    html: emailShell(`<p style="font-size:17px">${greeting}</p><h1 style="margin:12px 0 18px;font-size:34px;line-height:1.15">Thank you for joining me.</h1><p style="font-size:16px;line-height:1.75">I’m so happy to welcome you into this little corner of my studio. From time to time, I’ll send you new paintings, behind-the-scenes notes, and first looks at special releases.</p><p style="font-size:16px;line-height:1.75">Thank you for choosing to follow an independent artist. It genuinely means a great deal.</p>`),
+    subject: "You’re officially in Aida’s Art Club ✨",
+    html: emailShell(`<p style="font-size:17px">${greeting}</p><h1 style="margin:12px 0 18px;font-size:34px;line-height:1.15">Welcome to the Art Club—you’re in.</h1><p style="font-size:16px;line-height:1.75">I’m so happy you found your way here. You’re now part of a small circle of people who get to see what is taking shape in my studio a little closer and a little sooner.</p><p style="font-size:16px;line-height:1.75">From now on, I’ll email you private studio notes, first looks at new artwork, and special offers created for Art Club members. Think of this as your members-only corner—little treats and surprises that won’t be shared with everyone else.</p><p style="font-size:16px;line-height:1.75">Thank you for supporting an independent artist and giving my work a place in your world. It truly means more than you know.</p>`),
   });
 }
 
@@ -47,7 +48,7 @@ router.post("/", async (req, res) => {
        VALUES ($1, $2)
        ON CONFLICT (email) DO UPDATE
        SET name = COALESCE(newsletter_subscribers.name, EXCLUDED.name)
-       RETURNING id, email, name, created_at, welcome_email_sent_at, owner_notification_sent_at`,
+       RETURNING id, email, name, created_at, welcome_email_sent_at, owner_notification_sent_at, welcome_email_version`,
       [normalizedEmail, normalizedName],
     );
     const subscriber = result.rows[0];
@@ -55,10 +56,10 @@ router.post("/", async (req, res) => {
     const subscriberEmail = subscriber.email;
     const subscriberName = subscriber.name;
     const emailTasks = [
-      subscriber.welcome_email_sent_at
+      subscriber.welcome_email_version >= 2
         ? Promise.resolve("already-sent")
         : welcomeSubscriber(subscriberEmail, subscriberName).then(async () => {
-            await pool.query("UPDATE newsletter_subscribers SET welcome_email_sent_at = NOW() WHERE id = $1", [subscriber.id]);
+            await pool.query("UPDATE newsletter_subscribers SET welcome_email_sent_at = NOW(), welcome_email_version = 2 WHERE id = $1", [subscriber.id]);
             return "sent";
           }),
       subscriber.owner_notification_sent_at
@@ -73,6 +74,12 @@ router.post("/", async (req, res) => {
       if (delivery.status === "rejected")
         req.log.error({ err: delivery.reason }, index === 0 ? "Failed to send newsletter welcome email" : "Failed to send owner notification email");
     });
+
+    const welcomeDelivery = emailResults[0];
+    if (welcomeDelivery.status === "rejected")
+      return res.status(502).json({
+        error: "You joined the Art Club, but the welcome email could not be sent. Please try again.",
+      });
 
     return res.status(201).json({
       id: subscriber.id,

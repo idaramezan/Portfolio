@@ -27,10 +27,10 @@ export default function Newsletter({ className }: { className?: string }) {
         aria-live="polite"
       >
         <p className="font-serif text-2xl text-paper">
-          You’re on the Studio Letter list.
+          Welcome to Aida’s Art Club.
         </p>
         <p className="mt-2 text-sm text-paper/60">
-          Watch your inbox for occasional notes from the studio.
+          Your members-only welcome letter is on its way.
         </p>
       </div>
     );
@@ -67,7 +67,7 @@ export default function Newsletter({ className }: { className?: string }) {
       </div>
       {subscribe.isError && (
         <p id={errorId} role="alert" className="mt-2 text-sm text-[#ef7a64]">
-          We couldn’t add you just now. Please try again.
+          Your welcome email couldn’t be sent. Please try again in a moment.
         </p>
       )}
       <p className="mt-3 text-xs text-paper/45">
