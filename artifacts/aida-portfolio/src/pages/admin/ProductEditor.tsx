@@ -9,7 +9,11 @@ import {
   Trash2,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { type ManagedProduct, type StudioMailPackage } from "@/lib/store";
+import {
+  saveShopSettingsAndWait,
+  type ManagedProduct,
+  type StudioMailPackage,
+} from "@/lib/store";
 import { DEFAULT_MYSTERY_MAIL_EMPTY_STATE } from "@/lib/store";
 import { productRepository } from "@/lib/productRepository";
 import {
@@ -232,6 +236,13 @@ export default function ProductEditor({
       next.price = "Enter a valid price.";
     if (publishing && !isMail && !draft.imageUrl && !pendingImage)
       next.image = "Add a product image before publishing.";
+    if (
+      !isMail &&
+      String(draft.imageUrl || "").startsWith("/api/uploads/") &&
+      !pendingImage
+    )
+      next.image =
+        "This image was stored on Railway’s temporary disk and is no longer available. Choose Replace image, then save again.";
     if (isMail && !draft.theme?.trim()) next.theme = "Theme is required";
     if (
       kind === "originals" &&
@@ -397,6 +408,7 @@ export default function ProductEditor({
         productRepository.replaceSettings(latest);
         setSettings(latest);
       }
+      await saveShopSettingsAndWait(productRepository.getSettings());
       // Keep the editor in sync with the exact record that was persisted.
       // This also prevents a settings refresh from restoring the pre-edit
       // snapshot after an update.
@@ -794,6 +806,15 @@ export default function ProductEditor({
           </FormSection>
           {!isMail && (
             <FormSection title="Product image">
+              {String(draft.imageUrl || "").startsWith("/api/uploads/") &&
+                !pendingImage && (
+                  <div role="alert" className="md:col-span-2 border border-coral/30 bg-coral/5 p-4 text-sm text-coral">
+                    <strong>This image exists only in your browser cache.</strong>
+                    <p className="mt-1 text-ink/65">
+                      Select Replace image below. The replacement will be stored in PostgreSQL and will appear on every device.
+                    </p>
+                  </div>
+                )}
               <div className="flex flex-wrap gap-5">
                 {imagePreview || draft.imageUrl ? (
                   <div className="relative">
