@@ -4,7 +4,6 @@ import {
   ExternalLink,
   Instagram,
   Music2,
-  PackageCheck,
   Youtube,
 } from "lucide-react";
 import { portrait } from "@/lib/assets";
@@ -168,10 +167,6 @@ export default function Links() {
               Choose your pieces, add them to your basket, and continue
               personally with Aida on WhatsApp to confirm availability, payment
               and delivery.
-            </p>
-            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
-              <PackageCheck size={17} aria-hidden="true" />
-              Free shipping within Türkiye
             </p>
           </div>
         </section>

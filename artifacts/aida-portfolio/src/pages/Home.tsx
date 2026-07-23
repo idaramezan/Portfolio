@@ -76,10 +76,6 @@ export default function Home() {
               <p className="mt-5 text-sm font-semibold">
                 Originals · Prints & Goods · Mystery Mail
               </p>
-              <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-green">
-                <PackageCheck size={17} aria-hidden="true" />
-                Free shipping within Türkiye
-              </p>
               <Link href="/shop/turkiye" className="button-primary mt-7">
                 Enter the Türkiye Shop <ArrowRight size={16} />
               </Link>

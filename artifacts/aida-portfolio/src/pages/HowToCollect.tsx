@@ -10,7 +10,7 @@ const paths = [
       "Add items to the Türkiye Basket.",
       "Continue with Aida on WhatsApp.",
       "Availability is confirmed personally.",
-      "Shipping within Türkiye is free.",
+      "Shipping details are confirmed based on the selected pieces.",
     ],
     href: "/shop/turkiye",
   },

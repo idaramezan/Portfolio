@@ -28,8 +28,8 @@ import { originalDetailHref } from "@/lib/market";
 
 const turkiyeFaq = [
   [
-    "Is shipping free within Türkiye?",
-    "Yes. Shipping is included for orders delivered within Türkiye unless a product explicitly states otherwise.",
+    "How is shipping handled within Türkiye?",
+    "Shipping details and any cost are confirmed with Aida based on the selected products and delivery address.",
   ],
   [
     "How do I place an order?",
@@ -260,7 +260,6 @@ function MysteryFeature() {
           canonicalCurrency="TRY"
           className="mt-5 block text-2xl font-bold"
           />
-          <p className="mt-2 text-sm text-paper/70">Free Türkiye shipping</p>
           {active && (
             <>
               <p className="eyebrow mt-7 !text-paper/60">Ends in</p>
@@ -314,7 +313,7 @@ export default function RegionalLanding({
       ? "Aida Ramezani Türkiye Shop | Original Art, Prints & Mystery Mail"
       : "Aida Ramezani International Shop | Original Art & Prints",
     tr
-      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani. Free shipping within Türkiye."
+      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani."
       : "Collect original oil pastel paintings by Aida Ramezani internationally, or shop prints and art goods through her Fourthwall store.",
   );
   const originals = sortedPreview(settings.originalProducts, region);
@@ -337,7 +336,7 @@ export default function RegionalLanding({
             </h1>
             <p className="regional-shop-hero__description">
               {tr
-                ? "Discover one-of-a-kind original paintings, signed prints, art goods and limited Mystery Mail editions. Every order is prepared personally by Aida, with free shipping within Türkiye."
+                ? "Discover one-of-a-kind original paintings, signed prints, art goods and limited Mystery Mail editions. Every order is prepared personally by Aida."
                 : "Explore original oil pastel paintings available for international delivery, or shop prints and art goods through Aida’s international Fourthwall store."}
             </p>
             <div className="regional-shop-hero__actions">
@@ -358,7 +357,7 @@ export default function RegionalLanding({
             )}
             <p className="regional-shop-hero__trust">
               {tr
-                ? "Free Türkiye shipping · Personally confirmed on WhatsApp · Packed by the artist"
+                ? "Personally confirmed on WhatsApp · Packed by the artist"
                 : "Originals confirmed personally · International shipping calculated separately · Prints fulfilled through Fourthwall"}
             </p>
           </div>

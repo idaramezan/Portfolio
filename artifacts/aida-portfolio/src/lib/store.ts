@@ -62,7 +62,7 @@ export interface ManagedProduct {
   galleryImages?: string[];
   inventory?: number;
   displayOrder?: number;
-  freeShippingInTurkiye?: true;
+  freeShippingInTurkiye?: boolean;
   printOptions?: PrintProductOptions;
   tshirtOptions?: { availableColors: TshirtColor[] };
   mugOptions?: { color: "white" };
@@ -294,7 +294,7 @@ export function getDefaultSettings(): ShopSettings {
         slug: "signed-studio-print",
         galleryImages: [],
         displayOrder: 1,
-        freeShippingInTurkiye: true,
+        freeShippingInTurkiye: false,
         printOptions: {
           sizes: [
             {
@@ -518,7 +518,7 @@ export function loadShopSettings(): ShopSettings {
                   slug: product.slug || product.id,
                   galleryImages: product.galleryImages || [],
                   displayOrder: product.displayOrder ?? index + 1,
-                  freeShippingInTurkiye: true as const,
+                  freeShippingInTurkiye: false,
                   ...product,
                   status: normalizeProductStatus(
                     product.status,

@@ -36,6 +36,7 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
   const now = useServerNow();
   const basketCurrency = region === "TR" ? "TRY" : "USD";
   const hasMail = items.some((x) => x.kind === "studio-mail");
+  const hasSeparatelyConfirmedShipping = items.some((item) => item.kind === "print" || item.kind === "product");
   const unavailableItems = items.filter(
     (item) => !isCartItemAvailable(item, settings, now, region),
   );
@@ -101,7 +102,9 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
       `${region === "TR" ? "Items" : "Artwork"} subtotal: ${formatCurrencyMinor(subtotal, basketCurrency)}`,
       "",
       region === "TR"
-        ? "Shipping within Türkiye: Free"
+        ? hasSeparatelyConfirmedShipping
+          ? "Shipping: Confirmed separately with Aida"
+          : "Shipping within Türkiye: Free"
         : "International shipping: Not included\nShipping will be calculated separately based on destination.",
       "",
       "My name:",
@@ -287,7 +290,9 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
             )}
             <p className="mt-4 text-sm font-semibold">
               {region === "TR"
-                ? "Shipping: Free within Türkiye"
+                ? hasSeparatelyConfirmedShipping
+                  ? "Shipping: Confirmed separately"
+                  : "Shipping: Free within Türkiye"
                 : "International shipping: Calculated separately"}
             </p>
             {region === "INTERNATIONAL" && (

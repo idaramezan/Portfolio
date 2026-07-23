@@ -521,9 +521,9 @@ export default function TurkeyProductDialog({
                 className="font-sans text-2xl font-bold"
               />
             </div>
-            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
+            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <PackageCheck size={17} aria-hidden="true" />
-              Free shipping within Türkiye
+              Shipping confirmed separately
             </p>
           </section>
 

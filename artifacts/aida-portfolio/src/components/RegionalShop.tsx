@@ -45,7 +45,7 @@ const copy = {
   },
 } as const;
 
-export function ShopPageHeader({ region }: { region: ShoppingRegion }) {
+export function ShopPageHeader({ region, category }: { region: ShoppingRegion; category?: ShopCategory }) {
   return (
     <section className="section-shell !pb-8">
       <p className="eyebrow">{copy[region].eyebrow}</p>
@@ -59,7 +59,7 @@ export function ShopPageHeader({ region }: { region: ShoppingRegion }) {
         <div className="shipping-banner !mx-0 !mt-8 !max-w-none">
           <PackageCheck aria-hidden="true" />
           <p>
-            <strong>Free shipping within Türkiye</strong>
+            <strong>{category === "prints" ? "Shipping confirmed separately" : "Free shipping within Türkiye"}</strong>
             <br />
             Add your chosen pieces to the Collection Basket, then continue on
             WhatsApp to confirm availability and details.
@@ -212,7 +212,9 @@ export default function RegionalShop({
       ? "Türkiye Shop — Aida Ramezani"
       : "International Shop — Aida Ramezani",
     region === "TR"
-      ? "Shop original oil pastel paintings, Prints & Goods and Mystery Mail from Aida Ramezani with free shipping within Türkiye."
+      ? category === "prints"
+        ? "Shop signed prints and studio goods by Aida Ramezani in Türkiye. Shipping is confirmed separately."
+        : "Shop original oil pastel paintings by Aida Ramezani in Türkiye."
       : "Collect original paintings directly from Aida Ramezani or shop international prints through Fourthwall.",
   );
   useEffect(() => {
@@ -273,7 +275,7 @@ export default function RegionalShop({
 
   return (
     <div>
-      <ShopPageHeader region={region} />
+      <ShopPageHeader region={region} category={category} />
       <section className="section-shell !pt-10">
         {category === "originals" &&
           (originals.length ? (

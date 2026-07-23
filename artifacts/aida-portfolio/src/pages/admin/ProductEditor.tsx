@@ -105,7 +105,7 @@ export default function ProductEditor({
         category: kind === "prints" ? "print" : undefined,
         galleryImages: [],
         displayOrder: settings.printProducts.length + 1,
-        freeShippingInTurkiye: true,
+        freeShippingInTurkiye: false,
         printOptions:
           kind === "prints"
             ? {

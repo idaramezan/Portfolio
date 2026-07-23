@@ -23,6 +23,7 @@ export default function CartDrawer({
     if (open) setCart(loadCart(region));
   }, [open, region]);
   const subtotal = cart.reduce((n, x) => n + x.priceUsdCents * x.quantity, 0);
+  const hasSeparatelyConfirmedShipping = cart.some((item) => item.kind === "print" || item.kind === "product");
   return (
     <div
       className={cn(
@@ -111,7 +112,7 @@ export default function CartDrawer({
           {region === "TR" ? (
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
-              Free shipping within Türkiye
+              {hasSeparatelyConfirmedShipping ? "Shipping confirmed separately" : "Free shipping within Türkiye"}
             </p>
           ) : (
             <p className="mt-3 text-sm font-semibold">
