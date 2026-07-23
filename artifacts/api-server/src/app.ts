@@ -33,7 +33,14 @@ app.use("/api/uploads", express.static(uploadsDir));
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
-  const frontendDir = path.resolve(process.cwd(), "artifacts/aida-portfolio/dist/public");
+  const frontendCandidates = [
+    path.resolve(process.cwd(), "artifacts/aida-portfolio/dist/public"),
+    path.resolve(process.cwd(), "../aida-portfolio/dist/public"),
+  ];
+  const frontendDir =
+    frontendCandidates.find((candidate) =>
+      fs.existsSync(path.join(candidate, "index.html")),
+    ) || frontendCandidates[0];
   app.use(express.static(frontendDir));
   app.use((request, response, next) => {
     if (request.method !== "GET" || request.path.startsWith("/api/")) return next();
