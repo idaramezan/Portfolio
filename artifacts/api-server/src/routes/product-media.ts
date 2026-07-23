@@ -9,7 +9,7 @@ import multer from "multer";
 import path from "path";
 
 const router = Router();
-const uploadsDir = path.join(process.cwd(), "uploads");
+const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);

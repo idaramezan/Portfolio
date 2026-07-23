@@ -26,10 +26,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded artwork images
-const uploadsDir = path.join(process.cwd(), "uploads");
+const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use("/api/uploads", express.static(uploadsDir));
 
 app.use("/api", router);
+
+if (process.env.NODE_ENV === "production") {
+  const frontendDir = path.resolve(process.cwd(), "artifacts/aida-portfolio/dist/public");
+  app.use(express.static(frontendDir));
+  app.use((request, response, next) => {
+    if (request.method !== "GET" || request.path.startsWith("/api/")) return next();
+    return response.sendFile(path.join(frontendDir, "index.html"));
+  });
+}
 
 export default app;
