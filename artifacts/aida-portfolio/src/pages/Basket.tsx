@@ -33,6 +33,7 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
   const [confirmed, setConfirmed] = useState(false);
   const [handoff, setHandoff] = useState(false);
   const [settings, setSettings] = useState(loadShopSettings);
+  const [runtimeWhatsapp, setRuntimeWhatsapp] = useState<{ configured: boolean; enabled: boolean; number: string | null } | null>(null);
   const now = useServerNow();
   const basketCurrency = region === "TR" ? "TRY" : "USD";
   const hasMail = items.some((x) => x.kind === "studio-mail");
@@ -68,6 +69,12 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
       window.removeEventListener("shop-settings:updated", syncSettings);
     };
   }, [region]);
+  useEffect(() => {
+    fetch("/api/storefront-config")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((payload) => setRuntimeWhatsapp(payload.whatsapp || null))
+      .catch(() => setRuntimeWhatsapp(null));
+  }, []);
   const message = () => {
     const ref = reference(settings.whatsapp.referencePrefix || "AR");
     const lines = items
@@ -117,9 +124,15 @@ export default function Basket({ region = "TR" }: { region?: ShoppingRegion }) {
       .filter((x) => x !== "")
       .join("\n");
   };
+  const effectiveWhatsappNumber = runtimeWhatsapp?.configured
+    ? runtimeWhatsapp.number || ""
+    : settings.whatsapp.number;
+  const whatsappEnabled = runtimeWhatsapp?.configured
+    ? runtimeWhatsapp.enabled
+    : settings.whatsapp.enabled;
   const url =
-    settings.whatsapp.enabled && /^\d{8,15}$/.test(settings.whatsapp.number)
-      ? `https://wa.me/${settings.whatsapp.number}?text=${encodeURIComponent(message())}`
+    whatsappEnabled && /^\d{8,15}$/.test(effectiveWhatsappNumber)
+      ? `https://wa.me/${effectiveWhatsappNumber}?text=${encodeURIComponent(message())}`
       : null;
   return (
     <div className="section-shell">

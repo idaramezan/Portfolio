@@ -5,6 +5,7 @@ import internationalRouter from "./international";
 import adminRouter from "./admin";
 import timeRouter from "./time";
 import productMediaRouter from "./product-media";
+import storefrontConfigRouter from "./storefront-config";
 
 const router: IRouter = Router();
 
@@ -26,6 +27,7 @@ if (process.env.DATABASE_URL) {
 router.use(currencyRouter);
 router.use(internationalRouter);
 router.use(timeRouter);
+router.use(storefrontConfigRouter);
 router.use("/admin", adminRouter);
 router.use("/admin", productMediaRouter);
 
