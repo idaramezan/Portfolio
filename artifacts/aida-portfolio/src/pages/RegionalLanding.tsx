@@ -210,17 +210,30 @@ function MysteryFeature() {
             A new Mystery Mail is coming to the studio.
           </h2>
           <p className="mt-5 max-w-2xl text-ink/65">
-            The next sealed edition is still being prepared. Follow Aida or join
-            the Studio Letter to hear when it is revealed.
+            {locale === "tr"
+              ? "Bir sonraki mühürlü edisyon duyurulduğunda ilk sen haberdar ol."
+              : "Be the first to hear when the next sealed edition is revealed."}
           </p>
-          <a
-            href={settings.siteLinks.instagramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="button-primary mt-7"
-          >
-            Follow the studio <ExternalLink size={15} />
-          </a>
+          <div className="mt-7 flex flex-wrap items-center gap-5">
+            <a href="#studio-letter" className="button-primary">
+              {locale === "tr"
+                ? "Stüdyo Mektubu’na katıl"
+                : "Join the Studio Letter"}
+            </a>
+            {settings.siteLinks.instagramUrl && (
+              <a
+                href={settings.siteLinks.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button-link text-sm"
+              >
+                {locale === "tr"
+                  ? "Instagram’da takip et"
+                  : "Follow on Instagram"}{" "}
+                <ExternalLink size={14} />
+              </a>
+            )}
+          </div>
         </div>
       </section>
     );

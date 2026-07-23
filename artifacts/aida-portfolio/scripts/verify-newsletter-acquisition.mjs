@@ -85,14 +85,33 @@ const checks = [
   ],
   [
     "English and Turkish copy",
-    signup.includes("Every painting begins somewhere.") &&
-      signup.includes("Her resim bir yerde başlar."),
+    signup.includes(
+      "Some paintings begin with a plan. This one began with a feeling.",
+    ) &&
+      signup.includes(
+        "Bazı resimler bir planla başlar. Bu ise bir hisle başladı.",
+      ),
   ],
   [
     "responsive story-preview layout",
-    signup.includes("lg:grid-cols-[.88fr_1.12fr]") &&
-      signup.includes("sm:min-h-[680px]") &&
+    signup.includes("md:grid-cols-[.44fr_.56fr]") &&
+      signup.includes("md:h-[540px]") &&
       signup.includes("motion-reduce:transition-none"),
+  ],
+  [
+    "story locks immediately after childhood",
+    signup.includes("brought back a childhood") &&
+      signup.includes("memory. I remembered sitting in the back seat") &&
+      signup.includes('aria-hidden="true"') &&
+      signup.includes("blur-[6px]") &&
+      signup.includes("pointer-events-none") &&
+      signup.includes("select-none"),
+  ],
+  [
+    "exact story invitation and CTA",
+    signup.includes(
+      "Continue reading the full story in the free Studio Letter.",
+    ) && signup.includes("Read the rest in the Studio Letter"),
   ],
   [
     "exact story assets and non-cropping painting",
@@ -113,6 +132,14 @@ const checks = [
     mystery.includes("bg-ochre/10") &&
       mystery.includes('context="mystery-mail"') &&
       mystery.includes("Yeni Mystery Mail açıldığında ilk öğrenenlerden ol."),
+  ],
+  [
+    "regional Mystery Mail prioritizes Studio Letter",
+    regional.includes('href="#studio-letter"') &&
+      regional.includes(
+        "Be the first to hear when the next sealed edition is revealed.",
+      ) &&
+      regional.includes("Join the Studio Letter"),
   ],
   ["unique form IDs", signup.includes("useId()")],
   [

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { CircleCheck, Mail, X } from "lucide-react";
+import { CircleCheck, X } from "lucide-react";
 import { useLocale, type SiteLocale } from "@/lib/locale";
 import {
   isValidNewsletterEmail,
@@ -18,7 +18,7 @@ export const studioLetterCopy = {
     emailPlaceholder: "Your email address",
     footerSubmit: "Join free",
     compactSubmit: "Join the Studio Letter — Free",
-    storySubmit: "Send me the Studio Letter — Free",
+    storySubmit: "Read the rest in the Studio Letter",
     loading: "Joining…",
     successTitle: "You’re on the Studio Letter list.",
     successBody:
@@ -27,7 +27,7 @@ export const studioLetterCopy = {
     storySuccessBody:
       "You’re now part of the Studio Letter. The next note from Aida’s studio will arrive in your inbox.",
     duplicate:
-      "You’re already on the list — the next studio note will reach you.",
+      "You’re already on the list. The next studio note will reach you.",
     invalid: "Enter a valid email address.",
     error: "We couldn’t add you just now. Please try again.",
     trust:
@@ -36,20 +36,20 @@ export const studioLetterCopy = {
       "Free to join. Occasional letters only. Unsubscribe whenever you like.",
     footerHeading: "Studio Letter",
     footerSubheading: "Stories, new artwork and limited studio releases.",
-    sectionEyebrow: "THE FREE STUDIO LETTER",
-    sectionHeading: "Every painting begins somewhere.",
-    sectionBody:
-      "Step inside the memories, places and small moments behind Aida’s work.",
-    previewEyebrow: "A PREVIEW FROM THE STUDIO LETTER",
-    previewMetadata: "FROM AIDA’S ISTANBUL STUDIO · 4 MIN READ",
+    previewEyebrow: "A PREVIEW FROM THE STUDIO",
+    previewMetadata: "From Aida’s Istanbul Studio · 4 min read",
     previewHeading: "The story behind “Memories of Summer”",
     paragraphOne:
-      "It all started on a sunny, warm summer day while I was on my way to Beşiktaş. I was watching the city pass through the car window when I caught my reflection in the side mirror.",
+      "Some paintings begin with a plan. This one began with a feeling.",
     paragraphTwo:
-      "It was an ordinary moment — warm light, moving streets and a brief smile — but something about it stayed with me. Later, when I returned to the studio, I began turning that memory into an oil pastel painting…",
-    continue: "Continue reading stories like this in the Studio Letter.",
+      "I was on my way to Beşiktaş on a warm summer afternoon, watching the city drift by through the car window. At one point, I caught my reflection in the side mirror. It only lasted a second, but it stayed with me.",
+    paragraphThree:
+      "For some reason, that tiny moment brought back a childhood",
+    hiddenStory:
+      "memory. I remembered sitting in the back seat of the car, half asleep after a long day, watching the sunlight dance across the windows as the world passed by. There’s something so comforting about those quiet rides, the warmth of the sun, the gentle movement of the car, and the feeling that time slowed down for a little while. When I got back to the studio, I couldn’t stop thinking about it. I picked up my oil pastels and started painting, not to recreate what I had seen, but to capture what it had made me feel. As the layers built up, so did the memory. The colours began to carry the warmth of that afternoon, while the painting slowly became a bridge between the present and those long summer days from my childhood. That’s how Memories of Summer came to life.",
+    continue: "Continue reading the full story in the free Studio Letter.",
     transition:
-      "Stories behind the paintings, studio notes, new originals and first notice of limited releases — sent occasionally and always free.",
+      "Stories behind the paintings, studio notes, new originals and early notice of limited releases, sent occasionally and always free.",
     photoCaption: "The moment that stayed with me.",
     paintingCaption: "Memories of Summer",
     openPhoto: "Open the reference photograph",
@@ -61,7 +61,7 @@ export const studioLetterCopy = {
     emailPlaceholder: "E-posta adresin",
     footerSubmit: "Ücretsiz katıl",
     compactSubmit: "Stüdyo Mektubu’na ücretsiz katıl",
-    storySubmit: "Stüdyo Mektubu’nu bana gönder — Ücretsiz",
+    storySubmit: "Hikâyenin devamını Stüdyo Mektubu’nda oku",
     loading: "Katılım tamamlanıyor…",
     successTitle: "Stüdyo Mektubu listesine katıldın.",
     successBody:
@@ -70,7 +70,7 @@ export const studioLetterCopy = {
     storySuccessBody:
       "Artık Stüdyo Mektubu’ndasın. Aida’nın atölyesinden gelecek bir sonraki not e-posta kutuna ulaşacak.",
     duplicate:
-      "Zaten listedesin — atölyeden gelecek bir sonraki not sana da ulaşacak.",
+      "Zaten listedesin. Atölyeden gelecek bir sonraki not sana da ulaşacak.",
     invalid: "Geçerli bir e-posta adresi gir.",
     error: "Şu anda kaydını tamamlayamadık. Lütfen tekrar dene.",
     trust:
@@ -79,20 +79,19 @@ export const studioLetterCopy = {
       "Katılım ücretsizdir. Yalnızca ara sıra gönderilir. Dilediğin zaman abonelikten ayrılabilirsin.",
     footerHeading: "Stüdyo Mektubu",
     footerSubheading: "Hikâyeler, yeni eserler ve sınırlı atölye edisyonları.",
-    sectionEyebrow: "ÜCRETSİZ STÜDYO MEKTUBU",
-    sectionHeading: "Her resim bir yerde başlar.",
-    sectionBody:
-      "Aida’nın eserlerinin ardındaki anılara, yerlere ve küçük anlara yaklaş.",
-    previewEyebrow: "STÜDYO MEKTUBU’NDAN BİR ÖN İZLEME",
-    previewMetadata: "AIDA’NIN İSTANBUL ATÖLYESİNDEN · 4 DAKİKALIK OKUMA",
+    previewEyebrow: "ATÖLYEDEN BİR ÖN İZLEME",
+    previewMetadata: "Aida’nın İstanbul Atölyesinden · 4 dakikalık okuma",
     previewHeading: "“Memories of Summer”ın ardındaki hikâye",
-    paragraphOne:
-      "Her şey, Beşiktaş’a doğru giderken güneşli ve sıcak bir yaz gününde başladı. Şehir araba camının ardından akıp giderken yan aynada kendi yansımamı gördüm.",
+    paragraphOne: "Bazı resimler bir planla başlar. Bu ise bir hisle başladı.",
     paragraphTwo:
-      "Sıcak ışık, hareket hâlindeki sokaklar ve kısa bir gülümseme… Sıradan bir andı ama nedense aklımda kaldı. Daha sonra atölyeye döndüğümde bu anıyı yağlı pastel bir resme dönüştürmeye başladım…",
-    continue: "Bunun gibi hikâyelerin devamını Stüdyo Mektubu’nda oku.",
+      "Sıcak bir yaz öğleden sonrasında Beşiktaş’a doğru giderken şehrin araba camının ardından akışını izliyordum. Bir anda yan aynada kendi yansımamı gördüm. Yalnızca bir saniye sürdü ama benimle kaldı.",
+    paragraphThree:
+      "Nedense o küçücük an, çocukluğumdan bir anıyı geri getirdi",
+    hiddenStory:
+      "Arka koltukta, uzun bir günün ardından yarı uykulu oturduğumu; dünya akıp giderken güneş ışığının camlarda dans edişini izlediğimi hatırladım. O sessiz yolculuklarda, güneşin sıcaklığında, arabanın hafif hareketinde ve zamanın bir süreliğine yavaşladığı hissinde çok huzur veren bir şey var. Atölyeye döndüğümde bunu düşünmeden edemedim. Yağlı pastellerimi elime aldım ve gördüğümü yeniden yaratmak için değil, bana hissettirdiğini yakalamak için resmetmeye başladım. Katmanlar çoğaldıkça anı da büyüdü. Renkler o öğleden sonranın sıcaklığını taşımaya başladı ve resim yavaşça bugünle çocukluğumun uzun yaz günleri arasında bir köprüye dönüştü. Memories of Summer böyle hayat buldu.",
+    continue: "Hikâyenin tamamını ücretsiz Stüdyo Mektubu’nda oku.",
     transition:
-      "Resimlerin ardındaki hikâyeler, atölye notları, yeni orijinaller ve sınırlı edisyonlara dair ilk haberler — yalnızca ara sıra ve her zaman ücretsiz.",
+      "Resimlerin ardındaki hikâyeler, atölye notları, yeni orijinaller ve sınırlı edisyonlara dair erken haberler, ara sıra ve her zaman ücretsiz.",
     photoCaption: "Aklımda kalan o an.",
     paintingCaption: "Memories of Summer",
     openPhoto: "İlham veren fotoğrafı aç",
@@ -294,7 +293,7 @@ export default function StudioLetterSignup({
             variant === "footer"
               ? "footer-newsletter-controls"
               : story
-                ? "grid gap-3"
+                ? "grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"
                 : "grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"
           }
         >
@@ -327,7 +326,7 @@ export default function StudioLetterSignup({
             className={
               variant === "footer"
                 ? "footer-newsletter-button"
-                : `button-primary min-h-12 justify-center disabled:cursor-wait disabled:opacity-70 ${story ? "w-full" : ""}`
+                : "button-primary min-h-12 justify-center disabled:cursor-wait disabled:opacity-70"
             }
           >
             {status === "loading"
@@ -370,24 +369,15 @@ export default function StudioLetterSignup({
 
   return (
     <section
-      className="section-shell !py-14 md:!py-20"
+      id="studio-letter"
+      className="section-shell scroll-mt-24 !py-12 md:!py-16 lg:!py-20"
       aria-labelledby={`${inputId}-heading`}
       data-studio-letter={context}
       data-no-translate
     >
-      <header className="mb-10 max-w-2xl md:mb-14">
-        <p className="eyebrow text-coral">{copy.sectionEyebrow}</p>
-        <h2 id={`${inputId}-heading`} className="mt-4 text-4xl md:text-5xl">
-          {copy.sectionHeading}
-        </h2>
-        <p className="mt-4 text-lg leading-relaxed text-ink/65">
-          {copy.sectionBody}
-        </p>
-      </header>
-
-      <div className="grid items-center gap-12 lg:grid-cols-[.88fr_1.12fr] lg:gap-16 xl:gap-20">
+      <div className="grid items-center gap-10 md:grid-cols-[.44fr_.56fr] md:gap-10 lg:gap-14">
         <div
-          className="relative mx-auto min-h-[560px] w-full max-w-[560px] sm:min-h-[680px] lg:min-h-[720px]"
+          className="relative mx-auto h-[430px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
           aria-label="The memory and the painting it inspired"
         >
           <button
@@ -396,31 +386,26 @@ export default function StudioLetterSignup({
               openImage(
                 event,
                 memoriesPhoto,
-                "Aida Ramezani reflected in a car side mirror during a summer journey to Beşiktaş",
+                "Aida reflected in a car side mirror during a warm summer drive to Beşiktaş.",
                 copy.photoCaption,
               )
             }
-            className="group absolute left-[3%] top-0 w-[67%] -rotate-2 border-[10px] border-b-[46px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_12px_30px_rgba(45,37,28,.18)] transition duration-300 ease-out hover:-translate-y-1.5 hover:-rotate-1 hover:shadow-[0_18px_34px_rgba(45,37,28,.22)] focus-visible:-translate-y-1.5 focus-visible:-rotate-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:border-[12px] sm:border-b-[52px]"
+            className="group absolute inset-x-[4%] bottom-0 top-[5%] border-[9px] border-b-[38px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_12px_28px_rgba(45,37,28,.17)] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(45,37,28,.2)] focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:border-[11px] sm:border-b-[42px]"
             aria-label={copy.openPhoto}
           >
             <img
               src={memoriesPhoto}
-              alt="Aida Ramezani reflected in a car side mirror during a summer journey to Beşiktaş"
+              alt="Aida reflected in a car side mirror during a warm summer drive to Beşiktaş."
               width="941"
               height="1672"
               loading="lazy"
               decoding="async"
-              className="block aspect-[941/1672] w-full object-cover"
+              className="block h-full w-full object-cover object-[68%_66%]"
             />
             <span className="absolute inset-x-3 bottom-3 font-hand text-base text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink">
               {copy.photoCaption}
             </span>
           </button>
-
-          <span
-            className="absolute left-[54%] top-[44%] z-20 h-8 w-24 -translate-x-1/2 -rotate-3 bg-[#e7d4aa]/70 shadow-sm"
-            aria-hidden="true"
-          />
 
           <button
             type="button"
@@ -428,63 +413,58 @@ export default function StudioLetterSignup({
               openImage(
                 event,
                 memoriesPainting,
-                "Memories of Summer, an original oil pastel painting by Aida Ramezani",
+                "Memories of Summer, an oil pastel painting inspired by the car journey.",
                 copy.paintingCaption,
               )
             }
-            className="group absolute bottom-1 right-[1%] z-10 w-[73%] rotate-2 border-[10px] border-b-[46px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_12px_30px_rgba(45,37,28,.2)] transition duration-300 ease-out hover:-translate-y-1.5 hover:rotate-1 hover:shadow-[0_18px_34px_rgba(45,37,28,.24)] focus-visible:-translate-y-1.5 focus-visible:rotate-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:border-[12px] sm:border-b-[52px]"
+            className="group absolute left-0 top-0 z-10 w-[38%] -rotate-[4deg] border-[7px] border-b-[30px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_8px_20px_rgba(45,37,28,.18)] transition duration-300 ease-out hover:-translate-y-1 hover:-rotate-3 focus-visible:-translate-y-1 focus-visible:-rotate-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:w-[40%] sm:border-[9px] sm:border-b-[34px] md:w-[42%]"
             aria-label={copy.openPainting}
           >
             <img
               src={memoriesPainting}
-              alt="Memories of Summer, an original oil pastel painting by Aida Ramezani"
+              alt="Memories of Summer, an oil pastel painting inspired by the car journey."
               width="1838"
               height="1893"
               loading="lazy"
               decoding="async"
               className="block aspect-[1838/1893] w-full bg-[#f3ede1] object-contain"
             />
-            <span className="absolute inset-x-3 bottom-3 font-hand text-lg text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink">
+            <span className="absolute inset-x-2 bottom-2 truncate font-hand text-sm text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink sm:text-base">
               {copy.paintingCaption}
             </span>
           </button>
         </div>
 
-        <article className="border border-ink/15 bg-[#fffaf0] p-6 shadow-[0_10px_26px_rgba(49,38,26,.09)] sm:p-8 md:p-10">
+        <article className="border border-ink/15 bg-[#fffaf0] p-5 shadow-[0_8px_22px_rgba(49,38,26,.07)] sm:p-7 lg:p-8">
           <div className="h-0.5 w-14 bg-coral" aria-hidden="true" />
-          <p className="eyebrow mt-5 text-coral">{copy.previewEyebrow}</p>
-          <p className="mt-3 text-[11px] font-bold uppercase tracking-[.13em] text-ink/45">
+          <p className="eyebrow mt-4 text-coral">{copy.previewEyebrow}</p>
+          <p className="mt-2 text-[11px] font-semibold tracking-[.08em] text-ink/45">
             {copy.previewMetadata}
           </p>
-          <h3 className="mt-5 text-3xl leading-tight md:text-4xl">
+          <h2
+            id={`${inputId}-heading`}
+            className="mt-4 text-3xl leading-tight lg:text-4xl"
+          >
             {copy.previewHeading}
-          </h3>
-          <div className="mt-6 space-y-4 text-[15px] leading-7 text-ink/75">
+          </h2>
+          <div className="mt-4 space-y-3 text-[15px] leading-6 text-ink/75">
             <p>{copy.paragraphOne}</p>
             <p>{copy.paragraphTwo}</p>
+            <p>{copy.paragraphThree}</p>
           </div>
           <div
-            className="relative mt-3 overflow-hidden pb-16"
+            className="pointer-events-none relative mt-1 max-h-[68px] select-none overflow-hidden bg-[#f4ead8]/65 px-1 py-1 [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,.72)_55%,transparent_100%)]"
             aria-hidden="true"
           >
-            <p className="text-sm leading-7 text-ink/50 blur-[.7px]">
-              The colours began to hold the warmth of the road and the movement
-              of that afternoon.
-            </p>
-            <p className="text-sm leading-7 text-ink/35 blur-[1.4px]">
-              Layer by layer, the remembered moment became something I could
-              hold onto.
-            </p>
-            <p className="text-sm leading-7 text-ink/20 blur-[2.2px]">
-              And slowly, the painting found its own way back to me.
-            </p>
-            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-[#fffaf0]/0 via-[#fffaf0]/90 to-[#fffaf0]" />
-            <p className="absolute inset-x-0 bottom-3 text-center text-sm font-semibold text-coral blur-none">
-              {copy.continue}
+            <p className="text-sm leading-6 text-ink/70 blur-[6px]">
+              {copy.hiddenStory}
             </p>
           </div>
-          <div className="mt-5 border-t border-ink/15 pt-6">
-            <p className="mb-5 text-sm leading-6 text-ink/65">
+          <p className="mt-2 text-sm font-semibold text-coral">
+            {copy.continue}
+          </p>
+          <div className="mt-4 border-t border-ink/15 pt-4">
+            <p className="mb-4 text-sm leading-5 text-ink/65">
               {copy.transition}
             </p>
             {form}
