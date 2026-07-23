@@ -79,6 +79,26 @@ export default function CartDrawer({
   const whatsappEnabled = runtimeWhatsapp?.configured
     ? runtimeWhatsapp.enabled
     : settings.whatsapp.enabled;
+  const productLink = (item: (typeof cart)[number]) => {
+    const baseId = item.id.split(":")[0];
+    let path: string;
+    if (item.kind === "original") {
+      const id = baseId.replace(/^original-/, "");
+      const product = settings.originalProducts.find(
+        (entry) => entry.id === id,
+      );
+      const slug = product?.slug || product?.id || id;
+      path = `/shop/${region === "TR" ? "turkiye" : "international"}/originals/${encodeURIComponent(slug)}`;
+    } else if (item.kind === "studio-mail") {
+      path = "/shop/turkiye/mystery-mail";
+    } else {
+      const id =
+        item.productId ||
+        baseId.replace(/^print-product-/, "").replace(/^product-/, "");
+      path = `/shop/turkiye/prints?product=${encodeURIComponent(id)}`;
+    }
+    return new URL(path, window.location.origin).toString();
+  };
   const orderMessage = [
     settings.whatsapp.greeting,
     "",
@@ -89,6 +109,7 @@ export default function CartDrawer({
     ...cart.flatMap((item, index) =>
       [
         `${index + 1}. ${item.title}`,
+        `Product link: ${productLink(item)}`,
         item.printConfiguration ? `Size: ${item.printConfiguration.sizeLabel}` : "",
         item.printConfiguration?.sizeSecondaryLabel || "",
         item.printConfiguration
