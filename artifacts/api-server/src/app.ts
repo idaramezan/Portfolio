@@ -41,6 +41,10 @@ if (process.env.NODE_ENV === "production") {
     frontendCandidates.find((candidate) =>
       fs.existsSync(path.join(candidate, "index.html")),
     ) || frontendCandidates[0];
+  app.get(["/favicon.png", "/apple-touch-icon.png"], (request, response) => {
+    response.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    return response.sendFile(path.join(frontendDir, request.path.slice(1)));
+  });
   app.use(express.static(frontendDir, { maxAge: "1y", immutable: true, index: false }));
   app.use((request, response, next) => {
     if (request.method !== "GET" || request.path.startsWith("/api/")) return next();
