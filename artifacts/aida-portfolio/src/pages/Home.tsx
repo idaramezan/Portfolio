@@ -5,6 +5,8 @@ import { productRepository } from "@/lib/productRepository";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
+import turkiyeFlagBackground from "@assets/home-turkiye-flag.jpg";
+import internationalFlagsBackground from "@assets/home-international-flags.jpg";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
@@ -65,41 +67,61 @@ export default function Home() {
             <h2>Choose Your Shop</h2>
           </div>
           <div className="mt-10 grid gap-px bg-ink/10 md:grid-cols-2">
-            <article className="flex flex-col items-start bg-paper p-7 md:p-10">
-              <p className="eyebrow">Türkiye</p>
-              <h3 className="mt-3 text-3xl">Shop within Türkiye</h3>
-              <p className="mt-4 flex-1 leading-relaxed text-ink/70">
-                Browse original paintings, signed prints, T-shirts, mugs,
-                stickers and the current Mystery Mail. Add your selections to
-                your basket and continue personally with Aida on WhatsApp.
-              </p>
-              <p className="mt-5 text-sm font-semibold">
-                Originals · Prints & Goods · Mystery Mail
-              </p>
-              <Link href="/shop/turkiye" className="button-primary mt-7">
-                Enter the Türkiye Shop <ArrowRight size={16} />
-              </Link>
+            <article className="relative isolate overflow-hidden bg-paper p-7 md:p-10">
+              <img
+                src={turkiyeFlagBackground}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.11]"
+              />
+              <div className="flex h-full flex-col items-start">
+                <p className="eyebrow">Türkiye</p>
+                <h3 className="mt-3 text-3xl">Shop within Türkiye</h3>
+                <p className="mt-4 flex-1 leading-relaxed text-ink/70">
+                  Browse original paintings, signed prints, T-shirts, mugs,
+                  stickers and the current Mystery Mail. Add your selections to
+                  your basket and continue personally with Aida on WhatsApp.
+                </p>
+                <p className="mt-5 text-sm font-semibold">
+                  Originals · Prints & Goods · Mystery Mail
+                </p>
+                <Link href="/shop/turkiye" className="button-primary mt-7">
+                  Enter the Türkiye Shop <ArrowRight size={16} />
+                </Link>
+              </div>
             </article>
-            <article className="flex flex-col items-start bg-paper p-7 md:p-10">
-              <p className="eyebrow">International</p>
-              <h3 className="mt-3 text-3xl">Shop internationally</h3>
-              <p className="mt-4 flex-1 leading-relaxed text-ink/70">
-                Collect an original directly from Aida or explore international
-                prints available through Fourthwall.
-              </p>
-              <p className="mt-5 text-sm font-semibold">
-                Originals · International Prints
-              </p>
-              <p className="mt-2 text-sm text-ink/60">
-                Original shipping is quoted separately. Print shipping is
-                calculated by Fourthwall.
-              </p>
-              <Link
-                href="/shop/international"
-                className="button-secondary mt-7"
-              >
-                Enter the International Shop <ArrowRight size={16} />
-              </Link>
+            <article className="relative isolate overflow-hidden bg-paper p-7 md:p-10">
+              <img
+                src={internationalFlagsBackground}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.1]"
+              />
+              <div className="flex h-full flex-col items-start">
+                <p className="eyebrow">International</p>
+                <h3 className="mt-3 text-3xl">Shop internationally</h3>
+                <p className="mt-4 flex-1 leading-relaxed text-ink/70">
+                  Collect an original directly from Aida or explore international
+                  prints available through Fourthwall.
+                </p>
+                <p className="mt-5 text-sm font-semibold">
+                  Originals · International Prints
+                </p>
+                <p className="mt-2 text-sm text-ink/60">
+                  Original shipping is quoted separately. Print shipping is
+                  calculated by Fourthwall.
+                </p>
+                <Link
+                  href="/shop/international"
+                  className="button-secondary mt-7"
+                >
+                  Enter the International Shop <ArrowRight size={16} />
+                </Link>
+              </div>
             </article>
           </div>
         </div>
