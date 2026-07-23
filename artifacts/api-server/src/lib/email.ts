@@ -24,7 +24,7 @@ export async function sendEmail(input: SendEmailInput) {
   const from =
     process.env.RESEND_FROM_EMAIL ||
     process.env.EMAIL_FROM ||
-    "Aida Ramezani <studio@aidaramezani.com>";
+    "Aida <Aida@aedaart.com>";
   if (!apiKey) {
     throw new Error("RESEND_API_KEY must be configured");
   }
