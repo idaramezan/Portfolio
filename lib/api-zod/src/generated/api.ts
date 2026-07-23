@@ -225,27 +225,3 @@ export const SubscribeNewsletterResponse = zod.object({
 })
 
 
-/**
- * @summary Initiate a Paddle checkout for an artwork or print
- */
-export const InitiateCheckoutBody = zod.object({
-  "type": zod.enum(['original', 'print']),
-  "artworkId": zod.number(),
-  "printSize": zod.string().optional(),
-  "customerEmail": zod.string().optional()
-})
-
-export const InitiateCheckoutResponse = zod.object({
-  "checkoutUrl": zod.string(),
-  "transactionId": zod.string().nullish()
-})
-
-
-/**
- * @summary Handle Paddle payment webhooks
- */
-export const PaddleWebhookResponse = zod.object({
-  "received": zod.boolean()
-})
-
-

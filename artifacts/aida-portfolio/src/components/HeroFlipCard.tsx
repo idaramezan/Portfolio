@@ -77,7 +77,11 @@ export default function HeroFlipCard({ portrait, paintings }: Props) {
       >
         <img
           src={displaySrc}
-          alt={isPortrait ? "Aida Ramezani in the studio" : "Original painting by Aida Ramezani"}
+          alt={
+            isPortrait
+              ? "Aida Ramezani in the studio"
+              : "Original painting by Aida Ramezani"
+          }
           className="w-full h-auto object-cover transform -rotate-3 torn-edge shadow-xl"
           style={{ willChange: "transform" }}
           draggable={false}
@@ -96,7 +100,9 @@ export default function HeroFlipCard({ portrait, paintings }: Props) {
       {/* Subtle "tap to reveal" hint — fades on hover */}
       <div className="absolute -bottom-14 left-0 right-0 z-20 text-center pointer-events-none">
         <p className="font-hand text-base text-ink/40 group-hover:text-ink/70 transition-colors duration-300">
-          {isPortrait ? "click to peek at my paintings →" : "click to see more →"}
+          {isPortrait
+            ? "click to peek at my paintings →"
+            : "click to see more →"}
         </p>
       </div>
     </div>

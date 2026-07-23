@@ -1,117 +1,206 @@
+import { ArrowRight, PackageCheck } from "lucide-react";
 import { Link } from "wouter";
-import { assetImages, portrait } from "@/lib/assets";
-import MonthlyMailPrintBanner from "@/components/MonthlyMailPrintBanner";
+import { homeAboutImage, heroPortrait } from "@/lib/assets";
+import { productRepository } from "@/lib/productRepository";
+import { usePageMeta } from "@/hooks/use-page-meta";
+import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
+import TikTokLiveSection from "@/components/TikTokLiveSection";
 
-const recentWorks = [
-  {
-    image: assetImages[1],
-    title: "Quiet Studio",
-    medium: "Oil pastel on paper",
-    dimension: "14 x 18 in",
-    availability: "Available",
-  },
-  {
-    image: assetImages[3],
-    title: "Evening Window",
-    medium: "Oil pastel on paper",
-    dimension: "12 x 16 in",
-    availability: "Available",
-  },
-  {
-    image: assetImages[4],
-    title: "Untitled Study",
-    medium: "Oil pastel on paper",
-    dimension: "11 x 15 in",
-    availability: "Available",
-  },
-];
+const SEO_TITLE =
+  "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
+const SEO_DESCRIPTION =
+  "Shop original paintings, Prints & Goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani.";
 
 export default function Home() {
+  usePageMeta(SEO_TITLE, SEO_DESCRIPTION);
+  const links = productRepository.getSettings().siteLinks;
+
   return (
-    <div className="flex flex-col">
-      <section className="w-full max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24">
-        <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] items-center">
-          <div className="space-y-8">
-            <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">A studio story</p>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-ink leading-[0.95] tracking-tight max-w-2xl">
-              Work that feels handcrafted, unmistakably intimate, and quietly collectible.
-            </h1>
-            <p className="text-lg md:text-xl text-ink/80 max-w-xl leading-relaxed">
-              Each original oil pastel is made in the studio with imperfect edges, fingerprints, and the quiet urgency of an artist who paints from feeling.
+    <div className="flex flex-col overflow-hidden">
+      <section className="home-hero">
+        <div className="section-shell home-hero__inner !py-5 md:!py-8">
+          <div className="max-w-2xl">
+            <p className="eyebrow">
+              Original paintings • Prints & Goods • Mystery Mail
             </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <h1 className="home-hero-title mt-3 font-serif text-ink md:mt-5">
+              Original Art, Prints & Goods and Mystery Mail
+            </h1>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-ink/70 md:mt-6 md:text-xl">
+              Discover one of a kind paintings, signed art prints and small
+              themed art packages created by Istanbul artist Aida Ramezani.
+            </p>
+            <div className="mt-5 flex flex-col items-start gap-2 sm:flex-row sm:items-center md:mt-8">
               <Link
-                href="/originals"
-                className="inline-flex items-center justify-center rounded-none bg-coral px-8 py-3 text-lg font-serif text-paper transition-colors hover:bg-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
+                href="/shop/turkiye"
+                className="button-primary"
+                aria-label="Shop originals, Prints and Goods and Mystery Mail in Türkiye"
               >
-                Shop Originals
+                Shop in Türkiye <ArrowRight size={17} />
               </Link>
               <Link
-                href="/about#process"
-                className="inline-flex items-center text-sm text-ink underline underline-offset-4 hover:text-coral"
+                href="/shop/international"
+                className="button-secondary"
+                aria-label="Shop originals and international prints"
               >
-                Learn about my process
+                Shop internationally
               </Link>
             </div>
           </div>
-
-          <div className="relative overflow-hidden rounded-none border border-ink/10 bg-ink/5 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
-            <img
-              src={portrait}
-              alt="Aida Ramezani holding artwork in her studio"
-              className="w-full h-full object-cover"
+          <div className="home-hero-media relative flex min-h-0 flex-col">
+            <ArtistPhotoFrame
+              variant="hero"
+              src={heroPortrait}
+              alt="Istanbul artist Aida Ramezani smiling and holding one of her artworks"
+              caption="Aida in her Istanbul studio"
             />
-            <div className="absolute left-4 bottom-4 rounded-none border border-ink/10 bg-paper/90 px-4 py-3 text-sm uppercase tracking-[0.35em] text-ink">
-              Aida in her studio
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-5xl px-4 md:px-8 py-16 border-y border-ink/10">
-        <div className="space-y-6 text-center">
-          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Limited collections</p>
-          <h2 className="text-4xl md:text-5xl font-serif text-ink">Original paintings are released in small collections.</h2>
-          <p className="mx-auto max-w-2xl text-lg text-ink/80 leading-relaxed">
-            Once sold, they are never recreated. Each piece is made by hand, signed, and offered only a few times in each studio season.
+      <section className="border-y border-ink/10 bg-card">
+        <div className="section-shell">
+          <div className="section-heading">
+            <p className="eyebrow">Shopping location</p>
+            <h2>Choose Your Shop</h2>
+          </div>
+          <div className="mt-10 grid gap-px bg-ink/10 md:grid-cols-2">
+            <article className="flex flex-col items-start bg-paper p-7 md:p-10">
+              <p className="eyebrow">Türkiye</p>
+              <h3 className="mt-3 text-3xl">Shop within Türkiye</h3>
+              <p className="mt-4 flex-1 leading-relaxed text-ink/70">
+                Browse original paintings, signed prints, T-shirts, mugs,
+                stickers and the current Mystery Mail. Add your selections to
+                your basket and continue personally with Aida on WhatsApp.
+              </p>
+              <p className="mt-5 text-sm font-semibold">
+                Originals · Prints & Goods · Mystery Mail
+              </p>
+              <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-green">
+                <PackageCheck size={17} aria-hidden="true" />
+                Free shipping within Türkiye
+              </p>
+              <Link href="/shop/turkiye" className="button-primary mt-7">
+                Enter the Türkiye Shop <ArrowRight size={16} />
+              </Link>
+            </article>
+            <article className="flex flex-col items-start bg-paper p-7 md:p-10">
+              <p className="eyebrow">International</p>
+              <h3 className="mt-3 text-3xl">Shop internationally</h3>
+              <p className="mt-4 flex-1 leading-relaxed text-ink/70">
+                Collect an original directly from Aida or explore international
+                prints available through Fourthwall.
+              </p>
+              <p className="mt-5 text-sm font-semibold">
+                Originals · International Prints
+              </p>
+              <p className="mt-2 text-sm text-ink/60">
+                Original shipping is quoted separately. Print shipping is
+                calculated by Fourthwall.
+              </p>
+              <Link
+                href="/shop/international"
+                className="button-secondary mt-7"
+              >
+                Enter the International Shop <ArrowRight size={16} />
+              </Link>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <TikTokLiveSection tiktokUrl={links.tiktokUrl} />
+
+      <section className="border-y border-ink/10 bg-ochre/10">
+        <div className="section-shell grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+          <ArtistPhotoFrame
+            src={homeAboutImage}
+            alt="Aida Ramezani holding a carefully packed artwork in her Istanbul studio"
+          />
+          <div className="section-heading">
+            <p className="eyebrow">About the artist</p>
+            <h2>Made by Aida Ramezani in Istanbul</h2>
+            <p>
+              Every original painting, studio good and Mystery Mail package is
+              created, selected or prepared personally in the studio.
+            </p>
+            <p>
+              The goal is to make collecting art feel personal, approachable and
+              connected to the artist who created it.
+            </p>
+            <Link href="/about" className="button-link mt-2">
+              Meet the artist <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-shell">
+        <div className="section-heading">
+          <p className="eyebrow">Ordering</p>
+          <h2>How Turkey Orders Work</h2>
+        </div>
+        <ol className="mt-10 grid gap-px bg-ink/10 md:grid-cols-3">
+          {[
+            [
+              "01",
+              "Choose your artwork",
+              "Explore the available originals, Prints & Goods and Mystery Mail.",
+            ],
+            [
+              "02",
+              "Add items to your basket",
+              "Select your preferred products and framing options.",
+            ],
+            [
+              "03",
+              "Continue to WhatsApp",
+              "Send your basket through WhatsApp to confirm availability, delivery and payment details.",
+            ],
+          ].map(([number, title, copy]) => (
+            <li key={number} className="bg-card p-7">
+              <span className="font-hand text-2xl text-coral">{number}</span>
+              <h3 className="mt-5 text-2xl">{title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-ink/65">{copy}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-6 border-l-2 border-coral pl-5 text-sm leading-relaxed text-ink/65">
+          <p>No online payment is collected through this website.</p>
+          <p>
+            International originals are arranged with Aida. International prints
+            are completed through Fourthwall.
           </p>
         </div>
       </section>
 
-      <section className="px-4 md:px-8">
-        <MonthlyMailPrintBanner />
-      </section>
-
-      <section className="w-full max-w-7xl mx-auto px-4 md:px-8 py-20">
-        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between mb-12">
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">Recent Work</p>
-            <h2 className="mt-3 text-4xl md:text-5xl font-serif text-ink">Featured pieces from the studio</h2>
+      <section className="bg-blue text-paper">
+        <div className="section-shell text-center">
+          <p className="eyebrow !text-paper/55">Social</p>
+          <h2 className="mt-4 text-4xl text-paper md:text-6xl">
+            Follow the Studio
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-paper/70">
+            See new paintings, behind the scenes studio moments, packaging
+            videos and upcoming releases.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {[
+              ["Instagram", links.instagramUrl],
+              ["TikTok", links.tiktokUrl],
+              ["YouTube", links.youtubeUrl],
+            ].map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button-secondary !border-paper/40 !text-paper hover:!bg-paper hover:!text-ink"
+              >
+                {label}
+              </a>
+            ))}
           </div>
-          <Link href="/originals" className="text-sm uppercase tracking-[0.35em] text-ink hover:text-coral underline underline-offset-4">
-            View the collection
-          </Link>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-3">
-          {recentWorks.map((work) => (
-            <article key={work.title} className="group overflow-hidden rounded-none border border-ink/10 bg-paper shadow-sm transition-shadow hover:shadow-lg">
-              <div className="relative overflow-hidden bg-ink/5">
-                <img src={work.image} alt={work.title} className="w-full h-[480px] object-cover transition-transform duration-700 group-hover:scale-105" />
-              </div>
-              <div className="p-6">
-                <h3 className="font-serif text-2xl text-ink mb-2">{work.title}</h3>
-                <p className="text-sm uppercase tracking-[0.35em] text-muted-foreground mb-3">{work.medium}</p>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-ink/70">
-                  <span>{work.dimension}</span>
-                  <span>{work.availability}</span>
-                </div>
-                <Link href="/originals" className="mt-6 inline-flex items-center text-sm text-ink underline underline-offset-4 hover:text-coral">
-                  View artwork
-                </Link>
-              </div>
-            </article>
-          ))}
         </div>
       </section>
     </div>

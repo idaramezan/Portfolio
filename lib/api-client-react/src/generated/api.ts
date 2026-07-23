@@ -23,8 +23,6 @@ import type {
   Artwork,
   ArtworkStats,
   ArtworkUpdate,
-  CheckoutRequest,
-  CheckoutResponse,
   ErrorResponse,
   Event,
   EventInput,
@@ -34,8 +32,7 @@ import type {
   ListArtworksParams,
   ListEventsParams,
   NewsletterInput,
-  NewsletterSubscriber,
-  WebhookAck
+  NewsletterSubscriber
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -825,147 +822,5 @@ export const useSubscribeNewsletter = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getSubscribeNewsletterMutationOptions(options));
-    }
-
-export const getInitiateCheckoutUrl = () => {
-
-
-
-
-  return `/api/checkout/initiate`
-}
-
-/**
- * @summary Initiate a Paddle checkout for an artwork or print
- */
-export const initiateCheckout = async (checkoutRequest: CheckoutRequest, options?: RequestInit): Promise<CheckoutResponse> => {
-
-  return customFetch<CheckoutResponse>(getInitiateCheckoutUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(checkoutRequest)
-  }
-);}
-
-
-
-
-
-export const getInitiateCheckoutMutationOptions = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initiateCheckout>>, TError,{data: BodyType<CheckoutRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof initiateCheckout>>, TError,{data: BodyType<CheckoutRequest>}, TContext> => {
-
-const mutationKey = ['initiateCheckout'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof initiateCheckout>>, {data: BodyType<CheckoutRequest>}> = (props) => {
-          const {data} = props ?? {};
-
-          return  initiateCheckout(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type InitiateCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof initiateCheckout>>>
-    export type InitiateCheckoutMutationBody = BodyType<CheckoutRequest>
-    export type InitiateCheckoutMutationError = ErrorType<ErrorResponse>
-
-    /**
- * @summary Initiate a Paddle checkout for an artwork or print
- */
-export const useInitiateCheckout = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof initiateCheckout>>, TError,{data: BodyType<CheckoutRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof initiateCheckout>>,
-        TError,
-        {data: BodyType<CheckoutRequest>},
-        TContext
-      > => {
-      return useMutation(getInitiateCheckoutMutationOptions(options));
-    }
-
-export const getPaddleWebhookUrl = () => {
-
-
-
-
-  return `/api/webhooks/paddle`
-}
-
-/**
- * @summary Handle Paddle payment webhooks
- */
-export const paddleWebhook = async ( options?: RequestInit): Promise<WebhookAck> => {
-
-  return customFetch<WebhookAck>(getPaddleWebhookUrl(),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-
-export const getPaddleWebhookMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof paddleWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof paddleWebhook>>, TError,void, TContext> => {
-
-const mutationKey = ['paddleWebhook'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof paddleWebhook>>, void> = () => {
-
-
-          return  paddleWebhook(requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PaddleWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof paddleWebhook>>>
-
-    export type PaddleWebhookMutationError = ErrorType<unknown>
-
-    /**
- * @summary Handle Paddle payment webhooks
- */
-export const usePaddleWebhook = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof paddleWebhook>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof paddleWebhook>>,
-        TError,
-        void,
-        TContext
-      > => {
-      return useMutation(getPaddleWebhookMutationOptions(options));
     }
 

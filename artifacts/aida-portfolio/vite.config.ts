@@ -13,6 +13,18 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 const basePath = process.env.BASE_PATH ?? '/';
+const apiPort = Number(process.env.API_PORT ?? '5001');
+
+if (Number.isNaN(apiPort) || apiPort <= 0) {
+  throw new Error(`Invalid API_PORT value: "${process.env.API_PORT}"`);
+}
+
+const apiProxy = {
+  '/api': {
+    target: `http://127.0.0.1:${apiPort}`,
+    changeOrigin: true,
+  },
+};
 
 export default defineConfig({
   base: basePath,
@@ -59,10 +71,12 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: apiProxy,
   },
   preview: {
     port,
     host: '0.0.0.0',
     allowedHosts: true,
+    proxy: apiProxy,
   },
 });

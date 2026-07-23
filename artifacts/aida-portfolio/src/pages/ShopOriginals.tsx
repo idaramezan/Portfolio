@@ -1,86 +1,142 @@
-import { useState } from "react";
-import { useListArtworks, getListArtworksQueryKey, Artwork } from "@workspace/api-client-react";
-import ArtworkCard from "@/components/ArtworkCard";
-import ArtworkModal from "@/components/ArtworkModal";
-import { cn } from "@/lib/utils";
-
-const CATEGORIES = ["All", "Animals", "Other", "Portraits", "Still Life"];
+import { useEffect, useState } from "react";
+import { PackageCheck } from "lucide-react";
+import ProductCard from "@/components/ProductCard";
+import ProductDetailsDialog from "@/components/ProductDetailsDialog";
+import { originalsCoverImage } from "@/lib/assets";
+import {
+  addItemToCart,
+  loadShopSettings,
+  type ManagedProduct,
+} from "@/lib/store";
+import { isPubliclyVisible } from "@/lib/product-status";
 
 export default function ShopOriginals() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [selectedArtwork, setSelectedArtwork] = useState<{ artwork: Artwork; index: number } | null>(null);
+  const [settings, setSettings] = useState(loadShopSettings());
+  const [selected, setSelected] = useState<ManagedProduct | null>(null);
+  const [showUnavailable, setShowUnavailable] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
 
-  const queryParams: Record<string, string> = { forSale: "true" };
-  if (activeCategory !== "All") queryParams.category = activeCategory;
+  useEffect(() => {
+    const sync = () => setSettings(loadShopSettings());
+    window.addEventListener("shop-settings:updated", sync);
+    const requestedId = new URLSearchParams(window.location.search).get(
+      "product",
+    );
+    if (requestedId) {
+      const requested = loadShopSettings().originalProducts.find(
+        (product) => product.id === requestedId,
+      );
+      if (requested) setSelected(requested);
+    }
+    return () => window.removeEventListener("shop-settings:updated", sync);
+  }, []);
 
-  const { data: artworks, isLoading } = useListArtworks(queryParams, {
-    query: { queryKey: getListArtworksQueryKey(queryParams) },
-  });
+  const products = settings.originalProducts.filter(isPubliclyVisible);
+
+  const addOriginal = (product: ManagedProduct) => {
+    const result = addItemToCart(
+      {
+        id: `original-${product.id}`,
+        kind: "original",
+        title: product.name,
+        subtitle: product.dimension || "Original oil pastel",
+        imageUrl: product.imageUrl,
+        priceUsdCents: product.priceUsdCents,
+        quantity: 1,
+        maxQuantity: 1,
+      },
+      1,
+    );
+    setAnnouncement(
+      result.ok
+        ? `${product.name} added to your collection basket.`
+        : result.reason || "This work could not be added.",
+    );
+    if (result.ok) setSelected(null);
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-        <div>
-          <h1 className="text-5xl md:text-7xl font-serif text-ink mb-4">Shop Originals</h1>
-          <p className="text-xl text-muted-foreground font-sans max-w-xl">
-            Own an original oil pastel. Each piece is one-of-a-kind — reach out via WhatsApp to purchase.
+    <>
+      <section className="originals-hero">
+        <div className="originals-hero__content">
+          <p className="eyebrow">Direct Collecting from Türkiye</p>
+          <h1 className="mt-3 text-5xl leading-[.98] md:text-6xl lg:text-7xl">
+            Original Paintings for Sale
+          </h1>
+          <p className="mt-5 text-lg leading-relaxed text-ink/65">
+            Explore one of a kind oil pastel paintings, created and signed by
+            Aida Ramezani. Each original artwork is accompanied by a Certificate
+            of Authenticity.
+          </p>
+          <p className="mt-3 text-lg leading-relaxed text-ink/65">
+            Orders are available in Türkiye and internationally.
           </p>
         </div>
-
-        <div className="flex flex-wrap gap-2 md:gap-4">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "font-sans text-sm md:text-base px-4 py-2 border-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral",
-                activeCategory === cat
-                  ? "border-ink bg-ink text-paper"
-                  : "border-ink/20 text-ink hover:border-ink"
-              )}
-              style={{
-                clipPath:
-                  cat === "All"
-                    ? "polygon(2% 0, 100% 2%, 98% 100%, 0 98%)"
-                    : cat === "Animals"
-                    ? "polygon(0 2%, 98% 0, 100% 98%, 2% 100%)"
-                    : "polygon(1% 1%, 99% 0, 100% 99%, 0 100%)",
-              }}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="originals-hero__media">
+          <img
+            src={originalsCoverImage}
+            alt="Original paintings by Aida Ramezani"
+            fetchPriority="high"
+          />
         </div>
-      </div>
+      </section>
 
-      {isLoading ? (
-        <div className="w-full h-64 flex items-center justify-center">
-          <div className="font-hand text-3xl text-ink animate-pulse">Loading the studio...</div>
-        </div>
-      ) : artworks && artworks.length > 0 ? (
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
-          {artworks.map((artwork, idx) => (
-            <ArtworkCard
-              key={artwork.id}
-              artwork={artwork}
-              index={idx}
-              onClick={() => setSelectedArtwork({ artwork, index: idx })}
+      <aside className="shipping-banner" aria-label="Shipping information">
+        <span className="shipping-banner__icon">
+          <PackageCheck size={27} strokeWidth={1.8} aria-hidden="true" />
+        </span>
+        <p>
+          <strong>Shipping within Türkiye is included.</strong> International
+          shipping costs are calculated separately and paid by the collector.
+        </p>
+      </aside>
+
+      <div className="section-shell !pt-0">
+        <div className="flex justify-end border-b border-ink/10 pb-10">
+          <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={showUnavailable}
+              onChange={(e) => setShowUnavailable(e.target.checked)}
             />
-          ))}
+            Show unavailable artworks
+          </label>
         </div>
-      ) : (
-        <div className="w-full py-32 flex flex-col items-center justify-center text-center bg-ink/5 torn-edge-2">
-          <h3 className="font-serif text-3xl text-ink mb-4">No originals available right now</h3>
-          <p className="text-muted-foreground font-sans text-lg">Check back soon — new work drops regularly.</p>
-        </div>
-      )}
-
-      <ArtworkModal
-        artwork={selectedArtwork?.artwork || null}
-        index={selectedArtwork?.index || 0}
-        onClose={() => setSelectedArtwork(null)}
-        showBuyButton
-      />
-    </div>
+        <p aria-live="polite" className="mt-3 text-sm font-semibold text-coral">
+          {announcement}
+        </p>
+        {products.length ? (
+          <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                variant="original"
+                onClick={() => setSelected(product)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 border border-ink/10 bg-card p-12 text-center">
+            <h2 className="text-3xl">
+              The current collection has found its homes.
+            </h2>
+            <p className="mt-3 text-ink/60">
+              New originals can be published from the admin panel.
+            </p>
+          </div>
+        )}
+        <ProductDetailsDialog
+          product={selected}
+          open={Boolean(selected)}
+          onClose={() => {
+            setSelected(null);
+            if (window.location.search)
+              window.history.replaceState({}, "", "/originals");
+          }}
+          onAdd={() => selected && addOriginal(selected)}
+        />
+      </div>
+    </>
   );
 }

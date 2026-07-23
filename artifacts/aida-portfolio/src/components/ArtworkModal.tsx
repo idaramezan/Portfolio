@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { Artwork } from "@workspace/api-client-react";
 import { getArtworkImage } from "@/lib/assets";
 import { addItemToCart, loadShopSettings, type CartItem } from "@/lib/store";
-import { formatPrice } from "@/lib/utils";
+import Money from "@/components/Money";
 
 interface ArtworkModalProps {
   artwork: Artwork | null;
@@ -13,55 +13,18 @@ interface ArtworkModalProps {
   showBuyButton?: boolean;
 }
 
-function usePriceDisplay(priceCents: number | null, currency: string) {
-  const [display, setDisplay] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!priceCents) { setDisplay(null); return; }
-
-    const usd = priceCents / 100;
-
-    fetch("https://ipapi.co/json/", { cache: "force-cache" })
-      .then((r) => r.json())
-      .then((geo) => {
-        if (geo.country_code === "TR") {
-          fetch("https://open.er-api.com/v6/latest/USD")
-            .then((r) => r.json())
-            .then((rates) => {
-              const rate = rates?.rates?.TRY;
-              if (rate) {
-                const lira = usd * rate;
-                setDisplay(`₺${Math.round(lira).toLocaleString("tr-TR")}`);
-              } else {
-                setDisplay(formatUSD(usd, currency));
-              }
-            })
-            .catch(() => setDisplay(formatUSD(usd, currency)));
-        } else {
-          setDisplay(formatUSD(usd, currency));
-        }
-      })
-      .catch(() => setDisplay(formatUSD(usd, currency)));
-  }, [priceCents, currency]);
-
-  return display;
-}
-
-function formatUSD(amount: number, currency: string) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency || "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-export default function ArtworkModal({ artwork, index, onClose, showBuyButton = false }: ArtworkModalProps) {
+export default function ArtworkModal({
+  artwork,
+  index,
+  onClose,
+  showBuyButton = false,
+}: ArtworkModalProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const priceDisplay = usePriceDisplay(artwork?.priceCents ?? null, artwork?.currency ?? "USD");
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     if (artwork) {
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleEsc);
@@ -76,24 +39,42 @@ export default function ArtworkModal({ artwork, index, onClose, showBuyButton = 
 
   const handleAddToBasket = (type: "original" | "print") => {
     const settings = loadShopSettings();
-    const printProduct = settings.printProducts.find((product) => product.available);
+    const printProduct = settings.printProducts.find(
+      (product) => product.available,
+    );
     const item: CartItem = {
-      id: type === "original" ? `original-${artwork.id}` : `print-${artwork.id}`,
+      id:
+        type === "original" ? `original-${artwork.id}` : `print-${artwork.id}`,
       kind: type === "original" ? "original" : "print",
-      title: type === "original" ? artwork.title : printProduct?.name ? `${printProduct.name} - ${artwork.title}` : `Print of ${artwork.title}`,
-      subtitle: type === "original" ? "Original artwork" : printProduct?.printType ? `${printProduct.printType} • ${artwork.title}` : "Fine art print order",
-      priceCents: type === "original" ? artwork.priceCents || 0 : printProduct?.priceCents || 4500,
+      title:
+        type === "original"
+          ? artwork.title
+          : printProduct?.name
+            ? `${printProduct.name} - ${artwork.title}`
+            : `Print of ${artwork.title}`,
+      subtitle:
+        type === "original"
+          ? "Original artwork"
+          : printProduct?.printType
+            ? `${printProduct.printType} • ${artwork.title}`
+            : "Fine art print order",
+      priceUsdCents:
+        type === "original"
+          ? artwork.priceCents || 0
+          : printProduct?.priceUsdCents || 4500,
       quantity: 1,
-      artworkId: artwork.id,
+      artworkId: String(artwork.id),
       artworkTitle: artwork.title,
     };
 
     const maxAllowed = type === "original" ? 1 : printProduct?.maxPerUser || 5;
     const result = addItemToCart(item, maxAllowed);
     if (result.ok) {
-      setToastMessage(`${type === "original" ? "Original" : "Print"} added to your basket.`);
+      setToastMessage(
+        `${type === "original" ? "Original" : "Print"} added to your basket.`,
+      );
     } else {
-      setToastMessage(result.reason);
+      setToastMessage(result.reason ?? "This item could not be added.");
     }
     window.setTimeout(() => setToastMessage(null), 4000);
   };
@@ -130,7 +111,9 @@ export default function ArtworkModal({ artwork, index, onClose, showBuyButton = 
             <span className="bg-ochre/20 text-ink/80 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-sm">
               {artwork.category}
             </span>
-            <span className="text-muted-foreground text-sm font-sans">{artwork.year}</span>
+            <span className="text-muted-foreground text-sm font-sans">
+              {artwork.year}
+            </span>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-ink mb-6 leading-tight">
@@ -138,9 +121,19 @@ export default function ArtworkModal({ artwork, index, onClose, showBuyButton = 
           </h2>
 
           <div className="space-y-4 text-ink font-sans text-lg mb-10 border-l-2 border-ochre pl-4">
-            <p><span className="font-bold text-muted-foreground mr-2">Medium:</span>{artwork.medium}</p>
+            <p>
+              <span className="font-bold text-muted-foreground mr-2">
+                Medium:
+              </span>
+              {artwork.medium}
+            </p>
             {artwork.sizeInches && (
-              <p><span className="font-bold text-muted-foreground mr-2">Size:</span>{artwork.sizeInches} in</p>
+              <p>
+                <span className="font-bold text-muted-foreground mr-2">
+                  Size:
+                </span>
+                {artwork.sizeInches} in
+              </p>
             )}
           </div>
 
@@ -154,21 +147,29 @@ export default function ArtworkModal({ artwork, index, onClose, showBuyButton = 
             <div className="mt-auto pt-8 border-t border-ink/10">
               {artwork.status === "SOLD" ? (
                 <div className="inline-block transform -rotate-6 border-4 border-coral text-coral px-6 py-2 mix-blend-multiply">
-                  <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">Sold Out</span>
+                  <span className="font-hand text-4xl font-bold tracking-widest uppercase block translate-y-1">
+                    Sold Out
+                  </span>
                 </div>
               ) : (
                 <div className="flex flex-col gap-6">
-                  {priceDisplay && (
+                  {artwork.priceCents != null && (
                     <div className="flex items-end justify-between">
-                      <span className="font-sans text-muted-foreground uppercase tracking-widest text-sm font-bold">Price</span>
-                      <span className="font-hand text-4xl text-ochre">{priceDisplay}</span>
+                      <span className="font-sans text-muted-foreground uppercase tracking-widest text-sm font-bold">
+                        Price
+                      </span>
+                      <Money
+                        baseAmountUsdCents={artwork.priceCents}
+                        showBase
+                        className="font-sans text-3xl font-bold text-ink"
+                      />
                     </div>
                   )}
                   <button
                     onClick={() => handleAddToBasket("original")}
                     className="w-full bg-coral text-paper font-serif font-bold text-xl px-8 py-4 torn-edge-2 hover:bg-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
                   >
-                    Add original to basket
+                    Add to collection
                   </button>
                   {artwork.availableAsPrint && (
                     <button

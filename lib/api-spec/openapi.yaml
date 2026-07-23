@@ -16,10 +16,6 @@ tags:
     description: Events and signups
   - name: newsletter
     description: Newsletter subscriptions
-  - name: checkout
-    description: Payment checkout
-  - name: webhooks
-    description: Payment webhooks
 
 paths:
   /healthz:
@@ -252,44 +248,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /checkout/initiate:
-    post:
-      operationId: initiateCheckout
-      tags: [checkout]
-      summary: Initiate a Paddle checkout for an artwork or print
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CheckoutRequest"
-      responses:
-        "200":
-          description: Checkout details (Paddle transaction ID or redirect URL)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CheckoutResponse"
-        "400":
-          description: Item not available or invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /webhooks/paddle:
-    post:
-      operationId: paddleWebhook
-      tags: [webhooks]
-      summary: Handle Paddle payment webhooks
-      responses:
-        "200":
-          description: Webhook processed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WebhookAck"
-
 components:
   schemas:
     HealthStatus:
@@ -509,37 +467,3 @@ components:
           type: string
         name:
           type: string
-
-    CheckoutRequest:
-      type: object
-      required:
-        - type
-        - artworkId
-      properties:
-        type:
-          type: string
-          enum: [original, print]
-        artworkId:
-          type: integer
-        printSize:
-          type: string
-        customerEmail:
-          type: string
-
-    CheckoutResponse:
-      type: object
-      required:
-        - checkoutUrl
-      properties:
-        checkoutUrl:
-          type: string
-        transactionId:
-          type: ["string", "null"]
-
-    WebhookAck:
-      type: object
-      required:
-        - received
-      properties:
-        received:
-          type: boolean

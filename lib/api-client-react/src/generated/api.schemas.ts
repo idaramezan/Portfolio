@@ -119,31 +119,6 @@ export interface NewsletterInput {
   name?: string;
 }
 
-export type CheckoutRequestType = typeof CheckoutRequestType[keyof typeof CheckoutRequestType];
-
-
-export const CheckoutRequestType = {
-  original: 'original',
-  print: 'print',
-} as const;
-
-export interface CheckoutRequest {
-  type: CheckoutRequestType;
-  artworkId: number;
-  printSize?: string;
-  customerEmail?: string;
-}
-
-export interface CheckoutResponse {
-  checkoutUrl: string;
-  /** @nullable */
-  transactionId?: string | null;
-}
-
-export interface WebhookAck {
-  received: boolean;
-}
-
 export type ListArtworksParams = {
 status?: ListArtworksStatus;
 category?: string;

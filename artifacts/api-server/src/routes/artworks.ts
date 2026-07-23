@@ -115,7 +115,7 @@ router.post("/", requireAdmin, async (req, res) => {
 // ── GET /artworks/:id ─────────────────────────────────────────────────────────
 router.get("/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const [artwork] = await db.select().from(artworksTable).where(eq(artworksTable.id, id)).limit(1);
     if (!artwork) return res.status(404).json({ error: "Artwork not found" });
     return res.json(artwork);
@@ -128,7 +128,7 @@ router.get("/:id", async (req, res) => {
 // ── PATCH /artworks/:id — update (admin) ─────────────────────────────────────
 router.patch("/:id", requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const { title, description, status, priceCents, category, sizeInches, year, forSale, availableAsPrint, printfulProductId } = req.body;
 
     const updateData: Record<string, unknown> = {};
@@ -155,7 +155,7 @@ router.patch("/:id", requireAdmin, async (req, res) => {
 // ── POST /artworks/:id/image — upload image (admin) ──────────────────────────
 router.post("/:id/image", requireAdmin, upload.single("image"), async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     const imageUrl = `/api/uploads/${req.file.filename}`;
@@ -171,7 +171,7 @@ router.post("/:id/image", requireAdmin, upload.single("image"), async (req, res)
 // ── DELETE /artworks/:id — delete (admin) ────────────────────────────────────
 router.delete("/:id", requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     await db.delete(artworksTable).where(eq(artworksTable.id, id));
     return res.status(204).send();
   } catch (err) {
