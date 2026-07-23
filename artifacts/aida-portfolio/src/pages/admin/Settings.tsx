@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { loadShopSettings, saveShopSettings } from "@/lib/store";
+import {
+  loadShopSettings,
+  saveShopSettingsAndWait,
+} from "@/lib/store";
 import { clearManualCurrencyRate, getManualCurrencyRate, saveManualCurrencyRate } from "@/lib/currency";
 const field = "mt-2 h-11 w-full border border-ink/15 bg-paper px-3";
 export default function SettingsPage({
@@ -11,6 +14,7 @@ export default function SettingsPage({
   const [settings, setSettings] = useState(loadShopSettings());
   const [status, setStatus] = useState<any>(null);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [manualRate, setManualRate] = useState("");
   const [currencyMessage, setCurrencyMessage] = useState("");
   useEffect(() => {
@@ -29,10 +33,27 @@ export default function SettingsPage({
         .catch(() => { if (!getManualCurrencyRate()) setStatus({ error: true }); });
       }
   }, [section]);
-  const save = () => {
-    saveShopSettings(settings);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+  const save = async () => {
+    setSaved(false);
+    setSaveError("");
+    if (
+      section === "whatsapp" &&
+      !/^\d{8,15}$/.test(settings.whatsapp.number)
+    ) {
+      setSaveError("Enter a valid WhatsApp number using country code and digits only.");
+      return;
+    }
+    try {
+      await saveShopSettingsAndWait(settings);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Settings could not be saved to the database.",
+      );
+    }
   };
   const title =
     section === "links"
@@ -53,8 +74,13 @@ export default function SettingsPage({
         aria-live="polite"
         className="mb-4 min-h-5 text-sm font-semibold text-green"
       >
-        {saved ? "Settings saved" : ""}
+        {saved ? "Settings saved to the database" : ""}
       </p>
+      {saveError && (
+        <p role="alert" className="mb-4 border border-coral/30 bg-coral/5 p-3 text-sm font-semibold text-coral">
+          {saveError}
+        </p>
+      )}
       {section === "whatsapp" && (
         <div className="grid gap-6 xl:grid-cols-2">
           <Card title="Connection">

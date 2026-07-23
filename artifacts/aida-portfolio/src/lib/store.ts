@@ -669,34 +669,73 @@ function saveShopSettingsLocally(settings: ShopSettings) {
   return canonical;
 }
 
-export function saveShopSettings(settings: ShopSettings) {
-  const canonical = saveShopSettingsLocally(settings);
-  if (!canonical || !isBrowser()) return;
+async function persistShopSettingsToServer(canonical: ShopSettings) {
   const password = sessionStorage.getItem("aida-admin-password");
-  if (!password) return;
-  void fetch("/api/admin/shop-settings", {
+  if (!password) throw new Error("Admin authentication is required.");
+  const response = await fetch("/api/admin/shop-settings", {
     method: "PUT",
     headers: {
       "content-type": "application/json",
       "x-admin-password": password,
     },
     body: JSON.stringify({ settings: canonical }),
-  }).then(async (response) => {
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      window.dispatchEvent(
-        new CustomEvent("shop-settings:sync-error", {
-          detail: payload.error || "The catalog could not be saved to the database.",
-        }),
-      );
-    }
-  }).catch(() => {
-    window.dispatchEvent(
-      new CustomEvent("shop-settings:sync-error", {
-        detail: "The catalog could not be saved to the database.",
-      }),
-    );
   });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      payload.error || "The catalog could not be saved to the database.",
+    );
+  }
+}
+
+function announceShopSettingsSyncError(error: unknown) {
+  window.dispatchEvent(
+    new CustomEvent("shop-settings:sync-error", {
+      detail:
+        error instanceof Error
+          ? error.message
+          : "The catalog could not be saved to the database.",
+    }),
+  );
+}
+
+export function saveShopSettings(settings: ShopSettings) {
+  const canonical = saveShopSettingsLocally(settings);
+  if (!canonical || !isBrowser()) return;
+  if (!sessionStorage.getItem("aida-admin-password")) return;
+  void persistShopSettingsToServer(canonical).catch((error) => {
+    announceShopSettingsSyncError(error);
+  });
+}
+
+export async function saveShopSettingsAndWait(settings: ShopSettings) {
+  const canonical = saveShopSettingsLocally(settings);
+  if (!canonical || !isBrowser()) return;
+  try {
+    await persistShopSettingsToServer(canonical);
+  } catch (error) {
+    announceShopSettingsSyncError(error);
+    throw error;
+  }
+}
+
+function hasValidWhatsappNumber(settings: ShopSettings) {
+  return /^\d{8,15}$/.test(settings.whatsapp.number);
+}
+
+function mergeRemoteShopSettings(remote: ShopSettings) {
+  const local = loadShopSettings();
+  if (!hasValidWhatsappNumber(remote) && hasValidWhatsappNumber(local)) {
+    return {
+      ...remote,
+      whatsapp: {
+        ...remote.whatsapp,
+        enabled: local.whatsapp.enabled,
+        number: local.whatsapp.number,
+      },
+    };
+  }
+  return remote;
 }
 
 let shopSettingsHydration: Promise<void> | null = null;
@@ -712,7 +751,16 @@ export function hydrateShopSettingsFromServer(seedIfEmpty = false) {
       }
       if (!response.ok) return;
       const payload = await response.json();
-      if (payload?.settings) saveShopSettingsLocally(payload.settings);
+      if (payload?.settings) {
+        const merged = mergeRemoteShopSettings(payload.settings);
+        saveShopSettingsLocally(merged);
+        if (
+          seedIfEmpty &&
+          !hasValidWhatsappNumber(payload.settings) &&
+          hasValidWhatsappNumber(merged)
+        )
+          saveShopSettings(merged);
+      }
     })
     .finally(() => {
       shopSettingsHydration = null;
