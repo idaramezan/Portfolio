@@ -7,6 +7,7 @@ import Inventory from "@/pages/admin/Inventory";
 import Media from "@/pages/admin/Media";
 import SettingsPage from "@/pages/admin/Settings";
 import Orders from "@/pages/admin/Orders";
+import Subscribers from "@/pages/admin/Subscribers";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 
 const USER = "thisisme";
@@ -130,6 +131,7 @@ export default function Admin() {
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
+  if (location === "/admin/subscribers") return <Subscribers />;
   if (location === "/admin/media") return <Media />;
   const setting = location.match(
     /^\/admin\/settings\/(whatsapp|currency|fourthwall|links|site)$/,

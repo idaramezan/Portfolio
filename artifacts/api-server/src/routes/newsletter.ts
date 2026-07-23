@@ -1,8 +1,17 @@
-import { Router } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import { pool } from "@workspace/db";
 import { emailShell, escapeHtml, OWNER_EMAIL, sendEmail } from "../lib/email";
 
 const router = Router();
+
+function requireAdmin(request: Request, response: Response, next: NextFunction) {
+  const expected =
+    process.env.ADMIN_PASSWORD ||
+    (process.env.NODE_ENV === "development" ? "a0019280718" : undefined);
+  if (!expected || request.headers["x-admin-password"] !== expected)
+    return response.status(401).json({ error: "Admin authentication required" });
+  return next();
+}
 
 async function ensureDeliveryColumns() {
   await pool.query(`
@@ -29,6 +38,30 @@ async function welcomeSubscriber(email: string, name: string | null) {
     html: emailShell(`<p style="font-size:17px">Hello, art lover!</p><p style="font-size:16px;line-height:1.75">I'm so happy you're here. ❤️ Welcome to the Art Club!</p><p style="font-size:16px;line-height:1.75">This little community means a lot to me, and I'm excited to share more of my creative world with you. You'll get early access to new paintings, behind-the-scenes moments from my studio, exclusive offers, and the occasional surprise; things I don't share anywhere else.</p><p style="font-size:16px;line-height:1.75">More than anything, thank you for supporting independent artists. Every print, painting, message, and subscription helps me keep creating, and I'm truly grateful that you've chosen to be part of this journey.</p><p style="font-size:16px;line-height:1.75">I can't wait to share what's coming next.</p>`),
   });
 }
+
+// GET /newsletter/subscribers — protected admin subscriber list
+router.get("/subscribers", requireAdmin, async (req, res) => {
+  try {
+    await ensureDeliveryColumns();
+    const result = await pool.query(`
+      SELECT id, email, name, created_at, welcome_email_sent_at
+      FROM newsletter_subscribers
+      ORDER BY created_at DESC, id DESC
+    `);
+    return res.json({
+      subscribers: result.rows.map((subscriber) => ({
+        id: subscriber.id,
+        email: subscriber.email,
+        name: subscriber.name,
+        subscribedAt: subscriber.created_at,
+        welcomeEmailSentAt: subscriber.welcome_email_sent_at,
+      })),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load newsletter subscribers");
+    return res.status(500).json({ error: "Subscribers could not be loaded" });
+  }
+});
 
 // POST /newsletter
 router.post("/", async (req, res) => {

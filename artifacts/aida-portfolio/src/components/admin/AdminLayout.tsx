@@ -15,6 +15,7 @@ import {
   PanelsTopLeft,
   Settings,
   ShoppingBag,
+  Users,
   X,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ const groups = [
   ],
   ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2]]],
   ["Store management", [["/admin/orders", "Orders", ShoppingBag], ["/admin/inventory", "Inventory", Boxes]]],
+  ["Audience", [["/admin/subscribers", "Subscribers", Users]]],
   ["Links", [["/admin/settings/links", "Link Hub & Social", Instagram]]],
   [
     "Settings",
