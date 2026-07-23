@@ -38,11 +38,12 @@ export default function CartDrawer({
     if (open) setCart(loadCart(region));
   }, [open, region]);
   useEffect(() => {
+    if (!open) return;
     fetch("/api/storefront-config")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((payload) => setRuntimeWhatsapp(payload.whatsapp || null))
       .catch(() => setRuntimeWhatsapp(null));
-  }, []);
+  }, [open]);
   const canonicalUnitPrice = (item: (typeof cart)[number]) =>
     getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
     item.priceUsdCents;
@@ -52,8 +53,25 @@ export default function CartDrawer({
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
   const hasSeparatelyConfirmedShipping = cart.some((item) => item.kind === "print" || item.kind === "product");
+  const hasCatalogRecord = (item: (typeof cart)[number]) => {
+    const baseId = item.id.split(":")[0];
+    if (item.kind === "original")
+      return settings.originalProducts.some(
+        (product) => product.id === baseId.replace(/^original-/, ""),
+      );
+    if (item.kind === "studio-mail")
+      return settings.studioMailPackages.some(
+        (edition) => edition.id === baseId,
+      );
+    const productId = baseId
+      .replace(/^print-product-/, "")
+      .replace(/^product-/, "");
+    return settings.printProducts.some((product) => product.id === productId);
+  };
   const unavailableItems = cart.filter(
-    (item) => !isCartItemAvailable(item, settings, now, region),
+    (item) =>
+      hasCatalogRecord(item) &&
+      !isCartItemAvailable(item, settings, now, region),
   );
   const effectiveWhatsappNumber = runtimeWhatsapp?.configured
     ? runtimeWhatsapp.number || ""
@@ -215,14 +233,21 @@ export default function CartDrawer({
               Complete Order with Aida
             </a>
           ) : (
-            <button
-              type="button"
-              disabled
-              className="button-primary mt-6 w-full opacity-45"
-            >
-              <FaWhatsapp size={20} aria-hidden="true" />
-              Complete Order with Aida
-            </button>
+            <div>
+              <button
+                type="button"
+                disabled
+                className="button-primary mt-6 w-full opacity-45"
+              >
+                <FaWhatsapp size={20} aria-hidden="true" />
+                Complete Order with Aida
+              </button>
+              {cart.length > 0 && unavailableItems.length === 0 && (
+                <p role="status" className="mt-2 text-xs text-ink/60">
+                  Connecting to WhatsApp. Please reopen the basket if this takes more than a moment.
+                </p>
+              )}
+            </div>
           )}
           <p className="mt-3 text-xs text-ink/55">
             Your basket does not reserve artwork or change inventory.
