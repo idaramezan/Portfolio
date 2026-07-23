@@ -253,7 +253,7 @@ export default function Links() {
             About Aida
           </Link>
           <a
-            href="mailto:idaramezan@gmail.com"
+            href="mailto:aida@aedaart.com"
             className="underline underline-offset-4"
           >
             Contact

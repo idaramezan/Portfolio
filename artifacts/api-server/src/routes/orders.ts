@@ -53,7 +53,7 @@ async function sendPlacedEmail(order: any) {
   await sendEmail({
     to: order.customer_email,
     subject: `Your studio order ${order.order_no} is placed`,
-    html: emailShell(`<p style="font-size:17px">Dear ${firstName},</p><h1 style="font-family:Georgia,serif;font-size:34px;line-height:1.15">Your order is safely with me.</h1><p style="font-size:16px;line-height:1.7">Thank you for choosing a piece from my studio. I’ll prepare everything personally and keep you updated as it makes its way to you.</p><p style="padding:14px;background:#f3efe6"><strong>Order ${escapeHtml(order.order_no)}</strong></p><table style="width:100%;border-collapse:collapse;font-size:14px">${itemRows(order.items)}</table><p style="text-align:right;font-size:16px"><strong>Total: ${escapeHtml(totals)}</strong></p>`),
+    html: emailShell(`<p style="font-size:17px">Dear ${firstName},</p><h1 style="font-size:34px;line-height:1.15">Your order is safely with me.</h1><p style="font-size:16px;line-height:1.7">Thank you for choosing a piece from my studio. I’ll prepare everything personally and keep you updated as it makes its way to you.</p><p style="padding:14px;background:#f3efe6"><strong>Order ${escapeHtml(order.order_no)}</strong></p><table style="width:100%;border-collapse:collapse;font-size:14px">${itemRows(order.items)}</table><p style="text-align:right;font-size:16px"><strong>Total: ${escapeHtml(totals)}</strong></p>`),
   });
 }
 
@@ -62,7 +62,7 @@ async function sendShippedEmail(order: any) {
   await sendEmail({
     to: order.customer_email,
     subject: `Your order ${order.order_no} is on its way`,
-    html: emailShell(`<p style="font-size:17px">Dear ${firstName},</p><h1 style="font-family:Georgia,serif;font-size:34px;line-height:1.15">A little piece of the studio is on its way.</h1><p style="font-size:16px;line-height:1.75">I’ve carefully packed and sent your order <strong>${escapeHtml(order.order_no)}</strong>. I hope opening it feels as special as preparing it did.</p><p style="font-size:16px;line-height:1.75">Thank you again for supporting my work and giving it a place in your world.</p>`),
+    html: emailShell(`<p style="font-size:17px">Dear ${firstName},</p><h1 style="font-size:34px;line-height:1.15">A little piece of the studio is on its way.</h1><p style="font-size:16px;line-height:1.75">I’ve carefully packed and sent your order <strong>${escapeHtml(order.order_no)}</strong>. I hope opening it feels as special as preparing it did.</p><p style="font-size:16px;line-height:1.75">Thank you again for supporting my work and giving it a place in your world.</p>`),
   });
 }
 

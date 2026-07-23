@@ -1,5 +1,6 @@
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const OWNER_EMAIL = "idaramezan@gmail.com";
+const CONTACT_EMAIL = "aida@aedaart.com";
 
 type SendEmailInput = {
   to: string | string[];
@@ -17,7 +18,7 @@ function escapeHtml(value: unknown) {
     .replaceAll("'", "&#039;");
 }
 
-export { escapeHtml, OWNER_EMAIL };
+export { CONTACT_EMAIL, escapeHtml, OWNER_EMAIL };
 
 export async function sendEmail(input: SendEmailInput) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -40,7 +41,7 @@ export async function sendEmail(input: SendEmailInput) {
       to: Array.isArray(input.to) ? input.to : [input.to],
       subject: input.subject,
       html: input.html,
-      reply_to: input.replyTo || process.env.RESEND_REPLY_TO || OWNER_EMAIL,
+      reply_to: input.replyTo || process.env.RESEND_REPLY_TO || CONTACT_EMAIL,
     }),
   });
 
@@ -52,5 +53,7 @@ export async function sendEmail(input: SendEmailInput) {
 }
 
 export function emailShell(content: string) {
-  return `<!doctype html><html><body style="margin:0;background:#f3efe6;color:#25231f;font-family:Arial,sans-serif"><div style="display:none;max-height:0;overflow:hidden">A note from Aida's studio</div><div style="max-width:620px;margin:0 auto;padding:32px 16px"><div style="background:#fffaf1;border:1px solid #ded5c6;padding:38px 32px"><p style="margin:0 0 24px;color:#d75f4a;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Aida Ramezani · Artist</p>${content}<div style="margin-top:34px;padding-top:22px;border-top:1px solid #ded5c6;color:#6b665e;font-size:13px;line-height:1.6">With warmth from the studio,<br><strong style="color:#25231f">Aida</strong><br><a href="mailto:${OWNER_EMAIL}" style="color:#d75f4a">${OWNER_EMAIL}</a></div></div></div></body></html>`;
+  const siteUrl = (process.env.PUBLIC_SITE_URL || "https://www.aedaart.com").replace(/\/$/, "");
+  const handwriting = "'Segoe Print','Bradley Hand','Comic Sans MS','Chalkboard SE',cursive";
+  return `<!doctype html><html><body style="margin:0;background:#e9e0cf;color:#342d25;font-family:${handwriting}"><div style="display:none;max-height:0;overflow:hidden">A note from Aida's studio</div><div style="max-width:620px;margin:0 auto;padding:32px 16px"><div style="background:#fffaf1;border:1px solid #cbbb9f;box-shadow:0 8px 24px rgba(65,49,31,.12);padding:42px 34px;font-family:${handwriting}"><p style="margin:0 0 26px;color:#a44938;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Aida Ramezani · Artist</p>${content}<div style="margin-top:38px;padding-top:25px;border-top:1px dashed #bba98b;text-align:center"><img src="${siteUrl}/assets/aida-email-seal.png" width="160" alt="Aida's artist seal" style="display:block;width:160px;max-width:55%;height:auto;margin:0 auto 12px"><p style="margin:0;color:#47382c;font-family:${handwriting};font-size:28px;line-height:1.4;font-style:italic">XOXO, Aida</p><p style="margin:9px 0 0;font-size:13px"><a href="mailto:${CONTACT_EMAIL}" style="color:#a44938;text-decoration:none">${CONTACT_EMAIL}</a></p></div></div></div></body></html>`;
 }
