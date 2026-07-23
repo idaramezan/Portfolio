@@ -3,13 +3,15 @@ import { PackageCheck, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import {
   getCanonicalCartItemPricing,
+  isCartItemAvailable,
   loadCart,
-  loadShopSettings,
   removeCartItem,
 } from "@/lib/store";
 import Money from "@/components/Money";
 import { cn } from "@/lib/utils";
 import { formatCurrencyMinor } from "@/lib/currency";
+import { useShopSettings } from "@/hooks/use-shop-settings";
+import { useServerNow } from "@/hooks/use-server-now";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -25,7 +27,8 @@ export default function CartDrawer({
     enabled: boolean;
     number: string | null;
   } | null>(null);
-  const settings = loadShopSettings();
+  const settings = useShopSettings();
+  const now = useServerNow();
   useEffect(() => {
     const sync = () => setCart(loadCart(region));
     window.addEventListener("cart:updated", sync);
@@ -49,6 +52,9 @@ export default function CartDrawer({
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
   const hasSeparatelyConfirmedShipping = cart.some((item) => item.kind === "print" || item.kind === "product");
+  const unavailableItems = cart.filter(
+    (item) => !isCartItemAvailable(item, settings, now, region),
+  );
   const effectiveWhatsappNumber = runtimeWhatsapp?.configured
     ? runtimeWhatsapp.number || ""
     : settings.whatsapp.number;
@@ -66,6 +72,7 @@ export default function CartDrawer({
       [
         `${index + 1}. ${item.title}`,
         item.printConfiguration ? `Size: ${item.printConfiguration.sizeLabel}` : "",
+        item.printConfiguration?.sizeSecondaryLabel || "",
         item.printConfiguration
           ? `Framing: ${item.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`
           : "",
@@ -90,6 +97,7 @@ export default function CartDrawer({
     .join("\n");
   const whatsappUrl =
     cart.length > 0 &&
+    unavailableItems.length === 0 &&
     whatsappEnabled &&
     /^\d{8,15}$/.test(effectiveWhatsappNumber)
       ? `https://wa.me/${effectiveWhatsappNumber}?text=${encodeURIComponent(orderMessage)}`
@@ -155,6 +163,11 @@ export default function CartDrawer({
                 <div className="flex-1">
                   <h3 className="text-xl">{x.title}</h3>
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
+                  {unavailableItems.some((item) => item.id === x.id) && (
+                    <p role="alert" className="mt-2 text-sm font-semibold text-coral">
+                      This item is no longer available. Remove it before continuing.
+                    </p>
+                  )}
                   <Money
                     baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
                     canonicalCurrency={basketCurrency}

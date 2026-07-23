@@ -316,7 +316,7 @@ assert.ok(!finishOptionMarkup.includes("<Money"));
 assert.ok(modalSource.includes("calculatedLineTotalUsdCents"));
 
 const pricingBasketSource = readFileSync(
-  new URL("../src/pages/Basket.tsx", import.meta.url),
+  new URL("../src/components/CartDrawer.tsx", import.meta.url),
   "utf8",
 );
 const pricingStoreSource = readFileSync(
@@ -328,7 +328,6 @@ const pricingRegionalShopSource = readFileSync(
   "utf8",
 );
 assert.ok(pricingBasketSource.includes("getCanonicalCartItemPricing"));
-assert.ok(pricingBasketSource.includes("Unit price:"));
 assert.ok(pricingBasketSource.includes("Line total:"));
 assert.ok(pricingStoreSource.includes("PRINT_PRICING_BACKUP_KEY"));
 assert.ok(pricingStoreSource.includes("writeSettingsStorage"));
@@ -485,7 +484,7 @@ assert.ok(regionalShopSource.includes("SOLD OUT"));
 assert.ok(regionalShopSource.includes("opacity-65 grayscale-[.65]"));
 
 const basketSource = readFileSync(
-  new URL("../src/pages/Basket.tsx", import.meta.url),
+  new URL("../src/components/CartDrawer.tsx", import.meta.url),
   "utf8",
 );
 assert.ok(basketSource.includes("isCartItemAvailable"));

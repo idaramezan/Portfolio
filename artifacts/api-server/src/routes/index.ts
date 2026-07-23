@@ -11,14 +11,16 @@ const router: IRouter = Router();
 
 router.use(healthRouter);
 if (process.env.DATABASE_URL) {
-  const [{ default: artworksRouter }, { default: eventsRouter }, { default: newsletterRouter }] = await Promise.all([
+  const [{ default: artworksRouter }, { default: eventsRouter }, { default: newsletterRouter }, { default: shopSettingsRouter }] = await Promise.all([
     import("./artworks"),
     import("./events"),
     import("./newsletter"),
+    import("./shop-settings"),
   ]);
   router.use("/artworks", artworksRouter);
   router.use("/events", eventsRouter);
   router.use("/newsletter", newsletterRouter);
+  router.use(shopSettingsRouter);
 } else {
   router.use(["/artworks", "/events", "/newsletter"], (_request, response) =>
     response.status(503).json({ error: "This optional feature requires a database." }),

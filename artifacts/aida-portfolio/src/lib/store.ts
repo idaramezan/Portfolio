@@ -630,7 +630,7 @@ export function loadShopSettings(): ShopSettings {
     return defaults;
   }
 }
-export function saveShopSettings(settings: ShopSettings) {
+function saveShopSettingsLocally(settings: ShopSettings) {
   if (!isBrowser()) return;
   const normalizeManaged = (product: ManagedProduct): ManagedProduct => {
     const status = normalizeProductStatus(product.status, product.available);
@@ -666,6 +666,58 @@ export function saveShopSettings(settings: ShopSettings) {
   if (localStorage.getItem(SETTINGS_STORAGE_KEY) !== serialized)
     throw new Error("The product record could not be verified after saving");
   window.dispatchEvent(new Event("shop-settings:updated"));
+  return canonical;
+}
+
+export function saveShopSettings(settings: ShopSettings) {
+  const canonical = saveShopSettingsLocally(settings);
+  if (!canonical || !isBrowser()) return;
+  const password = sessionStorage.getItem("aida-admin-password");
+  if (!password) return;
+  void fetch("/api/admin/shop-settings", {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      "x-admin-password": password,
+    },
+    body: JSON.stringify({ settings: canonical }),
+  }).then(async (response) => {
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      window.dispatchEvent(
+        new CustomEvent("shop-settings:sync-error", {
+          detail: payload.error || "The catalog could not be saved to the database.",
+        }),
+      );
+    }
+  }).catch(() => {
+    window.dispatchEvent(
+      new CustomEvent("shop-settings:sync-error", {
+        detail: "The catalog could not be saved to the database.",
+      }),
+    );
+  });
+}
+
+let shopSettingsHydration: Promise<void> | null = null;
+
+export function hydrateShopSettingsFromServer(seedIfEmpty = false) {
+  if (!isBrowser()) return Promise.resolve();
+  if (shopSettingsHydration) return shopSettingsHydration;
+  shopSettingsHydration = fetch("/api/shop-settings", { cache: "no-store" })
+    .then(async (response) => {
+      if (response.status === 204) {
+        if (seedIfEmpty) saveShopSettings(loadShopSettings());
+        return;
+      }
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload?.settings) saveShopSettingsLocally(payload.settings);
+    })
+    .finally(() => {
+      shopSettingsHydration = null;
+    });
+  return shopSettingsHydration;
 }
 
 export function getActiveShoppingRegion(): ShoppingRegion {

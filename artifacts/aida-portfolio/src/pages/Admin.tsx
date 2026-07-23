@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import Dashboard from "@/pages/admin/Dashboard";
 import Catalog from "@/pages/admin/Catalog";
@@ -6,6 +6,7 @@ import ProductEditor from "@/pages/admin/ProductEditor";
 import Inventory from "@/pages/admin/Inventory";
 import Media from "@/pages/admin/Media";
 import SettingsPage from "@/pages/admin/Settings";
+import { hydrateShopSettingsFromServer } from "@/lib/store";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -21,6 +22,27 @@ export default function Admin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [syncError, setSyncError] = useState("");
+  const [catalogReady, setCatalogReady] = useState(false);
+  useEffect(() => {
+    if (!authenticated) {
+      setCatalogReady(false);
+      return;
+    }
+    void hydrateShopSettingsFromServer(true).finally(() =>
+      setCatalogReady(true),
+    );
+  }, [authenticated]);
+  useEffect(() => {
+    const showSyncError = (event: Event) =>
+      setSyncError(
+        (event as CustomEvent<string>).detail ||
+          "The catalog could not be saved to the database.",
+      );
+    window.addEventListener("shop-settings:sync-error", showSyncError);
+    return () =>
+      window.removeEventListener("shop-settings:sync-error", showSyncError);
+  }, []);
   if (!authenticated)
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f3efe6] p-4">
@@ -65,6 +87,27 @@ export default function Admin() {
           )}
           <button className="button-primary mt-6 w-full">Sign in</button>
         </form>
+      </main>
+    );
+  if (!catalogReady)
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f3efe6]">
+        <p className="font-semibold">Loading catalog…</p>
+      </main>
+    );
+  if (syncError)
+    return (
+      <main className="min-h-screen bg-[#f3efe6] p-6">
+        <div role="alert" className="mx-auto max-w-3xl border border-coral/30 bg-paper p-6">
+          <h1 className="font-serif text-3xl">Catalog sync failed</h1>
+          <p className="mt-3">{syncError}</p>
+          <p className="mt-2 text-sm text-ink/65">
+            Your browser copy is still available. Check the database connection and admin password, then reload and save again.
+          </p>
+          <button className="button-primary mt-5" onClick={() => setSyncError("")}>
+            Return to admin
+          </button>
+        </div>
       </main>
     );
   const editor = location.match(
