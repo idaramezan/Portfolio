@@ -5,12 +5,13 @@ const router = Router();
 
 router.get("/product-images/:id", async (request, response) => {
   try {
+    const imageId = String(request.params.id).replace(/\.webp$/i, "");
     const result = await pool.query(
-      `SELECT mime_type, byte_size, data
+      `SELECT original_name, mime_type, byte_size, data
        FROM product_images
        WHERE id = $1
        LIMIT 1`,
-      [request.params.id],
+      [imageId],
     );
     const image = result.rows[0];
     if (!image) return response.status(404).json({ error: "Image not found" });
@@ -20,6 +21,7 @@ router.get("/product-images/:id", async (request, response) => {
       "Cache-Control": "public, max-age=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
       "X-Product-Image-Storage": "postgres",
+      "Content-Disposition": `inline; filename="${String(image.original_name).replace(/["\\]/g, "")}"`,
     });
     return response.send(image.data);
   } catch (error) {

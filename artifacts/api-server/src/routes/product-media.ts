@@ -6,6 +6,7 @@ import {
 } from "express";
 import multer from "multer";
 import { pool } from "@workspace/db";
+import sharp from "sharp";
 
 const router = Router();
 
@@ -62,16 +63,26 @@ router.post(
     try {
       await ensureProductImagesTable();
       const id = crypto.randomUUID();
+      const webpData = await sharp(request.file.buffer)
+        .rotate()
+        .webp({
+          quality: 92,
+          nearLossless: true,
+          smartSubsample: true,
+          effort: 5,
+        })
+        .toBuffer();
+      const webpName = `${request.file.originalname.replace(/\.[^.]+$/, "")}.webp`;
       await pool.query(
         `INSERT INTO product_images
           (id, original_name, mime_type, byte_size, data)
          VALUES ($1, $2, $3, $4, $5)`,
         [
           id,
-          request.file.originalname,
-          request.file.mimetype,
-          request.file.size,
-          request.file.buffer,
+          webpName,
+          "image/webp",
+          webpData.length,
+          webpData,
         ],
       );
       request.log.info(
@@ -79,13 +90,15 @@ router.post(
           operation: "product-image-upload",
           productId: request.body.productId || "new",
           imageId: id,
-          byteSize: request.file.size,
+          sourceByteSize: request.file.size,
+          webpByteSize: webpData.length,
         },
         "Product media stored in PostgreSQL",
       );
       return response.status(201).json({
-        imageUrl: `/api/product-images/${id}`,
+        imageUrl: `/api/product-images/${id}.webp`,
         storage: "postgres",
+        format: "webp",
       });
     } catch (error) {
       request.log.error({ error }, "Failed to persist product media");
@@ -101,7 +114,7 @@ router.get("/product-media", requireAdmin, async (request, response) => {
       "SELECT id FROM product_images ORDER BY created_at DESC",
     );
     const images = result.rows.map(
-      (image) => `/api/product-images/${image.id}`,
+      (image) => `/api/product-images/${image.id}.webp`,
     );
     return response.json({ images });
   } catch (error) {
