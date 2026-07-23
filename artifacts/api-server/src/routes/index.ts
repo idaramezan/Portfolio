@@ -1,8 +1,5 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
-import artworksRouter from "./artworks";
-import eventsRouter from "./events";
-import newsletterRouter from "./newsletter";
 import currencyRouter from "./currency";
 import internationalRouter from "./international";
 import adminRouter from "./admin";
@@ -12,9 +9,20 @@ import productMediaRouter from "./product-media";
 const router: IRouter = Router();
 
 router.use(healthRouter);
-router.use("/artworks", artworksRouter);
-router.use("/events", eventsRouter);
-router.use("/newsletter", newsletterRouter);
+if (process.env.DATABASE_URL) {
+  const [{ default: artworksRouter }, { default: eventsRouter }, { default: newsletterRouter }] = await Promise.all([
+    import("./artworks"),
+    import("./events"),
+    import("./newsletter"),
+  ]);
+  router.use("/artworks", artworksRouter);
+  router.use("/events", eventsRouter);
+  router.use("/newsletter", newsletterRouter);
+} else {
+  router.use(["/artworks", "/events", "/newsletter"], (_request, response) =>
+    response.status(503).json({ error: "This optional feature requires a database." }),
+  );
+}
 router.use(currencyRouter);
 router.use(internationalRouter);
 router.use(timeRouter);
