@@ -242,7 +242,7 @@ const checks = [
     backend.includes("pg_advisory_xact_lock") &&
       backend.includes("newsletter_event_interests") &&
       backend.includes("UNIQUE (campaign_id, email)") &&
-      backend.includes("VALUES ($1, $2, $3, FALSE, $4)"),
+      backend.includes("VALUES ($1, $2, $3, $4)"),
   ],
   [
     "event expectations and WhatsApp continuation",
@@ -253,20 +253,17 @@ const checks = [
   ],
   [
     "event campaign expiry uses Istanbul equivalent UTC deadline",
-    eventBanner.includes("2026-08-04T21:00:00.000Z") &&
-      backend.includes('new Date("2026-08-04T21:00:00.000Z")'),
+    eventBanner.includes("2026-08-05T13:00:00.000Z") &&
+      backend.includes('new Date("2026-08-05T13:00:00.000Z")'),
   ],
   [
     "compact dark promotional event banner",
     eventBanner.includes("bg-[#11110f]") &&
-      eventBanner.includes("Two early participants will attend free.") &&
-      eventBanner.includes(
-        "Complimentary places and attendance are confirmed",
-      ) &&
+      eventBanner.includes("8 places remaining.") &&
       eventBanner.includes(
         "No experience needed · Tea and snacks included · Limited places",
       ) &&
-      eventBanner.includes("4 AUG") &&
+      eventBanner.includes("5 AUG · 4 PM") &&
       !eventBanner.includes("Sparkles") &&
       !eventBanner.includes("Availability"),
   ],
@@ -293,7 +290,7 @@ const checks = [
   [
     "event participation fee is 150 TL",
     eventBanner.includes('[CircleCheck, "150 TL"]') &&
-      backend.includes("ELSE 150 END AS participation_fee_try") &&
+      backend.includes("150 AS participation_fee_try") &&
       backend.includes("Participation fee: 150 TL"),
   ],
   [
@@ -332,7 +329,8 @@ const checks = [
       adminLayout.includes("Event registrations") &&
       eventAdmin.includes("email_delivery_status") &&
       eventAdmin.includes("Event email preview") &&
-      eventAdmin.includes('is_free: event.target.value === "complimentary"'),
+      eventAdmin.includes("Wednesday, 5 August 2026") &&
+      !eventAdmin.includes("Complimentary"),
   ],
 ];
 

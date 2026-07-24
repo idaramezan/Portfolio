@@ -15,9 +15,9 @@ import {
 import eventImage from "@assets/istanbul-summer-painting-day.png";
 
 const CAMPAIGN_ID = "istanbul-painting-day-2026-08-04";
-const EVENT_DEADLINE = Date.parse("2026-08-04T21:00:00.000Z");
+const EVENT_DEADLINE = Date.parse("2026-08-05T13:00:00.000Z");
 const WHATSAPP_MESSAGE =
-  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on 4 August 2026.";
+  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
 const SUCCESS_MESSAGE =
   "Event details sent. Check your inbox, and please check your Spam or Junk folder too in case the email landed there.";
 
@@ -149,7 +149,7 @@ export default function IstanbulPaintingEventBanner() {
               A SUMMER PAINTING DAY IN ISTANBUL
             </p>
             <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
-              Limited places
+              8 places remaining
             </span>
           </div>
           <h2
@@ -159,10 +159,10 @@ export default function IstanbulPaintingEventBanner() {
             Paint, meet and spend a sunny afternoon together.
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[#fffaf1]/68 md:text-[15px]">
-            On 4 August, Aida is hosting a small girls-only painting gathering
-            in a park on Istanbul’s European side. No experience is needed. Just
-            come to paint, meet new people, drink tea and enjoy a beautiful
-            summer day together.
+            On Wednesday, 5 August at 4 PM, Aida is hosting a small girls-only
+            painting gathering in a park on Istanbul’s European side. No
+            experience is needed. Just come to paint, meet new people, drink tea
+            and enjoy a beautiful summer day together.
           </p>
 
           <ul
@@ -170,7 +170,7 @@ export default function IstanbulPaintingEventBanner() {
             aria-label="Event facts"
           >
             {[
-              [CalendarDays, "4 August 2026"],
+              [CalendarDays, "Wed, 5 August · 4 PM"],
               [MapPin, "European side"],
               [Users, "Girls only"],
               [CircleCheck, "150 TL"],
@@ -196,13 +196,7 @@ export default function IstanbulPaintingEventBanner() {
           </p>
 
           <div className="mt-4 border-l-2 border-coral bg-white/[.05] px-4 py-2.5">
-            <p className="text-sm font-bold">
-              Two early participants will attend free.
-            </p>
-            <p className="mt-0.5 text-xs text-[#fffaf1]/60">
-              Complimentary places and attendance are confirmed personally by
-              Aida.
-            </p>
+            <p className="text-sm font-bold">8 places remaining.</p>
           </div>
 
           <div className="mt-4 border-t border-white/15 pt-4">
@@ -294,7 +288,7 @@ export default function IstanbulPaintingEventBanner() {
 
         <figure className="relative rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0">
           <div className="absolute -left-2 -top-2 z-10 bg-coral px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em] text-white">
-            4 AUG · ISTANBUL
+            5 AUG · 4 PM · ISTANBUL
           </div>
           <img
             src={eventImage}

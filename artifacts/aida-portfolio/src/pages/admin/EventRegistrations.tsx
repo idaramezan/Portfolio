@@ -8,7 +8,6 @@ type Registration = {
   email: string;
   created_at: string;
   subscriber_status: "new" | "existing";
-  is_free: boolean;
   participation_fee_try: number;
   email_delivery_status: "pending" | "sent" | "failed";
   whatsapp_confirmation_status: "not_contacted" | "contacted";
@@ -65,7 +64,6 @@ export default function EventRegistrations() {
           body: JSON.stringify({
             whatsappConfirmationStatus: next.whatsapp_confirmation_status,
             reservationStatus: next.reservation_status,
-            isFree: next.is_free,
           }),
         },
       );
@@ -80,13 +78,12 @@ export default function EventRegistrations() {
     }
   };
 
-  const preview = async (tier: "standard" | "complimentary") => {
+  const preview = async () => {
     setError("");
     try {
-      const response = await fetch(
-        `/api/newsletter/event-email-preview?tier=${tier}`,
-        { headers: { "x-admin-password": password } },
-      );
+      const response = await fetch("/api/newsletter/event-email-preview", {
+        headers: { "x-admin-password": password },
+      });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Preview failed");
       const previewUrl = URL.createObjectURL(
@@ -119,20 +116,22 @@ export default function EventRegistrations() {
       <section className="border border-ink/10 bg-paper p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="eyebrow text-coral">4 August 2026</p>
+            <p className="eyebrow text-coral">
+              Wednesday, 5 August 2026 · 4:00 PM
+            </p>
             <h2 className="mt-2 font-serif text-3xl">
               Istanbul summer painting day
             </h2>
             <p className="mt-2 text-sm text-ink/55">
-              {registrations.length} unique event-interest submissions ·
-              Complimentary places are assigned privately by Aida
+              {registrations.length} unique event-interest submissions · 8
+              places available
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               className="admin-button"
-              onClick={() => void preview("standard")}
+              onClick={() => void preview()}
             >
               Event email preview <ExternalLink size={14} />
             </button>
@@ -193,26 +192,8 @@ export default function EventRegistrations() {
                     <td className="px-4 py-4 capitalize">
                       {registration.subscriber_status}
                     </td>
-                    <td className="px-4 py-4">
-                      <select
-                        className="admin-input !mt-0"
-                        value={
-                          registration.is_free ? "complimentary" : "standard"
-                        }
-                        onChange={(event) =>
-                          void update(registration, {
-                            is_free: event.target.value === "complimentary",
-                          })
-                        }
-                        aria-label={`Participation type for ${registration.email}`}
-                      >
-                        <option value="standard">Standard</option>
-                        <option value="complimentary">Complimentary</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-4">
-                      {registration.is_free ? 0 : 150} TL
-                    </td>
+                    <td className="px-4 py-4 font-semibold">Standard</td>
+                    <td className="px-4 py-4">150 TL</td>
                     <td className="px-4 py-4 capitalize">
                       {registration.email_delivery_status}
                     </td>

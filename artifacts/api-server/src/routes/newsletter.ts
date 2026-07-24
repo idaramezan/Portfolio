@@ -16,7 +16,7 @@ import {
 
 const router = Router();
 const ISTANBUL_EVENT_CAMPAIGN = "istanbul-painting-day-2026-08-04";
-const ISTANBUL_EVENT_DEADLINE = new Date("2026-08-04T21:00:00.000Z");
+const ISTANBUL_EVENT_DEADLINE = new Date("2026-08-05T13:00:00.000Z");
 
 function requireAdmin(
   request: Request,
@@ -334,7 +334,7 @@ async function registerEventInterest(
       ISTANBUL_EVENT_CAMPAIGN,
     ]);
     const existing = await client.query(
-      `SELECT id, is_free, event_email_sent_at, email_delivery_status,
+      `SELECT id, event_email_sent_at, email_delivery_status,
               whatsapp_confirmation_status, reservation_status, subscriber_status
        FROM newsletter_event_interests
        WHERE campaign_id = $1 AND email = $2
@@ -350,9 +350,9 @@ async function registerEventInterest(
     }
     const inserted = await client.query(
       `INSERT INTO newsletter_event_interests
-        (campaign_id, subscriber_id, email, is_free, subscriber_status)
-       VALUES ($1, $2, $3, FALSE, $4)
-       RETURNING id, is_free, event_email_sent_at, email_delivery_status,
+        (campaign_id, subscriber_id, email, subscriber_status)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, event_email_sent_at, email_delivery_status,
                  whatsapp_confirmation_status, reservation_status, subscriber_status`,
       [ISTANBUL_EVENT_CAMPAIGN, subscriberId, email, subscriberStatus],
     );
@@ -367,9 +367,9 @@ async function registerEventInterest(
 }
 
 const EVENT_EMAIL_PREHEADER =
-  "A relaxed girls-only painting afternoon in Istanbul on 4 August.";
+  "A relaxed girls-only painting afternoon in Istanbul on Wednesday, 5 August at 4 PM.";
 const EVENT_WHATSAPP_MESSAGE =
-  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on 4 August 2026.";
+  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
 
 async function getEventWhatsappUrl() {
   const result = await pool.query(
@@ -390,21 +390,22 @@ function buildPaintingEventInterestEmail(input: {
 }) {
   const participationHtml = `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Participation fee</p><p style="margin:0;font-size:28px;font-weight:700">150 TL</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">The fee helps cover tea and snacks.</p>`;
   const detailRows = [
-    ["Date", "4 August 2026"],
+    ["Date", "Wednesday, 5 August 2026"],
+    ["Time", "4:00 PM"],
     ["Location", "A park on Istanbul’s European side"],
     ["Exact park and time", "Shared after your place is personally confirmed"],
     ["Who can join", "Girls only"],
     ["Experience needed", "None"],
     ["Format", "A relaxed social painting gathering, not a class"],
-    ["Places", "Limited"],
+    ["Places", "8 places remaining"],
   ]
     .map(
       ([label, value]) =>
         `<tr><th scope="row" style="padding:9px 12px 9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:13px;color:#75695d">${escapeHtml(label)}</th><td style="padding:9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:14px;font-weight:600">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
-  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">I’m so happy you’d like to join us.</h1><p style="font-size:16px;line-height:1.7">Thank you for joining the Studio Letter through the Istanbul painting day invitation.</p><p style="font-size:16px;line-height:1.7">On 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.7">You do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp. The exact park and time will be shared with confirmed participants.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p><p style="margin-top:28px;font-size:16px;line-height:1.7">I’m looking forward to painting together.</p><p style="font-size:16px;line-height:1.7">See you in Istanbul,<br><strong>Aida</strong></p>`;
-  const text = `AIDA RAMEZANI · STUDIO LETTER\n\nI’m so happy you’d like to join us.\n\nThank you for joining the Studio Letter through the Istanbul painting day invitation.\n\nOn 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.\n\nYou do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.\n\nEVENT DETAILS\nDate: 4 August 2026\nLocation: A park on Istanbul’s European side\nExact park and time: Shared with confirmed participants\nWho can join: Girls only\nExperience needed: None\nFormat: A relaxed social painting gathering, not a class\nPlaces: Limited\n\nParticipation fee: 150 TL\nThe fee helps cover tea and snacks.\n\nYour email has registered your interest, but it has not reserved a place.\n\nYour attendance is confirmed personally by Aida on WhatsApp. The exact park and time will be shared with confirmed participants.\n\nContact Aida to reserve my place:\n${input.whatsappUrl}\n\nI’m looking forward to painting together.\n\nSee you in Istanbul,\nAida\n\nYou received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.\nUnsubscribe: ${input.unsubscribe}`;
+  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">I’m so happy you’d like to join us.</h1><p style="font-size:16px;line-height:1.7">Thank you for joining the Studio Letter through the Istanbul painting day invitation.</p><p style="font-size:16px;line-height:1.7">On Wednesday, 5 August at 4 PM, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.7">You do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp. The exact park will be shared with confirmed participants.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p><p style="margin-top:28px;font-size:16px;line-height:1.7">I’m looking forward to painting together.</p><p style="font-size:16px;line-height:1.7">See you in Istanbul,<br><strong>Aida</strong></p>`;
+  const text = `AIDA RAMEZANI · STUDIO LETTER\n\nI’m so happy you’d like to join us.\n\nThank you for joining the Studio Letter through the Istanbul painting day invitation.\n\nOn Wednesday, 5 August at 4 PM, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.\n\nYou do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.\n\nEVENT DETAILS\nDate: Wednesday, 5 August 2026\nTime: 4:00 PM\nLocation: A park on Istanbul’s European side\nExact park: Shared with confirmed participants\nWho can join: Girls only\nExperience needed: None\nFormat: A relaxed social painting gathering, not a class\nPlaces: 8\n\nParticipation fee: 150 TL\nThe fee helps cover tea and snacks.\n\nYour email has registered your interest, but it has not reserved a place.\n\nYour attendance is confirmed personally by Aida on WhatsApp. The exact park will be shared with confirmed participants.\n\nContact Aida to reserve my place:\n${input.whatsappUrl}\n\nI’m looking forward to painting together.\n\nSee you in Istanbul,\nAida\n\nYou received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.\nUnsubscribe: ${input.unsubscribe}`;
   return {
     subject: "Your Istanbul painting day details from Aida 🎨",
     html: emailShell(content, {
@@ -480,8 +481,8 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
   try {
     await ensureDeliveryColumns();
     const result = await pool.query(
-      `SELECT id, email, created_at, subscriber_status, is_free,
-              CASE WHEN is_free THEN 0 ELSE 150 END AS participation_fee_try,
+      `SELECT id, email, created_at, subscriber_status,
+              150 AS participation_fee_try,
               email_delivery_status, whatsapp_confirmation_status,
               reservation_status, updated_at
        FROM newsletter_event_interests
@@ -509,11 +510,9 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
     ]);
     const whatsappStatus = req.body?.whatsappConfirmationStatus;
     const reservationStatus = req.body?.reservationStatus;
-    const isFree = req.body?.isFree;
     if (
       !whatsappStatuses.has(whatsappStatus) ||
-      !reservationStatuses.has(reservationStatus) ||
-      typeof isFree !== "boolean"
+      !reservationStatuses.has(reservationStatus)
     )
       return res
         .status(400)
@@ -521,15 +520,14 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
     await ensureDeliveryColumns();
     const result = await pool.query(
       `UPDATE newsletter_event_interests
-       SET whatsapp_confirmation_status = $2, reservation_status = $3, is_free = $4,
+       SET whatsapp_confirmation_status = $2, reservation_status = $3,
            updated_at = NOW()
-       WHERE id = $1 AND campaign_id = $5
+       WHERE id = $1 AND campaign_id = $4
        RETURNING *`,
       [
         req.params.id,
         whatsappStatus,
         reservationStatus,
-        isFree,
         ISTANBUL_EVENT_CAMPAIGN,
       ],
     );
