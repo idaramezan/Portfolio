@@ -414,45 +414,45 @@ router.get("/dashboard", requireAdmin, async (req, res) => {
     ] = await Promise.all([
       pool.query(
         `SELECT
-          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at >= NOW()-($1||' days')::interval)::int visitors,
-          COUNT(DISTINCT session_id) FILTER (WHERE occurred_at >= NOW()-($1||' days')::interval)::int sessions,
-          COUNT(*) FILTER (WHERE occurred_at >= NOW()-($1||' days')::interval AND event_name='page_view')::int page_views,
-          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at >= NOW()-($1||' days')::interval AND event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers,
-          COUNT(*) FILTER (WHERE occurred_at >= NOW()-($1||' days')::interval AND event_name='whatsapp_checkout_started')::int whatsapp,
-          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at < NOW()-($1||' days')::interval)::int previous_visitors,
-          COUNT(DISTINCT session_id) FILTER (WHERE occurred_at < NOW()-($1||' days')::interval)::int previous_sessions,
-          COUNT(*) FILTER (WHERE occurred_at < NOW()-($1||' days')::interval AND event_name='page_view')::int previous_page_views,
-          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at < NOW()-($1||' days')::interval AND event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int previous_subscribers,
-          COUNT(*) FILTER (WHERE occurred_at < NOW()-($1||' days')::interval AND event_name='whatsapp_checkout_started')::int previous_whatsapp
-         FROM analytics_events WHERE occurred_at >= NOW()-(($1*2)||' days')::interval`,
+          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at >= NOW()-make_interval(days => $1::int))::int visitors,
+          COUNT(DISTINCT session_id) FILTER (WHERE occurred_at >= NOW()-make_interval(days => $1::int))::int sessions,
+          COUNT(*) FILTER (WHERE occurred_at >= NOW()-make_interval(days => $1::int) AND event_name='page_view')::int page_views,
+          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at >= NOW()-make_interval(days => $1::int) AND event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers,
+          COUNT(*) FILTER (WHERE occurred_at >= NOW()-make_interval(days => $1::int) AND event_name='whatsapp_checkout_started')::int whatsapp,
+          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at < NOW()-make_interval(days => $1::int))::int previous_visitors,
+          COUNT(DISTINCT session_id) FILTER (WHERE occurred_at < NOW()-make_interval(days => $1::int))::int previous_sessions,
+          COUNT(*) FILTER (WHERE occurred_at < NOW()-make_interval(days => $1::int) AND event_name='page_view')::int previous_page_views,
+          COUNT(DISTINCT visitor_id) FILTER (WHERE occurred_at < NOW()-make_interval(days => $1::int) AND event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int previous_subscribers,
+          COUNT(*) FILTER (WHERE occurred_at < NOW()-make_interval(days => $1::int) AND event_name='whatsapp_checkout_started')::int previous_whatsapp
+         FROM analytics_events WHERE occurred_at >= NOW()-make_interval(days => $1::int * 2)`,
         args,
       ),
       pool.query(
-        `SELECT occurred_at::date date, COUNT(DISTINCT visitor_id)::int visitors, COUNT(DISTINCT session_id)::int sessions, COUNT(*) FILTER(WHERE event_name='page_view')::int page_views, COUNT(*) FILTER(WHERE event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE occurred_at >= NOW()-($1||' days')::interval GROUP BY 1 ORDER BY 1`,
+        `SELECT occurred_at::date date, COUNT(DISTINCT visitor_id)::int visitors, COUNT(DISTINCT session_id)::int sessions, COUNT(*) FILTER(WHERE event_name='page_view')::int page_views, COUNT(*) FILTER(WHERE event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE occurred_at >= NOW()-make_interval(days => $1::int) GROUP BY 1 ORDER BY 1`,
         args,
       ),
       pool.query(
-        `SELECT s.source, COUNT(DISTINCT s.visitor_id)::int visitors, COUNT(DISTINCT s.id)::int sessions, COUNT(DISTINCT a.subscriber_id)::int subscribers, COUNT(e.id) FILTER(WHERE e.event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_sessions s LEFT JOIN analytics_subscriber_attribution a ON a.analytics_visitor_id=s.visitor_id LEFT JOIN analytics_events e ON e.session_id=s.id WHERE s.started_at >= NOW()-($1||' days')::interval GROUP BY s.source ORDER BY visitors DESC`,
+        `SELECT s.source, COUNT(DISTINCT s.visitor_id)::int visitors, COUNT(DISTINCT s.id)::int sessions, COUNT(DISTINCT a.subscriber_id)::int subscribers, COUNT(e.id) FILTER(WHERE e.event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_sessions s LEFT JOIN analytics_subscriber_attribution a ON a.analytics_visitor_id=s.visitor_id LEFT JOIN analytics_events e ON e.session_id=s.id WHERE s.started_at >= NOW()-make_interval(days => $1::int) GROUP BY s.source ORDER BY visitors DESC`,
         args,
       ),
       pool.query(
-        `SELECT page_path, MAX(page_title) page_title, COUNT(DISTINCT visitor_id)::int visitors, COUNT(*)::int views, COUNT(*) FILTER(WHERE event_name='newsletter_signup_success')::int subscribers, COUNT(*) FILTER(WHERE event_name='add_to_basket')::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE occurred_at >= NOW()-($1||' days')::interval GROUP BY page_path ORDER BY views DESC LIMIT 20`,
+        `SELECT page_path, MAX(page_title) page_title, COUNT(DISTINCT visitor_id)::int visitors, COUNT(*)::int views, COUNT(*) FILTER(WHERE event_name='newsletter_signup_success')::int subscribers, COUNT(*) FILTER(WHERE event_name='add_to_basket')::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE occurred_at >= NOW()-make_interval(days => $1::int) GROUP BY page_path ORDER BY views DESC LIMIT 20`,
         args,
       ),
       pool.query(
-        `SELECT entity_id, MAX(entity_name) entity_name, MAX(entity_type) entity_type, COUNT(*) FILTER(WHERE event_name='product_view')::int views, COUNT(*) FILTER(WHERE event_name='product_options_opened')::int options, COUNT(*) FILTER(WHERE event_name IN ('add_to_basket','mystery_mail_added_to_basket'))::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE entity_id IS NOT NULL AND occurred_at >= NOW()-($1||' days')::interval GROUP BY entity_id ORDER BY views DESC LIMIT 20`,
+        `SELECT entity_id, MAX(entity_name) entity_name, MAX(entity_type) entity_type, COUNT(*) FILTER(WHERE event_name='product_view')::int views, COUNT(*) FILTER(WHERE event_name='product_options_opened')::int options, COUNT(*) FILTER(WHERE event_name IN ('add_to_basket','mystery_mail_added_to_basket'))::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE entity_id IS NOT NULL AND occurred_at >= NOW()-make_interval(days => $1::int) GROUP BY entity_id ORDER BY views DESC LIMIT 20`,
         args,
       ),
       pool.query(
-        `SELECT COALESCE(country_name,'Unknown') country, COALESCE(city,'Unknown') city, COUNT(DISTINCT visitor_id)::int visitors, COUNT(*) FILTER(WHERE converted_to_subscriber)::int subscribers FROM analytics_sessions WHERE started_at >= NOW()-($1||' days')::interval GROUP BY 1,2 ORDER BY visitors DESC LIMIT 20`,
+        `SELECT COALESCE(country_name,'Unknown') country, COALESCE(city,'Unknown') city, COUNT(DISTINCT visitor_id)::int visitors, COUNT(*) FILTER(WHERE converted_to_subscriber)::int subscribers FROM analytics_sessions WHERE started_at >= NOW()-make_interval(days => $1::int) GROUP BY 1,2 ORDER BY visitors DESC LIMIT 20`,
         args,
       ),
       pool.query(
-        `SELECT COALESCE(device_category,'Unknown') device, COUNT(DISTINCT visitor_id)::int visitors FROM analytics_sessions WHERE started_at >= NOW()-($1||' days')::interval GROUP BY 1 ORDER BY visitors DESC`,
+        `SELECT COALESCE(device_category,'Unknown') device, COUNT(DISTINCT visitor_id)::int visitors FROM analytics_sessions WHERE started_at >= NOW()-make_interval(days => $1::int) GROUP BY 1 ORDER BY visitors DESC`,
         args,
       ),
       pool.query(
-        `SELECT COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='page_view')::int visitors, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_section_viewed')::int viewers, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_form_started')::int starters, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers FROM analytics_events WHERE occurred_at >= NOW()-($1||' days')::interval`,
+        `SELECT COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='page_view')::int visitors, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_section_viewed')::int viewers, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_form_started')::int starters, COUNT(DISTINCT visitor_id) FILTER(WHERE event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true')::int subscribers FROM analytics_events WHERE occurred_at >= NOW()-make_interval(days => $1::int)`,
         args,
       ),
       pool.query(
@@ -490,7 +490,7 @@ router.get("/subscribers", requireAdmin, async (req, res) => {
     await ensureAnalyticsTables();
     const { days } = range(req);
     const result = await pool.query(
-      `SELECT n.id, n.email, n.created_at subscribed_at, a.signup_source, a.signup_campaign, a.signup_path, a.signup_form, a.signup_landing_path, a.country_name, a.city, a.sessions_before_subscription, a.page_views_before_subscription FROM newsletter_subscribers n LEFT JOIN analytics_subscriber_attribution a ON a.subscriber_id=n.id WHERE n.created_at >= NOW()-($1||' days')::interval ORDER BY n.created_at DESC LIMIT 500`,
+      `SELECT n.id, n.email, n.created_at subscribed_at, a.signup_source, a.signup_campaign, a.signup_path, a.signup_form, a.signup_landing_path, a.country_name, a.city, a.sessions_before_subscription, a.page_views_before_subscription FROM newsletter_subscribers n LEFT JOIN analytics_subscriber_attribution a ON a.subscriber_id=n.id WHERE n.created_at >= NOW()-make_interval(days => $1::int) ORDER BY n.created_at DESC LIMIT 500`,
       [days],
     );
     return res.json({ subscribers: result.rows });
@@ -507,7 +507,7 @@ router.post("/cleanup", requireAdmin, async (req, res) => {
     await ensureAnalyticsTables();
     const months = Math.min(36, Math.max(1, Number(req.body?.months) || 12));
     const deleted = await pool.query(
-      "DELETE FROM analytics_events WHERE occurred_at < NOW()-($1||' months')::interval RETURNING id",
+      "DELETE FROM analytics_events WHERE occurred_at < NOW()-make_interval(months => $1::int) RETURNING id",
       [months],
     );
     return res.json({ deleted: deleted.rowCount, retentionMonths: months });
