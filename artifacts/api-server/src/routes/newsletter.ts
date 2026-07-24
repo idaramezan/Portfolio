@@ -396,7 +396,7 @@ function buildPaintingEventInterestEmail(input: {
 }) {
   const participationHtml = input.isFree
     ? `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Your participation fee</p><p style="margin:0;font-size:28px;font-weight:700">Complimentary</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">You were one of the first two people to join through the event invitation, so there is no participation fee for your place.</p>`
-    : `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Your participation fee</p><p style="margin:0;font-size:28px;font-weight:700">100 TL</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">The fee only helps cover tea and snacks.</p>`;
+    : `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Your participation fee</p><p style="margin:0;font-size:28px;font-weight:700">150 TL</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">The fee only helps cover tea and snacks.</p>`;
   const detailRows = [
     ["Date", "4 August 2026"],
     ["Location", "A park on Istanbul’s European side"],
@@ -414,7 +414,7 @@ function buildPaintingEventInterestEmail(input: {
   const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">I’m so happy you’d like to join us.</h1><p style="font-size:16px;line-height:1.7">Thank you for joining the Studio Letter through the Istanbul painting day invitation.</p><p style="font-size:16px;line-height:1.7">On 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.7">You do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but your place still needs to be confirmed personally.</strong></p><p style="font-size:16px;line-height:1.7">Message me on WhatsApp and I will help you reserve your place. The exact park and meeting time will be shared after confirmation.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p><p style="margin-top:28px;font-size:16px;line-height:1.7">I’m looking forward to painting together.</p><p style="font-size:16px;line-height:1.7">See you in Istanbul,<br><strong>Aida</strong></p>`;
   const feeText = input.isFree
     ? "Your participation fee: Complimentary\nYou were one of the first two people to join through the event invitation, so there is no participation fee for your place."
-    : "Your participation fee: 100 TL\nThe fee only helps cover tea and snacks.";
+    : "Your participation fee: 150 TL\nThe fee only helps cover tea and snacks.";
   const text = `AIDA RAMEZANI · STUDIO LETTER\n\nI’m so happy you’d like to join us.\n\nThank you for joining the Studio Letter through the Istanbul painting day invitation.\n\nOn 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.\n\nYou do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.\n\nEVENT DETAILS\nDate: 4 August 2026\nLocation: A park on Istanbul’s European side\nExact park and time: Shared after your place is personally confirmed\nWho can join: Girls only\nExperience needed: None\nFormat: A relaxed social painting gathering, not a class\nPlaces: Limited\n\n${feeText}\n\nYour email has registered your interest, but your place still needs to be confirmed personally.\n\nMessage me on WhatsApp and I will help you reserve your place. The exact park and meeting time will be shared after confirmation.\n\nContact Aida to reserve my place:\n${input.whatsappUrl}\n\nI’m looking forward to painting together.\n\nSee you in Istanbul,\nAida\n\nYou received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.\nUnsubscribe: ${input.unsubscribe}`;
   return {
     subject: input.isFree
@@ -503,7 +503,7 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
     await ensureDeliveryColumns();
     const result = await pool.query(
       `SELECT id, email, created_at, subscriber_status, is_free,
-              CASE WHEN is_free THEN 0 ELSE 100 END AS participation_fee_try,
+              CASE WHEN is_free THEN 0 ELSE 150 END AS participation_fee_try,
               email_delivery_status, whatsapp_confirmation_status,
               reservation_status, updated_at
        FROM newsletter_event_interests
@@ -1052,7 +1052,7 @@ router.post("/", async (req, res) => {
             registrationTier: eventRegistration.is_free
               ? "first-two-free"
               : "standard",
-            participationFeeTry: eventRegistration.is_free ? 0 : 100,
+            participationFeeTry: eventRegistration.is_free ? 0 : 150,
             emailDeliveryStatus:
               eventDelivery.status === "rejected" ? "failed" : "sent",
             whatsappUrl: eventWhatsappUrl,

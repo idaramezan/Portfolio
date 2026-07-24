@@ -291,6 +291,13 @@ const checks = [
       backend.includes("whatsappUrl"),
   ],
   [
+    "event participation fee is 150 TL",
+    eventBanner.includes('[CircleCheck, "Fee", "150 TL"]') &&
+      eventBanner.includes("Remaining places are 150 TL") &&
+      backend.includes("ELSE 150 END AS participation_fee_try") &&
+      backend.includes("eventRegistration.is_free ? 0 : 150"),
+  ],
+  [
     "event email failure preserves registration",
     backend.includes("email_delivery_status = 'failed'") &&
       backend.includes("Delivery failed and is pending retry") &&

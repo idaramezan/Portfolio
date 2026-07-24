@@ -115,7 +115,7 @@ export default function IstanbulPaintingEventBanner() {
       ? "The first two girls to join through this invitation attend for free."
       : freePlacesRemaining === 1
         ? "One complimentary place is still available."
-        : "The complimentary places have been claimed. Remaining places are 100 TL.";
+        : "The complimentary places have been claimed. Remaining places are 150 TL.";
 
   return (
     <section
@@ -147,7 +147,7 @@ export default function IstanbulPaintingEventBanner() {
               [CalendarDays, "Date", "4 August 2026"],
               [MapPin, "Location", "European side"],
               [Users, "Who", "Girls only"],
-              [CircleCheck, "Fee", "100 TL"],
+              [CircleCheck, "Fee", "150 TL"],
             ].map(([Icon, label, value], index) => {
               const FactIcon = Icon as typeof CalendarDays;
               return (
@@ -179,7 +179,7 @@ export default function IstanbulPaintingEventBanner() {
             </p>
             <p className="mt-1 text-sm font-bold text-ink">{freeMessage}</p>
             <p className="mt-1 text-xs text-ink/55">
-              The 100 TL participation fee only helps cover tea and snacks.
+              The 150 TL participation fee only helps cover tea and snacks.
             </p>
           </aside>
 
@@ -206,7 +206,7 @@ export default function IstanbulPaintingEventBanner() {
                 <p className="mt-3 text-sm font-bold text-coral">
                   {isFree
                     ? "You received one of the complimentary places."
-                    : "The participation fee is 100 TL and only helps cover tea and snacks."}
+                    : "The participation fee is 150 TL and only helps cover tea and snacks."}
                 </p>
                 {whatsappUrl && (
                   <a
