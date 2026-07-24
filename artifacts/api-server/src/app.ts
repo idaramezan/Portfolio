@@ -26,13 +26,18 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 
 // Serve uploaded artwork images
-const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
+const uploadsDir =
+  process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use("/api/uploads", express.static(uploadsDir, { maxAge: "1y", immutable: true }));
+app.use(
+  "/api/uploads",
+  express.static(uploadsDir, { maxAge: "1y", immutable: true }),
+);
 
 app.use("/api", router);
 
 if (process.env.NODE_ENV === "production") {
+  // The API and built portfolio are deployed together as one Railway service.
   const frontendCandidates = [
     path.resolve(process.cwd(), "artifacts/aida-portfolio/dist/public"),
     path.resolve(process.cwd(), "../aida-portfolio/dist/public"),
@@ -45,9 +50,16 @@ if (process.env.NODE_ENV === "production") {
     response.set("Cache-Control", "no-cache, no-store, must-revalidate");
     return response.sendFile(path.join(frontendDir, request.path.slice(1)));
   });
-  app.use(express.static(frontendDir, { maxAge: "1y", immutable: true, index: false }));
+  app.use(
+    express.static(frontendDir, {
+      maxAge: "1y",
+      immutable: true,
+      index: false,
+    }),
+  );
   app.use((request, response, next) => {
-    if (request.method !== "GET" || request.path.startsWith("/api/")) return next();
+    if (request.method !== "GET" || request.path.startsWith("/api/"))
+      return next();
     response.set("Cache-Control", "no-cache, no-store, must-revalidate");
     return response.sendFile(path.join(frontendDir, "index.html"));
   });

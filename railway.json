@@ -2,6 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
+    "watchPatterns": ["**"],
     "buildCommand": "pnpm run railway:build"
   },
   "deploy": {
