@@ -15,6 +15,8 @@ import {
 } from "../lib/email";
 
 const router = Router();
+const ISTANBUL_EVENT_CAMPAIGN = "istanbul-painting-day-2026-08-04";
+const ISTANBUL_EVENT_DEADLINE = new Date("2026-08-04T21:00:00.000Z");
 
 function requireAdmin(
   request: Request,
@@ -75,6 +77,18 @@ async function ensureDeliveryColumns() {
       is_starter BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS newsletter_event_interests (
+      id BIGSERIAL PRIMARY KEY,
+      campaign_id TEXT NOT NULL,
+      subscriber_id INTEGER NOT NULL REFERENCES newsletter_subscribers(id),
+      email TEXT NOT NULL,
+      is_free BOOLEAN NOT NULL DEFAULT FALSE,
+      event_email_sent_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (campaign_id, email)
     )
   `);
 }
@@ -293,6 +307,62 @@ function unsubscribeUrl(token: string) {
   return `${siteUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
+async function registerEventInterest(subscriberId: number, email: string) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      ISTANBUL_EVENT_CAMPAIGN,
+    ]);
+    const existing = await client.query(
+      `SELECT id, is_free, event_email_sent_at
+       FROM newsletter_event_interests
+       WHERE campaign_id = $1 AND email = $2
+       LIMIT 1`,
+      [ISTANBUL_EVENT_CAMPAIGN, email],
+    );
+    if (existing.rows[0]) {
+      await client.query("COMMIT");
+      return {
+        ...existing.rows[0],
+        alreadyRegistered: true,
+      };
+    }
+    const count = await client.query(
+      "SELECT COUNT(*)::int AS count FROM newsletter_event_interests WHERE campaign_id = $1",
+      [ISTANBUL_EVENT_CAMPAIGN],
+    );
+    const isFree = Number(count.rows[0]?.count || 0) < 2;
+    const inserted = await client.query(
+      `INSERT INTO newsletter_event_interests
+        (campaign_id, subscriber_id, email, is_free)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, is_free, event_email_sent_at`,
+      [ISTANBUL_EVENT_CAMPAIGN, subscriberId, email, isFree],
+    );
+    await client.query("COMMIT");
+    return { ...inserted.rows[0], alreadyRegistered: false };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function sendEventInterestEmail(email: string, isFree: boolean) {
+  const feeMessage = isFree
+    ? "You are one of the first two people to join through the event form, so your 100 TL participation fee is fully covered."
+    : "The participation fee is 100 TL and only helps cover tea and snacks.";
+  await sendEmail({
+    to: email,
+    subject: "Your Istanbul painting day note 🌿",
+    html: emailShell(
+      `<p style="font-size:17px">Hello, art lover!</p><h1 style="font-size:32px;line-height:1.2">Let’s paint together in Istanbul.</h1><p style="font-size:16px;line-height:1.75">Thank you for joining the event list for our relaxed girls-only painting gathering on <strong>4 August 2026</strong>, in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.75">${escapeHtml(feeMessage)}</p><p style="font-size:16px;line-height:1.75">This registers your interest rather than reserving a seat. Message me on WhatsApp to confirm your place and receive the exact park and time details.</p>`,
+    ),
+  });
+}
+
 async function notifyOwner(email: string, name: string | null) {
   const displayName = name?.trim() || email;
   await sendEmail({
@@ -313,6 +383,31 @@ async function welcomeSubscriber(email: string, name: string | null) {
     ),
   });
 }
+
+// GET /newsletter/event-status — public availability for the August event banner
+router.get("/event-status", async (req, res) => {
+  try {
+    const campaignId =
+      typeof req.query.campaignId === "string" ? req.query.campaignId : "";
+    if (campaignId !== ISTANBUL_EVENT_CAMPAIGN)
+      return res.status(404).json({ error: "Event campaign not found" });
+    await ensureDeliveryColumns();
+    const result = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM newsletter_event_interests WHERE campaign_id = $1",
+      [ISTANBUL_EVENT_CAMPAIGN],
+    );
+    const interestCount = Number(result.rows[0]?.count || 0);
+    return res.json({
+      campaignId: ISTANBUL_EVENT_CAMPAIGN,
+      active: new Date() < ISTANBUL_EVENT_DEADLINE,
+      interestCount,
+      freePlacesRemaining: Math.max(0, 2 - interestCount),
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load event campaign status");
+    return res.status(500).json({ error: "Event status could not be loaded" });
+  }
+});
 
 // GET /newsletter/subscribers — protected admin subscriber list
 router.get("/subscribers", requireAdmin, async (req, res) => {
@@ -622,6 +717,16 @@ router.post("/unsubscribe", unsubscribe);
 router.post("/", async (req, res) => {
   try {
     const { email, name } = req.body;
+    const eventInterest = req.body?.eventInterest === true;
+    if (
+      eventInterest &&
+      (req.body?.campaignId !== ISTANBUL_EVENT_CAMPAIGN ||
+        req.body?.source !== "istanbul-painting-day-august-2026" ||
+        req.body?.consentToStudioLetter !== true)
+    )
+      return res.status(400).json({ error: "Valid event consent is required" });
+    if (eventInterest && new Date() >= ISTANBUL_EVENT_DEADLINE)
+      return res.status(410).json({ error: "This event campaign has ended" });
 
     if (
       !email ||
@@ -641,6 +746,7 @@ router.post("/", async (req, res) => {
       "international-shop",
       "mystery-mail",
       "newsletter-page",
+      "istanbul-painting-day-august-2026",
       "footer",
     ]);
     const source = allowedSources.has(req.body?.source)
@@ -662,6 +768,9 @@ router.post("/", async (req, res) => {
 
     const subscriberEmail = subscriber.email;
     const subscriberName = subscriber.name;
+    const eventRegistration = eventInterest
+      ? await registerEventInterest(subscriber.id, subscriberEmail)
+      : null;
     const emailTasks = [
       subscriber.welcome_email_version >= 2
         ? Promise.resolve("already-sent")
@@ -681,6 +790,18 @@ router.post("/", async (req, res) => {
             );
             return "sent";
           }),
+      !eventRegistration || eventRegistration.event_email_sent_at
+        ? Promise.resolve("already-sent")
+        : sendEventInterestEmail(
+            subscriberEmail,
+            eventRegistration.is_free,
+          ).then(async () => {
+            await pool.query(
+              "UPDATE newsletter_event_interests SET event_email_sent_at = NOW() WHERE id = $1",
+              [eventRegistration.id],
+            );
+            return "sent";
+          }),
     ];
     const emailResults = await Promise.allSettled(emailTasks);
     emailResults.forEach((delivery, index) => {
@@ -689,7 +810,9 @@ router.post("/", async (req, res) => {
           { err: delivery.reason },
           index === 0
             ? "Failed to send newsletter welcome email"
-            : "Failed to send owner notification email",
+            : index === 1
+              ? "Failed to send owner notification email"
+              : "Failed to send event interest email",
         );
     });
 
@@ -698,6 +821,12 @@ router.post("/", async (req, res) => {
       return res.status(502).json({
         error:
           "You joined the Art Club, but the welcome email could not be sent. Please try again.",
+      });
+    const eventDelivery = emailResults[2];
+    if (eventInterest && eventDelivery.status === "rejected")
+      return res.status(502).json({
+        error:
+          "Your event interest was saved, but the event email could not be sent. Please try again.",
       });
 
     return res.status(201).json({
@@ -709,6 +838,15 @@ router.post("/", async (req, res) => {
         (delivery) => delivery.status === "fulfilled",
       ),
       alreadySubscribed: subscriber.already_subscribed,
+      ...(eventRegistration
+        ? {
+            event: {
+              campaignId: ISTANBUL_EVENT_CAMPAIGN,
+              alreadyRegistered: eventRegistration.alreadyRegistered,
+              isFree: eventRegistration.is_free,
+            },
+          }
+        : {}),
     });
   } catch (err) {
     req.log.error({ err }, "Failed to subscribe to newsletter");

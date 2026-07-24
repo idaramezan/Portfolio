@@ -26,6 +26,7 @@ import {
 import { useLocale } from "@/lib/locale";
 import { originalDetailHref } from "@/lib/market";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
+import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 
 const turkiyeFaq = [
   [
@@ -337,6 +338,7 @@ export default function RegionalLanding({
   const base = tr ? "/shop/turkiye" : "/shop/international";
   return (
     <div>
+      {tr && <IstanbulPaintingEventBanner />}
       <section
         className={`regional-shop-hero regional-shop-hero--${tr ? "turkiye" : "international"}`}
       >

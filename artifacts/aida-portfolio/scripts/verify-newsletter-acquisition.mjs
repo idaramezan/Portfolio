@@ -20,6 +20,7 @@ const backend = read("../../api-server/src/routes/newsletter.ts");
 const emailBackend = read("../../api-server/src/lib/email.ts");
 const composer = read("../src/pages/admin/CampaignComposer.tsx");
 const admin = read("../src/pages/Admin.tsx");
+const eventBanner = read("../src/components/IstanbulPaintingEventBanner.tsx");
 
 const checks = [
   [
@@ -218,6 +219,40 @@ const checks = [
       composer.includes('recipientMode === "selected"') &&
       composer.includes("Select shown") &&
       composer.includes("selectedRecipients"),
+  ],
+  [
+    "painting event banner placement",
+    home.indexOf("<IstanbulPaintingEventBanner />") <
+      home.indexOf('<section className="home-hero">') &&
+      regional.includes("{tr && <IstanbulPaintingEventBanner />}") &&
+      regional.indexOf("{tr && <IstanbulPaintingEventBanner />}") <
+        regional.indexOf("regional-shop-hero"),
+  ],
+  [
+    "event-specific newsletter metadata",
+    eventBanner.includes('source: "istanbul-painting-day-august-2026"') &&
+      eventBanner.includes("campaignId: CAMPAIGN_ID") &&
+      eventBanner.includes("eventInterest: true") &&
+      eventBanner.includes("consentToStudioLetter: true"),
+  ],
+  [
+    "race-safe first two event places",
+    backend.includes("pg_advisory_xact_lock") &&
+      backend.includes("newsletter_event_interests") &&
+      backend.includes("Number(count.rows[0]?.count || 0) < 2") &&
+      backend.includes("UNIQUE (campaign_id, email)"),
+  ],
+  [
+    "event expectations and WhatsApp continuation",
+    eventBanner.includes("Submitting this form registers your interest") &&
+      eventBanner.includes("You’re on the event list.") &&
+      eventBanner.includes("settings.whatsapp.number") &&
+      eventBanner.includes("encodeURIComponent(WHATSAPP_MESSAGE)"),
+  ],
+  [
+    "event campaign expiry uses Istanbul equivalent UTC deadline",
+    eventBanner.includes("2026-08-04T21:00:00.000Z") &&
+      backend.includes('new Date("2026-08-04T21:00:00.000Z")'),
   ],
 ];
 

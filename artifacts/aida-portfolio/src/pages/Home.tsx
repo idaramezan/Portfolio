@@ -6,6 +6,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
+import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import turkiyeFlagBackground from "@assets/home-turkiye-flag.jpg";
 import internationalFlagsBackground from "@assets/home-international-flags.jpg";
 
@@ -20,6 +21,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col overflow-hidden">
+      <IstanbulPaintingEventBanner />
       <section className="home-hero">
         <div className="section-shell home-hero__inner !py-5 md:!py-8">
           <div className="max-w-2xl">
