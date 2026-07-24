@@ -1,4 +1,5 @@
 import { assetImages, mysteryMailCoverImage } from "@/lib/assets";
+import { trackAnalytics } from "@/lib/analytics";
 import {
   calculatePrintPrice,
   formatPrintSize,
@@ -402,12 +403,15 @@ const OBSOLETE_MIGRATION_STORAGE_KEYS = [
 function isStorageQuotaError(error: unknown) {
   return (
     error instanceof DOMException &&
-    (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED")
+    (error.name === "QuotaExceededError" ||
+      error.name === "NS_ERROR_DOM_QUOTA_REACHED")
   );
 }
 
 function clearObsoleteMigrationStorage() {
-  OBSOLETE_MIGRATION_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  OBSOLETE_MIGRATION_STORAGE_KEYS.forEach((key) =>
+    localStorage.removeItem(key),
+  );
 }
 
 function writeSettingsStorage(serialized: string) {
@@ -540,9 +544,7 @@ export function loadShopSettings(): ShopSettings {
               availableInTurkiye: true,
               availableInternationally: true,
               ...product,
-              artworkSurface: normalizeArtworkSurface(
-                product.artworkSurface,
-              ),
+              artworkSurface: normalizeArtworkSurface(product.artworkSurface),
               status: normalizeOriginalStatus(
                 product.status,
                 product.available,
@@ -953,6 +955,22 @@ export function addItemToCart(
       maxQuantity: max,
     });
   saveCart(cart, region);
+  trackAnalytics(
+    item.kind === "studio-mail"
+      ? "mystery_mail_added_to_basket"
+      : "add_to_basket",
+    {
+      entityType: item.kind,
+      entityId: item.id.split(":")[0],
+      entityName: item.title,
+      metadata: {
+        productType: item.kind,
+        quantity: item.quantity,
+        currency: region === "TR" ? "TRY" : "USD",
+        total: canonicalPricing.lineTotalCents,
+      },
+    },
+  );
   return { ok: true };
 }
 
@@ -1037,8 +1055,16 @@ export function removeCartItem(
   id: string,
   region: ShoppingRegion = getActiveShoppingRegion(),
 ) {
+  const item = loadCart(region).find((entry) => entry.id === id);
   saveCart(
     loadCart(region).filter((x) => x.id !== id),
     region,
   );
+  if (item)
+    trackAnalytics("remove_from_basket", {
+      entityType: item.kind,
+      entityId: item.id.split(":")[0],
+      entityName: item.title,
+      metadata: { productType: item.kind, quantity: item.quantity },
+    });
 }

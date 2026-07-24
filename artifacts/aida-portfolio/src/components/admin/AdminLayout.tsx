@@ -12,6 +12,7 @@ import {
   Menu,
   Mails,
   CalendarDays,
+  ChartNoAxesCombined,
   MessageCircle,
   PackageOpen,
   PanelsTopLeft,
@@ -22,7 +23,13 @@ import {
 } from "lucide-react";
 
 const groups = [
-  ["Overview", [["/admin", "Dashboard", Gauge]]],
+  [
+    "Overview",
+    [
+      ["/admin", "Dashboard", Gauge],
+      ["/admin/analytics", "Analytics", ChartNoAxesCombined],
+    ],
+  ],
   [
     "Catalog",
     [

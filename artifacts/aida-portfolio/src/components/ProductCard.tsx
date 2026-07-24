@@ -3,6 +3,7 @@ import { type ManagedProduct } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { isSoldOut } from "@/lib/product-status";
 import { formatArtworkSurface } from "@/lib/artwork-surface";
+import { trackAnalytics } from "@/lib/analytics";
 
 interface ProductCardProps {
   product: ManagedProduct;
@@ -15,6 +16,15 @@ export default function ProductCard({
   onClick,
   variant = "default",
 }: ProductCardProps) {
+  const openProduct = () => {
+    trackAnalytics("product_view", {
+      entityType: product.kind,
+      entityId: product.id,
+      entityName: product.name,
+      metadata: { productType: product.kind },
+    });
+    onClick();
+  };
   const kindLabel =
     product.kind === "print" ? (product.printType ?? "Print") : "Original";
   const soldOut = isSoldOut(product);
@@ -29,7 +39,7 @@ export default function ProductCard({
     return (
       <button
         type="button"
-        onClick={onClick}
+        onClick={openProduct}
         className="group flex h-full flex-col overflow-hidden border border-ink/10 bg-card text-left shadow-sm transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
       >
         <div className="overflow-hidden bg-ink/5">
@@ -82,8 +92,9 @@ export default function ProductCard({
             />
           </div>
           <p className="mt-5 text-sm leading-relaxed text-ink/70">
-            A one of a kind {formatArtworkSurface(product.artworkSurface).toLowerCase()} artwork,
-            created and signed by Aida Ramezani.
+            A one of a kind{" "}
+            {formatArtworkSurface(product.artworkSurface).toLowerCase()}{" "}
+            artwork, created and signed by Aida Ramezani.
           </p>
           <p className="mt-5 text-[.65rem] font-bold uppercase tracking-[.13em] text-ink/50">
             Original artwork • Signed • Certificate included
@@ -99,7 +110,7 @@ export default function ProductCard({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={openProduct}
       className={cn(
         "group text-left border border-ink/10 bg-paper shadow-sm transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-coral",
         "rounded-none overflow-hidden",
@@ -143,7 +154,9 @@ export default function ProductCard({
               </p>
             )}
             {product.dimension && (
-              <p className={`${product.kind === "original" ? "mt-2" : ""} text-sm uppercase tracking-[0.35em] text-muted-foreground`}>
+              <p
+                className={`${product.kind === "original" ? "mt-2" : ""} text-sm uppercase tracking-[0.35em] text-muted-foreground`}
+              >
                 {product.dimension}
               </p>
             )}

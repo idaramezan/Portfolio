@@ -10,10 +10,20 @@ const router: IRouter = Router();
 
 router.use(healthRouter);
 if (process.env.DATABASE_URL) {
-  const [{ default: artworksRouter }, { default: eventsRouter }, { default: newsletterRouter }, { default: shopSettingsRouter }, { default: productMediaRouter }, { default: productImagesRouter }, { default: ordersRouter }] = await Promise.all([
+  const [
+    { default: artworksRouter },
+    { default: eventsRouter },
+    { default: newsletterRouter },
+    { default: analyticsRouter },
+    { default: shopSettingsRouter },
+    { default: productMediaRouter },
+    { default: productImagesRouter },
+    { default: ordersRouter },
+  ] = await Promise.all([
     import("./artworks"),
     import("./events"),
     import("./newsletter"),
+    import("./analytics"),
     import("./shop-settings"),
     import("./product-media"),
     import("./product-images"),
@@ -22,13 +32,18 @@ if (process.env.DATABASE_URL) {
   router.use("/artworks", artworksRouter);
   router.use("/events", eventsRouter);
   router.use("/newsletter", newsletterRouter);
+  router.use("/analytics", analyticsRouter);
   router.use(shopSettingsRouter);
   router.use(productImagesRouter);
   router.use("/admin", productMediaRouter);
   router.use("/admin/orders", ordersRouter);
 } else {
-  router.use(["/artworks", "/events", "/newsletter", "/product-images"], (_request, response) =>
-    response.status(503).json({ error: "This optional feature requires a database." }),
+  router.use(
+    ["/artworks", "/events", "/newsletter", "/product-images"],
+    (_request, response) =>
+      response
+        .status(503)
+        .json({ error: "This optional feature requires a database." }),
   );
 }
 router.use(currencyRouter);

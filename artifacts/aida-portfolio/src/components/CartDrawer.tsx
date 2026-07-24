@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrencyMinor } from "@/lib/currency";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
+import { trackAnalytics } from "@/lib/analytics";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -36,6 +37,7 @@ export default function CartDrawer({
   }, [region]);
   useEffect(() => {
     if (open) setCart(loadCart(region));
+    if (open) trackAnalytics("basket_opened");
   }, [open, region]);
   useEffect(() => {
     if (!open) return;
@@ -52,7 +54,9 @@ export default function CartDrawer({
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
-  const hasSeparatelyConfirmedShipping = cart.some((item) => item.kind === "print" || item.kind === "product");
+  const hasSeparatelyConfirmedShipping = cart.some(
+    (item) => item.kind === "print" || item.kind === "product",
+  );
   const hasCatalogRecord = (item: (typeof cart)[number]) => {
     const baseId = item.id.split(":")[0];
     if (item.kind === "original")
@@ -110,7 +114,9 @@ export default function CartDrawer({
       [
         `${index + 1}. ${item.title}`,
         `Product link: ${productLink(item)}`,
-        item.printConfiguration ? `Size: ${item.printConfiguration.sizeLabel}` : "",
+        item.printConfiguration
+          ? `Size: ${item.printConfiguration.sizeLabel}`
+          : "",
         item.printConfiguration?.sizeSecondaryLabel || "",
         item.printConfiguration
           ? `Framing: ${item.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`
@@ -203,8 +209,12 @@ export default function CartDrawer({
                   <h3 className="text-xl">{x.title}</h3>
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
                   {unavailableItems.some((item) => item.id === x.id) && (
-                    <p role="alert" className="mt-2 text-sm font-semibold text-coral">
-                      This item is no longer available. Remove it before continuing.
+                    <p
+                      role="alert"
+                      className="mt-2 text-sm font-semibold text-coral"
+                    >
+                      This item is no longer available. Remove it before
+                      continuing.
                     </p>
                   )}
                   <Money
@@ -235,7 +245,9 @@ export default function CartDrawer({
           {region === "TR" ? (
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
-              {hasSeparatelyConfirmedShipping ? "Shipping price will be calculated based on the package size" : "Free shipping within Türkiye"}
+              {hasSeparatelyConfirmedShipping
+                ? "Shipping price will be calculated based on the package size"
+                : "Free shipping within Türkiye"}
             </p>
           ) : (
             <p className="mt-3 text-sm font-semibold">
@@ -247,7 +259,19 @@ export default function CartDrawer({
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                trackAnalytics("whatsapp_checkout_started", {
+                  metadata: {
+                    quantity: cart.reduce(
+                      (sum, item) => sum + item.quantity,
+                      0,
+                    ),
+                    currency: basketCurrency,
+                    total: subtotal,
+                  },
+                });
+                onOpenChange(false);
+              }}
               className="button-primary mt-6 w-full"
             >
               <FaWhatsapp size={20} aria-hidden="true" />
@@ -265,7 +289,8 @@ export default function CartDrawer({
               </button>
               {cart.length > 0 && unavailableItems.length === 0 && (
                 <p role="status" className="mt-2 text-xs text-ink/60">
-                  Connecting to WhatsApp. Please reopen the basket if this takes more than a moment.
+                  Connecting to WhatsApp. Please reopen the basket if this takes
+                  more than a moment.
                 </p>
               )}
             </div>

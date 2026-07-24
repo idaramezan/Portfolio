@@ -13,6 +13,7 @@ import {
   sendEmail,
   sendEmailBatch,
 } from "../lib/email";
+import { attributeSubscriber } from "./analytics";
 
 const router = Router();
 const ISTANBUL_EVENT_CAMPAIGN = "istanbul-painting-day-2026-08-04";
@@ -1005,6 +1006,26 @@ router.post("/", async (req, res) => {
       [normalizedEmail, normalizedName, source, locale],
     );
     const subscriber = result.rows[0];
+
+    await attributeSubscriber({
+      subscriberId: subscriber.id,
+      visitorUuid:
+        typeof req.body?.analyticsVisitorId === "string"
+          ? req.body.analyticsVisitorId
+          : undefined,
+      sessionUuid:
+        typeof req.body?.analyticsSessionId === "string"
+          ? req.body.analyticsSessionId
+          : undefined,
+      signupPath:
+        typeof req.body?.analyticsSignupPath === "string"
+          ? req.body.analyticsSignupPath.slice(0, 500)
+          : undefined,
+      signupForm: source || "newsletter",
+      isNew: !subscriber.already_subscribed,
+    }).catch((error) =>
+      req.log.error({ err: error }, "Subscriber attribution failed"),
+    );
 
     const subscriberEmail = subscriber.email;
     const subscriberName = subscriber.name;

@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import { Route, Switch, Router as WouterRouter } from "wouter";
+import { Route, Switch, Router as WouterRouter, useLocation } from "wouter";
+import { useEffect } from "react";
 
 import Shell from "@/components/layout/Shell";
 import Home from "@/pages/Home";
@@ -23,6 +24,8 @@ import MysteryMail from "@/pages/MysteryMail";
 import RegionalLanding from "@/pages/RegionalLanding";
 import OriginalDetail from "@/pages/OriginalDetail";
 import Newsletter from "@/pages/Newsletter";
+import AnalyticsConsent from "@/components/AnalyticsConsent";
+import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +124,35 @@ function Router() {
   );
 }
 
+function AnalyticsRouteTracker() {
+  const [location] = useLocation();
+  useEffect(() => {
+    if (!analyticsConsent() || location.startsWith("/admin")) return;
+    trackAnalytics("page_view");
+    if (location === "/shop/turkiye") trackAnalytics("turkiye_shop_opened");
+    if (location === "/shop/international")
+      trackAnalytics("international_shop_opened");
+  }, [location]);
+  useEffect(() => {
+    const click = (event: MouseEvent) => {
+      const element = (event.target as Element | null)?.closest("a,button");
+      if (!element) return;
+      const href = element instanceof HTMLAnchorElement ? element.href : "";
+      if (href.includes("wa.me/")) trackAnalytics("whatsapp_checkout_started");
+      else if (
+        href &&
+        new URL(href, window.location.href).origin !== window.location.origin
+      )
+        trackAnalytics("outbound_link_click", {
+          metadata: { hrefDomain: new URL(href).hostname },
+        });
+    };
+    document.addEventListener("click", click);
+    return () => document.removeEventListener("click", click);
+  }, []);
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -128,9 +160,11 @@ function App() {
         <CurrencyProvider>
           <TooltipProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <AnalyticsRouteTracker />
               <Router />
             </WouterRouter>
             <Toaster />
+            <AnalyticsConsent />
           </TooltipProvider>
         </CurrencyProvider>
       </LocaleProvider>

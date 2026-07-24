@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import type { InternationalProduct } from "@/lib/fourthwall";
+import { trackAnalytics } from "@/lib/analytics";
 export default function InternationalProductCard({
   product,
   compact = false,
@@ -46,6 +47,13 @@ export default function InternationalProductCard({
           rel="noopener noreferrer"
           className="button-link mt-4"
           aria-label={`View ${product.name} on Fourthwall, opens in a new tab`}
+          onClick={() =>
+            trackAnalytics("fourthwall_product_clicked", {
+              entityType: "fourthwall",
+              entityId: product.id,
+              entityName: product.name,
+            })
+          }
         >
           View on Fourthwall <ExternalLink size={14} />
         </a>

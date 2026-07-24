@@ -13,6 +13,7 @@ import {
   normalizeNewsletterEmail,
 } from "@/lib/newsletter";
 import eventImage from "@assets/istanbul-summer-painting-day.png";
+import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 
 const CAMPAIGN_ID = "istanbul-painting-day-2026-08-04";
 const EVENT_DEADLINE = Date.parse("2026-08-05T13:00:00.000Z");
@@ -38,6 +39,7 @@ export default function IstanbulPaintingEventBanner() {
   );
 
   useEffect(() => {
+    trackAnalytics("painting_event_banner_viewed");
     fetch(
       `/api/newsletter/event-status?campaignId=${encodeURIComponent(CAMPAIGN_ID)}`,
       {
@@ -72,6 +74,7 @@ export default function IstanbulPaintingEventBanner() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (submitting.current) return;
+    trackAnalytics("painting_event_form_started");
     const normalized = normalizeNewsletterEmail(email);
     if (!isValidNewsletterEmail(normalized)) {
       setStatus("error");
@@ -92,6 +95,7 @@ export default function IstanbulPaintingEventBanner() {
           eventInterest: true,
           consentToStudioLetter: true,
           locale: "en",
+          ...analyticsContext(),
         }),
       });
       const result = await response.json().catch(() => ({}));
@@ -101,6 +105,7 @@ export default function IstanbulPaintingEventBanner() {
       );
       setEmail("");
       setStatus("success");
+      trackAnalytics("painting_event_signup_success");
       showSuccessToast();
     } catch {
       setStatus("error");
@@ -285,6 +290,9 @@ export default function IstanbulPaintingEventBanner() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-coral underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-coral"
+                onClick={() =>
+                  trackAnalytics("painting_event_whatsapp_clicked")
+                }
               >
                 <MessageCircle size={16} aria-hidden="true" /> Contact Aida to
                 reserve my place

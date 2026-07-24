@@ -9,6 +9,7 @@ import {
 } from "@/lib/newsletter";
 import memoriesPhoto from "@assets/memories-of-summer-reference-photo.png";
 import memoriesPainting from "@assets/memories-of-summer-painting.JPG";
+import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 
 export type StudioLetterVariant = "story-preview" | "compact" | "footer";
 
@@ -198,9 +199,16 @@ export default function StudioLetterSignup({
   const submitting = useRef(false);
   const story = variant === "story-preview";
 
+  useEffect(() => {
+    trackAnalytics("newsletter_section_viewed", {
+      metadata: { form: context },
+    });
+  }, [context]);
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (submitting.current) return;
+    trackAnalytics("newsletter_form_started", { metadata: { form: context } });
     const normalized = normalizeNewsletterEmail(email);
     if (!isValidNewsletterEmail(normalized)) {
       setStatus("error");
@@ -219,15 +227,22 @@ export default function StudioLetterSignup({
           locale,
           source: NEWSLETTER_SOURCE[context],
           subscribedAt: new Date().toISOString(),
+          ...analyticsContext(),
         }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || copy.error);
       setEmail(normalized);
       setStatus(result.alreadySubscribed ? "duplicate" : "success");
+      trackAnalytics("newsletter_signup_success", {
+        metadata: { form: context, newSubscriber: !result.alreadySubscribed },
+      });
     } catch {
       setStatus("error");
       setError(copy.error);
+      trackAnalytics("newsletter_signup_failed", {
+        metadata: { form: context },
+      });
     } finally {
       submitting.current = false;
     }
