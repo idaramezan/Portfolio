@@ -160,8 +160,8 @@ export default function IstanbulPaintingEventBanner() {
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[#fffaf1]/68 md:text-[15px]">
             On 4 August, Aida is hosting a small girls-only painting gathering
-            in a park on Istanbul’s European side. No experience is needed —
-            just come to paint, meet new people, drink tea and enjoy a beautiful
+            in a park on Istanbul’s European side. No experience is needed. Just
+            come to paint, meet new people, drink tea and enjoy a beautiful
             summer day together.
           </p>
 
