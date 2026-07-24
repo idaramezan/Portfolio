@@ -8,6 +8,8 @@ type Registration = {
   email: string;
   created_at: string;
   subscriber_status: "new" | "existing";
+  is_free: boolean;
+  seat_count: number;
   participation_fee_try: number;
   email_delivery_status: "pending" | "sent" | "failed";
   whatsapp_confirmation_status: "not_contacted" | "contacted";
@@ -18,6 +20,7 @@ export default function EventRegistrations() {
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [remainingSeats, setRemainingSeats] = useState(8);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -32,6 +35,7 @@ export default function EventRegistrations() {
         if (!response.ok)
           throw new Error(result.error || "Registrations could not be loaded");
         setRegistrations(result.registrations || []);
+        setRemainingSeats(Number(result.remainingSeats ?? 0));
       })
       .catch((reason) =>
         setError(
@@ -64,14 +68,19 @@ export default function EventRegistrations() {
           body: JSON.stringify({
             whatsappConfirmationStatus: next.whatsapp_confirmation_status,
             reservationStatus: next.reservation_status,
+            seatCount: next.seat_count,
+            isFree: next.is_free,
           }),
         },
       );
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Update failed");
       setRegistrations((current) =>
-        current.map((item) => (item.id === registration.id ? next : item)),
+        current.map((item) =>
+          item.id === registration.id ? result.registration : item,
+        ),
       );
+      setRemainingSeats(Number(result.remainingSeats ?? remainingSeats));
       setMessage("Event registration updated.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Update failed");
@@ -123,8 +132,9 @@ export default function EventRegistrations() {
               Istanbul summer painting day
             </h2>
             <p className="mt-2 text-sm text-ink/55">
-              {registrations.length} unique event-interest submissions · 8
-              places available
+              {registrations.length} unique event-interest submissions ·{" "}
+              {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
+              remaining
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -164,8 +174,9 @@ export default function EventRegistrations() {
                   <th className="px-4 py-3">Subscriber</th>
                   <th className="px-4 py-3">Submitted</th>
                   <th className="px-4 py-3">Studio Letter</th>
-                  <th className="px-4 py-3">Place</th>
-                  <th className="px-4 py-3">Fee</th>
+                  <th className="px-4 py-3">Seats</th>
+                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3">Cost</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">WhatsApp</th>
                   <th className="px-4 py-3">Reservation</th>
@@ -192,8 +203,46 @@ export default function EventRegistrations() {
                     <td className="px-4 py-4 capitalize">
                       {registration.subscriber_status}
                     </td>
-                    <td className="px-4 py-4 font-semibold">Standard</td>
-                    <td className="px-4 py-4">150 TL</td>
+                    <td className="px-4 py-4">
+                      <select
+                        className="admin-input !mt-0"
+                        value={registration.seat_count}
+                        onChange={(event) =>
+                          void update(registration, {
+                            seat_count: Number(event.target.value),
+                          })
+                        }
+                        aria-label={`Seat count for ${registration.email}`}
+                      >
+                        {Array.from(
+                          { length: 11 },
+                          (_, index) => index + 1,
+                        ).map((count) => (
+                          <option key={count} value={count}>
+                            {count}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-4">
+                      <select
+                        className="admin-input !mt-0"
+                        value={registration.is_free ? "free" : "paid"}
+                        onChange={(event) =>
+                          void update(registration, {
+                            is_free: event.target.value === "free",
+                          })
+                        }
+                        aria-label={`Payment type for ${registration.email}`}
+                      >
+                        <option value="paid">Paid</option>
+                        <option value="free">Free</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-4 font-semibold">
+                      {registration.is_free ? 0 : registration.seat_count * 150}{" "}
+                      TL
+                    </td>
                     <td className="px-4 py-4 capitalize">
                       {registration.email_delivery_status}
                     </td>

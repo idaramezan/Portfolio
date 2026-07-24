@@ -259,7 +259,7 @@ const checks = [
   [
     "compact dark promotional event banner",
     eventBanner.includes("bg-[#11110f]") &&
-      eventBanner.includes("8 places remaining.") &&
+      eventBanner.includes("remainingSeats") &&
       eventBanner.includes(
         "No experience needed · Tea and snacks included · Limited places",
       ) &&
@@ -290,8 +290,25 @@ const checks = [
   [
     "event participation fee is 150 TL",
     eventBanner.includes('[CircleCheck, "150 TL"]') &&
-      backend.includes("150 AS participation_fee_try") &&
+      backend.includes("seat_count * $2 END AS participation_fee_try") &&
       backend.includes("Participation fee: 150 TL"),
+  ],
+  [
+    "confirmed seat capacity drives public availability",
+    backend.includes("ISTANBUL_EVENT_CAPACITY = 11") &&
+      backend.includes("SUM(seat_count)") &&
+      backend.includes("reservation_status IN ('confirmed', 'attended')") &&
+      backend.includes("remainingSeats") &&
+      eventBanner.includes("setRemainingSeats") &&
+      !eventBanner.includes("11 places"),
+  ],
+  [
+    "admin seat quantity and free-or-paid costing",
+    backend.includes("seat_count = $4, is_free = $5") &&
+      backend.includes("Not enough places remain for this reservation") &&
+      eventAdmin.includes("Seat count") &&
+      eventAdmin.includes('value={registration.is_free ? "free" : "paid"}') &&
+      eventAdmin.includes("registration.seat_count * 150"),
   ],
   [
     "complimentary eligibility is never public",

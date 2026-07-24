@@ -17,6 +17,8 @@ import {
 const router = Router();
 const ISTANBUL_EVENT_CAMPAIGN = "istanbul-painting-day-2026-08-04";
 const ISTANBUL_EVENT_DEADLINE = new Date("2026-08-05T13:00:00.000Z");
+const ISTANBUL_EVENT_CAPACITY = 11;
+const ISTANBUL_EVENT_FEE_TRY = 150;
 
 function requireAdmin(
   request: Request,
@@ -92,6 +94,7 @@ async function ensureDeliveryColumns() {
       subscriber_status TEXT NOT NULL DEFAULT 'existing',
       whatsapp_confirmation_status TEXT NOT NULL DEFAULT 'not_contacted',
       reservation_status TEXT NOT NULL DEFAULT 'interest',
+      seat_count INTEGER NOT NULL DEFAULT 1,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (campaign_id, email)
@@ -104,6 +107,7 @@ async function ensureDeliveryColumns() {
       ADD COLUMN IF NOT EXISTS subscriber_status TEXT NOT NULL DEFAULT 'existing',
       ADD COLUMN IF NOT EXISTS whatsapp_confirmation_status TEXT NOT NULL DEFAULT 'not_contacted',
       ADD COLUMN IF NOT EXISTS reservation_status TEXT NOT NULL DEFAULT 'interest',
+      ADD COLUMN IF NOT EXISTS seat_count INTEGER NOT NULL DEFAULT 1,
       ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
 }
@@ -466,9 +470,21 @@ router.get("/event-status", async (req, res) => {
       typeof req.query.campaignId === "string" ? req.query.campaignId : "";
     if (campaignId !== ISTANBUL_EVENT_CAMPAIGN)
       return res.status(404).json({ error: "Event campaign not found" });
+    await ensureDeliveryColumns();
+    const reserved = await pool.query(
+      `SELECT COALESCE(SUM(seat_count), 0)::int AS count
+       FROM newsletter_event_interests
+       WHERE campaign_id = $1 AND reservation_status IN ('confirmed', 'attended')`,
+      [ISTANBUL_EVENT_CAMPAIGN],
+    );
+    const remainingSeats = Math.max(
+      0,
+      ISTANBUL_EVENT_CAPACITY - Number(reserved.rows[0]?.count || 0),
+    );
     return res.json({
       campaignId: ISTANBUL_EVENT_CAMPAIGN,
       active: new Date() < ISTANBUL_EVENT_DEADLINE,
+      remainingSeats,
     });
   } catch (err) {
     req.log.error({ err }, "Failed to load event campaign status");
@@ -481,16 +497,26 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
   try {
     await ensureDeliveryColumns();
     const result = await pool.query(
-      `SELECT id, email, created_at, subscriber_status,
-              150 AS participation_fee_try,
+      `SELECT id, email, created_at, subscriber_status, is_free, seat_count,
+              CASE WHEN is_free THEN 0 ELSE seat_count * $2 END AS participation_fee_try,
               email_delivery_status, whatsapp_confirmation_status,
               reservation_status, updated_at
        FROM newsletter_event_interests
        WHERE campaign_id = $1
        ORDER BY created_at ASC, id ASC`,
-      [ISTANBUL_EVENT_CAMPAIGN],
+      [ISTANBUL_EVENT_CAMPAIGN, ISTANBUL_EVENT_FEE_TRY],
     );
-    return res.json({ registrations: result.rows });
+    const reserved = result.rows.reduce(
+      (total, registration) =>
+        ["confirmed", "attended"].includes(registration.reservation_status)
+          ? total + Number(registration.seat_count)
+          : total,
+      0,
+    );
+    return res.json({
+      registrations: result.rows,
+      remainingSeats: Math.max(0, ISTANBUL_EVENT_CAPACITY - reserved),
+    });
   } catch (err) {
     req.log.error({ err }, "Failed to load event registrations");
     return res
@@ -510,30 +536,85 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
     ]);
     const whatsappStatus = req.body?.whatsappConfirmationStatus;
     const reservationStatus = req.body?.reservationStatus;
+    const seatCount = Number(req.body?.seatCount);
+    const isFree = req.body?.isFree;
     if (
       !whatsappStatuses.has(whatsappStatus) ||
-      !reservationStatuses.has(reservationStatus)
+      !reservationStatuses.has(reservationStatus) ||
+      !Number.isInteger(seatCount) ||
+      seatCount < 1 ||
+      seatCount > ISTANBUL_EVENT_CAPACITY ||
+      typeof isFree !== "boolean"
     )
       return res
         .status(400)
         .json({ error: "Valid event statuses are required" });
     await ensureDeliveryColumns();
-    const result = await pool.query(
-      `UPDATE newsletter_event_interests
-       SET whatsapp_confirmation_status = $2, reservation_status = $3,
-           updated_at = NOW()
-       WHERE id = $1 AND campaign_id = $4
-       RETURNING *`,
-      [
-        req.params.id,
-        whatsappStatus,
-        reservationStatus,
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
         ISTANBUL_EVENT_CAMPAIGN,
-      ],
-    );
-    if (!result.rowCount)
-      return res.status(404).json({ error: "Event registration not found" });
-    return res.json({ registration: result.rows[0] });
+      ]);
+      const otherReserved = await client.query(
+        `SELECT COALESCE(SUM(seat_count), 0)::int AS count
+       FROM newsletter_event_interests
+       WHERE campaign_id = $1 AND id <> $2
+         AND reservation_status IN ('confirmed', 'attended')`,
+        [ISTANBUL_EVENT_CAMPAIGN, req.params.id],
+      );
+      const requestedReserved = ["confirmed", "attended"].includes(
+        reservationStatus,
+      )
+        ? seatCount
+        : 0;
+      if (
+        Number(otherReserved.rows[0]?.count || 0) + requestedReserved >
+        ISTANBUL_EVENT_CAPACITY
+      ) {
+        await client.query("ROLLBACK");
+        return res.status(409).json({
+          error: "Not enough places remain for this reservation",
+        });
+      }
+      const result = await client.query(
+        `UPDATE newsletter_event_interests
+       SET whatsapp_confirmation_status = $2, reservation_status = $3,
+           seat_count = $4, is_free = $5,
+           updated_at = NOW()
+       WHERE id = $1 AND campaign_id = $6
+       RETURNING *`,
+        [
+          req.params.id,
+          whatsappStatus,
+          reservationStatus,
+          seatCount,
+          isFree,
+          ISTANBUL_EVENT_CAMPAIGN,
+        ],
+      );
+      if (!result.rowCount) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Event registration not found" });
+      }
+      const reservedCount =
+        Number(otherReserved.rows[0]?.count || 0) + requestedReserved;
+      await client.query("COMMIT");
+      return res.json({
+        registration: {
+          ...result.rows[0],
+          participation_fee_try: isFree
+            ? 0
+            : seatCount * ISTANBUL_EVENT_FEE_TRY,
+        },
+        remainingSeats: Math.max(0, ISTANBUL_EVENT_CAPACITY - reservedCount),
+      });
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to update event registration");
     return res

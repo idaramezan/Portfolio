@@ -26,6 +26,7 @@ export default function IstanbulPaintingEventBanner() {
   const submitting = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [active, setActive] = useState(() => Date.now() < EVENT_DEADLINE);
+  const [remainingSeats, setRemainingSeats] = useState(8);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -47,6 +48,8 @@ export default function IstanbulPaintingEventBanner() {
         const result = await response.json();
         if (!response.ok) throw new Error();
         setActive(Boolean(result.active));
+        if (Number.isInteger(result.remainingSeats))
+          setRemainingSeats(Math.max(0, result.remainingSeats));
       })
       .catch(() => undefined);
   }, []);
@@ -149,7 +152,8 @@ export default function IstanbulPaintingEventBanner() {
               A SUMMER PAINTING DAY IN ISTANBUL
             </p>
             <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
-              8 places remaining
+              {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
+              remaining
             </span>
           </div>
           <h2
@@ -196,7 +200,10 @@ export default function IstanbulPaintingEventBanner() {
           </p>
 
           <div className="mt-4 border-l-2 border-coral bg-white/[.05] px-4 py-2.5">
-            <p className="text-sm font-bold">8 places remaining.</p>
+            <p className="text-sm font-bold">
+              {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
+              remaining.
+            </p>
           </div>
 
           <div className="mt-4 border-t border-white/15 pt-4">
