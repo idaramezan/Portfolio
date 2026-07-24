@@ -17,6 +17,9 @@ const links = read("../src/pages/Links.tsx");
 const newsletterPage = read("../src/pages/Newsletter.tsx");
 const newsletterLib = read("../src/lib/newsletter.ts");
 const backend = read("../../api-server/src/routes/newsletter.ts");
+const emailBackend = read("../../api-server/src/lib/email.ts");
+const composer = read("../src/pages/admin/CampaignComposer.tsx");
+const admin = read("../src/pages/Admin.tsx");
 
 const checks = [
   [
@@ -161,6 +164,42 @@ const checks = [
     "source and locale metadata",
     signup.includes("source: NEWSLETTER_SOURCE[context]") &&
       signup.includes("locale,"),
+  ],
+  [
+    "protected bulk campaign endpoints",
+    backend.includes('router.post("/campaigns/test", requireAdmin') &&
+      backend.includes('router.post("/campaigns/send", requireAdmin') &&
+      backend.includes('req.body?.confirmation !== "SEND"'),
+  ],
+  [
+    "private Resend batches",
+    emailBackend.includes("RESEND_BATCH_ENDPOINT") &&
+      emailBackend.includes("messages.length > 100") &&
+      backend.includes("index += 100") &&
+      backend.includes("to: subscriber.email"),
+  ],
+  [
+    "bulk unsubscribe support",
+    backend.includes("unsubscribed_at IS NULL") &&
+      backend.includes('router.post("/unsubscribe", unsubscribe)') &&
+      backend.includes(
+        '"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"',
+      ) &&
+      emailBackend.includes("Unsubscribe from the Studio Letter"),
+  ],
+  [
+    "safe block email formatter",
+    backend.includes("renderCampaignBlocks") &&
+      backend.includes("escapeHtml(block.text)") &&
+      composer.includes("Font size") &&
+      composer.includes("Optional image link") &&
+      composer.includes("Send test") &&
+      composer.includes("Send to all active subscribers"),
+  ],
+  [
+    "admin composer route",
+    admin.includes('location === "/admin/subscribers/compose"') &&
+      admin.includes("<CampaignComposer />"),
   ],
 ];
 

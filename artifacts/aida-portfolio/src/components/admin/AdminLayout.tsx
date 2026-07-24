@@ -10,6 +10,7 @@ import {
   Images,
   Instagram,
   Menu,
+  Mails,
   MessageCircle,
   PackageOpen,
   PanelsTopLeft,
@@ -31,8 +32,20 @@ const groups = [
     ],
   ],
   ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2]]],
-  ["Store management", [["/admin/orders", "Orders", ShoppingBag], ["/admin/inventory", "Inventory", Boxes]]],
-  ["Audience", [["/admin/subscribers", "Subscribers", Users]]],
+  [
+    "Store management",
+    [
+      ["/admin/orders", "Orders", ShoppingBag],
+      ["/admin/inventory", "Inventory", Boxes],
+    ],
+  ],
+  [
+    "Audience",
+    [
+      ["/admin/subscribers", "Subscribers", Users],
+      ["/admin/subscribers/compose", "Email composer", Mails],
+    ],
+  ],
   ["Links", [["/admin/settings/links", "Link Hub & Social", Instagram]]],
   [
     "Settings",
@@ -80,7 +93,7 @@ export default function AdminLayout({
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`flex min-h-11 items-center gap-3 px-3 text-sm font-semibold ${location === href || (href !== "/admin" && location.startsWith(`${href}/`)) ? "bg-coral text-paper" : "hover:bg-ink/5"}`}
+                className={`flex min-h-11 items-center gap-3 px-3 text-sm font-semibold ${location === href || (href !== "/admin" && href !== "/admin/subscribers" && location.startsWith(`${href}/`)) ? "bg-coral text-paper" : "hover:bg-ink/5"}`}
               >
                 <Icon size={17} />
                 {text}

@@ -1844,4 +1844,7 @@
   .admin-input {
     @apply min-h-11 w-full border border-ink/15 bg-paper px-3 text-sm outline-none focus:border-coral;
   }
+  .admin-button {
+    @apply inline-flex min-h-11 items-center gap-2 border border-ink/15 bg-paper px-3 text-sm font-semibold transition-colors hover:border-coral hover:text-coral focus-visible:ring-2 focus-visible:ring-coral disabled:cursor-wait disabled:opacity-60;
+  }
 }

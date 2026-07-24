@@ -8,6 +8,7 @@ import Media from "@/pages/admin/Media";
 import SettingsPage from "@/pages/admin/Settings";
 import Orders from "@/pages/admin/Orders";
 import Subscribers from "@/pages/admin/Subscribers";
+import CampaignComposer from "@/pages/admin/CampaignComposer";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 
 const USER = "thisisme";
@@ -100,13 +101,20 @@ export default function Admin() {
   if (syncError)
     return (
       <main className="min-h-screen bg-[#f3efe6] p-6">
-        <div role="alert" className="mx-auto max-w-3xl border border-coral/30 bg-paper p-6">
+        <div
+          role="alert"
+          className="mx-auto max-w-3xl border border-coral/30 bg-paper p-6"
+        >
           <h1 className="font-serif text-3xl">Catalog sync failed</h1>
           <p className="mt-3">{syncError}</p>
           <p className="mt-2 text-sm text-ink/65">
-            Your browser copy is still available. Check the database connection and admin password, then reload and save again.
+            Your browser copy is still available. Check the database connection
+            and admin password, then reload and save again.
           </p>
-          <button className="button-primary mt-5" onClick={() => setSyncError("")}>
+          <button
+            className="button-primary mt-5"
+            onClick={() => setSyncError("")}
+          >
             Return to admin
           </button>
         </div>
@@ -131,6 +139,7 @@ export default function Admin() {
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
+  if (location === "/admin/subscribers/compose") return <CampaignComposer />;
   if (location === "/admin/subscribers") return <Subscribers />;
   if (location === "/admin/media") return <Media />;
   const setting = location.match(
