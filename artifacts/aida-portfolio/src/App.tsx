@@ -22,6 +22,7 @@ import RegionalShop, { type ShopCategory } from "@/components/RegionalShop";
 import MysteryMail from "@/pages/MysteryMail";
 import RegionalLanding from "@/pages/RegionalLanding";
 import OriginalDetail from "@/pages/OriginalDetail";
+import Newsletter from "@/pages/Newsletter";
 
 const queryClient = new QueryClient();
 
@@ -47,9 +48,9 @@ function Router() {
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/gallery" component={Gallery} />
-            <Route
-              path="/shop/turkiye/originals/:slug"
-            >{() => <OriginalDetail market="turkiye" />}</Route>
+            <Route path="/shop/turkiye/originals/:slug">
+              {() => <OriginalDetail market="turkiye" />}
+            </Route>
             <Route
               path="/shop/turkiye/originals"
               component={regional("TR", "originals")}
@@ -65,9 +66,9 @@ function Router() {
             <Route path="/shop/turkiye">
               {() => <RegionalLanding region="TR" />}
             </Route>
-            <Route
-              path="/shop/international/originals/:slug"
-            >{() => <OriginalDetail market="international" />}</Route>
+            <Route path="/shop/international/originals/:slug">
+              {() => <OriginalDetail market="international" />}
+            </Route>
             <Route
               path="/shop/international/originals"
               component={regional("INTERNATIONAL", "originals")}
@@ -108,6 +109,7 @@ function Router() {
             </Route>
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
+            <Route path="/newsletter" component={Newsletter} />
             <Route path="/international">
               <RedirectTo to="/shop/international" />
             </Route>
@@ -122,14 +124,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LocaleProvider><CurrencyProvider>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </CurrencyProvider></LocaleProvider>
+      <LocaleProvider>
+        <CurrencyProvider>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </CurrencyProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }

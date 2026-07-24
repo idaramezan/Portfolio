@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { Instagram, Music2, Youtube } from "lucide-react";
+import { Instagram, Mail, Music2, Youtube } from "lucide-react";
 import { portrait } from "@/lib/assets";
 import originalPaintingsImage from "@assets/links-original-paintings.jpg";
 import printsGoodsImage from "@assets/links-prints-goods.jpg";
@@ -27,7 +27,8 @@ const localLinks = [
   {
     href: "/shop/turkiye/mystery-mail",
     title: "Mystery Mail",
-    description: "The current limited secret edition, delivered within Türkiye.",
+    description:
+      "The current limited secret edition, delivered within Türkiye.",
     image: mysteryMailImage,
     position: "center",
   },
@@ -44,7 +45,8 @@ const internationalLinks = [
   {
     href: "/shop/international/prints",
     title: "International Prints",
-    description: "Prints and goods fulfilled internationally through Fourthwall.",
+    description:
+      "Prints and goods fulfilled internationally through Fourthwall.",
     image: printsGoodsImage,
     position: "center",
   },
@@ -193,6 +195,13 @@ export default function Links() {
           ? "Go to Türkiye Shop"
           : "Go to International Shop"}
       </Link>
+      <Link
+        href="/newsletter"
+        className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 border border-coral bg-paper px-5 text-center font-semibold text-coral transition-colors hover:bg-coral hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
+      >
+        <Mail size={18} aria-hidden="true" />
+        Join the Studio Letter
+      </Link>
       {region === "turkiye" ? (
         <section id="turkiye-panel" role="tabpanel" className="mt-4">
           <div className="grid grid-cols-2 gap-3">
@@ -210,11 +219,7 @@ export default function Links() {
           </div>
         </section>
       ) : (
-        <section
-          id="international-panel"
-          role="tabpanel"
-          className="mt-4"
-        >
+        <section id="international-panel" role="tabpanel" className="mt-4">
           <div className="grid gap-3 sm:grid-cols-2">
             {internationalLinks.map((link) => (
               <ImageLinkCard key={link.title} {...link} />

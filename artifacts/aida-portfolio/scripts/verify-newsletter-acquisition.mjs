@@ -12,6 +12,10 @@ const regional = read("../src/pages/RegionalLanding.tsx");
 const mystery = read("../src/pages/MysteryMail.tsx");
 const footer = read("../src/components/layout/Newsletter.tsx");
 const shell = read("../src/components/layout/Shell.tsx");
+const app = read("../src/App.tsx");
+const links = read("../src/pages/Links.tsx");
+const newsletterPage = read("../src/pages/Newsletter.tsx");
+const newsletterLib = read("../src/lib/newsletter.ts");
 const backend = read("../../api-server/src/routes/newsletter.ts");
 
 const checks = [
@@ -31,6 +35,17 @@ const checks = [
     "footer form remains",
     footer.includes('variant="footer" context="footer"') &&
       shell.includes("<Newsletter />"),
+  ],
+  [
+    "dedicated newsletter page and route",
+    app.includes('path="/newsletter" component={Newsletter}') &&
+      newsletterPage.includes('variant="story-preview" context="newsletter"') &&
+      newsletterLib.includes('newsletter: "newsletter-page"'),
+  ],
+  [
+    "Links page newsletter option",
+    links.includes('href="/newsletter"') &&
+      links.includes("Join the Studio Letter"),
   ],
   [
     "valid email normalization",
