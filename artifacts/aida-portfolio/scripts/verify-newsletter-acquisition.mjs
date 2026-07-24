@@ -238,16 +238,16 @@ const checks = [
       eventBanner.includes("consentToStudioLetter: true"),
   ],
   [
-    "race-safe first two event places",
+    "duplicate-safe private event registration",
     backend.includes("pg_advisory_xact_lock") &&
       backend.includes("newsletter_event_interests") &&
-      backend.includes("Number(count.rows[0]?.count || 0) < 2") &&
-      backend.includes("UNIQUE (campaign_id, email)"),
+      backend.includes("UNIQUE (campaign_id, email)") &&
+      backend.includes("VALUES ($1, $2, $3, FALSE, $4)"),
   ],
   [
     "event expectations and WhatsApp continuation",
-    eventBanner.includes("Submitting your email registers your interest") &&
-      eventBanner.includes("Your event note is on its way.") &&
+    eventBanner.includes("reserved only after personal confirmation") &&
+      eventBanner.includes("continues personally on WhatsApp") &&
       eventBanner.includes("settings.whatsapp.number") &&
       eventBanner.includes("encodeURIComponent(WHATSAPP_MESSAGE)"),
   ],
@@ -257,10 +257,12 @@ const checks = [
       backend.includes('new Date("2026-08-04T21:00:00.000Z")'),
   ],
   [
-    "compact editorial event presentation",
-    eventBanner.includes(
-      "The first two girls to join through this invitation attend for free.",
-    ) &&
+    "compact dark promotional event banner",
+    eventBanner.includes("bg-[#11110f]") &&
+      eventBanner.includes("Two early participants will attend free.") &&
+      eventBanner.includes(
+        "Complimentary places and attendance are confirmed",
+      ) &&
       eventBanner.includes(
         "No experience needed · Tea and snacks included · Limited places",
       ) &&
@@ -269,13 +271,11 @@ const checks = [
       !eventBanner.includes("Availability"),
   ],
   [
-    "event-specific HTML and plain-text email",
+    "private event-specific HTML and plain-text email",
     backend.includes("sendPaintingEventInterestEmail") &&
+      backend.includes("Your Istanbul painting day details from Aida 🎨") &&
       backend.includes(
-        "Your Istanbul painting day place is complimentary 🎨",
-      ) &&
-      backend.includes(
-        "You’re on the list for Aida’s Istanbul painting day 🎨",
+        "Your attendance is confirmed personally by Aida on WhatsApp",
       ) &&
       backend.includes("EVENT_EMAIL_PREHEADER") &&
       backend.includes("text,") &&
@@ -285,24 +285,43 @@ const checks = [
     "structured event registration response",
     backend.includes("subscriberStatus") &&
       backend.includes("eventRegistrationStatus") &&
-      backend.includes("registrationTier") &&
-      backend.includes("participationFeeTry") &&
       backend.includes("emailDeliveryStatus") &&
-      backend.includes("whatsappUrl"),
+      backend.includes("whatsappUrl") &&
+      !backend.includes("registrationTier:") &&
+      !backend.includes("participationFeeTry:"),
   ],
   [
-    "event participation fee is 150 TL",
-    eventBanner.includes('[CircleCheck, "Fee", "150 TL"]') &&
-      eventBanner.includes("Remaining places are 150 TL") &&
-      backend.includes("ELSE 150 END AS participation_fee_try") &&
-      backend.includes("eventRegistration.is_free ? 0 : 150"),
+    "event participation fee is 100 TL",
+    eventBanner.includes('[CircleCheck, "100 TL"]') &&
+      backend.includes("ELSE 100 END AS participation_fee_try") &&
+      backend.includes("Participation fee: 100 TL"),
+  ],
+  [
+    "complimentary eligibility is never public",
+    !eventBanner.includes("freePlacesRemaining") &&
+      !eventBanner.includes("registrationTier") &&
+      !eventBanner.includes("isFree") &&
+      !backend.includes("freePlacesRemaining") &&
+      !backend.includes("interestCount,") &&
+      !backend.includes("eventRegistration.is_free") &&
+      !backend.includes("input.isFree"),
+  ],
+  [
+    "confirmed seven-second success toast",
+    eventBanner.includes("Spam or Junk folder") &&
+      eventBanner.includes("setTimeout(() => setShowToast(false), 7_000)") &&
+      eventBanner.includes('aria-label="Close notification"') &&
+      eventBanner.includes('setEmail("")') &&
+      eventBanner.indexOf("showSuccessToast()") >
+        eventBanner.indexOf("if (!response.ok)"),
   ],
   [
     "event email failure preserves registration",
     backend.includes("email_delivery_status = 'failed'") &&
       backend.includes("Delivery failed and is pending retry") &&
-      eventBanner.includes("Your interest has been registered") &&
-      eventBanner.includes("event email may"),
+      eventBanner.includes(
+        "We couldn’t send the event details. Please try again.",
+      ),
   ],
   [
     "protected event operations and safe previews",
@@ -312,7 +331,8 @@ const checks = [
       admin.includes('location === "/admin/events/painting-day"') &&
       adminLayout.includes("Event registrations") &&
       eventAdmin.includes("email_delivery_status") &&
-      eventAdmin.includes("Complimentary preview"),
+      eventAdmin.includes("Event email preview") &&
+      eventAdmin.includes('is_free: event.target.value === "complimentary"'),
   ],
 ];
 

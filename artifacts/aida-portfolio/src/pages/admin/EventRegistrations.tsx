@@ -65,6 +65,7 @@ export default function EventRegistrations() {
           body: JSON.stringify({
             whatsappConfirmationStatus: next.whatsapp_confirmation_status,
             reservationStatus: next.reservation_status,
+            isFree: next.is_free,
           }),
         },
       );
@@ -123,8 +124,8 @@ export default function EventRegistrations() {
               Istanbul summer painting day
             </h2>
             <p className="mt-2 text-sm text-ink/55">
-              {registrations.length} unique event-interest submissions · First
-              two receive complimentary places
+              {registrations.length} unique event-interest submissions ·
+              Complimentary places are assigned privately by Aida
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -133,14 +134,7 @@ export default function EventRegistrations() {
               className="admin-button"
               onClick={() => void preview("standard")}
             >
-              Standard email preview <ExternalLink size={14} />
-            </button>
-            <button
-              type="button"
-              className="admin-button"
-              onClick={() => void preview("complimentary")}
-            >
-              Complimentary preview <ExternalLink size={14} />
+              Event email preview <ExternalLink size={14} />
             </button>
           </div>
         </div>
@@ -199,11 +193,25 @@ export default function EventRegistrations() {
                     <td className="px-4 py-4 capitalize">
                       {registration.subscriber_status}
                     </td>
-                    <td className="px-4 py-4 font-semibold">
-                      {registration.is_free ? "Complimentary" : "Standard"}
+                    <td className="px-4 py-4">
+                      <select
+                        className="admin-input !mt-0"
+                        value={
+                          registration.is_free ? "complimentary" : "standard"
+                        }
+                        onChange={(event) =>
+                          void update(registration, {
+                            is_free: event.target.value === "complimentary",
+                          })
+                        }
+                        aria-label={`Participation type for ${registration.email}`}
+                      >
+                        <option value="standard">Standard</option>
+                        <option value="complimentary">Complimentary</option>
+                      </select>
                     </td>
                     <td className="px-4 py-4">
-                      {registration.participation_fee_try} TL
+                      {registration.is_free ? 0 : 100} TL
                     </td>
                     <td className="px-4 py-4 capitalize">
                       {registration.email_delivery_status}
