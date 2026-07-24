@@ -9,6 +9,8 @@ import {
   MailCheck,
   Minus,
   Plus,
+  Save,
+  Search,
   Send,
   Trash2,
 } from "lucide-react";
@@ -36,6 +38,8 @@ type ImageBlock = {
 type ButtonBlock = { id: string; type: "button"; text: string; url: string };
 type DividerBlock = { id: string; type: "divider" };
 type Block = TextBlock | ImageBlock | ButtonBlock | DividerBlock;
+type WithoutId<T> = T extends { id: string } ? Omit<T, "id"> : never;
+type StoredBlock = WithoutId<Block>;
 
 const id = () => crypto.randomUUID();
 const newText = (text = "", size: TextBlock["size"] = "normal"): TextBlock => ({
@@ -71,6 +75,48 @@ type Campaign = {
   created_at: string;
 };
 
+type Template = {
+  id: string;
+  name: string;
+  subject: string;
+  preheader: string | null;
+  blocks: StoredBlock[];
+  is_starter: boolean;
+};
+
+type Subscriber = {
+  id: number;
+  email: string;
+  name: string | null;
+  unsubscribedAt: string | null;
+};
+
+function hydrateBlocks(blocks: StoredBlock[]): Block[] {
+  return blocks.map((block) => {
+    if (block.type === "text")
+      return {
+        id: id(),
+        type: "text",
+        text: block.text || "",
+        size: block.size || "normal",
+        align: block.align || "left",
+        bold: Boolean(block.bold),
+        italic: Boolean(block.italic),
+        linkUrl: block.linkUrl || "",
+        linkText: block.linkText || "",
+      };
+    if (block.type === "image")
+      return {
+        id: id(),
+        type: "image",
+        url: block.url || "",
+        alt: block.alt || "Studio artwork",
+        linkUrl: block.linkUrl || "",
+      };
+    return { ...block, id: id() } as Block;
+  });
+}
+
 export default function CampaignComposer() {
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [subject, setSubject] = useState("A note from Aida’s studio");
@@ -79,11 +125,20 @@ export default function CampaignComposer() {
   const [testEmail, setTestEmail] = useState("aida@aedaart.com");
   const [confirmation, setConfirmation] = useState("");
   const [status, setStatus] = useState<
-    "idle" | "uploading" | "testing" | "sending"
+    "idle" | "uploading" | "testing" | "sending" | "saving"
   >("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null,
+  );
+  const [templateName, setTemplateName] = useState("Art Club welcome");
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [recipientMode, setRecipientMode] = useState<"all" | "selected">("all");
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+  const [subscriberSearch, setSubscriberSearch] = useState("");
 
   const loadCampaigns = () =>
     fetch("/api/newsletter/campaigns", {
@@ -94,8 +149,58 @@ export default function CampaignComposer() {
       .then((result) => setCampaigns(result.campaigns || []))
       .catch(() => setCampaigns([]));
 
+  const applyTemplate = (template: Template) => {
+    setSelectedTemplateId(template.id);
+    setTemplateName(template.name);
+    setSubject(template.subject);
+    setPreheader(template.preheader || "");
+    setBlocks(hydrateBlocks(template.blocks));
+    setMessage(`Loaded “${template.name}”.`);
+    setError("");
+  };
+
+  const loadTemplates = () =>
+    fetch("/api/newsletter/templates", {
+      headers: { "x-admin-password": password },
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok)
+          throw new Error(result.error || "Templates could not be loaded");
+        setTemplates(result.templates || []);
+        const initial = (result.templates || []).find(
+          (template: Template) => template.id === "starter-welcome",
+        );
+        if (initial && selectedTemplateId === null) applyTemplate(initial);
+      })
+      .catch((reason) =>
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "Templates could not be loaded",
+        ),
+      );
+
+  const loadSubscribers = () =>
+    fetch("/api/newsletter/subscribers", {
+      headers: { "x-admin-password": password },
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : { subscribers: [] }))
+      .then((result) =>
+        setSubscribers(
+          (result.subscribers || []).filter(
+            (subscriber: Subscriber) => !subscriber.unsubscribedAt,
+          ),
+        ),
+      )
+      .catch(() => setSubscribers([]));
+
   useEffect(() => {
     void loadCampaigns();
+    void loadTemplates();
+    void loadSubscribers();
   }, []);
 
   const update = (blockId: string, values: Partial<Block>) =>
@@ -120,11 +225,15 @@ export default function CampaignComposer() {
     blocks: blocks.map(({ id: _id, ...block }) => block),
   });
 
-  const request = async (path: string, body: object) => {
+  const request = async (
+    path: string,
+    body: object,
+    method: "POST" | "PUT" | "DELETE" = "POST",
+  ) => {
     setMessage("");
     setError("");
     const response = await fetch(path, {
-      method: "POST",
+      method,
       headers: {
         "Content-Type": "application/json",
         "x-admin-password": password,
@@ -135,6 +244,79 @@ export default function CampaignComposer() {
     if (!response.ok)
       throw new Error(result.error || "The email could not be sent");
     return result;
+  };
+
+  const templatePayload = () => ({
+    name: templateName,
+    ...payload(),
+  });
+
+  const newTemplate = () => {
+    setSelectedTemplateId(null);
+    setTemplateName("Untitled Studio Letter");
+    setSubject("A note from Aida’s studio");
+    setPreheader("A new Studio Letter from Aida");
+    setBlocks([newText("Hello, art lover!", "large"), newText("")]);
+    setMessage("New template ready. Add your content, then save it.");
+    setError("");
+  };
+
+  const saveTemplate = async (asCopy = false) => {
+    setStatus("saving");
+    try {
+      const current = templates.find(
+        (template) => template.id === selectedTemplateId,
+      );
+      const create = asCopy || !selectedTemplateId || current?.is_starter;
+      const result = await request(
+        create
+          ? "/api/newsletter/templates"
+          : `/api/newsletter/templates/${selectedTemplateId}`,
+        {
+          ...templatePayload(),
+          name:
+            asCopy || current?.is_starter
+              ? `${templateName} copy`
+              : templateName,
+        },
+        create ? "POST" : "PUT",
+      );
+      setSelectedTemplateId(result.template.id);
+      setTemplateName(result.template.name);
+      setMessage(create ? "Template created." : "Template saved.");
+      await loadTemplates();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Template could not be saved",
+      );
+    } finally {
+      setStatus("idle");
+    }
+  };
+
+  const deleteTemplate = async () => {
+    const current = templates.find(
+      (template) => template.id === selectedTemplateId,
+    );
+    if (!current || current.is_starter) return;
+    if (!window.confirm(`Delete the template “${current.name}”?`)) return;
+    setStatus("saving");
+    try {
+      await request(`/api/newsletter/templates/${current.id}`, {}, "DELETE");
+      newTemplate();
+      await loadTemplates();
+      setMessage("Template deleted.");
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Template could not be deleted",
+      );
+    } finally {
+      setStatus("idle");
+    }
   };
 
   const sendTest = async () => {
@@ -159,7 +341,9 @@ export default function CampaignComposer() {
     }
     if (
       !window.confirm(
-        "Send this email to every active Studio Letter subscriber?",
+        recipientMode === "all"
+          ? "Send this email to every active Studio Letter subscriber?"
+          : `Send this email to ${selectedRecipients.length} selected subscribers?`,
       )
     )
       return;
@@ -168,6 +352,9 @@ export default function CampaignComposer() {
       const result = await request("/api/newsletter/campaigns/send", {
         ...payload(),
         confirmation,
+        ...(recipientMode === "selected"
+          ? { recipientIds: selectedRecipients }
+          : {}),
       });
       setMessage(`Campaign sent to ${result.sentCount} subscribers.`);
       setConfirmation("");
@@ -222,15 +409,74 @@ export default function CampaignComposer() {
     }
   };
 
+  const filteredSubscribers = subscribers.filter((subscriber) => {
+    const query = subscriberSearch.trim().toLowerCase();
+    return (
+      !query ||
+      subscriber.email.toLowerCase().includes(query) ||
+      subscriber.name?.toLowerCase().includes(query)
+    );
+  });
+
+  const toggleRecipient = (subscriberId: number) =>
+    setSelectedRecipients((current) =>
+      current.includes(subscriberId)
+        ? current.filter((id) => id !== subscriberId)
+        : [...current, subscriberId],
+    );
+
   return (
     <AdminLayout title="Studio Letter composer">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(380px,.8fr)]">
         <div className="space-y-6">
           <section className="border border-ink/10 bg-paper p-5 md:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-serif text-2xl">Template library</h2>
+                <p className="mt-1 text-sm text-ink/55">
+                  Start with a branded template or create your own reusable
+                  email.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="admin-button"
+                onClick={newTemplate}
+              >
+                <Plus size={16} /> New template
+              </button>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => applyTemplate(template)}
+                  className={`min-h-20 border p-3 text-left ${selectedTemplateId === template.id ? "border-coral bg-coral/5" : "border-ink/10 hover:border-coral/50"}`}
+                >
+                  <strong className="block">{template.name}</strong>
+                  <span className="mt-1 block text-xs text-ink/50">
+                    {template.is_starter ? "Starter template" : "Your template"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="border border-ink/10 bg-paper p-5 md:p-6">
             <p className="text-sm text-ink/60">
               Write a branded Studio Letter, send yourself a test, then send one
               private email to every active subscriber.
             </p>
+            <label className="mt-5 block text-sm font-semibold">
+              Template name
+              <input
+                className="admin-input mt-2"
+                value={templateName}
+                maxLength={120}
+                onChange={(event) => setTemplateName(event.target.value)}
+              />
+            </label>
             <label className="mt-5 block text-sm font-semibold">
               Subject
               <input
@@ -249,6 +495,44 @@ export default function CampaignComposer() {
                 onChange={(event) => setPreheader(event.target.value)}
               />
             </label>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="admin-button"
+                disabled={status !== "idle"}
+                onClick={() => void saveTemplate(false)}
+              >
+                <Save size={16} />
+                {templates.find(
+                  (template) => template.id === selectedTemplateId,
+                )?.is_starter
+                  ? "Save customized copy"
+                  : "Save template"}
+              </button>
+              {selectedTemplateId && (
+                <button
+                  type="button"
+                  className="admin-button"
+                  disabled={status !== "idle"}
+                  onClick={() => void saveTemplate(true)}
+                >
+                  Duplicate
+                </button>
+              )}
+              {selectedTemplateId &&
+                !templates.find(
+                  (template) => template.id === selectedTemplateId,
+                )?.is_starter && (
+                  <button
+                    type="button"
+                    className="admin-button !text-coral"
+                    disabled={status !== "idle"}
+                    onClick={() => void deleteTemplate()}
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                )}
+            </div>
           </section>
 
           <section className="border border-ink/10 bg-paper">
@@ -494,6 +778,118 @@ export default function CampaignComposer() {
               </button>
             </div>
             <div className="mt-5 border-t border-ink/10 pt-5">
+              <h3 className="font-semibold">Recipients</h3>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <label
+                  className={`flex min-h-12 cursor-pointer items-center gap-3 border p-3 ${recipientMode === "all" ? "border-coral bg-coral/5" : "border-ink/10"}`}
+                >
+                  <input
+                    type="radio"
+                    name="recipients"
+                    checked={recipientMode === "all"}
+                    onChange={() => setRecipientMode("all")}
+                  />
+                  <span>
+                    <strong className="block">All active subscribers</strong>
+                    <span className="text-xs text-ink/50">
+                      {subscribers.length} recipients
+                    </span>
+                  </span>
+                </label>
+                <label
+                  className={`flex min-h-12 cursor-pointer items-center gap-3 border p-3 ${recipientMode === "selected" ? "border-coral bg-coral/5" : "border-ink/10"}`}
+                >
+                  <input
+                    type="radio"
+                    name="recipients"
+                    checked={recipientMode === "selected"}
+                    onChange={() => setRecipientMode("selected")}
+                  />
+                  <span>
+                    <strong className="block">Selected subscribers</strong>
+                    <span className="text-xs text-ink/50">
+                      {selectedRecipients.length} selected
+                    </span>
+                  </span>
+                </label>
+              </div>
+              {recipientMode === "selected" && (
+                <div className="mt-3 border border-ink/10">
+                  <div className="flex flex-col gap-2 border-b border-ink/10 p-3 sm:flex-row">
+                    <label className="relative flex-1">
+                      <Search
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
+                        size={16}
+                      />
+                      <input
+                        className="admin-input !mt-0 pl-9"
+                        type="search"
+                        value={subscriberSearch}
+                        onChange={(event) =>
+                          setSubscriberSearch(event.target.value)
+                        }
+                        placeholder="Search subscribers"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="admin-button"
+                      onClick={() =>
+                        setSelectedRecipients((current) =>
+                          Array.from(
+                            new Set([
+                              ...current,
+                              ...filteredSubscribers.map(
+                                (subscriber) => subscriber.id,
+                              ),
+                            ]),
+                          ),
+                        )
+                      }
+                    >
+                      Select shown
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-button"
+                      onClick={() => setSelectedRecipients([])}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="max-h-56 divide-y divide-ink/10 overflow-y-auto">
+                    {filteredSubscribers.map((subscriber) => (
+                      <label
+                        key={subscriber.id}
+                        className="flex min-h-12 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-ink/5"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRecipients.includes(subscriber.id)}
+                          onChange={() => toggleRecipient(subscriber.id)}
+                        />
+                        <span className="min-w-0">
+                          <strong className="block truncate">
+                            {subscriber.name || subscriber.email}
+                          </strong>
+                          {subscriber.name && (
+                            <span className="block truncate text-xs text-ink/50">
+                              {subscriber.email}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                    {!filteredSubscribers.length && (
+                      <p className="p-4 text-sm text-ink/50">
+                        No active subscribers match this search.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="mt-5 border-t border-ink/10 pt-5">
               <label className="block text-sm font-semibold">
                 Type SEND to confirm
                 <input
@@ -505,13 +901,19 @@ export default function CampaignComposer() {
               <button
                 type="button"
                 className="button-primary mt-3 w-full justify-center"
-                disabled={status !== "idle" || confirmation !== "SEND"}
+                disabled={
+                  status !== "idle" ||
+                  confirmation !== "SEND" ||
+                  (recipientMode === "selected" && !selectedRecipients.length)
+                }
                 onClick={() => void sendAll()}
               >
                 <Send size={17} />{" "}
                 {status === "sending"
                   ? "Sending campaign…"
-                  : "Send to all active subscribers"}
+                  : recipientMode === "all"
+                    ? "Send to all active subscribers"
+                    : `Send to ${selectedRecipients.length} selected subscribers`}
               </button>
             </div>
             <div aria-live="polite">

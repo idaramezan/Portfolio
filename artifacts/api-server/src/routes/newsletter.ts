@@ -65,6 +65,18 @@ async function ensureDeliveryColumns() {
       sent_at TIMESTAMPTZ
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS newsletter_templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      preheader TEXT,
+      blocks JSONB NOT NULL,
+      is_starter BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
 }
 
 type CampaignBlock =
@@ -152,6 +164,128 @@ function renderCampaignBlocks(blocks: CampaignBlock[]) {
     .join("");
 }
 
+const starterTemplates = [
+  {
+    id: "starter-blank",
+    name: "Blank Studio Letter",
+    subject: "A note from Aida’s studio",
+    preheader: "A new Studio Letter from Aida",
+    blocks: [
+      { type: "text", text: "Hello, art lover!", size: "large" },
+      {
+        type: "text",
+        text: "Write your Studio Letter here. Add more text, artwork, links or a button using the editor.",
+        size: "normal",
+      },
+    ],
+  },
+  {
+    id: "starter-welcome",
+    name: "Art Club welcome",
+    subject: "You’re officially in Aida’s Art Club ✨",
+    preheader: "Welcome to Aida’s creative world",
+    blocks: [
+      { type: "text", text: "Hello, art lover!", size: "large" },
+      {
+        type: "text",
+        text: "I'm so happy you're here. ❤️ Welcome to the Art Club!",
+        size: "normal",
+      },
+      {
+        type: "text",
+        text: "This little community means a lot to me, and I'm excited to share more of my creative world with you. You'll get early access to new paintings, behind-the-scenes moments from my studio, exclusive offers, and the occasional surprise; things I don't share anywhere else.",
+        size: "normal",
+      },
+      {
+        type: "text",
+        text: "More than anything, thank you for supporting independent artists. Every print, painting, message, and subscription helps me keep creating, and I'm truly grateful that you've chosen to be part of this journey.",
+        size: "normal",
+      },
+    ],
+  },
+  {
+    id: "starter-artwork",
+    name: "New artwork announcement",
+    subject: "A new painting has left the studio walls",
+    preheader: "See Aida’s newest original before it is shared elsewhere",
+    blocks: [
+      { type: "text", text: "Hello, art lover!", size: "large" },
+      {
+        type: "text",
+        text: "I’ve just finished a new painting and wanted you to be among the first to see it.",
+        size: "normal",
+      },
+      { type: "divider" },
+      {
+        type: "button",
+        text: "See the new artwork",
+        url: "https://www.aedaart.com/shop/turkiye/originals",
+      },
+    ],
+  },
+  {
+    id: "starter-story",
+    name: "Story from the studio",
+    subject: "A small story from my Istanbul studio",
+    preheader: "The memory and process behind a painting",
+    blocks: [
+      { type: "text", text: "A story from the studio", size: "heading" },
+      {
+        type: "text",
+        text: "Hello, art lover! Today I wanted to share the moment behind one of my paintings.",
+        size: "normal",
+      },
+      {
+        type: "text",
+        text: "Write the story here, then add the painting and any related photograph with the image button.",
+        size: "normal",
+      },
+    ],
+  },
+  {
+    id: "starter-offer",
+    name: "Limited studio offer",
+    subject: "A private offer for the Art Club",
+    preheader: "A limited studio release shared with subscribers first",
+    blocks: [
+      {
+        type: "text",
+        text: "A little something, just for the Art Club",
+        size: "heading",
+      },
+      {
+        type: "text",
+        text: "You’re receiving this first because you’re part of my Studio Letter community.",
+        size: "normal",
+      },
+      {
+        type: "button",
+        text: "View the private offer",
+        url: "https://www.aedaart.com",
+      },
+    ],
+  },
+] as const;
+
+async function ensureStarterTemplates() {
+  await ensureDeliveryColumns();
+  for (const template of starterTemplates) {
+    await pool.query(
+      `INSERT INTO newsletter_templates
+        (id, name, subject, preheader, blocks, is_starter)
+       VALUES ($1, $2, $3, $4, $5::jsonb, TRUE)
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        template.id,
+        template.name,
+        template.subject,
+        template.preheader,
+        JSON.stringify(template.blocks),
+      ],
+    );
+  }
+}
+
 function unsubscribeUrl(token: string) {
   const siteUrl = (
     process.env.PUBLIC_SITE_URL || "https://www.aedaart.com"
@@ -202,6 +336,105 @@ router.get("/subscribers", requireAdmin, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to load newsletter subscribers");
     return res.status(500).json({ error: "Subscribers could not be loaded" });
+  }
+});
+
+// Reusable bulk-email templates. All content still renders inside emailShell.
+router.get("/templates", requireAdmin, async (req, res) => {
+  try {
+    await ensureStarterTemplates();
+    const result = await pool.query(`
+      SELECT id, name, subject, preheader, blocks, is_starter, created_at, updated_at
+      FROM newsletter_templates
+      ORDER BY is_starter DESC, updated_at DESC, name
+    `);
+    return res.json({ templates: result.rows });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load newsletter templates");
+    return res.status(500).json({ error: "Templates could not be loaded" });
+  }
+});
+
+router.post("/templates", requireAdmin, async (req, res) => {
+  try {
+    await ensureStarterTemplates();
+    const campaign = validateCampaign(req.body);
+    renderCampaignBlocks(campaign.blocks);
+    const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+    if (!name || name.length > 120)
+      return res.status(400).json({ error: "Template name is required" });
+    const result = await pool.query(
+      `INSERT INTO newsletter_templates
+        (id, name, subject, preheader, blocks)
+       VALUES ($1, $2, $3, $4, $5::jsonb)
+       RETURNING *`,
+      [
+        crypto.randomUUID(),
+        name,
+        campaign.subject,
+        campaign.preheader || null,
+        JSON.stringify(campaign.blocks),
+      ],
+    );
+    return res.status(201).json({ template: result.rows[0] });
+  } catch (err) {
+    req.log.error({ err }, "Failed to create newsletter template");
+    return res.status(400).json({
+      error:
+        err instanceof Error ? err.message : "Template could not be created",
+    });
+  }
+});
+
+router.put("/templates/:id", requireAdmin, async (req, res) => {
+  try {
+    await ensureStarterTemplates();
+    const campaign = validateCampaign(req.body);
+    renderCampaignBlocks(campaign.blocks);
+    const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+    if (!name || name.length > 120)
+      return res.status(400).json({ error: "Template name is required" });
+    const result = await pool.query(
+      `UPDATE newsletter_templates
+       SET name = $2, subject = $3, preheader = $4, blocks = $5::jsonb,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [
+        req.params.id,
+        name,
+        campaign.subject,
+        campaign.preheader || null,
+        JSON.stringify(campaign.blocks),
+      ],
+    );
+    if (!result.rowCount)
+      return res.status(404).json({ error: "Template not found" });
+    return res.json({ template: result.rows[0] });
+  } catch (err) {
+    req.log.error({ err }, "Failed to update newsletter template");
+    return res.status(400).json({
+      error: err instanceof Error ? err.message : "Template could not be saved",
+    });
+  }
+});
+
+router.delete("/templates/:id", requireAdmin, async (req, res) => {
+  try {
+    await ensureStarterTemplates();
+    const result = await pool.query(
+      "DELETE FROM newsletter_templates WHERE id = $1 AND is_starter = FALSE RETURNING id",
+      [req.params.id],
+    );
+    if (!result.rowCount)
+      return res.status(400).json({
+        error:
+          "Starter templates cannot be deleted. Duplicate one to customize it.",
+      });
+    return res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete newsletter template");
+    return res.status(500).json({ error: "Template could not be deleted" });
   }
 });
 
@@ -262,12 +495,29 @@ router.post("/campaigns/send", requireAdmin, async (req, res) => {
     const campaign = validateCampaign(req.body);
     const content = renderCampaignBlocks(campaign.blocks);
     await ensureDeliveryColumns();
-    const subscribers = await pool.query(`
-      SELECT email, unsubscribe_token
-      FROM newsletter_subscribers
-      WHERE unsubscribed_at IS NULL
-      ORDER BY id
-    `);
+    const requestedIds = Array.isArray(req.body?.recipientIds)
+      ? req.body.recipientIds
+          .map(Number)
+          .filter((value: number) => Number.isInteger(value) && value > 0)
+      : null;
+    if (Array.isArray(req.body?.recipientIds) && !requestedIds?.length)
+      return res
+        .status(400)
+        .json({ error: "Select at least one active subscriber" });
+    const subscribers = requestedIds
+      ? await pool.query(
+          `SELECT id, email, unsubscribe_token
+           FROM newsletter_subscribers
+           WHERE unsubscribed_at IS NULL AND id = ANY($1::int[])
+           ORDER BY id`,
+          [requestedIds],
+        )
+      : await pool.query(`
+          SELECT id, email, unsubscribe_token
+          FROM newsletter_subscribers
+          WHERE unsubscribed_at IS NULL
+          ORDER BY id
+        `);
     if (!subscribers.rowCount)
       return res.status(400).json({ error: "There are no active subscribers" });
     await pool.query(

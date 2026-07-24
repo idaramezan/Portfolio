@@ -201,6 +201,24 @@ const checks = [
     admin.includes('location === "/admin/subscribers/compose"') &&
       admin.includes("<CampaignComposer />"),
   ],
+  [
+    "reusable template library",
+    backend.includes('router.get("/templates", requireAdmin') &&
+      backend.includes('router.post("/templates", requireAdmin') &&
+      backend.includes('router.put("/templates/:id", requireAdmin') &&
+      backend.includes('router.delete("/templates/:id", requireAdmin') &&
+      backend.includes("starterTemplates") &&
+      composer.includes("Template library") &&
+      composer.includes("Save customized copy"),
+  ],
+  [
+    "all or selected recipient sending",
+    backend.includes("requestedIds") &&
+      backend.includes("id = ANY($1::int[])") &&
+      composer.includes('recipientMode === "selected"') &&
+      composer.includes("Select shown") &&
+      composer.includes("selectedRecipients"),
+  ],
 ];
 
 for (const [name, passed] of checks)
