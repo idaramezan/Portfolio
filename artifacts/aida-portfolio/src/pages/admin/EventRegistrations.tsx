@@ -211,7 +211,7 @@ export default function EventRegistrations() {
                       </select>
                     </td>
                     <td className="px-4 py-4">
-                      {registration.is_free ? 0 : 100} TL
+                      {registration.is_free ? 0 : 150} TL
                     </td>
                     <td className="px-4 py-4 capitalize">
                       {registration.email_delivery_status}

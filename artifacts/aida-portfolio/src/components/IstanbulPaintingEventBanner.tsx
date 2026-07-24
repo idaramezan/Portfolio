@@ -173,7 +173,7 @@ export default function IstanbulPaintingEventBanner() {
               [CalendarDays, "4 August 2026"],
               [MapPin, "European side"],
               [Users, "Girls only"],
-              [CircleCheck, "100 TL"],
+              [CircleCheck, "150 TL"],
             ].map(([Icon, value]) => {
               const FactIcon = Icon as typeof CalendarDays;
               return (

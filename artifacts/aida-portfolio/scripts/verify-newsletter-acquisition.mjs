@@ -291,10 +291,10 @@ const checks = [
       !backend.includes("participationFeeTry:"),
   ],
   [
-    "event participation fee is 100 TL",
-    eventBanner.includes('[CircleCheck, "100 TL"]') &&
-      backend.includes("ELSE 100 END AS participation_fee_try") &&
-      backend.includes("Participation fee: 100 TL"),
+    "event participation fee is 150 TL",
+    eventBanner.includes('[CircleCheck, "150 TL"]') &&
+      backend.includes("ELSE 150 END AS participation_fee_try") &&
+      backend.includes("Participation fee: 150 TL"),
   ],
   [
     "complimentary eligibility is never public",
