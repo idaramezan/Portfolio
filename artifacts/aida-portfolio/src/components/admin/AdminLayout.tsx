@@ -11,6 +11,7 @@ import {
   Instagram,
   Menu,
   Mails,
+  CalendarDays,
   MessageCircle,
   PackageOpen,
   PanelsTopLeft,
@@ -44,6 +45,7 @@ const groups = [
     [
       ["/admin/subscribers", "Subscribers", Users],
       ["/admin/subscribers/compose", "Email composer", Mails],
+      ["/admin/events/painting-day", "Event registrations", CalendarDays],
     ],
   ],
   ["Links", [["/admin/settings/links", "Link Hub & Social", Instagram]]],

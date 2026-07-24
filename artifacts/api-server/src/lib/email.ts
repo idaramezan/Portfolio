@@ -7,6 +7,7 @@ type SendEmailInput = {
   to: string | string[];
   subject: string;
   html: string;
+  text?: string;
   replyTo?: string;
   headers?: Record<string, string>;
 };
@@ -40,6 +41,7 @@ export async function sendEmail(input: SendEmailInput) {
       to: Array.isArray(input.to) ? input.to : [input.to],
       subject: input.subject,
       html: input.html,
+      text: input.text,
       reply_to: input.replyTo || process.env.RESEND_REPLY_TO || CONTACT_EMAIL,
       headers: input.headers,
     }),
@@ -76,6 +78,7 @@ export async function sendEmailBatch(
         to: Array.isArray(message.to) ? message.to : [message.to],
         subject: message.subject,
         html: message.html,
+        text: message.text,
         reply_to:
           message.replyTo || process.env.RESEND_REPLY_TO || CONTACT_EMAIL,
         headers: message.headers,
@@ -93,7 +96,13 @@ export async function sendEmailBatch(
 
 export function emailShell(
   content: string,
-  options: { preheader?: string; unsubscribeUrl?: string } = {},
+  options: {
+    preheader?: string;
+    unsubscribeUrl?: string;
+    headerLabel?: string;
+    footerNote?: string;
+    showSignature?: boolean;
+  } = {},
 ) {
   const siteUrl = (
     process.env.PUBLIC_SITE_URL || "https://www.aedaart.com"
@@ -103,5 +112,12 @@ export function emailShell(
   const unsubscribe = options.unsubscribeUrl
     ? `<p style="margin:12px 0 0;font-size:11px;color:#75695d"><a href="${escapeHtml(options.unsubscribeUrl)}" style="color:#75695d;text-decoration:underline">Unsubscribe from the Studio Letter</a></p>`
     : "";
-  return `<!doctype html><html><body style="margin:0;background:#e9e0cf;color:#342d25;font-family:${handwriting}"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(options.preheader || "A note from Aida's studio")}</div><div style="max-width:620px;margin:0 auto;padding:32px 16px"><div style="background:#fffaf1;border:1px solid #cbbb9f;box-shadow:0 8px 24px rgba(65,49,31,.12);padding:42px 34px;font-family:${handwriting}"><p style="margin:0 0 26px;color:#a44938;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Aida Ramezani · Artist</p>${content}<div style="margin-top:38px;padding-top:25px;border-top:1px dashed #bba98b;text-align:center"><img src="${siteUrl}/assets/aida-email-seal.png" width="120" alt="Aida's artist seal" style="display:block;width:120px;max-width:42%;height:auto;margin:0 auto 10px"><p style="margin:0;color:#47382c;font-family:${handwriting};font-size:28px;line-height:1.4;font-style:italic">XOXO, Aida</p><p style="margin:9px 0 0;font-size:13px"><a href="mailto:${CONTACT_EMAIL}" style="color:#a44938;text-decoration:none">${CONTACT_EMAIL}</a></p>${unsubscribe}</div></div></div></body></html>`;
+  const signature =
+    options.showSignature === false
+      ? ""
+      : `<img src="${siteUrl}/assets/aida-email-seal.png" width="120" alt="Aida's artist seal" style="display:block;width:120px;max-width:42%;height:auto;margin:0 auto 10px"><p style="margin:0;color:#47382c;font-family:${handwriting};font-size:28px;line-height:1.4;font-style:italic">XOXO, Aida</p>`;
+  const footerNote = options.footerNote
+    ? `<p style="margin:12px 0 0;font-size:11px;line-height:1.5;color:#75695d">${escapeHtml(options.footerNote)}</p>`
+    : "";
+  return `<!doctype html><html><body style="margin:0;background:#e9e0cf;color:#342d25;font-family:${handwriting}"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(options.preheader || "A note from Aida's studio")}</div><div style="max-width:600px;margin:0 auto;padding:24px 12px"><div style="background:#fffaf1;border:1px solid #cbbb9f;box-shadow:0 8px 24px rgba(65,49,31,.12);padding:38px 30px;font-family:${handwriting}"><p style="margin:0 0 26px;color:#a44938;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">${escapeHtml(options.headerLabel || "Aida Ramezani · Artist")}</p>${content}<div style="margin-top:38px;padding-top:25px;border-top:1px dashed #bba98b;text-align:center">${signature}<p style="margin:9px 0 0;font-size:13px"><a href="mailto:${CONTACT_EMAIL}" style="color:#a44938;text-decoration:none">${CONTACT_EMAIL}</a></p>${footerNote}${unsubscribe}</div></div></div></body></html>`;
 }

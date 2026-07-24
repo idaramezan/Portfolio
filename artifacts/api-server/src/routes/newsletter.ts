@@ -87,9 +87,24 @@ async function ensureDeliveryColumns() {
       email TEXT NOT NULL,
       is_free BOOLEAN NOT NULL DEFAULT FALSE,
       event_email_sent_at TIMESTAMPTZ,
+      email_delivery_status TEXT NOT NULL DEFAULT 'pending',
+      email_delivery_error TEXT,
+      subscriber_status TEXT NOT NULL DEFAULT 'existing',
+      whatsapp_confirmation_status TEXT NOT NULL DEFAULT 'not_contacted',
+      reservation_status TEXT NOT NULL DEFAULT 'interest',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (campaign_id, email)
     )
+  `);
+  await pool.query(`
+    ALTER TABLE newsletter_event_interests
+      ADD COLUMN IF NOT EXISTS email_delivery_status TEXT NOT NULL DEFAULT 'pending',
+      ADD COLUMN IF NOT EXISTS email_delivery_error TEXT,
+      ADD COLUMN IF NOT EXISTS subscriber_status TEXT NOT NULL DEFAULT 'existing',
+      ADD COLUMN IF NOT EXISTS whatsapp_confirmation_status TEXT NOT NULL DEFAULT 'not_contacted',
+      ADD COLUMN IF NOT EXISTS reservation_status TEXT NOT NULL DEFAULT 'interest',
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
 }
 
@@ -307,7 +322,11 @@ function unsubscribeUrl(token: string) {
   return `${siteUrl}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
-async function registerEventInterest(subscriberId: number, email: string) {
+async function registerEventInterest(
+  subscriberId: number,
+  email: string,
+  subscriberStatus: "new" | "existing",
+) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -315,7 +334,8 @@ async function registerEventInterest(subscriberId: number, email: string) {
       ISTANBUL_EVENT_CAMPAIGN,
     ]);
     const existing = await client.query(
-      `SELECT id, is_free, event_email_sent_at
+      `SELECT id, is_free, event_email_sent_at, email_delivery_status,
+              whatsapp_confirmation_status, reservation_status, subscriber_status
        FROM newsletter_event_interests
        WHERE campaign_id = $1 AND email = $2
        LIMIT 1`,
@@ -335,10 +355,11 @@ async function registerEventInterest(subscriberId: number, email: string) {
     const isFree = Number(count.rows[0]?.count || 0) < 2;
     const inserted = await client.query(
       `INSERT INTO newsletter_event_interests
-        (campaign_id, subscriber_id, email, is_free)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, is_free, event_email_sent_at`,
-      [ISTANBUL_EVENT_CAMPAIGN, subscriberId, email, isFree],
+        (campaign_id, subscriber_id, email, is_free, subscriber_status)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, is_free, event_email_sent_at, email_delivery_status,
+                 whatsapp_confirmation_status, reservation_status, subscriber_status`,
+      [ISTANBUL_EVENT_CAMPAIGN, subscriberId, email, isFree, subscriberStatus],
     );
     await client.query("COMMIT");
     return { ...inserted.rows[0], alreadyRegistered: false };
@@ -350,16 +371,83 @@ async function registerEventInterest(subscriberId: number, email: string) {
   }
 }
 
-async function sendEventInterestEmail(email: string, isFree: boolean) {
-  const feeMessage = isFree
-    ? "You are one of the first two people to join through the event form, so your 100 TL participation fee is fully covered."
-    : "The participation fee is 100 TL and only helps cover tea and snacks.";
+const EVENT_EMAIL_PREHEADER =
+  "A relaxed girls-only painting afternoon in Istanbul on 4 August.";
+const EVENT_WHATSAPP_MESSAGE =
+  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on 4 August 2026.";
+
+async function getEventWhatsappUrl() {
+  const result = await pool.query(
+    "SELECT payload FROM shop_settings WHERE id = $1 LIMIT 1",
+    ["primary"],
+  );
+  const number = String(
+    result.rows[0]?.payload?.whatsapp?.number || "",
+  ).replace(/\D/g, "");
+  if (!/^\d{8,15}$/.test(number))
+    throw new Error("The configured WhatsApp number is missing or invalid");
+  return `https://wa.me/${number}?text=${encodeURIComponent(EVENT_WHATSAPP_MESSAGE)}`;
+}
+
+function buildPaintingEventInterestEmail(input: {
+  isFree: boolean;
+  whatsappUrl: string;
+  unsubscribe: string;
+}) {
+  const participationHtml = input.isFree
+    ? `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Your participation fee</p><p style="margin:0;font-size:28px;font-weight:700">Complimentary</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">You were one of the first two people to join through the event invitation, so there is no participation fee for your place.</p>`
+    : `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Your participation fee</p><p style="margin:0;font-size:28px;font-weight:700">100 TL</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">The fee only helps cover tea and snacks.</p>`;
+  const detailRows = [
+    ["Date", "4 August 2026"],
+    ["Location", "A park on Istanbul’s European side"],
+    ["Exact park and time", "Shared after your place is personally confirmed"],
+    ["Who can join", "Girls only"],
+    ["Experience needed", "None"],
+    ["Format", "A relaxed social painting gathering, not a class"],
+    ["Places", "Limited"],
+  ]
+    .map(
+      ([label, value]) =>
+        `<tr><th scope="row" style="padding:9px 12px 9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:13px;color:#75695d">${escapeHtml(label)}</th><td style="padding:9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:14px;font-weight:600">${escapeHtml(value)}</td></tr>`,
+    )
+    .join("");
+  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">I’m so happy you’d like to join us.</h1><p style="font-size:16px;line-height:1.7">Thank you for joining the Studio Letter through the Istanbul painting day invitation.</p><p style="font-size:16px;line-height:1.7">On 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.7">You do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but your place still needs to be confirmed personally.</strong></p><p style="font-size:16px;line-height:1.7">Message me on WhatsApp and I will help you reserve your place. The exact park and meeting time will be shared after confirmation.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p><p style="margin-top:28px;font-size:16px;line-height:1.7">I’m looking forward to painting together.</p><p style="font-size:16px;line-height:1.7">See you in Istanbul,<br><strong>Aida</strong></p>`;
+  const feeText = input.isFree
+    ? "Your participation fee: Complimentary\nYou were one of the first two people to join through the event invitation, so there is no participation fee for your place."
+    : "Your participation fee: 100 TL\nThe fee only helps cover tea and snacks.";
+  const text = `AIDA RAMEZANI · STUDIO LETTER\n\nI’m so happy you’d like to join us.\n\nThank you for joining the Studio Letter through the Istanbul painting day invitation.\n\nOn 4 August, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.\n\nYou do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.\n\nEVENT DETAILS\nDate: 4 August 2026\nLocation: A park on Istanbul’s European side\nExact park and time: Shared after your place is personally confirmed\nWho can join: Girls only\nExperience needed: None\nFormat: A relaxed social painting gathering, not a class\nPlaces: Limited\n\n${feeText}\n\nYour email has registered your interest, but your place still needs to be confirmed personally.\n\nMessage me on WhatsApp and I will help you reserve your place. The exact park and meeting time will be shared after confirmation.\n\nContact Aida to reserve my place:\n${input.whatsappUrl}\n\nI’m looking forward to painting together.\n\nSee you in Istanbul,\nAida\n\nYou received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.\nUnsubscribe: ${input.unsubscribe}`;
+  return {
+    subject: input.isFree
+      ? "Your Istanbul painting day place is complimentary 🎨"
+      : "You’re on the list for Aida’s Istanbul painting day 🎨",
+    html: emailShell(content, {
+      preheader: EVENT_EMAIL_PREHEADER,
+      unsubscribeUrl: input.unsubscribe,
+      headerLabel: "AIDA RAMEZANI · STUDIO LETTER",
+      footerNote:
+        "You received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.",
+      showSignature: false,
+    }),
+    text,
+  };
+}
+
+async function sendPaintingEventInterestEmail(input: {
+  to: string;
+  isFree: boolean;
+  whatsappUrl: string;
+  unsubscribe: string;
+}) {
+  const email = buildPaintingEventInterestEmail(input);
   await sendEmail({
-    to: email,
-    subject: "Your Istanbul painting day note 🌿",
-    html: emailShell(
-      `<p style="font-size:17px">Hello, art lover!</p><h1 style="font-size:32px;line-height:1.2">Let’s paint together in Istanbul.</h1><p style="font-size:16px;line-height:1.75">Thank you for joining the event list for our relaxed girls-only painting gathering on <strong>4 August 2026</strong>, in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.75">${escapeHtml(feeMessage)}</p><p style="font-size:16px;line-height:1.75">This registers your interest rather than reserving a seat. Message me on WhatsApp to confirm your place and receive the exact park and time details.</p>`,
-    ),
+    to: input.to,
+    subject: email.subject,
+    html: email.html,
+    text: email.text,
+    headers: {
+      "List-Unsubscribe": `<${input.unsubscribe}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   });
 }
 
@@ -406,6 +494,94 @@ router.get("/event-status", async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to load event campaign status");
     return res.status(500).json({ error: "Event status could not be loaded" });
+  }
+});
+
+// GET /newsletter/event-interests — protected operational view for Aida
+router.get("/event-interests", requireAdmin, async (req, res) => {
+  try {
+    await ensureDeliveryColumns();
+    const result = await pool.query(
+      `SELECT id, email, created_at, subscriber_status, is_free,
+              CASE WHEN is_free THEN 0 ELSE 100 END AS participation_fee_try,
+              email_delivery_status, whatsapp_confirmation_status,
+              reservation_status, updated_at
+       FROM newsletter_event_interests
+       WHERE campaign_id = $1
+       ORDER BY created_at ASC, id ASC`,
+      [ISTANBUL_EVENT_CAMPAIGN],
+    );
+    return res.json({ registrations: result.rows });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load event registrations");
+    return res
+      .status(500)
+      .json({ error: "Event registrations could not be loaded" });
+  }
+});
+
+router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
+  try {
+    const whatsappStatuses = new Set(["not_contacted", "contacted"]);
+    const reservationStatuses = new Set([
+      "interest",
+      "confirmed",
+      "cancelled",
+      "attended",
+    ]);
+    const whatsappStatus = req.body?.whatsappConfirmationStatus;
+    const reservationStatus = req.body?.reservationStatus;
+    if (
+      !whatsappStatuses.has(whatsappStatus) ||
+      !reservationStatuses.has(reservationStatus)
+    )
+      return res
+        .status(400)
+        .json({ error: "Valid event statuses are required" });
+    await ensureDeliveryColumns();
+    const result = await pool.query(
+      `UPDATE newsletter_event_interests
+       SET whatsapp_confirmation_status = $2, reservation_status = $3,
+           updated_at = NOW()
+       WHERE id = $1 AND campaign_id = $4
+       RETURNING *`,
+      [
+        req.params.id,
+        whatsappStatus,
+        reservationStatus,
+        ISTANBUL_EVENT_CAMPAIGN,
+      ],
+    );
+    if (!result.rowCount)
+      return res.status(404).json({ error: "Event registration not found" });
+    return res.json({ registration: result.rows[0] });
+  } catch (err) {
+    req.log.error({ err }, "Failed to update event registration");
+    return res
+      .status(500)
+      .json({ error: "Event registration could not be updated" });
+  }
+});
+
+router.get("/event-email-preview", requireAdmin, async (req, res) => {
+  try {
+    const whatsappUrl = await getEventWhatsappUrl();
+    const isFree = req.query.tier === "complimentary";
+    const email = buildPaintingEventInterestEmail({
+      isFree,
+      whatsappUrl,
+      unsubscribe: "https://www.aedaart.com/newsletter",
+    });
+    return res.json({
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to render event email preview");
+    return res
+      .status(500)
+      .json({ error: "Email preview could not be rendered" });
   }
 });
 
@@ -717,13 +893,19 @@ router.post("/unsubscribe", unsubscribe);
 router.post("/", async (req, res) => {
   try {
     const { email, name } = req.body;
-    const eventInterest = req.body?.eventInterest === true;
+    const eventInterest =
+      req.body?.eventInterest === true ||
+      req.body?.source === "istanbul-painting-day-august-2026" ||
+      req.body?.campaignId === ISTANBUL_EVENT_CAMPAIGN;
     if (
       eventInterest &&
-      (req.body?.campaignId !== ISTANBUL_EVENT_CAMPAIGN ||
-        req.body?.source !== "istanbul-painting-day-august-2026" ||
-        req.body?.consentToStudioLetter !== true)
+      req.body?.campaignId !== ISTANBUL_EVENT_CAMPAIGN &&
+      req.body?.source !== "istanbul-painting-day-august-2026"
     )
+      return res
+        .status(400)
+        .json({ error: "Valid event campaign is required" });
+    if (eventInterest && req.body?.consentToStudioLetter !== true)
       return res.status(400).json({ error: "Valid event consent is required" });
     if (eventInterest && new Date() >= ISTANBUL_EVENT_DEADLINE)
       return res.status(410).json({ error: "This event campaign has ended" });
@@ -761,15 +943,33 @@ router.post("/", async (req, res) => {
            source = COALESCE(newsletter_subscribers.source, EXCLUDED.source),
            locale = COALESCE(newsletter_subscribers.locale, EXCLUDED.locale),
            unsubscribed_at = NULL
-       RETURNING id, email, name, created_at, welcome_email_sent_at, owner_notification_sent_at, welcome_email_version, (xmax <> 0) AS already_subscribed`,
+       RETURNING id, email, name, created_at, welcome_email_sent_at, owner_notification_sent_at, welcome_email_version, unsubscribe_token, (xmax <> 0) AS already_subscribed`,
       [normalizedEmail, normalizedName, source, locale],
     );
     const subscriber = result.rows[0];
 
     const subscriberEmail = subscriber.email;
     const subscriberName = subscriber.name;
+    const subscriberStatus: "new" | "existing" = subscriber.already_subscribed
+      ? "existing"
+      : "new";
     const eventRegistration = eventInterest
-      ? await registerEventInterest(subscriber.id, subscriberEmail)
+      ? await registerEventInterest(
+          subscriber.id,
+          subscriberEmail,
+          subscriberStatus,
+        )
+      : null;
+    let eventWhatsappUrl: string | null = null;
+    if (eventRegistration) {
+      try {
+        eventWhatsappUrl = await getEventWhatsappUrl();
+      } catch (error) {
+        req.log.error({ err: error }, "Failed to build event WhatsApp URL");
+      }
+    }
+    const eventUnsubscribeUrl = eventRegistration
+      ? unsubscribeUrl(subscriber.unsubscribe_token)
       : null;
     const emailTasks = [
       subscriber.welcome_email_version >= 2
@@ -792,16 +992,20 @@ router.post("/", async (req, res) => {
           }),
       !eventRegistration || eventRegistration.event_email_sent_at
         ? Promise.resolve("already-sent")
-        : sendEventInterestEmail(
-            subscriberEmail,
-            eventRegistration.is_free,
-          ).then(async () => {
-            await pool.query(
-              "UPDATE newsletter_event_interests SET event_email_sent_at = NOW() WHERE id = $1",
-              [eventRegistration.id],
-            );
-            return "sent";
-          }),
+        : eventWhatsappUrl
+          ? sendPaintingEventInterestEmail({
+              to: subscriberEmail,
+              isFree: eventRegistration.is_free,
+              whatsappUrl: eventWhatsappUrl,
+              unsubscribe: eventUnsubscribeUrl!,
+            }).then(async () => {
+              await pool.query(
+                "UPDATE newsletter_event_interests SET event_email_sent_at = NOW(), email_delivery_status = 'sent', email_delivery_error = NULL, updated_at = NOW() WHERE id = $1",
+                [eventRegistration.id],
+              );
+              return "sent";
+            })
+          : Promise.reject(new Error("Event WhatsApp URL is unavailable")),
     ];
     const emailResults = await Promise.allSettled(emailTasks);
     emailResults.forEach((delivery, index) => {
@@ -817,17 +1021,17 @@ router.post("/", async (req, res) => {
     });
 
     const welcomeDelivery = emailResults[0];
-    if (welcomeDelivery.status === "rejected")
+    if (welcomeDelivery.status === "rejected" && !eventInterest)
       return res.status(502).json({
         error:
           "You joined the Art Club, but the welcome email could not be sent. Please try again.",
       });
     const eventDelivery = emailResults[2];
-    if (eventInterest && eventDelivery.status === "rejected")
-      return res.status(502).json({
-        error:
-          "Your event interest was saved, but the event email could not be sent. Please try again.",
-      });
+    if (eventRegistration && eventDelivery.status === "rejected")
+      await pool.query(
+        "UPDATE newsletter_event_interests SET email_delivery_status = 'failed', email_delivery_error = $2, updated_at = NOW() WHERE id = $1",
+        [eventRegistration.id, "Delivery failed and is pending retry"],
+      );
 
     return res.status(201).json({
       id: subscriber.id,
@@ -838,8 +1042,20 @@ router.post("/", async (req, res) => {
         (delivery) => delivery.status === "fulfilled",
       ),
       alreadySubscribed: subscriber.already_subscribed,
+      success: true,
+      subscriberStatus,
       ...(eventRegistration
         ? {
+            eventRegistrationStatus: eventRegistration.alreadyRegistered
+              ? "existing"
+              : "created",
+            registrationTier: eventRegistration.is_free
+              ? "first-two-free"
+              : "standard",
+            participationFeeTry: eventRegistration.is_free ? 0 : 100,
+            emailDeliveryStatus:
+              eventDelivery.status === "rejected" ? "failed" : "sent",
+            whatsappUrl: eventWhatsappUrl,
             event: {
               campaignId: ISTANBUL_EVENT_CAMPAIGN,
               alreadyRegistered: eventRegistration.alreadyRegistered,

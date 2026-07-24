@@ -9,6 +9,7 @@ import SettingsPage from "@/pages/admin/Settings";
 import Orders from "@/pages/admin/Orders";
 import Subscribers from "@/pages/admin/Subscribers";
 import CampaignComposer from "@/pages/admin/CampaignComposer";
+import EventRegistrations from "@/pages/admin/EventRegistrations";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 
 const USER = "thisisme";
@@ -140,6 +141,7 @@ export default function Admin() {
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
+  if (location === "/admin/events/painting-day") return <EventRegistrations />;
   if (location === "/admin/subscribers") return <Subscribers />;
   if (location === "/admin/media") return <Media />;
   const setting = location.match(

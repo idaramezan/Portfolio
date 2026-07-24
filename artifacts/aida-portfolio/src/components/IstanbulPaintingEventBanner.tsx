@@ -4,7 +4,6 @@ import {
   CircleCheck,
   MapPin,
   MessageCircle,
-  Sparkles,
   Users,
 } from "lucide-react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -17,11 +16,10 @@ import eventImage from "@assets/istanbul-summer-painting-day.png";
 const CAMPAIGN_ID = "istanbul-painting-day-2026-08-04";
 const EVENT_DEADLINE = Date.parse("2026-08-04T21:00:00.000Z");
 const WHATSAPP_MESSAGE =
-  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to confirm my place for the event on 4 August 2026.";
+  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on 4 August 2026.";
 
 export default function IstanbulPaintingEventBanner() {
   const settings = useShopSettings();
-  const inputRef = useRef<HTMLInputElement>(null);
   const submitting = useRef(false);
   const [active, setActive] = useState(() => Date.now() < EVENT_DEADLINE);
   const [freePlacesRemaining, setFreePlacesRemaining] = useState(2);
@@ -31,11 +29,17 @@ export default function IstanbulPaintingEventBanner() {
   >("idle");
   const [error, setError] = useState("");
   const [isFree, setIsFree] = useState(false);
+  const [emailWarning, setEmailWarning] = useState(false);
+  const [serverWhatsappUrl, setServerWhatsappUrl] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     fetch(
       `/api/newsletter/event-status?campaignId=${encodeURIComponent(CAMPAIGN_ID)}`,
-      { cache: "no-store" },
+      {
+        cache: "no-store",
+      },
     )
       .then(async (response) => {
         const result = await response.json();
@@ -78,9 +82,16 @@ export default function IstanbulPaintingEventBanner() {
         throw new Error(
           result.error || "Your event interest could not be saved.",
         );
-      setIsFree(Boolean(result.event?.isFree));
+      setIsFree(result.registrationTier === "first-two-free");
+      setEmailWarning(result.emailDeliveryStatus === "failed");
+      setServerWhatsappUrl(
+        typeof result.whatsappUrl === "string" ? result.whatsappUrl : null,
+      );
       setStatus("success");
-      if (!result.event?.alreadyRegistered)
+      if (
+        result.eventRegistrationStatus === "new" &&
+        result.registrationTier === "first-two-free"
+      )
         setFreePlacesRemaining((current) => Math.max(0, current - 1));
     } catch (reason) {
       setStatus("error");
@@ -95,15 +106,16 @@ export default function IstanbulPaintingEventBanner() {
   };
 
   const whatsappNumber = settings.whatsapp.number.replace(/\D/g, "");
-  const whatsappUrl = /^\d{8,15}$/.test(whatsappNumber)
+  const fallbackWhatsappUrl = /^\d{8,15}$/.test(whatsappNumber)
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
     : null;
+  const whatsappUrl = serverWhatsappUrl || fallbackWhatsappUrl;
   const freeMessage =
     freePlacesRemaining >= 2
-      ? "The first two people who join through this event form attend for free."
+      ? "The first two girls to join through this invitation attend for free."
       : freePlacesRemaining === 1
-        ? "One free place remains for the next person who joins through this event form."
-        : "The two free places have been claimed. Limited places are still available for 100 TL.";
+        ? "One complimentary place is still available."
+        : "The complimentary places have been claimed. Remaining places are 100 TL.";
 
   return (
     <section
@@ -111,8 +123,8 @@ export default function IstanbulPaintingEventBanner() {
       aria-labelledby="istanbul-painting-day-heading"
       data-no-translate
     >
-      <div className="section-shell grid items-center gap-8 !py-8 md:!py-12 lg:grid-cols-[1.38fr_1fr] lg:gap-12 lg:!py-14">
-        <article className="order-2 min-w-0 lg:order-1">
+      <div className="section-shell grid items-center gap-8 !py-8 md:!py-12 lg:grid-cols-[1.22fr_1fr] lg:gap-12 lg:!py-14">
+        <article className="min-w-0">
           <p className="eyebrow text-coral">
             A SUMMER PAINTING DAY IN ISTANBUL
           </p>
@@ -122,33 +134,26 @@ export default function IstanbulPaintingEventBanner() {
           >
             Paint, meet and spend a sunny afternoon together.
           </h2>
-          <div className="mt-4 max-w-3xl space-y-2 text-sm leading-6 text-ink/70 md:text-[15px]">
-            <p>
-              On 4 August 2026, Aida is hosting a relaxed girls-only painting
-              gathering in a park on Istanbul’s European side.
-            </p>
-            <p>
-              No art experience is needed. This is not a class or workshop. It
-              is simply a small outdoor gathering for girls who want to paint,
-              meet one another, share tea and enjoy a beautiful summer day
-              together.
-            </p>
-          </div>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-ink/70 md:text-[15px]">
+            On 4 August, Aida is bringing together a small group of girls for a
+            relaxed afternoon of painting, tea and conversation in a park on
+            Istanbul’s European side. No art experience is needed. This is not a
+            class, just a sunny day to create, meet new people and enjoy
+            painting together.
+          </p>
 
-          <dl className="mt-5 grid grid-cols-2 gap-px border border-ink/10 bg-ink/10 text-sm sm:grid-cols-3">
+          <dl className="mt-5 grid grid-cols-2 border-y border-ink/15 text-sm sm:grid-cols-4">
             {[
               [CalendarDays, "Date", "4 August 2026"],
-              [MapPin, "Location", "European side of Istanbul"],
-              [Users, "Audience", "Girls only"],
-              [Sparkles, "Experience", "No experience needed"],
-              [Users, "Availability", "Limited places"],
-              [CircleCheck, "Participation", "100 TL participation fee"],
-            ].map(([Icon, label, value]) => {
+              [MapPin, "Location", "European side"],
+              [Users, "Who", "Girls only"],
+              [CircleCheck, "Fee", "100 TL"],
+            ].map(([Icon, label, value], index) => {
               const FactIcon = Icon as typeof CalendarDays;
               return (
                 <div
                   key={label as string}
-                  className="min-w-0 bg-paper px-3 py-3"
+                  className={`min-w-0 py-3 ${index % 2 ? "border-l border-ink/15 pl-3" : "pr-3"} ${index > 1 ? "border-t border-ink/15 sm:border-t-0" : ""} sm:border-l sm:border-ink/15 sm:px-3 sm:first:border-l-0 sm:first:pl-0`}
                 >
                   <dt className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.12em] text-ink/45">
                     <FactIcon
@@ -165,12 +170,18 @@ export default function IstanbulPaintingEventBanner() {
               );
             })}
           </dl>
-          <p className="mt-3 text-xs text-ink/60">
-            The participation fee only helps cover tea and snacks.
+          <p className="mt-2 text-xs text-ink/60">
+            No experience needed · Tea and snacks included · Limited places
           </p>
-          <p className="mt-4 border-l-2 border-coral bg-paper/70 px-4 py-3 text-sm font-bold text-ink">
-            {freeMessage}
-          </p>
+          <aside className="mt-4 border-l-2 border-coral bg-paper/70 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-coral">
+              A little invitation
+            </p>
+            <p className="mt-1 text-sm font-bold text-ink">{freeMessage}</p>
+            <p className="mt-1 text-xs text-ink/55">
+              The 100 TL participation fee only helps cover tea and snacks.
+            </p>
+          </aside>
 
           <div className="mt-5 border-t border-ink/15 pt-5">
             {status === "success" ? (
@@ -178,20 +189,25 @@ export default function IstanbulPaintingEventBanner() {
                 <div className="flex items-center gap-2 text-coral">
                   <CircleCheck size={20} aria-hidden="true" />
                   <h3 className="font-serif text-2xl text-ink">
-                    You’re on the event list.
+                    Your event note is on its way.
                   </h3>
                 </div>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/70">
-                  Check your inbox for Aida’s event note. You can then message
-                  her on WhatsApp to confirm your place and receive the exact
-                  park and time details.
+                  Check your inbox for the painting day details. To reserve your
+                  place and receive the exact park and meeting time, continue
+                  with Aida on WhatsApp.
                 </p>
-                {isFree && (
-                  <p className="mt-3 text-sm font-bold text-coral">
-                    Your event note confirms that your 100 TL participation fee
-                    is fully covered.
+                {emailWarning && (
+                  <p className="mt-3 text-sm font-semibold text-coral">
+                    Your interest has been registered, but the event email may
+                    be delayed. You can contact Aida directly to continue.
                   </p>
                 )}
+                <p className="mt-3 text-sm font-bold text-coral">
+                  {isFree
+                    ? "You received one of the complimentary places."
+                    : "The participation fee is 100 TL and only helps cover tea and snacks."}
+                </p>
                 {whatsappUrl && (
                   <a
                     href={whatsappUrl}
@@ -199,17 +215,23 @@ export default function IstanbulPaintingEventBanner() {
                     rel="noopener noreferrer"
                     className="button-primary mt-4"
                   >
-                    <MessageCircle size={17} aria-hidden="true" /> Message Aida
-                    on WhatsApp
+                    <MessageCircle size={17} aria-hidden="true" /> Contact Aida
+                    to reserve my place
                   </a>
                 )}
+                <p className="mt-3 text-xs font-semibold text-ink/55">
+                  Your place is not reserved until Aida confirms it with you
+                  personally.
+                </p>
               </div>
             ) : (
               <>
-                <h3 className="font-serif text-2xl">Interested in joining?</h3>
+                <h3 className="font-serif text-2xl">
+                  Interested in joining us?
+                </h3>
                 <p className="mt-2 text-sm leading-6 text-ink/65">
-                  Join the free Studio Letter to receive the event email and
-                  continue your registration with Aida.
+                  Leave your email to receive Aida’s event note and continue
+                  your registration.
                 </p>
                 <form onSubmit={submit} noValidate className="mt-3">
                   <label
@@ -220,7 +242,6 @@ export default function IstanbulPaintingEventBanner() {
                   </label>
                   <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                     <input
-                      ref={inputRef}
                       id="istanbul-event-email"
                       type="email"
                       inputMode="email"
@@ -263,20 +284,17 @@ export default function IstanbulPaintingEventBanner() {
                     )}
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-ink/55">
-                    Free to join. You will also receive occasional stories,
-                    studio news and early access from Aida.
+                    Free to join the Studio Letter. Occasional stories, studio
+                    updates and early access only.
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-ink/55">
+                    By submitting, you agree to receive the event email and
+                    occasional Studio Letter updates from Aida. You can
+                    unsubscribe at any time.
                   </p>
                 </form>
-                <button
-                  type="button"
-                  onClick={() => inputRef.current?.focus()}
-                  className="mt-2 text-left text-xs text-ink/60 underline decoration-coral underline-offset-4 focus-visible:ring-2 focus-visible:ring-coral"
-                >
-                  Already receive the Studio Letter? You can still register your
-                  interest here.
-                </button>
                 <p className="mt-3 text-xs font-semibold text-ink/55">
-                  Submitting this form registers your interest. Your place is
+                  Submitting your email registers your interest. Your place is
                   confirmed personally with Aida on WhatsApp.
                 </p>
               </>
@@ -284,7 +302,12 @@ export default function IstanbulPaintingEventBanner() {
           </div>
         </article>
 
-        <figure className="order-1 border-[9px] border-b-[36px] border-[#fffdf8] bg-[#fffdf8] shadow-[0_12px_26px_rgba(49,38,26,.16)] lg:order-2">
+        <figure className="relative rotate-[.45deg] border-[9px] border-b-[36px] border-[#fffdf8] bg-[#fffdf8] shadow-[0_12px_26px_rgba(49,38,26,.16)] motion-reduce:rotate-0">
+          <div className="absolute -left-3 -top-3 z-10 bg-coral px-3 py-2 text-center text-[10px] font-bold uppercase leading-tight tracking-[.12em] text-white shadow-sm">
+            4 AUG
+            <br />
+            ISTANBUL
+          </div>
           <img
             src={eventImage}
             alt="Aida and a group of women laughing and painting together on a picnic blanket beneath the trees in an Istanbul park."

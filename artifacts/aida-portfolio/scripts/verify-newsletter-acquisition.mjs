@@ -21,6 +21,8 @@ const emailBackend = read("../../api-server/src/lib/email.ts");
 const composer = read("../src/pages/admin/CampaignComposer.tsx");
 const admin = read("../src/pages/Admin.tsx");
 const eventBanner = read("../src/components/IstanbulPaintingEventBanner.tsx");
+const eventAdmin = read("../src/pages/admin/EventRegistrations.tsx");
+const adminLayout = read("../src/components/admin/AdminLayout.tsx");
 
 const checks = [
   [
@@ -244,8 +246,8 @@ const checks = [
   ],
   [
     "event expectations and WhatsApp continuation",
-    eventBanner.includes("Submitting this form registers your interest") &&
-      eventBanner.includes("You’re on the event list.") &&
+    eventBanner.includes("Submitting your email registers your interest") &&
+      eventBanner.includes("Your event note is on its way.") &&
       eventBanner.includes("settings.whatsapp.number") &&
       eventBanner.includes("encodeURIComponent(WHATSAPP_MESSAGE)"),
   ],
@@ -253,6 +255,57 @@ const checks = [
     "event campaign expiry uses Istanbul equivalent UTC deadline",
     eventBanner.includes("2026-08-04T21:00:00.000Z") &&
       backend.includes('new Date("2026-08-04T21:00:00.000Z")'),
+  ],
+  [
+    "compact editorial event presentation",
+    eventBanner.includes(
+      "The first two girls to join through this invitation attend for free.",
+    ) &&
+      eventBanner.includes(
+        "No experience needed · Tea and snacks included · Limited places",
+      ) &&
+      eventBanner.includes("4 AUG") &&
+      !eventBanner.includes("Sparkles") &&
+      !eventBanner.includes("Availability"),
+  ],
+  [
+    "event-specific HTML and plain-text email",
+    backend.includes("sendPaintingEventInterestEmail") &&
+      backend.includes(
+        "Your Istanbul painting day place is complimentary 🎨",
+      ) &&
+      backend.includes(
+        "You’re on the list for Aida’s Istanbul painting day 🎨",
+      ) &&
+      backend.includes("EVENT_EMAIL_PREHEADER") &&
+      backend.includes("text,") &&
+      emailBackend.includes("text: input.text"),
+  ],
+  [
+    "structured event registration response",
+    backend.includes("subscriberStatus") &&
+      backend.includes("eventRegistrationStatus") &&
+      backend.includes("registrationTier") &&
+      backend.includes("participationFeeTry") &&
+      backend.includes("emailDeliveryStatus") &&
+      backend.includes("whatsappUrl"),
+  ],
+  [
+    "event email failure preserves registration",
+    backend.includes("email_delivery_status = 'failed'") &&
+      backend.includes("Delivery failed and is pending retry") &&
+      eventBanner.includes("Your interest has been registered") &&
+      eventBanner.includes("event email may"),
+  ],
+  [
+    "protected event operations and safe previews",
+    backend.includes('router.get("/event-interests", requireAdmin') &&
+      backend.includes('router.patch("/event-interests/:id", requireAdmin') &&
+      backend.includes('router.get("/event-email-preview", requireAdmin') &&
+      admin.includes('location === "/admin/events/painting-day"') &&
+      adminLayout.includes("Event registrations") &&
+      eventAdmin.includes("email_delivery_status") &&
+      eventAdmin.includes("Complimentary preview"),
   ],
 ];
 
