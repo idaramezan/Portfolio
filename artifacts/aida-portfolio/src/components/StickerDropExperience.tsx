@@ -190,7 +190,7 @@ export default function StickerDropExperience() {
               entityName: next.slug,
               metadata: { placement: place },
             });
-          }, 350 + 6000),
+          }, 350 + 4400),
         );
       })
       .catch(() => undefined);
@@ -243,38 +243,39 @@ export default function StickerDropExperience() {
   const stickers = useMemo(() => {
     if (!campaign) return [];
     const mobile = innerWidth < 640;
-    const count = Math.min(
-      mobile
-        ? Math.min(7, campaign.maximumMobileStickers)
-        : Math.min(13, Math.max(9, campaign.maximumDesktopStickers)),
-      campaign.assets.length ? 13 : 0,
-    );
+    const configured = mobile
+      ? campaign.maximumMobileStickers
+      : campaign.maximumDesktopStickers;
+    const count = campaign.assets.length
+      ? mobile
+        ? Math.max(16, Math.min(24, configured * 3))
+        : Math.max(28, Math.min(42, configured * 3))
+      : 0;
     const pool = [...campaign.assets].sort(() => Math.random() - 0.5);
     return Array.from({ length: count }, (_, i) => {
       const lane = (i + 0.5) / count;
       const direction = Math.random() > 0.5 ? 1 : -1;
       const sway =
-        (mobile ? 20 + Math.random() * 45 : 35 + Math.random() * 95) *
-        direction;
+        (mobile ? 7 + Math.random() * 18 : 10 + Math.random() * 30) * direction;
       return {
         src: pool[i % pool.length],
         left: Math.max(
           2,
           Math.min(
             94,
-            lane * 100 - 4 + (Math.random() - 0.5) * (mobile ? 8 : 12),
+            lane * 100 - 2 + (Math.random() - 0.5) * (mobile ? 10 : 14),
           ),
         ),
-        size: mobile ? 44 + Math.random() * 40 : 72 + Math.random() * 73,
-        rotate: -25 + Math.random() * 50,
-        tilt: 10 + Math.random() * (mobile ? 14 : 25),
-        delay: Math.random() * 900,
+        size: mobile ? 25 + Math.random() * 28 : 30 + Math.random() * 38,
+        rotate: -45 + Math.random() * 90,
+        tilt: 25 + Math.random() * 70,
+        delay: Math.random() * 1500,
         duration: mobile
-          ? 3200 + Math.random() * 1800
-          : 3400 + Math.random() * 2400,
+          ? 1800 + Math.random() * 1100
+          : 1900 + Math.random() * 1300,
         sway,
-        depth: 0.8 + Math.random() * 0.35,
-        opacity: 0.88 + Math.random() * 0.12,
+        depth: 0.82 + Math.random() * 0.3,
+        opacity: 0.9 + Math.random() * 0.1,
       };
     });
   }, [campaign]);
@@ -344,7 +345,7 @@ export default function StickerDropExperience() {
           className="pointer-events-none fixed inset-0 z-[90] overflow-hidden"
           aria-hidden="true"
         >
-          <style>{`@keyframes stickerDropFloat{0%{transform:translate3d(0,-170px,0) rotate(var(--r)) rotateY(0deg) scale(var(--z));opacity:0}10%{opacity:var(--o)}18%{transform:translate3d(calc(var(--s)*.62),15vh,0) rotate(calc(var(--r) + var(--t))) rotateY(3deg) scale(var(--z))}38%{transform:translate3d(calc(var(--s)*-.34),38vh,0) rotate(calc(var(--r) - var(--t)*.65)) rotateY(-2deg) scale(var(--z))}58%{transform:translate3d(calc(var(--s)*.82),60vh,0) rotate(calc(var(--r) + var(--t)*.45)) rotateY(2deg) scale(var(--z))}78%{transform:translate3d(calc(var(--s)*-.56),82vh,0) rotate(calc(var(--r) - var(--t)*.4)) rotateY(-2deg) scale(var(--z));opacity:var(--o)}90%{opacity:var(--o)}100%{transform:translate3d(calc(var(--s)*.18),112vh,0) rotate(calc(var(--r) + var(--t)*.2)) rotateY(0deg) scale(var(--z));opacity:0}}`}</style>
+          <style>{`@keyframes stickerConfettiRain{0%{transform:translate3d(0,-90px,0) rotate(var(--r)) scale(var(--z));opacity:0}7%{opacity:var(--o)}24%{transform:translate3d(calc(var(--s)*.35),22vh,0) rotate(calc(var(--r) + var(--t)*.3)) scale(var(--z))}49%{transform:translate3d(calc(var(--s)*-.2),51vh,0) rotate(calc(var(--r) + var(--t)*.65)) scale(var(--z))}74%{transform:translate3d(calc(var(--s)*.45),80vh,0) rotate(calc(var(--r) + var(--t)*.9)) scale(var(--z));opacity:var(--o)}91%{opacity:var(--o)}100%{transform:translate3d(var(--s),112vh,0) rotate(calc(var(--r) + var(--t))) scale(var(--z));opacity:0}}`}</style>
           {stickers.map((s, i) => (
             <img
               key={i}
@@ -357,7 +358,7 @@ export default function StickerDropExperience() {
                   left: `${s.left}%`,
                   width: s.size,
                   height: s.size,
-                  animation: `stickerDropFloat ${s.duration}ms ease-in-out ${s.delay}ms both`,
+                  animation: `stickerConfettiRain ${s.duration}ms cubic-bezier(.32,.05,.78,.55) ${s.delay}ms both`,
                   "--r": `${s.rotate}deg`,
                   "--t": `${s.tilt}deg`,
                   "--s": `${s.sway}px`,
