@@ -380,6 +380,14 @@ export default function CampaignComposer() {
       );
       setSelectedTemplateId(result.template.id);
       setTemplateName(result.template.name);
+      setTemplates((current) => {
+        const saved = result.template as Template;
+        return current.some((template) => template.id === saved.id)
+          ? current.map((template) =>
+              template.id === saved.id ? saved : template,
+            )
+          : [saved, ...current];
+      });
       setMessage(create ? "Template created." : "Template saved.");
       await loadTemplates();
     } catch (reason) {
@@ -1073,7 +1081,7 @@ export default function CampaignComposer() {
                               <img
                                 src={photo.url}
                                 alt=""
-                                className={`mb-2 aspect-square w-full object-contain ${photo.style === "studio-photograph" ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3 shadow-[0_4px_10px_rgba(65,49,31,.10)]" : photo.style === "clean" ? "border border-[#cbbb9f]" : ""}`}
+                                className={`mb-2 aspect-square w-full object-contain ${photo.style === "studio-photograph" ? "border border-[rgba(91,77,58,.22)] bg-[#fffdf7] px-[10px] pb-6 pt-[10px] shadow-[0_10px_22px_rgba(54,43,29,.10),0_2px_5px_rgba(54,43,29,.06)]" : photo.style === "clean" ? "border border-[#cbbb9f]" : ""}`}
                               />
                             ) : null}
                             <label className="admin-button mb-2 cursor-pointer justify-center">
@@ -1546,7 +1554,7 @@ export default function CampaignComposer() {
                             key={index}
                             className={
                               photo.style === "studio-photograph"
-                                ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3 shadow-[0_4px_10px_rgba(65,49,31,.10)]"
+                                ? `border border-[rgba(91,77,58,.22)] bg-[#fffdf7] px-[10px] pb-6 pt-[10px] shadow-[0_10px_22px_rgba(54,43,29,.10),0_2px_5px_rgba(54,43,29,.06)] ${index % 2 === 0 ? "-rotate-[0.8deg] translate-y-0.5" : "rotate-[0.65deg] -translate-y-0.5"}`
                                 : photo.style === "clean"
                                   ? "border border-[#cbbb9f]"
                                   : ""

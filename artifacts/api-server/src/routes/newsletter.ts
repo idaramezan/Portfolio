@@ -212,7 +212,7 @@ function validateCampaign(body: unknown) {
   return { subject, preheader, blocks: blocks as CampaignBlock[] };
 }
 
-function framedImage(photo: any, width = "100%") {
+function framedImage(photo: any, width = "100%", rotation = 0) {
   const url = safeUrl(photo.url);
   if (!url)
     throw new Error("Every photograph needs a valid HTTPS image address");
@@ -221,7 +221,7 @@ function framedImage(photo: any, width = "100%") {
   const style = photo.style || "studio-photograph";
   const frame =
     style === "studio-photograph"
-      ? "padding:10px 10px 15px;background:#fffaf1;border:1px solid #cbbb9f;box-shadow:0 4px 10px rgba(65,49,31,.10)"
+      ? `padding:10px 10px 24px;background:#fffdf7;border:1px solid rgba(91,77,58,.22);box-shadow:0 10px 22px rgba(54,43,29,.10),0 2px 5px rgba(54,43,29,.06);transform:rotate(${rotation}deg)`
       : style === "clean"
         ? "border:1px solid #cbbb9f"
         : "";
@@ -315,7 +315,7 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
               : block.align === "right"
                 ? "right"
                 : "center";
-          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0"><tr><td align="${align}">${framedImage(block, `${width}%`)}</td></tr></table>`;
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0"><tr><td align="${align}">${framedImage(block, `${width}%`, -0.45)}</td></tr></table>`;
         }
         if (block.type === "photo-row") {
           if (
@@ -329,7 +329,7 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
               : Array(block.columns).fill(100 / block.columns);
           if (Math.abs(ratios.reduce((a, b) => a + Number(b), 0) - 100) > 1)
             throw new Error("Photo-row ratios must total 100%");
-          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row"><tr>${block.photos.map((photo, index) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px">${framedImage(photo)}</td>`).join("")}</tr></table>`;
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row" style="margin:28px 0"><tr>${block.photos.map((photo, index) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px;${index % 2 === 0 ? "padding-top:3px" : "padding-bottom:3px"}">${framedImage(photo, "100%", index % 2 === 0 ? -0.8 : 0.65)}</td>`).join("")}</tr></table>`;
         }
         if (block.type === "product-card")
           return `<div style="margin:24px 0">${productMarkup(block, catalog)}</div>`;
