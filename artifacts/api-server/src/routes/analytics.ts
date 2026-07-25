@@ -35,6 +35,14 @@ const EVENTS = new Set([
   "painting_event_whatsapp_clicked",
   "turkiye_shop_opened",
   "international_shop_opened",
+  "sticker_drop_animation_started",
+  "sticker_drop_animation_completed",
+  "sticker_drop_modal_opened",
+  "sticker_drop_market_selected",
+  "sticker_drop_dismissed",
+  "sticker_drop_add_to_basket",
+  "sticker_drop_external_product_clicked",
+  "sticker_drop_sold_out_viewed",
 ]);
 const META_KEYS = new Set([
   "productType",
@@ -48,6 +56,9 @@ const META_KEYS = new Set([
   "form",
   "newSubscriber",
   "hrefDomain",
+  "market",
+  "placement",
+  "destinationType",
 ]);
 const recent = new Map<string, number>();
 let lastMaintenanceAt = 0;

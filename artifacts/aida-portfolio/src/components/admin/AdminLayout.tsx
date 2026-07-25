@@ -18,6 +18,7 @@ import {
   PanelsTopLeft,
   Settings,
   ShoppingBag,
+  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -47,6 +48,7 @@ const groups = [
       ["/admin/inventory", "Inventory", Boxes],
     ],
   ],
+  ["Marketing", [["/admin/sticker-drop", "Sticker Drop", Sparkles]]],
   [
     "Audience",
     [

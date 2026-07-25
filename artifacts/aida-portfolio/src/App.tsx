@@ -26,6 +26,7 @@ import OriginalDetail from "@/pages/OriginalDetail";
 import Newsletter from "@/pages/Newsletter";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
+import StickerDropExperience from "@/components/StickerDropExperience";
 
 const queryClient = new QueryClient();
 
@@ -161,6 +162,7 @@ function App() {
           <TooltipProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <AnalyticsRouteTracker />
+              <StickerDropExperience />
               <Router />
             </WouterRouter>
             <Toaster />

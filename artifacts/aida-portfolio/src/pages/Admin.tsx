@@ -11,6 +11,7 @@ import Subscribers from "@/pages/admin/Subscribers";
 import CampaignComposer from "@/pages/admin/CampaignComposer";
 import EventRegistrations from "@/pages/admin/EventRegistrations";
 import Analytics from "@/pages/admin/Analytics";
+import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 
 const USER = "thisisme";
@@ -143,6 +144,9 @@ export default function Admin() {
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
   if (location === "/admin/events/painting-day") return <EventRegistrations />;
+  if (location === "/admin/sticker-drop") return <StickerDropList />;
+  const stickerDrop = location.match(/^\/admin\/sticker-drop\/(new|[^/]+)$/);
+  if (stickerDrop) return <StickerDropEditor id={stickerDrop[1]} />;
   if (
     location === "/admin/analytics" ||
     location.startsWith("/admin/analytics/")

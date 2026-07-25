@@ -8,6 +8,7 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "railway:build": "pnpm --filter @workspace/aida-portfolio run build && pnpm --filter @workspace/api-server run build:server",
     "start": "pnpm --filter @workspace/api-server run start",
+    "test:sticker-drop": "node scripts/verify-sticker-drop.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
