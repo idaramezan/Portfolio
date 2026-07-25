@@ -13,9 +13,13 @@ import {
   Search,
   Send,
   Trash2,
+  Copy,
+  Columns3,
+  ShoppingBag,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { ADMIN_PASSWORD_SESSION_KEY } from "@/pages/Admin";
+import { useShopSettings } from "@/hooks/use-shop-settings";
 
 type TextBlock = {
   id: string;
@@ -34,10 +38,54 @@ type ImageBlock = {
   url: string;
   alt: string;
   linkUrl: string;
+  caption: string;
+  decorative: boolean;
+  width: number;
+  align: "left" | "center" | "right";
+  style: "studio-photograph" | "clean" | "borderless";
+};
+type Photo = Omit<ImageBlock, "id" | "type" | "width" | "align">;
+type PhotoRowBlock = {
+  id: string;
+  type: "photo-row";
+  columns: 2 | 3;
+  ratios: number[];
+  gap: 8 | 16 | 24;
+  photos: Photo[];
+};
+type ProductItem = {
+  productId: string;
+  market: "turkiye" | "international" | "mixed";
+  layout: "featured" | "vertical" | "horizontal";
+  showPrice: boolean;
+  showDescription: boolean;
+  showProductType: boolean;
+  showAvailability: boolean;
+  customEyebrow: string;
+  customDescription: string;
+  ctaText: string;
+  utmCampaign: string;
+  utmContent: string;
+};
+type ProductCardBlock = ProductItem & { id: string; type: "product-card" };
+type ProductRowBlock = {
+  id: string;
+  type: "product-row";
+  columns: 2 | 3;
+  ratios: number[];
+  gap: 8 | 16 | 24;
+  products: ProductItem[];
 };
 type ButtonBlock = { id: string; type: "button"; text: string; url: string };
 type DividerBlock = { id: string; type: "divider" };
-type Block = TextBlock | ImageBlock | ButtonBlock | DividerBlock;
+type Block =
+  | TextBlock
+  | ImageBlock
+  | PhotoRowBlock
+  | ProductCardBlock
+  | ProductRowBlock
+  | ButtonBlock
+  | DividerBlock;
 type WithoutId<T> = T extends { id: string } ? Omit<T, "id"> : never;
 type StoredBlock = WithoutId<Block>;
 
@@ -52,6 +100,28 @@ const newText = (text = "", size: TextBlock["size"] = "normal"): TextBlock => ({
   italic: false,
   linkUrl: "",
   linkText: "",
+});
+const emptyPhoto = (): Photo => ({
+  url: "",
+  alt: "",
+  linkUrl: "",
+  caption: "",
+  decorative: false,
+  style: "studio-photograph",
+});
+const productItem = (): ProductItem => ({
+  productId: "",
+  market: "mixed",
+  layout: "featured",
+  showPrice: false,
+  showDescription: true,
+  showProductType: true,
+  showAvailability: true,
+  customEyebrow: "",
+  customDescription: "",
+  ctaText: "View product",
+  utmCampaign: "",
+  utmContent: "",
 });
 
 const defaultBlocks: Block[] = [
@@ -112,12 +182,30 @@ function hydrateBlocks(blocks: StoredBlock[]): Block[] {
         url: block.url || "",
         alt: block.alt || "Studio artwork",
         linkUrl: block.linkUrl || "",
+        caption: block.caption || "",
+        decorative: Boolean(block.decorative),
+        width: Number(block.width || 100),
+        align: block.align || "center",
+        style: block.style || "studio-photograph",
       };
     return { ...block, id: id() } as Block;
   });
 }
 
 export default function CampaignComposer() {
+  const shopSettings = useShopSettings();
+  const products = [
+    ...shopSettings.originalProducts,
+    ...shopSettings.printProducts,
+    ...shopSettings.studioMailPackages.map((product) => ({
+      ...product,
+      name: product.title,
+      description: product.shortDescription,
+      imageUrl: product.coverImage,
+      available: product.status === "published" && product.inventory > 0,
+      kind: "studio-mail" as const,
+    })),
+  ].filter((product) => !["draft", "archived"].includes(product.status));
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [subject, setSubject] = useState("A note from Aida’s studio");
   const [preheader, setPreheader] = useState("A new Studio Letter from Aida");
@@ -139,6 +227,11 @@ export default function CampaignComposer() {
   const [recipientMode, setRecipientMode] = useState<"all" | "selected">("all");
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [subscriberSearch, setSubscriberSearch] = useState("");
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">(
+    "desktop",
+  );
+  const [sentPreview, setSentPreview] = useState("");
+  const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
 
   const loadCampaigns = () =>
     fetch("/api/newsletter/campaigns", {
@@ -333,6 +426,18 @@ export default function CampaignComposer() {
       setStatus("idle");
     }
   };
+  const renderSentPreview = async () => {
+    try {
+      const result = await request(
+        "/api/newsletter/campaigns/preview",
+        payload(),
+      );
+      setSentPreview(result.html);
+      setMessage("Sent-email preview refreshed from the production renderer.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Preview failed");
+    }
+  };
 
   const sendAll = async () => {
     if (confirmation !== "SEND") {
@@ -368,7 +473,10 @@ export default function CampaignComposer() {
     }
   };
 
-  const uploadImage = async (file?: File) => {
+  const uploadImage = async (
+    file?: File,
+    onUploaded?: (url: string) => void,
+  ) => {
     if (!file) return;
     setStatus("uploading");
     setMessage("");
@@ -389,16 +497,23 @@ export default function CampaignComposer() {
         result.imageUrl,
         window.location.origin,
       ).toString();
-      setBlocks((current) => [
-        ...current,
-        {
-          id: id(),
-          type: "image",
-          url: absoluteUrl,
-          alt: "Studio artwork",
-          linkUrl: "",
-        },
-      ]);
+      if (onUploaded) onUploaded(absoluteUrl);
+      else
+        setBlocks((current) => [
+          ...current,
+          {
+            id: id(),
+            type: "image",
+            url: absoluteUrl,
+            alt: "",
+            linkUrl: "",
+            caption: "",
+            decorative: false,
+            width: 100,
+            align: "center",
+            style: "studio-photograph",
+          },
+        ]);
       setMessage("Image uploaded and added to the email.");
     } catch (reason) {
       setError(
@@ -583,11 +698,84 @@ export default function CampaignComposer() {
                   }
                 />
               </label>
+              <button
+                type="button"
+                className="admin-button"
+                onClick={() =>
+                  setBlocks((current) => [
+                    ...current,
+                    {
+                      id: id(),
+                      type: "photo-row",
+                      columns: 2,
+                      ratios: [60, 40],
+                      gap: 16,
+                      photos: [emptyPhoto(), emptyPhoto()],
+                    },
+                  ])
+                }
+              >
+                <Columns3 size={16} /> Photo row
+              </button>
+              <button
+                type="button"
+                className="admin-button"
+                onClick={() =>
+                  setBlocks((current) => [
+                    ...current,
+                    { id: id(), type: "product-card", ...productItem() },
+                  ])
+                }
+              >
+                <ShoppingBag size={16} /> Product card
+              </button>
+              <button
+                type="button"
+                className="admin-button"
+                onClick={() =>
+                  setBlocks((current) => [
+                    ...current,
+                    {
+                      id: id(),
+                      type: "product-row",
+                      columns: 2,
+                      ratios: [50, 50],
+                      gap: 16,
+                      products: [productItem(), productItem()].map((item) => ({
+                        ...item,
+                        layout: "vertical",
+                      })),
+                    },
+                  ])
+                }
+              >
+                <Columns3 size={16} /> Product row
+              </button>
             </div>
             <div className="space-y-3 p-4">
               {blocks.map((block, index) => (
                 <div
                   key={block.id}
+                  draggable
+                  onDragStart={() => setDraggedBlockId(block.id)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => {
+                    if (!draggedBlockId || draggedBlockId === block.id) return;
+                    setBlocks((current) => {
+                      const from = current.findIndex(
+                        (item) => item.id === draggedBlockId,
+                      );
+                      const to = current.findIndex(
+                        (item) => item.id === block.id,
+                      );
+                      if (from < 0 || to < 0) return current;
+                      const next = [...current];
+                      const [moved] = next.splice(from, 1);
+                      next.splice(to, 0, moved);
+                      return next;
+                    });
+                    setDraggedBlockId(null);
+                  }}
                   className="border border-ink/10 bg-[#faf7ef] p-4"
                 >
                   <div className="mb-3 flex items-center justify-between gap-3">
@@ -595,6 +783,22 @@ export default function CampaignComposer() {
                       {block.type} block
                     </strong>
                     <div className="flex gap-1">
+                      <button
+                        type="button"
+                        className="min-h-10 min-w-10 border border-ink/10"
+                        onClick={() =>
+                          setBlocks((current) => {
+                            const copy = structuredClone(block);
+                            copy.id = id();
+                            const next = [...current];
+                            next.splice(index + 1, 0, copy);
+                            return next;
+                          })
+                        }
+                        aria-label="Duplicate block"
+                      >
+                        <Copy className="mx-auto" size={15} />
+                      </button>
                       <button
                         type="button"
                         className="min-h-10 min-w-10 border border-ink/10"
@@ -703,7 +907,7 @@ export default function CampaignComposer() {
                     </>
                   )}
                   {block.type === "image" && (
-                    <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
+                    <div className="grid gap-3 sm:grid-cols-[150px_1fr]">
                       <img
                         src={block.url}
                         alt={block.alt}
@@ -727,7 +931,285 @@ export default function CampaignComposer() {
                           }
                           placeholder="Optional image link"
                         />
+                        <input
+                          className="admin-input"
+                          value={block.caption}
+                          onChange={(event) =>
+                            update(block.id, { caption: event.target.value })
+                          }
+                          placeholder="Optional caption"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <select
+                            className="admin-input"
+                            value={block.style}
+                            onChange={(event) =>
+                              update(block.id, {
+                                style: event.target
+                                  .value as ImageBlock["style"],
+                              })
+                            }
+                          >
+                            <option value="studio-photograph">
+                              Studio photograph
+                            </option>
+                            <option value="clean">Clean</option>
+                            <option value="borderless">Borderless</option>
+                          </select>
+                          <select
+                            className="admin-input"
+                            value={block.align}
+                            onChange={(event) =>
+                              update(block.id, {
+                                align: event.target
+                                  .value as ImageBlock["align"],
+                              })
+                            }
+                          >
+                            <option value="left">Left</option>
+                            <option value="center">Center</option>
+                            <option value="right">Right</option>
+                          </select>
+                        </div>
+                        <label className="block text-xs font-semibold">
+                          Displayed width:{" "}
+                          {Math.round((620 * block.width) / 100)}px of 620px
+                          <input
+                            type="range"
+                            min="20"
+                            max="100"
+                            step="5"
+                            value={block.width}
+                            onChange={(event) =>
+                              update(block.id, {
+                                width: Number(event.target.value),
+                              })
+                            }
+                            className="mt-2 w-full"
+                          />
+                        </label>
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={block.decorative}
+                            onChange={(event) =>
+                              update(block.id, {
+                                decorative: event.target.checked,
+                                alt: event.target.checked ? "" : block.alt,
+                              })
+                            }
+                          />{" "}
+                          Decorative image
+                        </label>
                       </div>
+                    </div>
+                  )}
+                  {block.type === "photo-row" && (
+                    <div className="space-y-4">
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <select
+                          className="admin-input"
+                          value={block.columns}
+                          onChange={(event) => {
+                            const columns = Number(event.target.value) as 2 | 3;
+                            update(block.id, {
+                              columns,
+                              ratios: columns === 2 ? [50, 50] : [34, 33, 33],
+                              photos: Array.from(
+                                { length: columns },
+                                (_, index) =>
+                                  block.photos[index] || emptyPhoto(),
+                              ),
+                            } as any);
+                          }}
+                        >
+                          <option value="2">Two photographs</option>
+                          <option value="3">Three photographs</option>
+                        </select>
+                        <select
+                          className="admin-input"
+                          value={block.gap}
+                          onChange={(event) =>
+                            update(block.id, {
+                              gap: Number(event.target.value) as 8 | 16 | 24,
+                            } as any)
+                          }
+                        >
+                          <option value="8">Tight gap</option>
+                          <option value="16">Standard gap</option>
+                          <option value="24">Spacious gap</option>
+                        </select>
+                        <span className="self-center text-xs text-ink/55">
+                          {block.ratios.join(" / ")}%
+                        </span>
+                      </div>
+                      <div
+                        className={`grid gap-3 ${block.columns === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+                      >
+                        {block.photos.map((photo, photoIndex) => (
+                          <div
+                            key={photoIndex}
+                            className="border border-ink/10 p-3"
+                          >
+                            {photo.url ? (
+                              <img
+                                src={photo.url}
+                                alt=""
+                                className="mb-2 aspect-square w-full object-cover"
+                              />
+                            ) : null}
+                            <label className="admin-button mb-2 cursor-pointer justify-center">
+                              <ImagePlus size={15} />{" "}
+                              {photo.url ? "Replace" : "Upload"}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="sr-only"
+                                onChange={(event) =>
+                                  void uploadImage(
+                                    event.target.files?.[0],
+                                    (url) =>
+                                      update(block.id, {
+                                        photos: block.photos.map(
+                                          (item, index) =>
+                                            index === photoIndex
+                                              ? { ...item, url }
+                                              : item,
+                                        ),
+                                      } as any),
+                                  )
+                                }
+                              />
+                            </label>
+                            <input
+                              className="admin-input"
+                              value={photo.alt}
+                              onChange={(event) =>
+                                update(block.id, {
+                                  photos: block.photos.map((item, index) =>
+                                    index === photoIndex
+                                      ? { ...item, alt: event.target.value }
+                                      : item,
+                                  ),
+                                } as any)
+                              }
+                              placeholder="Alt text"
+                            />
+                            <input
+                              className="admin-input"
+                              value={photo.caption}
+                              onChange={(event) =>
+                                update(block.id, {
+                                  photos: block.photos.map((item, index) =>
+                                    index === photoIndex
+                                      ? { ...item, caption: event.target.value }
+                                      : item,
+                                  ),
+                                } as any)
+                              }
+                              placeholder="Caption"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className="grid gap-2"
+                        style={{
+                          gridTemplateColumns: `repeat(${block.columns},1fr)`,
+                        }}
+                      >
+                        {block.ratios.map((ratio, ratioIndex) => (
+                          <label key={ratioIndex} className="text-xs">
+                            Column {ratioIndex + 1}%
+                            <input
+                              className="admin-input"
+                              type="number"
+                              min="20"
+                              max="80"
+                              value={ratio}
+                              onChange={(event) => {
+                                const ratios = [...block.ratios];
+                                ratios[ratioIndex] = Number(event.target.value);
+                                update(block.id, { ratios } as any);
+                              }}
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {block.type === "product-card" && (
+                    <ProductEditor
+                      block={block}
+                      products={products}
+                      update={(values) => update(block.id, values as any)}
+                    />
+                  )}
+                  {block.type === "product-row" && (
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <select
+                          className="admin-input !w-auto"
+                          value={block.columns}
+                          onChange={(event) => {
+                            const columns = Number(event.target.value) as 2 | 3;
+                            update(block.id, {
+                              columns,
+                              ratios: columns === 2 ? [50, 50] : [34, 33, 33],
+                              products: Array.from(
+                                { length: columns },
+                                (_, index) =>
+                                  block.products[index] || {
+                                    ...productItem(),
+                                    layout: "vertical",
+                                  },
+                              ),
+                            } as any);
+                          }}
+                        >
+                          <option value="2">Two products</option>
+                          <option value="3">Three products</option>
+                        </select>
+                        <select
+                          className="admin-input !w-auto"
+                          value={block.gap}
+                          onChange={(event) =>
+                            update(block.id, {
+                              gap: Number(event.target.value),
+                            } as any)
+                          }
+                        >
+                          <option value="8">Tight</option>
+                          <option value="16">Standard</option>
+                          <option value="24">Spacious</option>
+                        </select>
+                      </div>
+                      {block.products.map((item, productIndex) => (
+                        <div
+                          key={productIndex}
+                          className="border border-ink/10 p-3"
+                        >
+                          <ProductEditor
+                            block={{
+                              ...item,
+                              id: `${block.id}-${productIndex}`,
+                              type: "product-card",
+                            }}
+                            products={products}
+                            compact
+                            update={(values) =>
+                              update(block.id, {
+                                products: block.products.map(
+                                  (product, index) =>
+                                    index === productIndex
+                                      ? { ...product, ...values }
+                                      : product,
+                                ),
+                              } as any)
+                            }
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
                   {block.type === "button" && (
@@ -936,9 +1418,50 @@ export default function CampaignComposer() {
 
         <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
           <section>
-            <h2 className="mb-3 font-serif text-2xl">Email preview</h2>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-serif text-2xl">Email preview</h2>
+              <div className="flex gap-1">
+                <button
+                  className={`admin-button ${previewMode === "desktop" ? "!border-coral" : ""}`}
+                  onClick={() => setPreviewMode("desktop")}
+                >
+                  Desktop
+                </button>
+                <button
+                  className={`admin-button ${previewMode === "mobile" ? "!border-coral" : ""}`}
+                  onClick={() => setPreviewMode("mobile")}
+                >
+                  Mobile
+                </button>
+                <button
+                  className="admin-button"
+                  onClick={() => void renderSentPreview()}
+                >
+                  Clean sent preview
+                </button>
+              </div>
+            </div>
+            {sentPreview && (
+              <div className="mb-4 overflow-auto bg-[#e9e0cf] p-3">
+                <iframe
+                  title="Rendered sent email preview"
+                  srcDoc={sentPreview}
+                  className="mx-auto h-[680px] border-0 bg-white transition-[width]"
+                  style={{
+                    width: previewMode === "mobile" ? 390 : "100%",
+                    maxWidth: "100%",
+                  }}
+                />
+              </div>
+            )}
             <div className="bg-[#e9e0cf] p-4">
-              <div className="border border-[#cbbb9f] bg-[#fffaf1] p-6 font-hand text-[#342d25] shadow-lg">
+              <div
+                className="mx-auto border border-[#cbbb9f] bg-[#fffaf1] p-6 font-hand text-[#342d25] shadow-lg transition-[width]"
+                style={{
+                  width: previewMode === "mobile" ? 390 : "100%",
+                  maxWidth: "100%",
+                }}
+              >
                 <p className="mb-6 text-xs font-bold uppercase tracking-[.16em] text-[#a44938]">
                   Aida Ramezani · Artist
                 </p>
@@ -963,6 +1486,77 @@ export default function CampaignComposer() {
                           {block.text}
                         </span>
                       </p>
+                    );
+                  if (block.type === "photo-row")
+                    return (
+                      <div
+                        key={block.id}
+                        className="my-5 grid"
+                        style={{
+                          gridTemplateColumns: block.ratios
+                            .map((ratio) => `${ratio}fr`)
+                            .join(" "),
+                          gap: block.gap,
+                        }}
+                      >
+                        {block.photos.map((photo, index) => (
+                          <figure
+                            key={index}
+                            className={
+                              photo.style === "studio-photograph"
+                                ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3"
+                                : photo.style === "clean"
+                                  ? "border border-[#cbbb9f]"
+                                  : ""
+                            }
+                          >
+                            {photo.url && (
+                              <img
+                                src={photo.url}
+                                alt={photo.decorative ? "" : photo.alt}
+                                className="w-full"
+                              />
+                            )}
+                            {photo.caption && (
+                              <figcaption className="mt-2 text-xs text-ink/55">
+                                {photo.caption}
+                              </figcaption>
+                            )}
+                          </figure>
+                        ))}
+                      </div>
+                    );
+                  if (block.type === "product-card") {
+                    const product = products.find(
+                      (item) => item.id === block.productId,
+                    );
+                    return (
+                      <PreviewProduct
+                        key={block.id}
+                        product={product}
+                        block={block}
+                      />
+                    );
+                  }
+                  if (block.type === "product-row")
+                    return (
+                      <div
+                        key={block.id}
+                        className="my-5 grid gap-3"
+                        style={{
+                          gridTemplateColumns: `repeat(${block.columns},1fr)`,
+                        }}
+                      >
+                        {block.products.map((item, index) => (
+                          <PreviewProduct
+                            key={index}
+                            product={products.find(
+                              (product) => product.id === item.productId,
+                            )}
+                            block={item}
+                          />
+                        ))}
+                      </div>
                     );
                   const sizes = {
                     small: "text-xs",
@@ -1027,5 +1621,172 @@ export default function CampaignComposer() {
         </aside>
       </div>
     </AdminLayout>
+  );
+}
+
+function ProductEditor({
+  block,
+  products,
+  update,
+  compact = false,
+}: {
+  block: ProductCardBlock;
+  products: any[];
+  update: (values: Partial<ProductItem>) => void;
+  compact?: boolean;
+}) {
+  const selected = products.find((product) => product.id === block.productId);
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold">
+        Linked website product
+        <select
+          className="admin-input"
+          value={block.productId}
+          onChange={(event) => update({ productId: event.target.value })}
+        >
+          <option value="">Select a published product</option>
+          {products.map((product) => (
+            <option key={product.id} value={product.id}>
+              {product.name} · {product.status}
+            </option>
+          ))}
+        </select>
+      </label>
+      {selected && (
+        <div className="flex items-center gap-3 border border-ink/10 bg-paper p-2">
+          <img
+            src={selected.imageUrl}
+            alt=""
+            className="h-16 w-16 object-contain"
+          />
+          <div>
+            <strong className="block">{selected.name}</strong>
+            <span className="text-xs text-ink/50">
+              {selected.available ? "Available" : "Sold or unavailable"}
+            </span>
+          </div>
+        </div>
+      )}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <select
+          className="admin-input"
+          value={block.market}
+          onChange={(event) =>
+            update({
+              market: event.target.value as ProductItem["market"],
+              showPrice: event.target.value !== "mixed",
+            })
+          }
+        >
+          <option value="mixed">Mixed / hide price</option>
+          <option value="turkiye">Türkiye</option>
+          <option value="international">International</option>
+        </select>
+        {!compact && (
+          <select
+            className="admin-input"
+            value={block.layout}
+            onChange={(event) =>
+              update({ layout: event.target.value as ProductItem["layout"] })
+            }
+          >
+            <option value="featured">Featured</option>
+            <option value="vertical">Editorial vertical</option>
+            <option value="horizontal">Compact horizontal</option>
+          </select>
+        )}
+      </div>
+      <input
+        className="admin-input"
+        value={block.ctaText}
+        onChange={(event) => update({ ctaText: event.target.value })}
+        placeholder="CTA text"
+      />
+      {!compact && (
+        <>
+          <input
+            className="admin-input"
+            value={block.customEyebrow}
+            onChange={(event) => update({ customEyebrow: event.target.value })}
+            placeholder="Optional editorial eyebrow"
+          />
+          <textarea
+            className="admin-input min-h-20"
+            value={block.customDescription}
+            onChange={(event) =>
+              update({ customDescription: event.target.value })
+            }
+            placeholder="Optional email-only description"
+          />
+        </>
+      )}
+      <div className="flex flex-wrap gap-4 text-sm">
+        <label>
+          <input
+            type="checkbox"
+            checked={block.showPrice}
+            onChange={(event) => update({ showPrice: event.target.checked })}
+          />{" "}
+          Price
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={block.showDescription}
+            onChange={(event) =>
+              update({ showDescription: event.target.checked })
+            }
+          />{" "}
+          Description
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={block.showProductType}
+            onChange={(event) =>
+              update({ showProductType: event.target.checked })
+            }
+          />{" "}
+          Product type
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function PreviewProduct({
+  product,
+  block,
+}: {
+  product: any;
+  block: ProductItem;
+}) {
+  if (!product)
+    return (
+      <div className="border border-dashed border-[#cbbb9f] p-4 text-sm text-ink/50">
+        Select a product
+      </div>
+    );
+  return (
+    <div className="my-4 border border-[#cbbb9f] bg-[#fffaf1] p-3">
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        className="w-full object-contain"
+      />
+      <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[#a44938]">
+        {block.customEyebrow || product.category || product.kind}
+      </p>
+      <h3 className="mt-1 font-serif text-xl">{product.name}</h3>
+      {block.showDescription && (
+        <p className="mt-2 text-xs text-ink/60">
+          {block.customDescription || product.description}
+        </p>
+      )}
+      <span className="mt-3 inline-block bg-[#a44938] px-3 py-2 text-xs font-bold text-[#fffaf1]">
+        {block.ctaText}
+      </span>
+    </div>
   );
 }

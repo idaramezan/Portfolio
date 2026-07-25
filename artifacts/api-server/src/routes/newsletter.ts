@@ -70,6 +70,9 @@ async function ensureDeliveryColumns() {
       sent_at TIMESTAMPTZ
     )
   `);
+  await pool.query(
+    `ALTER TABLE newsletter_campaigns ADD COLUMN IF NOT EXISTS rendered_html TEXT`,
+  );
   await pool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_templates (
       id TEXT PRIMARY KEY,
@@ -124,7 +127,60 @@ type CampaignBlock =
       linkUrl?: string;
       linkText?: string;
     }
-  | { type: "image"; url: string; alt?: string; linkUrl?: string }
+  | {
+      type: "image";
+      url: string;
+      alt?: string;
+      linkUrl?: string;
+      caption?: string;
+      decorative?: boolean;
+      width?: number;
+      align?: "left" | "center" | "right";
+      style?: "studio-photograph" | "clean" | "borderless";
+    }
+  | {
+      type: "photo-row";
+      columns: 2 | 3;
+      ratios: number[];
+      gap: 8 | 16 | 24;
+      photos: Array<{
+        url: string;
+        alt?: string;
+        caption?: string;
+        linkUrl?: string;
+        decorative?: boolean;
+        style?: "studio-photograph" | "clean" | "borderless";
+      }>;
+    }
+  | {
+      type: "product-card";
+      productId: string;
+      market?: "turkiye" | "international" | "mixed";
+      layout?: "featured" | "vertical" | "horizontal";
+      showPrice?: boolean;
+      showDescription?: boolean;
+      showProductType?: boolean;
+      showAvailability?: boolean;
+      customEyebrow?: string;
+      customDescription?: string;
+      ctaText?: string;
+      utmCampaign?: string;
+      utmContent?: string;
+    }
+  | {
+      type: "product-row";
+      columns: 2 | 3;
+      ratios: number[];
+      gap: 8 | 16 | 24;
+      products: Array<{
+        productId: string;
+        market?: "turkiye" | "international" | "mixed";
+        showPrice?: boolean;
+        showDescription?: boolean;
+        showProductType?: boolean;
+        ctaText?: string;
+      }>;
+    }
   | { type: "button"; text: string; url: string }
   | { type: "divider" };
 
@@ -156,46 +212,167 @@ function validateCampaign(body: unknown) {
   return { subject, preheader, blocks: blocks as CampaignBlock[] };
 }
 
-function renderCampaignBlocks(blocks: CampaignBlock[]) {
-  return blocks
-    .map((block) => {
-      if (!block || typeof block !== "object")
-        throw new Error("Invalid email block");
-      if (block.type === "divider")
-        return '<hr style="border:0;border-top:1px solid #cbbb9f;margin:26px 0">';
-      if (block.type === "image") {
-        const url = safeUrl(block.url);
-        if (!url) throw new Error("Every image needs a valid web address");
-        const image = `<img src="${escapeHtml(url)}" alt="${escapeHtml(block.alt || "Studio artwork")}" style="display:block;width:100%;height:auto;margin:22px 0;border:1px solid #cbbb9f">`;
-        const link = safeUrl(block.linkUrl);
-        return link ? `<a href="${escapeHtml(link)}">${image}</a>` : image;
-      }
-      if (block.type === "button") {
-        const url = safeUrl(block.url);
-        if (!url || !block.text?.trim())
-          throw new Error("Every button needs text and a valid link");
-        return `<p style="margin:24px 0;text-align:center"><a href="${escapeHtml(url)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:13px 22px;text-decoration:none;font-weight:700">${escapeHtml(block.text.trim())}</a></p>`;
-      }
-      if (block.type === "text") {
-        if (typeof block.text !== "string" || block.text.length > 5000)
-          throw new Error("Text blocks must be under 5,000 characters");
-        const sizes = { small: 13, normal: 16, large: 20, heading: 30 };
-        const size = sizes[block.size || "normal"] || sizes.normal;
-        const align = block.align === "center" ? "center" : "left";
-        const weight = block.bold ? "700" : "400";
-        const style = block.italic ? "italic" : "normal";
-        const text = escapeHtml(block.text).replaceAll("\n", "<br>");
-        const link = safeUrl(block.linkUrl);
-        const linkText = block.linkText?.trim();
-        const linked =
-          link && linkText
-            ? `${text}<br><a href="${escapeHtml(link)}" style="color:#a44938;text-decoration:underline">${escapeHtml(linkText)}</a>`
-            : text;
-        return `<p style="margin:0 0 18px;font-size:${size}px;line-height:1.7;text-align:${align};font-weight:${weight};font-style:${style}">${linked}</p>`;
-      }
-      throw new Error("Unsupported email block");
-    })
-    .join("");
+function framedImage(photo: any, width = "100%") {
+  const url = safeUrl(photo.url);
+  if (!url)
+    throw new Error("Every photograph needs a valid HTTPS image address");
+  if (!photo.decorative && !String(photo.alt || "").trim())
+    throw new Error("Add alt text or mark the photograph as decorative");
+  const style = photo.style || "studio-photograph";
+  const frame =
+    style === "studio-photograph"
+      ? "padding:10px 10px 14px;background:#fffaf1;border:1px solid #cbbb9f"
+      : style === "clean"
+        ? "border:1px solid #cbbb9f"
+        : "";
+  const image = `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};${frame}"><tr><td><img src="${escapeHtml(url)}" alt="${photo.decorative ? "" : escapeHtml(photo.alt || "")}" style="display:block;width:100%;max-width:100%;height:auto" /></td></tr>${photo.caption ? `<tr><td style="padding-top:8px;font-size:12px;line-height:1.4;color:#75695d">${escapeHtml(photo.caption)}</td></tr>` : ""}</table>`;
+  const link = safeUrl(photo.linkUrl);
+  return link
+    ? `<a href="${escapeHtml(link)}" style="text-decoration:none">${image}</a>`
+    : image;
+}
+
+async function productCatalog() {
+  const result = await pool.query(
+    "SELECT payload FROM shop_settings WHERE id='primary' LIMIT 1",
+  );
+  const settings = result.rows[0]?.payload || {};
+  return [
+    ...(settings.originalProducts || []),
+    ...(settings.printProducts || []),
+    ...(settings.studioMailPackages || []),
+  ];
+}
+
+function productMarkup(item: any, catalog: any[], width = "100%") {
+  const product = catalog.find((entry) => entry.id === item.productId);
+  if (!product) throw new Error("A linked product no longer exists");
+  if (["draft", "archived"].includes(product.status))
+    throw new Error(`${product.name || product.title} is not published`);
+  const title = product.name || product.title;
+  const imageUrl = safeUrl(product.imageUrl || product.coverImage);
+  if (!imageUrl) throw new Error(`${title} needs a public product image`);
+  const market = item.market || "mixed";
+  const slug = product.slug || product.id;
+  const base =
+    market === "international"
+      ? `https://www.aedaart.com/shop/international`
+      : product.kind === "original"
+        ? `https://www.aedaart.com/shop/turkiye/originals/${encodeURIComponent(slug)}`
+        : `https://www.aedaart.com/shop/turkiye/prints?product=${encodeURIComponent(product.id)}`;
+  const url = new URL(base);
+  url.searchParams.set("utm_source", "studio_letter");
+  url.searchParams.set("utm_medium", "email");
+  if (item.utmCampaign) url.searchParams.set("utm_campaign", item.utmCampaign);
+  if (item.utmContent) url.searchParams.set("utm_content", item.utmContent);
+  const available =
+    product.available !== false &&
+    !["sold", "sold_out"].includes(product.status) &&
+    Number(product.inventory ?? 1) > 0;
+  const priceMinor = product.priceMinor ?? product.priceUsdCents;
+  const currency =
+    product.priceCurrency || (market === "international" ? "USD" : "TRY");
+  const price =
+    item.showPrice === false || market === "mixed"
+      ? ""
+      : new Intl.NumberFormat(market === "turkiye" ? "tr-TR" : "en-US", {
+          style: "currency",
+          currency,
+        }).format(Number(priceMinor || 0) / 100);
+  const description =
+    item.customDescription ||
+    product.description ||
+    product.shortDescription ||
+    "";
+  const cta = item.ctaText || (available ? "View product" : "View the artwork");
+  const image = `<a href="${escapeHtml(url.toString())}"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" width="560" style="display:block;width:100%;max-width:100%;height:auto" /></a>`;
+  const info = `${item.showProductType === false ? "" : `<p style="margin:0 0 7px;color:#a44938;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">${escapeHtml(item.customEyebrow || product.category || product.kind || "From the studio")}</p>`}<h3 style="margin:0 0 8px;font-family:Georgia,serif;font-size:24px;line-height:1.2">${escapeHtml(title)}</h3>${item.showDescription === false || !description ? "" : `<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#5f554b">${escapeHtml(description)}</p>`}${price ? `<p style="margin:0 0 12px;font-weight:700">${escapeHtml(price)}</p>` : ""}${!available ? `<p style="margin:0 0 12px;color:#a44938;font-weight:700">${product.kind === "original" ? "Sold" : "Sold out"}</p>` : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#a44938" style="background:#a44938"><a href="${escapeHtml(url.toString())}" style="display:inline-block;padding:12px 18px;color:#fffaf1;text-decoration:none;font-weight:700">${escapeHtml(cta)}</a></td></tr></table>`;
+  if (item.layout === "featured" || item.layout === "horizontal") {
+    const imageWidth = item.layout === "featured" ? 58 : 36;
+    return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fffaf1;border:1px solid #cbbb9f" class="email-row"><tr><td class="email-column" width="${imageWidth}%" valign="middle" style="padding:12px">${image}</td><td class="email-column" width="${100 - imageWidth}%" valign="middle" style="padding:18px">${info}</td></tr></table>`;
+  }
+  return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fffaf1;border:1px solid #cbbb9f"><tr><td style="padding:12px">${image}</td></tr><tr><td style="padding:8px 16px 18px">${info}</td></tr></table>`;
+}
+
+async function renderCampaignBlocks(blocks: CampaignBlock[]) {
+  const needsProducts = blocks.some(
+    (block) => block.type === "product-card" || block.type === "product-row",
+  );
+  const catalog = needsProducts ? await productCatalog() : [];
+  const responsiveStyles = `<style>@media only screen and (max-width:620px){.email-row,.email-row tbody,.email-row tr{display:block!important;width:100%!important}.email-column{display:block!important;width:100%!important;box-sizing:border-box!important}}</style>`;
+  const rendered = (
+    await Promise.all(
+      blocks.map(async (block) => {
+        if (!block || typeof block !== "object")
+          throw new Error("Invalid email block");
+        if (block.type === "divider")
+          return '<hr style="border:0;border-top:1px solid #cbbb9f;margin:26px 0">';
+        if (block.type === "image") {
+          const width = Math.max(20, Math.min(100, Number(block.width || 100)));
+          const align =
+            block.align === "left"
+              ? "left"
+              : block.align === "right"
+                ? "right"
+                : "center";
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0"><tr><td align="${align}">${framedImage(block, `${width}%`)}</td></tr></table>`;
+        }
+        if (block.type === "photo-row") {
+          if (
+            ![2, 3].includes(block.columns) ||
+            block.photos.length !== block.columns
+          )
+            throw new Error("Every photo-row slot needs a photograph");
+          const ratios =
+            block.ratios.length === block.columns
+              ? block.ratios
+              : Array(block.columns).fill(100 / block.columns);
+          if (Math.abs(ratios.reduce((a, b) => a + Number(b), 0) - 100) > 1)
+            throw new Error("Photo-row ratios must total 100%");
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row"><tr>${block.photos.map((photo, index) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px">${framedImage(photo)}</td>`).join("")}</tr></table>`;
+        }
+        if (block.type === "product-card")
+          return `<div style="margin:24px 0">${productMarkup(block, catalog)}</div>`;
+        if (block.type === "product-row") {
+          if (
+            ![2, 3].includes(block.columns) ||
+            block.products.length !== block.columns
+          )
+            throw new Error("Every product-row slot needs a product");
+          const ratios =
+            block.ratios.length === block.columns
+              ? block.ratios
+              : Array(block.columns).fill(100 / block.columns);
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row"><tr>${block.products.map((product, index) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px">${productMarkup({ ...product, layout: "vertical" }, catalog)}</td>`).join("")}</tr></table>`;
+        }
+        if (block.type === "button") {
+          const url = safeUrl(block.url);
+          if (!url || !block.text?.trim())
+            throw new Error("Every button needs text and a valid link");
+          return `<p style="margin:24px 0;text-align:center"><a href="${escapeHtml(url)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:13px 22px;text-decoration:none;font-weight:700">${escapeHtml(block.text.trim())}</a></p>`;
+        }
+        if (block.type === "text") {
+          if (typeof block.text !== "string" || block.text.length > 5000)
+            throw new Error("Text blocks must be under 5,000 characters");
+          const sizes = { small: 13, normal: 16, large: 20, heading: 30 };
+          const size = sizes[block.size || "normal"] || sizes.normal;
+          const align = block.align === "center" ? "center" : "left";
+          const weight = block.bold ? "700" : "400";
+          const style = block.italic ? "italic" : "normal";
+          const text = escapeHtml(block.text).replaceAll("\n", "<br>");
+          const link = safeUrl(block.linkUrl);
+          const linkText = block.linkText?.trim();
+          const linked =
+            link && linkText
+              ? `${text}<br><a href="${escapeHtml(link)}" style="color:#a44938;text-decoration:underline">${escapeHtml(linkText)}</a>`
+              : text;
+          return `<p style="margin:0 0 18px;font-size:${size}px;line-height:1.7;text-align:${align};font-weight:${weight};font-style:${style}">${linked}</p>`;
+        }
+        throw new Error("Unsupported email block");
+      }),
+    )
+  ).join("");
+  return responsiveStyles + rendered;
 }
 
 const starterTemplates = [
@@ -689,7 +866,7 @@ router.post("/templates", requireAdmin, async (req, res) => {
   try {
     await ensureStarterTemplates();
     const campaign = validateCampaign(req.body);
-    renderCampaignBlocks(campaign.blocks);
+    await renderCampaignBlocks(campaign.blocks);
     const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     if (!name || name.length > 120)
       return res.status(400).json({ error: "Template name is required" });
@@ -720,7 +897,7 @@ router.put("/templates/:id", requireAdmin, async (req, res) => {
   try {
     await ensureStarterTemplates();
     const campaign = validateCampaign(req.body);
-    renderCampaignBlocks(campaign.blocks);
+    await renderCampaignBlocks(campaign.blocks);
     const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     if (!name || name.length > 120)
       return res.status(400).json({ error: "Template name is required" });
@@ -788,10 +965,30 @@ router.get("/campaigns", requireAdmin, async (req, res) => {
 });
 
 // POST /newsletter/campaigns/test — send the formatted draft only to Aida
+router.post("/campaigns/preview", requireAdmin, async (req, res) => {
+  try {
+    const campaign = validateCampaign(req.body);
+    const content = await renderCampaignBlocks(campaign.blocks);
+    return res.json({
+      html: emailShell(content, {
+        preheader: campaign.preheader,
+        unsubscribeUrl: "https://www.aedaart.com/newsletter",
+      }),
+    });
+  } catch (err) {
+    return res
+      .status(400)
+      .json({
+        error:
+          err instanceof Error ? err.message : "Preview could not be rendered",
+      });
+  }
+});
+
 router.post("/campaigns/test", requireAdmin, async (req, res) => {
   try {
     const campaign = validateCampaign(req.body);
-    const content = renderCampaignBlocks(campaign.blocks);
+    const content = await renderCampaignBlocks(campaign.blocks);
     const requestedEmail =
       typeof req.body?.testEmail === "string"
         ? req.body.testEmail.trim().toLowerCase()
@@ -823,7 +1020,7 @@ router.post("/campaigns/send", requireAdmin, async (req, res) => {
         .status(400)
         .json({ error: "Type SEND to confirm the campaign" });
     const campaign = validateCampaign(req.body);
-    const content = renderCampaignBlocks(campaign.blocks);
+    const content = await renderCampaignBlocks(campaign.blocks);
     await ensureDeliveryColumns();
     const requestedIds = Array.isArray(req.body?.recipientIds)
       ? req.body.recipientIds
@@ -852,14 +1049,15 @@ router.post("/campaigns/send", requireAdmin, async (req, res) => {
       return res.status(400).json({ error: "There are no active subscribers" });
     await pool.query(
       `INSERT INTO newsletter_campaigns
-        (id, subject, preheader, blocks, status, recipient_count)
-       VALUES ($1, $2, $3, $4::jsonb, 'sending', $5)`,
+        (id, subject, preheader, blocks, status, recipient_count, rendered_html)
+       VALUES ($1, $2, $3, $4::jsonb, 'sending', $5, $6)`,
       [
         campaignId,
         campaign.subject,
         campaign.preheader || null,
         JSON.stringify(campaign.blocks),
         subscribers.rowCount,
+        emailShell(content, { preheader: campaign.preheader }),
       ],
     );
     for (let index = 0; index < subscribers.rows.length; index += 100) {

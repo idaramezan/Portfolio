@@ -5,7 +5,10 @@ const router = Router();
 
 router.get("/product-images/:id", async (request, response) => {
   try {
-    const imageId = String(request.params.id).replace(/\.webp$/i, "");
+    const imageId = String(request.params.id).replace(
+      /\.(webp|jpe?g|png)$/i,
+      "",
+    );
     const result = await pool.query(
       `SELECT original_name, mime_type, byte_size, data
        FROM product_images
