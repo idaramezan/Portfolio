@@ -266,8 +266,14 @@ function framedImage(photo: any, width = "100%", rotation = 0) {
   const url = publicUrl(photo.url || photo.imageUrl);
   if (!url)
     throw new Error("Every photograph needs a valid HTTPS image address");
-  if (!photo.decorative && !String(photo.alt || "").trim())
-    throw new Error("Add alt text or mark the photograph as decorative");
+  const altText = photo.decorative
+    ? ""
+    : String(
+        photo.alt ||
+          photo.altText ||
+          photo.caption ||
+          "Photograph from Aida’s studio",
+      ).trim();
   const style = photo.style || "studio-photograph";
   const frame =
     style === "studio-photograph"
@@ -275,7 +281,7 @@ function framedImage(photo: any, width = "100%", rotation = 0) {
       : style === "clean"
         ? "border:1px solid #cbbb9f"
         : "";
-  const image = `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};${frame}"><tr><td><img src="${escapeHtml(url)}" alt="${photo.decorative ? "" : escapeHtml(photo.alt || "")}" style="display:block;width:100%;max-width:100%;height:auto" /></td></tr>${photo.caption ? `<tr><td style="padding-top:8px;font-size:12px;line-height:1.4;color:#75695d">${escapeHtml(photo.caption)}</td></tr>` : ""}</table>`;
+  const image = `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};${frame}"><tr><td><img src="${escapeHtml(url)}" alt="${escapeHtml(altText)}" style="display:block;width:100%;max-width:100%;height:auto" /></td></tr>${photo.caption ? `<tr><td style="padding-top:8px;font-size:12px;line-height:1.4;color:#75695d">${escapeHtml(photo.caption)}</td></tr>` : ""}</table>`;
   const link = safeUrl(photo.linkUrl);
   return link
     ? `<a href="${escapeHtml(link)}" style="text-decoration:none">${image}</a>`

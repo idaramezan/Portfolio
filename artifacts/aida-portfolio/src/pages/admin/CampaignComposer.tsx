@@ -110,7 +110,7 @@ const newText = (text = "", size: TextBlock["size"] = "normal"): TextBlock => ({
 });
 const emptyPhoto = (): Photo => ({
   url: "",
-  alt: "",
+  alt: "Photograph from Aida’s studio",
   linkUrl: "",
   caption: "",
   decorative: false,
@@ -528,7 +528,7 @@ export default function CampaignComposer() {
             id: id(),
             type: "image",
             url: absoluteUrl,
-            alt: "",
+            alt: "Photograph from Aida’s studio",
             linkUrl: "",
             caption: "",
             decorative: false,

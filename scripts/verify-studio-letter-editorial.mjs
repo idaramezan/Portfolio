@@ -31,7 +31,7 @@ assert.match(renderer, /utm_source/);
 assert.match(renderer, /studio_letter/);
 assert.match(renderer, /A linked product no longer exists/);
 assert.match(renderer, /is not published/);
-assert.match(renderer, /mark the photograph as decorative/);
+assert.match(renderer, /Photograph from Aida’s studio/);
 assert.match(renderer, /document_version/);
 assert.match(renderer, /function publicUrl/);
 assert.match(media, /8 \* 1024 \* 1024/);
