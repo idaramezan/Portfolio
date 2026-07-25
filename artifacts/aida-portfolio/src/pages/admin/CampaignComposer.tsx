@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -232,6 +232,7 @@ export default function CampaignComposer() {
   );
   const [sentPreview, setSentPreview] = useState("");
   const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
+  const templatesInitialized = useRef(false);
 
   const loadCampaigns = () =>
     fetch("/api/newsletter/campaigns", {
@@ -262,10 +263,13 @@ export default function CampaignComposer() {
         if (!response.ok)
           throw new Error(result.error || "Templates could not be loaded");
         setTemplates(result.templates || []);
-        const initial = (result.templates || []).find(
-          (template: Template) => template.id === "starter-welcome",
-        );
-        if (initial && selectedTemplateId === null) applyTemplate(initial);
+        if (!templatesInitialized.current) {
+          templatesInitialized.current = true;
+          const initial = (result.templates || []).find(
+            (template: Template) => template.id === "starter-welcome",
+          );
+          if (initial) applyTemplate(initial);
+        }
       })
       .catch((reason) =>
         setError(
@@ -652,6 +656,20 @@ export default function CampaignComposer() {
 
           <section className="border border-ink/10 bg-paper">
             <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 p-4">
+              <button
+                type="button"
+                className="button-primary"
+                disabled={status !== "idle"}
+                onClick={() => void saveTemplate(false)}
+              >
+                <Save size={16} />
+                {selectedTemplateId &&
+                !templates.find(
+                  (template) => template.id === selectedTemplateId,
+                )?.is_starter
+                  ? "Update template"
+                  : "Save template"}
+              </button>
               <button
                 type="button"
                 className="admin-button"
@@ -1055,7 +1073,7 @@ export default function CampaignComposer() {
                               <img
                                 src={photo.url}
                                 alt=""
-                                className="mb-2 aspect-square w-full object-cover"
+                                className={`mb-2 aspect-square w-full object-contain ${photo.style === "studio-photograph" ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3 shadow-[0_4px_10px_rgba(65,49,31,.10)]" : photo.style === "clean" ? "border border-[#cbbb9f]" : ""}`}
                               />
                             ) : null}
                             <label className="admin-button mb-2 cursor-pointer justify-center">
@@ -1109,6 +1127,30 @@ export default function CampaignComposer() {
                               }
                               placeholder="Caption"
                             />
+                            <select
+                              className="admin-input"
+                              value={photo.style}
+                              onChange={(event) =>
+                                update(block.id, {
+                                  photos: block.photos.map((item, index) =>
+                                    index === photoIndex
+                                      ? {
+                                          ...item,
+                                          style: event.target
+                                            .value as Photo["style"],
+                                        }
+                                      : item,
+                                  ),
+                                } as any)
+                              }
+                              aria-label={`Photograph ${photoIndex + 1} presentation`}
+                            >
+                              <option value="studio-photograph">
+                                Studio photograph
+                              </option>
+                              <option value="clean">Clean photograph</option>
+                              <option value="borderless">Borderless</option>
+                            </select>
                           </div>
                         ))}
                       </div>
@@ -1504,7 +1546,7 @@ export default function CampaignComposer() {
                             key={index}
                             className={
                               photo.style === "studio-photograph"
-                                ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3"
+                                ? "border border-[#cbbb9f] bg-[#fffaf1] p-2 pb-3 shadow-[0_4px_10px_rgba(65,49,31,.10)]"
                                 : photo.style === "clean"
                                   ? "border border-[#cbbb9f]"
                                   : ""

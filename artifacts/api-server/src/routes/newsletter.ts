@@ -221,7 +221,7 @@ function framedImage(photo: any, width = "100%") {
   const style = photo.style || "studio-photograph";
   const frame =
     style === "studio-photograph"
-      ? "padding:10px 10px 14px;background:#fffaf1;border:1px solid #cbbb9f"
+      ? "padding:10px 10px 15px;background:#fffaf1;border:1px solid #cbbb9f;box-shadow:0 4px 10px rgba(65,49,31,.10)"
       : style === "clean"
         ? "border:1px solid #cbbb9f"
         : "";
@@ -976,12 +976,10 @@ router.post("/campaigns/preview", requireAdmin, async (req, res) => {
       }),
     });
   } catch (err) {
-    return res
-      .status(400)
-      .json({
-        error:
-          err instanceof Error ? err.message : "Preview could not be rendered",
-      });
+    return res.status(400).json({
+      error:
+        err instanceof Error ? err.message : "Preview could not be rendered",
+    });
   }
 });
 
