@@ -35,6 +35,24 @@ app.use(
 );
 
 app.use("/api", router);
+app.use(
+  (
+    error: Error & { code?: string },
+    request: express.Request,
+    response: express.Response,
+    next: express.NextFunction,
+  ) => {
+    if (error.code === "LIMIT_FILE_SIZE")
+      return response
+        .status(413)
+        .json({ error: "Each uploaded file must be 5 MB or smaller" });
+    if (error.code === "LIMIT_FILE_COUNT")
+      return response
+        .status(400)
+        .json({ error: "A campaign can contain at most 20 stickers" });
+    return next(error);
+  },
+);
 
 if (process.env.NODE_ENV === "production") {
   // The API and built portfolio are deployed together as one Railway service.

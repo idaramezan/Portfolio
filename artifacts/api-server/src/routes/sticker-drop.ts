@@ -134,6 +134,7 @@ function campaignInput(body: any) {
     intUrl: httpsUrl(body.internationalExternalProductUrl),
   };
   const errors: string[] = [];
+  const isPublishing = ["scheduled", "active"].includes(data.status);
   if (!data.internalName || !data.slug)
     errors.push("Campaign name and slug are required");
   if (
@@ -145,6 +146,7 @@ function campaignInput(body: any) {
   if (duration < 1500 || duration > 6000)
     errors.push("Animation duration must be between 1500 and 6000 ms");
   if (
+    isPublishing &&
     ![
       data.englishEyebrow,
       data.englishTitle,
@@ -155,15 +157,31 @@ function campaignInput(body: any) {
     ].every(Boolean)
   )
     errors.push("English and Turkish campaign copy is required");
-  if (!data.homepage && !data.turkiye && !data.international && !data.other)
+  if (
+    isPublishing &&
+    !data.homepage &&
+    !data.turkiye &&
+    !data.international &&
+    !data.other
+  )
     errors.push("Choose at least one storefront placement");
-  if (!data.trEnabled && !data.intEnabled)
+  if (isPublishing && !data.trEnabled && !data.intEnabled)
     errors.push("Enable at least one market destination");
-  if (data.trEnabled && !data.trProduct && !data.trUrl)
+  if (isPublishing && data.trEnabled && !data.trProduct && !data.trUrl)
     errors.push("Choose a Türkiye sticker product");
-  if (data.intEnabled && data.intType === "local_product" && !data.intProduct)
+  if (
+    isPublishing &&
+    data.intEnabled &&
+    data.intType === "local_product" &&
+    !data.intProduct
+  )
     errors.push("Choose an International local product");
-  if (data.intEnabled && data.intType !== "local_product" && !data.intUrl)
+  if (
+    isPublishing &&
+    data.intEnabled &&
+    data.intType !== "local_product" &&
+    !data.intUrl
+  )
     errors.push("Enter a valid HTTPS International product URL");
   return { data, errors };
 }

@@ -227,16 +227,32 @@ export function StickerDropEditor({ id }: { id: "new" | string }) {
   const upload = async (files: FileList) => {
     if (!campaignId)
       return setError("Save the campaign before uploading stickers.");
+    setError("");
+    setNotice("Uploading sticker PNGs…");
     const data = new FormData();
     Array.from(files).forEach((file) => data.append("stickers", file));
-    const response = await fetch(`/api/sticker-drops/${campaignId}/assets`, {
-      method: "POST",
-      headers: auth(),
-      body: data,
-    });
-    const result = await response.json();
-    if (!response.ok) return setError(result.error);
-    setAssets((current) => [...current, ...result.assets]);
+    try {
+      const response = await fetch(`/api/sticker-drops/${campaignId}/assets`, {
+        method: "POST",
+        headers: auth(),
+        body: data,
+      });
+      const contentType = response.headers.get("content-type") || "";
+      const result = contentType.includes("application/json")
+        ? await response.json()
+        : { error: await response.text() };
+      if (!response.ok)
+        return setError(
+          result.error ||
+            "Sticker upload failed. Each file must be a transparent PNG under 5 MB.",
+        );
+      setAssets((current) => [...current, ...result.assets]);
+      setNotice(
+        `${result.assets.length} sticker PNG${result.assets.length === 1 ? "" : "s"} uploaded.`,
+      );
+    } catch {
+      setError("Sticker upload could not reach the server. Please try again.");
+    }
   };
   const remove = async (assetId: string) => {
     await fetch(`/api/sticker-drops/${campaignId}/assets/${assetId}`, {

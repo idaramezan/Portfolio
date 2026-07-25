@@ -26,6 +26,7 @@ for (const status of [
 assert.match(api, /start_at<=NOW\(\) AND end_at>NOW\(\)/);
 assert.match(api, /5 \* 1024 \* 1024/);
 assert.match(api, /hasAlpha/);
+assert.match(api, /const isPublishing = \["scheduled", "active"\]/);
 assert.match(api, /at most 20 stickers/);
 assert.match(api, /https:/);
 assert.match(ui, /prefers-reduced-motion/);
