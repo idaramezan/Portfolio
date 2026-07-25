@@ -85,6 +85,9 @@ async function ensureDeliveryColumns() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(
+    `ALTER TABLE newsletter_templates ADD COLUMN IF NOT EXISTS document_version INTEGER NOT NULL DEFAULT 1`,
+  );
   await pool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_event_interests (
       id BIGSERIAL PRIMARY KEY,
@@ -118,6 +121,7 @@ async function ensureDeliveryColumns() {
 
 type CampaignBlock =
   | {
+      id?: string;
       type: "text";
       text: string;
       size?: "small" | "normal" | "large" | "heading";
@@ -128,7 +132,8 @@ type CampaignBlock =
       linkText?: string;
     }
   | {
-      type: "image";
+      id?: string;
+      type: "image" | "photograph";
       url: string;
       alt?: string;
       linkUrl?: string;
@@ -139,6 +144,7 @@ type CampaignBlock =
       style?: "studio-photograph" | "clean" | "borderless";
     }
   | {
+      id?: string;
       type: "photo-row";
       columns: 2 | 3;
       ratios: number[];
@@ -153,6 +159,7 @@ type CampaignBlock =
       }>;
     }
   | {
+      id?: string;
       type: "product-card";
       productId: string;
       market?: "turkiye" | "international" | "mixed";
@@ -168,6 +175,7 @@ type CampaignBlock =
       utmContent?: string;
     }
   | {
+      id?: string;
       type: "product-row";
       columns: 2 | 3;
       ratios: number[];
@@ -181,8 +189,10 @@ type CampaignBlock =
         ctaText?: string;
       }>;
     }
-  | { type: "button"; text: string; url: string }
-  | { type: "divider" };
+  | { id?: string; type: "button"; text: string; url: string }
+  | { id?: string; type: "divider" }
+  | { id?: string; type: "spacer"; height?: number }
+  | { id?: string; type: "heading"; text: string; align?: "left" | "center" };
 
 function safeUrl(value: unknown) {
   if (typeof value !== "string" || value.length > 2000) return null;
@@ -194,6 +204,18 @@ function safeUrl(value: unknown) {
   } catch {
     return null;
   }
+}
+
+function publicUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim() || value.length > 2000)
+    return null;
+  if (value.startsWith("/")) {
+    const site = (
+      process.env.PUBLIC_SITE_URL || "https://www.aedaart.com"
+    ).replace(/\/$/, "");
+    return `${site}${value}`;
+  }
+  return safeUrl(value);
 }
 
 function validateCampaign(body: unknown) {
@@ -209,11 +231,39 @@ function validateCampaign(body: unknown) {
     throw new Error("Preview text must be under 300 characters");
   if (!blocks.length || blocks.length > 40)
     throw new Error("Add between 1 and 40 email blocks");
-  return { subject, preheader, blocks: blocks as CampaignBlock[] };
+  const supported = new Set([
+    "text",
+    "heading",
+    "image",
+    "photograph",
+    "button",
+    "divider",
+    "spacer",
+    "photo-row",
+    "product-card",
+    "product-row",
+  ]);
+  for (const block of blocks as any[]) {
+    if (!block || typeof block !== "object" || !supported.has(block.type))
+      throw new Error(
+        `Unsupported email block: ${String(block?.type || "unknown")}`,
+      );
+    if (
+      block.id != null &&
+      (typeof block.id !== "string" || block.id.length > 100)
+    )
+      throw new Error("Email block IDs must be valid strings");
+  }
+  return {
+    version: Number(value.version) === 2 ? 2 : 1,
+    subject,
+    preheader,
+    blocks: blocks as CampaignBlock[],
+  };
 }
 
 function framedImage(photo: any, width = "100%", rotation = 0) {
-  const url = safeUrl(photo.url);
+  const url = publicUrl(photo.url || photo.imageUrl);
   if (!url)
     throw new Error("Every photograph needs a valid HTTPS image address");
   if (!photo.decorative && !String(photo.alt || "").trim())
@@ -250,7 +300,7 @@ function productMarkup(item: any, catalog: any[], width = "100%") {
   if (["draft", "archived"].includes(product.status))
     throw new Error(`${product.name || product.title} is not published`);
   const title = product.name || product.title;
-  const imageUrl = safeUrl(product.imageUrl || product.coverImage);
+  const imageUrl = publicUrl(product.imageUrl || product.coverImage);
   if (!imageUrl) throw new Error(`${title} needs a public product image`);
   const market = item.market || "mixed";
   const slug = product.slug || product.id;
@@ -307,7 +357,11 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
           throw new Error("Invalid email block");
         if (block.type === "divider")
           return '<hr style="border:0;border-top:1px solid #cbbb9f;margin:26px 0">';
-        if (block.type === "image") {
+        if (block.type === "spacer")
+          return `<div style="height:${Math.max(8, Math.min(80, Number(block.height || 24)))}px;line-height:1px">&nbsp;</div>`;
+        if (block.type === "heading")
+          return `<h2 style="margin:0 0 18px;font-family:Georgia,serif;font-size:30px;line-height:1.25;text-align:${block.align === "center" ? "center" : "left"}">${escapeHtml(block.text || "")}</h2>`;
+        if (block.type === "image" || block.type === "photograph") {
           const width = Math.max(20, Math.min(100, Number(block.width || 100)));
           const align =
             block.align === "left"
@@ -318,9 +372,10 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
           return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0"><tr><td align="${align}">${framedImage(block, `${width}%`, -0.45)}</td></tr></table>`;
         }
         if (block.type === "photo-row") {
+          const photos = (block as any).photos || (block as any).images || [];
           if (
             ![2, 3].includes(block.columns) ||
-            block.photos.length !== block.columns
+            photos.length !== block.columns
           )
             throw new Error("Every photo-row slot needs a photograph");
           const ratios =
@@ -329,7 +384,7 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
               : Array(block.columns).fill(100 / block.columns);
           if (Math.abs(ratios.reduce((a, b) => a + Number(b), 0) - 100) > 1)
             throw new Error("Photo-row ratios must total 100%");
-          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row" style="margin:28px 0"><tr>${block.photos.map((photo, index) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px;${index % 2 === 0 ? "padding-top:3px" : "padding-bottom:3px"}">${framedImage(photo, "100%", index % 2 === 0 ? -0.8 : 0.65)}</td>`).join("")}</tr></table>`;
+          return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-row" style="margin:28px 0"><tr>${photos.map((photo: any, index: number) => `<td class="email-column" width="${ratios[index]}%" valign="top" style="padding:${Number(block.gap || 16) / 2}px;${index % 2 === 0 ? "padding-top:3px" : "padding-bottom:3px"}">${framedImage(photo, "100%", Number(photo.rotation ?? (index % 2 === 0 ? -0.8 : 0.65)))}</td>`).join("")}</tr></table>`;
         }
         if (block.type === "product-card")
           return `<div style="margin:24px 0">${productMarkup(block, catalog)}</div>`;
@@ -851,7 +906,7 @@ router.get("/templates", requireAdmin, async (req, res) => {
   try {
     await ensureStarterTemplates();
     const result = await pool.query(`
-      SELECT id, name, subject, preheader, blocks, is_starter, created_at, updated_at
+      SELECT id, name, subject, preheader, blocks, is_starter, document_version, created_at, updated_at
       FROM newsletter_templates
       ORDER BY is_starter DESC, updated_at DESC, name
     `);
@@ -866,14 +921,13 @@ router.post("/templates", requireAdmin, async (req, res) => {
   try {
     await ensureStarterTemplates();
     const campaign = validateCampaign(req.body);
-    await renderCampaignBlocks(campaign.blocks);
     const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     if (!name || name.length > 120)
       return res.status(400).json({ error: "Template name is required" });
     const result = await pool.query(
       `INSERT INTO newsletter_templates
-        (id, name, subject, preheader, blocks)
-       VALUES ($1, $2, $3, $4, $5::jsonb)
+        (id, name, subject, preheader, blocks, document_version)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6)
        RETURNING *`,
       [
         crypto.randomUUID(),
@@ -881,6 +935,7 @@ router.post("/templates", requireAdmin, async (req, res) => {
         campaign.subject,
         campaign.preheader || null,
         JSON.stringify(campaign.blocks),
+        campaign.version,
       ],
     );
     return res.status(201).json({ template: result.rows[0] });
@@ -897,13 +952,12 @@ router.put("/templates/:id", requireAdmin, async (req, res) => {
   try {
     await ensureStarterTemplates();
     const campaign = validateCampaign(req.body);
-    await renderCampaignBlocks(campaign.blocks);
     const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     if (!name || name.length > 120)
       return res.status(400).json({ error: "Template name is required" });
     const result = await pool.query(
       `UPDATE newsletter_templates
-       SET name = $2, subject = $3, preheader = $4, blocks = $5::jsonb,
+       SET name = $2, subject = $3, preheader = $4, blocks = $5::jsonb, document_version = $6,
            updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
@@ -913,6 +967,7 @@ router.put("/templates/:id", requireAdmin, async (req, res) => {
         campaign.subject,
         campaign.preheader || null,
         JSON.stringify(campaign.blocks),
+        campaign.version,
       ],
     );
     if (!result.rowCount)

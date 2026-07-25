@@ -43,6 +43,14 @@ type ImageBlock = {
   width: number;
   align: "left" | "center" | "right";
   style: "studio-photograph" | "clean" | "borderless";
+  mediaId?: string | null;
+  mobileWidthPercent?: number;
+  rotation?: number;
+  verticalOffset?: number;
+  frameDepth?: "subtle" | "standard";
+  shadow?: boolean;
+  captionAlignment?: "left" | "center" | "right";
+  linkType?: "url" | "none";
 };
 type Photo = Omit<ImageBlock, "id" | "type" | "width" | "align">;
 type PhotoRowBlock = {
@@ -86,8 +94,7 @@ type Block =
   | ProductRowBlock
   | ButtonBlock
   | DividerBlock;
-type WithoutId<T> = T extends { id: string } ? Omit<T, "id"> : never;
-type StoredBlock = WithoutId<Block>;
+type StoredBlock = Block;
 
 const id = () => crypto.randomUUID();
 const newText = (text = "", size: TextBlock["size"] = "normal"): TextBlock => ({
@@ -152,6 +159,7 @@ type Template = {
   preheader: string | null;
   blocks: StoredBlock[];
   is_starter: boolean;
+  document_version?: number;
 };
 
 type Subscriber = {
@@ -165,7 +173,8 @@ function hydrateBlocks(blocks: StoredBlock[]): Block[] {
   return blocks.map((block) => {
     if (block.type === "text")
       return {
-        id: id(),
+        ...block,
+        id: block.id || id(),
         type: "text",
         text: block.text || "",
         size: block.size || "normal",
@@ -177,7 +186,8 @@ function hydrateBlocks(blocks: StoredBlock[]): Block[] {
       };
     if (block.type === "image")
       return {
-        id: id(),
+        ...block,
+        id: block.id || id(),
         type: "image",
         url: block.url || "",
         alt: block.alt || "Studio artwork",
@@ -188,7 +198,7 @@ function hydrateBlocks(blocks: StoredBlock[]): Block[] {
         align: block.align || "center",
         style: block.style || "studio-photograph",
       };
-    return { ...block, id: id() } as Block;
+    return { ...block, id: block.id || id() } as Block;
   });
 }
 
@@ -317,9 +327,10 @@ export default function CampaignComposer() {
       return next;
     });
   const payload = () => ({
+    version: 2,
     subject,
     preheader,
-    blocks: blocks.map(({ id: _id, ...block }) => block),
+    blocks,
   });
 
   const request = async (
