@@ -107,11 +107,12 @@ export default function StickerDropExperience() {
   const previousFocus = useRef<HTMLElement | null>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const started = useRef(false);
+  const timers = useRef<number[]>([]);
   useEffect(() => {
     if (location.startsWith("/admin") || started.current) return;
     fetch("/api/sticker-drop/active", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then(({ campaign: next }) => {
+      .then(async ({ campaign: next }) => {
         if (!next || seen(next)) return;
         const place = placement(location);
         if (!next.placements[place]) return;
@@ -139,30 +140,64 @@ export default function StickerDropExperience() {
           );
         else setMarket(initial);
         started.current = true;
-        setCampaign(next);
+        const loadedAssets = (
+          await Promise.all(
+            next.assets.map(
+              (src: string) =>
+                new Promise<string | null>((resolve) => {
+                  const image = new Image();
+                  const timeout = window.setTimeout(() => resolve(null), 1800);
+                  image.onload = () => {
+                    clearTimeout(timeout);
+                    resolve(src);
+                  };
+                  image.onerror = () => {
+                    clearTimeout(timeout);
+                    resolve(null);
+                  };
+                  image.src = src;
+                }),
+            ),
+          )
+        ).filter(Boolean);
+        const ready = {
+          ...next,
+          assets: loadedAssets.length ? loadedAssets : next.assets,
+        };
+        setCampaign(ready);
         const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (reduced) {
-          setTimeout(() => setStage("modal"), 300);
+          timers.current.push(window.setTimeout(() => setStage("modal"), 300));
           return;
         }
-        setStage("falling");
-        trackAnalytics("sticker_drop_animation_started", {
-          entityType: "sticker_drop",
-          entityId: next.id,
-          entityName: next.slug,
-          metadata: { placement: place },
-        });
-        setTimeout(() => {
-          setStage("modal");
-          trackAnalytics("sticker_drop_animation_completed", {
-            entityType: "sticker_drop",
-            entityId: next.id,
-            entityName: next.slug,
-            metadata: { placement: place },
-          });
-        }, next.duration);
+        timers.current.push(
+          window.setTimeout(() => {
+            setStage("falling");
+            trackAnalytics("sticker_drop_animation_started", {
+              entityType: "sticker_drop",
+              entityId: next.id,
+              entityName: next.slug,
+              metadata: { placement: place },
+            });
+          }, 350),
+        );
+        timers.current.push(
+          window.setTimeout(() => {
+            setStage("modal");
+            trackAnalytics("sticker_drop_animation_completed", {
+              entityType: "sticker_drop",
+              entityId: next.id,
+              entityName: next.slug,
+              metadata: { placement: place },
+            });
+          }, 350 + 6000),
+        );
       })
       .catch(() => undefined);
+    return () => {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+    };
   }, [location]);
   useEffect(() => {
     if (stage !== "modal" || !campaign) return;
@@ -207,23 +242,41 @@ export default function StickerDropExperience() {
   }, [stage, campaign]);
   const stickers = useMemo(() => {
     if (!campaign) return [];
+    const mobile = innerWidth < 640;
     const count = Math.min(
-      innerWidth < 640
-        ? campaign.maximumMobileStickers
-        : campaign.maximumDesktopStickers,
-      campaign.assets.length ? 20 : 0,
+      mobile
+        ? Math.min(7, campaign.maximumMobileStickers)
+        : Math.min(13, Math.max(9, campaign.maximumDesktopStickers)),
+      campaign.assets.length ? 13 : 0,
     );
-    return Array.from({ length: count }, (_, i) => ({
-      src: campaign.assets[i % campaign.assets.length],
-      left: Math.random() * 92,
-      size:
-        (innerWidth < 640 ? 42 : 64) +
-        Math.random() * (innerWidth < 640 ? 48 : 86),
-      rotate: -35 + Math.random() * 70,
-      delay: Math.random() * 700,
-      duration: Math.max(1400, campaign.duration - 500 + Math.random() * 800),
-      drift: -60 + Math.random() * 120,
-    }));
+    const pool = [...campaign.assets].sort(() => Math.random() - 0.5);
+    return Array.from({ length: count }, (_, i) => {
+      const lane = (i + 0.5) / count;
+      const direction = Math.random() > 0.5 ? 1 : -1;
+      const sway =
+        (mobile ? 20 + Math.random() * 45 : 35 + Math.random() * 95) *
+        direction;
+      return {
+        src: pool[i % pool.length],
+        left: Math.max(
+          2,
+          Math.min(
+            94,
+            lane * 100 - 4 + (Math.random() - 0.5) * (mobile ? 8 : 12),
+          ),
+        ),
+        size: mobile ? 44 + Math.random() * 40 : 72 + Math.random() * 73,
+        rotate: -25 + Math.random() * 50,
+        tilt: 10 + Math.random() * (mobile ? 14 : 25),
+        delay: Math.random() * 900,
+        duration: mobile
+          ? 3200 + Math.random() * 1800
+          : 3400 + Math.random() * 2400,
+        sway,
+        depth: 0.8 + Math.random() * 0.35,
+        opacity: 0.88 + Math.random() * 0.12,
+      };
+    });
   }, [campaign]);
   if (!campaign || stage === "idle") return null;
   const close = (outcome: string) => {
@@ -291,22 +344,25 @@ export default function StickerDropExperience() {
           className="pointer-events-none fixed inset-0 z-[90] overflow-hidden"
           aria-hidden="true"
         >
-          <style>{`@keyframes stickerDropFall{0%{transform:translate3d(0,-180px,0) rotate(var(--r));opacity:0}12%{opacity:1}85%{opacity:1}100%{transform:translate3d(var(--d),110vh,0) rotate(calc(var(--r) + 180deg));opacity:0}}`}</style>
+          <style>{`@keyframes stickerDropFloat{0%{transform:translate3d(0,-170px,0) rotate(var(--r)) rotateY(0deg) scale(var(--z));opacity:0}10%{opacity:var(--o)}18%{transform:translate3d(calc(var(--s)*.62),15vh,0) rotate(calc(var(--r) + var(--t))) rotateY(3deg) scale(var(--z))}38%{transform:translate3d(calc(var(--s)*-.34),38vh,0) rotate(calc(var(--r) - var(--t)*.65)) rotateY(-2deg) scale(var(--z))}58%{transform:translate3d(calc(var(--s)*.82),60vh,0) rotate(calc(var(--r) + var(--t)*.45)) rotateY(2deg) scale(var(--z))}78%{transform:translate3d(calc(var(--s)*-.56),82vh,0) rotate(calc(var(--r) - var(--t)*.4)) rotateY(-2deg) scale(var(--z));opacity:var(--o)}90%{opacity:var(--o)}100%{transform:translate3d(calc(var(--s)*.18),112vh,0) rotate(calc(var(--r) + var(--t)*.2)) rotateY(0deg) scale(var(--z));opacity:0}}`}</style>
           {stickers.map((s, i) => (
             <img
               key={i}
               src={s.src}
               alt=""
               aria-hidden="true"
-              className="absolute -top-32 object-contain will-change-transform"
+              className="absolute -top-32 object-contain will-change-transform [filter:drop-shadow(0_5px_7px_rgba(20,18,15,.12))]"
               style={
                 {
                   left: `${s.left}%`,
                   width: s.size,
                   height: s.size,
-                  animation: `stickerDropFall ${s.duration}ms cubic-bezier(.2,.7,.35,1) ${s.delay}ms both`,
+                  animation: `stickerDropFloat ${s.duration}ms ease-in-out ${s.delay}ms both`,
                   "--r": `${s.rotate}deg`,
-                  "--d": `${s.drift}px`,
+                  "--t": `${s.tilt}deg`,
+                  "--s": `${s.sway}px`,
+                  "--z": s.depth,
+                  "--o": s.opacity,
                 } as React.CSSProperties
               }
             />
@@ -314,154 +370,175 @@ export default function StickerDropExperience() {
         </div>
       )}
       {stage === "modal" && (
-        <div className="fixed inset-0 z-[95] grid place-items-center bg-ink/55 p-3 sm:p-6">
+        <div
+          className="fixed inset-0 z-[95] grid place-items-center bg-ink/60 p-3 backdrop-blur-[2px] sm:p-6"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) close("dismissed");
+          }}
+        >
           <div
             ref={dialog}
             role="dialog"
             aria-modal="true"
             aria-labelledby="sticker-drop-title"
-            className="relative max-h-[calc(100dvh-24px)] w-full max-w-3xl overflow-y-auto border border-ink/15 bg-paper p-5 shadow-2xl sm:p-8"
+            className="relative grid max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] max-w-[1120px] grid-rows-[minmax(34dvh,42dvh)_minmax(0,1fr)] overflow-hidden border border-ink/20 bg-paper shadow-[0_24px_80px_rgba(20,18,15,.24)] md:max-h-[min(780px,calc(100vh-48px))] md:w-[calc(100vw-64px)] md:grid-cols-[58%_42%] md:grid-rows-1"
           >
             <button
               onClick={() => close("dismissed")}
-              className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center focus-visible:ring-2 focus-visible:ring-coral"
+              className="absolute right-2 top-2 z-20 grid h-11 w-11 place-items-center border border-ink/15 bg-paper/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral md:right-3 md:top-3"
               aria-label="Close Sticker Drop"
             >
               <X />
             </button>
-            <div className="grid items-center gap-6 md:grid-cols-[.9fr_1.1fr]">
-              <div className="grid grid-cols-2 gap-3 bg-[#f3efe6] p-4">
-                {(product?.imageUrl
-                  ? [product.imageUrl]
-                  : campaign.assets.slice(0, 4)
-                ).map((src, i) => (
-                  <img
-                    key={src + i}
-                    src={src}
-                    alt={product ? product.title : ""}
-                    className="aspect-square w-full object-contain"
-                  />
-                ))}
-              </div>
-              <div>
-                <p className="eyebrow text-coral">{copy.eyebrow}</p>
-                <h2
-                  id="sticker-drop-title"
-                  className="mt-2 pr-8 font-serif text-3xl sm:text-4xl"
-                >
-                  {copy.title}
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-ink/65">
-                  {copy.description}
-                </p>
-                {campaign.destinations.turkiye &&
-                  campaign.destinations.international && (
-                    <label className="mt-4 block text-sm font-semibold">
-                      {locale === "tr"
-                        ? "Alışveriş bölgesi"
-                        : "Shopping region"}
-                      <select
-                        value={market || ""}
-                        onChange={(e) => choose(e.target.value as any)}
-                        className="admin-input"
-                      >
-                        <option value="">
-                          {locale === "tr"
-                            ? "Bir bölge seçin"
-                            : "Choose a region"}
-                        </option>
-                        <option value="turkiye">
-                          {locale === "tr"
-                            ? "Türkiye’den alışveriş"
-                            : "Shopping in Türkiye"}
-                        </option>
-                        <option value="international">
-                          {locale === "tr"
-                            ? "Uluslararası alışveriş"
-                            : "Shopping internationally"}
-                        </option>
-                      </select>
-                    </label>
-                  )}
-                {product && (
-                  <div className="mt-4 border-y border-ink/10 py-4">
-                    <h3 className="font-serif text-2xl">{product.title}</h3>
-                    <p className="mt-1 text-sm text-ink/60">
-                      {product.description}
-                    </p>
-                    <p className="mt-2 font-bold">
-                      {(product.priceMinor / 100).toLocaleString(
-                        locale === "tr" ? "tr-TR" : "en-US",
-                        { style: "currency", currency: product.currency },
-                      )}
-                    </p>
-                    {market === "turkiye" && product.freeShippingInTurkiye && (
-                      <p className="mt-1 text-xs text-ink/55">
-                        Free shipping within Türkiye
-                      </p>
-                    )}
-                    {product.soldOut && (
-                      <p className="mt-2 font-bold text-coral">Sold Out</p>
-                    )}
-                  </div>
-                )}
-                {added ? (
-                  <div className="mt-5">
-                    <p className="font-serif text-2xl">Added to your basket.</p>
-                    <button
-                      onClick={() => setStage("idle")}
-                      className="button-secondary mt-3"
+            <div className="relative flex min-h-0 items-center justify-center overflow-hidden bg-[#eee7d8] p-3 sm:p-5 md:p-8">
+              <span className="absolute bottom-3 left-3 z-10 border border-ink/15 bg-paper/90 px-2.5 py-1 text-[10px] font-bold tracking-[.18em]">
+                {locale === "tr" ? "YENİ STICKER PAKETİ" : "NEW STICKER DROP"}
+              </span>
+              {product?.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.title}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="relative h-full w-full">
+                  {campaign.assets
+                    .slice(0, innerWidth < 640 ? 5 : 8)
+                    .map((src, i) => (
+                      <img
+                        key={src + i}
+                        src={src}
+                        alt=""
+                        className="absolute h-[34%] w-[34%] object-contain [filter:drop-shadow(0_5px_7px_rgba(20,18,15,.12))]"
+                        style={{
+                          left: `${8 + ((i * 23) % 62)}%`,
+                          top: `${7 + ((i * 29) % 54)}%`,
+                          transform: `rotate(${-14 + ((i * 9) % 27)}deg) scale(${0.86 + (i % 3) * 0.12})`,
+                        }}
+                      />
+                    ))}
+                </div>
+              )}
+            </div>
+            <div className="min-h-0 overflow-y-auto px-5 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-9 md:px-10 md:pb-10 md:pt-12">
+              <p className="eyebrow text-coral">
+                {locale === "tr" ? "STÜDYODAN YENİ" : "NEW FROM THE STUDIO"}
+              </p>
+              <h2
+                id="sticker-drop-title"
+                className="mt-2 pr-8 font-serif text-3xl leading-[1.05] sm:text-4xl lg:text-5xl"
+              >
+                {product?.title || copy.title}
+              </h2>
+              <p className="mt-4 line-clamp-4 text-sm leading-6 text-ink/65 sm:text-base">
+                {product?.description || copy.description}
+              </p>
+              {campaign.destinations.turkiye &&
+                campaign.destinations.international && (
+                  <label className="mt-4 block text-sm font-semibold">
+                    {locale === "tr" ? "Alışveriş bölgesi" : "Shopping region"}
+                    <select
+                      value={market || ""}
+                      onChange={(e) => choose(e.target.value as any)}
+                      className="admin-input"
                     >
-                      <ShoppingBag size={16} /> Continue browsing
-                    </button>
-                  </div>
-                ) : destination?.type === "local_product" &&
-                  market === "turkiye" ? (
+                      <option value="">
+                        {locale === "tr"
+                          ? "Bir bölge seçin"
+                          : "Choose a region"}
+                      </option>
+                      <option value="turkiye">
+                        {locale === "tr"
+                          ? "Türkiye’den alışveriş"
+                          : "Shopping in Türkiye"}
+                      </option>
+                      <option value="international">
+                        {locale === "tr"
+                          ? "Uluslararası alışveriş"
+                          : "Shopping internationally"}
+                      </option>
+                    </select>
+                  </label>
+                )}
+              {product && (
+                <div className="mt-5 border-y border-ink/10 py-4">
+                  <p className="font-serif text-2xl font-bold">
+                    {(product.priceMinor / 100).toLocaleString(
+                      locale === "tr" ? "tr-TR" : "en-US",
+                      { style: "currency", currency: product.currency },
+                    )}
+                  </p>
+                  {market === "turkiye" && product.freeShippingInTurkiye && (
+                    <p className="mt-2 text-sm text-ink/60">
+                      Free shipping within Türkiye
+                    </p>
+                  )}
+                  {market === "international" && (
+                    <p className="mt-2 text-sm text-ink/60">
+                      Available through Aida’s international shop
+                    </p>
+                  )}
+                  {product.soldOut && (
+                    <p className="mt-2 font-bold text-coral">Sold Out</p>
+                  )}
+                </div>
+              )}
+              {added ? (
+                <div className="mt-5">
+                  <p className="font-serif text-2xl">Added to your basket.</p>
                   <button
-                    className="button-primary mt-5 w-full"
-                    disabled={!product?.available}
-                    onClick={add}
+                    onClick={() => setStage("idle")}
+                    className="button-secondary mt-3"
                   >
-                    {locale === "tr"
-                      ? "Sticker paketini sepete ekle"
-                      : "Add sticker pack to basket"}
+                    <ShoppingBag size={16} /> Continue browsing
                   </button>
-                ) : destination?.url ? (
-                  <a
-                    href={destination.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="button-primary mt-5 w-full"
-                    onClick={() => {
-                      mark(campaign, "external_click");
-                      trackAnalytics("sticker_drop_external_product_clicked", {
-                        entityType: "sticker_drop",
-                        entityId: campaign.id,
-                        entityName: campaign.slug,
-                        metadata: {
-                          market: market || "international",
-                          destinationType: destination.type,
-                        },
-                      });
-                    }}
-                  >
-                    Shop the sticker pack <ExternalLink size={16} />
-                  </a>
-                ) : market ? (
-                  <button
-                    disabled
-                    className="button-primary mt-5 w-full opacity-50"
-                  >
-                    Unavailable
-                  </button>
-                ) : null}
+                </div>
+              ) : destination?.type === "local_product" &&
+                market === "turkiye" ? (
                 <button
-                  onClick={() => close("dismissed")}
-                  className="mt-3 min-h-11 w-full text-sm font-semibold underline underline-offset-4"
+                  className="button-primary mt-5 w-full"
+                  disabled={!product?.available}
+                  onClick={add}
                 >
-                  Maybe later
+                  {locale === "tr"
+                    ? "Sticker paketini sepete ekle"
+                    : "Add sticker pack to basket"}
                 </button>
-              </div>
+              ) : destination?.url ? (
+                <a
+                  href={destination.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button-primary mt-5 w-full"
+                  onClick={() => {
+                    mark(campaign, "external_click");
+                    trackAnalytics("sticker_drop_external_product_clicked", {
+                      entityType: "sticker_drop",
+                      entityId: campaign.id,
+                      entityName: campaign.slug,
+                      metadata: {
+                        market: market || "international",
+                        destinationType: destination.type,
+                      },
+                    });
+                  }}
+                >
+                  Shop the sticker pack <ExternalLink size={16} />
+                </a>
+              ) : market ? (
+                <button
+                  disabled
+                  className="button-primary mt-5 w-full opacity-50"
+                >
+                  Unavailable
+                </button>
+              ) : null}
+              <button
+                onClick={() => close("dismissed")}
+                className="mt-3 min-h-11 w-full text-sm font-semibold underline underline-offset-4"
+              >
+                Maybe later
+              </button>
             </div>
           </div>
         </div>
