@@ -83,9 +83,13 @@ function httpsUrl(value: unknown) {
   }
 }
 function campaignInput(body: any) {
-  const startAt = new Date(body.startAt);
-  const endAt = new Date(body.endAt);
   const status = statuses.has(body.status) ? body.status : "draft";
+  let startAt = new Date(body.startAt);
+  let endAt = new Date(body.endAt);
+  if (status === "draft" && Number.isNaN(startAt.valueOf()))
+    startAt = new Date();
+  if (status === "draft" && (Number.isNaN(endAt.valueOf()) || endAt <= startAt))
+    endAt = new Date(startAt.getTime() + 7 * 86400000);
   const duration = Number(body.animationDurationMs || 3000);
   const data = {
     internalName: clean(body.internalName, 150),

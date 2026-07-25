@@ -54,11 +54,19 @@ const localTime = (value: string) =>
         .toLocaleString("sv-SE", { timeZone: "Europe/Istanbul" })
         .slice(0, 16)
     : "";
-const bodyFor = (form: typeof initial) => ({
-  ...form,
-  startAt: new Date(`${form.startAt}:00+03:00`).toISOString(),
-  endAt: new Date(`${form.endAt}:00+03:00`).toISOString(),
-});
+const bodyFor = (form: typeof initial) => {
+  const now = new Date();
+  const later = new Date(now.getTime() + 7 * 86400000);
+  return {
+    ...form,
+    startAt: form.startAt
+      ? new Date(`${form.startAt}:00+03:00`).toISOString()
+      : now.toISOString(),
+    endAt: form.endAt
+      ? new Date(`${form.endAt}:00+03:00`).toISOString()
+      : later.toISOString(),
+  };
+};
 
 export function StickerDropList() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -225,18 +233,59 @@ export function StickerDropEditor({ id }: { id: "new" | string }) {
     }
   };
   const upload = async (files: FileList) => {
-    if (!campaignId)
-      return setError("Save the campaign before uploading stickers.");
     setError("");
-    setNotice("Uploading sticker PNGs…");
+    setNotice("Preparing campaign and uploading sticker PNGs…");
+    let uploadCampaignId = campaignId;
+    if (!uploadCampaignId) {
+      const temporaryName =
+        form.internalName.trim() ||
+        `Sticker Drop ${new Date().toLocaleDateString("en-CA")}`;
+      const temporarySlug =
+        form.slug.trim() ||
+        `${temporaryName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")}-${Date.now().toString(36)}`;
+      try {
+        const draftResponse = await fetch("/api/sticker-drops", {
+          method: "POST",
+          headers: { ...auth(), "Content-Type": "application/json" },
+          body: JSON.stringify(
+            bodyFor({
+              ...form,
+              internalName: temporaryName,
+              slug: temporarySlug,
+              status: "draft",
+            }),
+          ),
+        });
+        const draftResult = await draftResponse.json();
+        if (!draftResponse.ok)
+          return setError(
+            (draftResult.errors || [draftResult.error]).join(" · "),
+          );
+        uploadCampaignId = draftResult.campaign.id;
+        setCampaignId(uploadCampaignId);
+        setForm((current: any) => ({
+          ...current,
+          internalName: temporaryName,
+          slug: temporarySlug,
+          status: "draft",
+          startAt: localTime(draftResult.campaign.start_at),
+          endAt: localTime(draftResult.campaign.end_at),
+        }));
+        navigate(`/admin/sticker-drop/${uploadCampaignId}`);
+      } catch {
+        return setError("The campaign draft could not be created.");
+      }
+    }
     const data = new FormData();
     Array.from(files).forEach((file) => data.append("stickers", file));
     try {
-      const response = await fetch(`/api/sticker-drops/${campaignId}/assets`, {
-        method: "POST",
-        headers: auth(),
-        body: data,
-      });
+      const response = await fetch(
+        `/api/sticker-drops/${uploadCampaignId}/assets`,
+        { method: "POST", headers: auth(), body: data },
+      );
       const contentType = response.headers.get("content-type") || "";
       const result = contentType.includes("application/json")
         ? await response.json()
