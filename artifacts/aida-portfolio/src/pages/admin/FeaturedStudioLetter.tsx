@@ -13,6 +13,25 @@ type Template = {
   wordCount?: number;
 };
 
+function dateTimeInZone(value: string | null, timezone: string) {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  })
+    .formatToParts(new Date(value))
+    .reduce<Record<string, string>>((result, part) => {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
 export default function FeaturedStudioLetter() {
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -53,8 +72,14 @@ export default function FeaturedStudioLetter() {
           showOnHomepage: config.show_on_homepage,
           showOnTurkiyeShop: config.show_on_turkiye_shop,
           showOnInternationalShop: config.show_on_international_shop,
-          startAt: config.start_at?.slice(0, 16) || "",
-          endAt: config.end_at?.slice(0, 16) || "",
+          startAt: dateTimeInZone(
+            config.start_at,
+            config.timezone || "Europe/Istanbul",
+          ),
+          endAt: dateTimeInZone(
+            config.end_at,
+            config.timezone || "Europe/Istanbul",
+          ),
           timezone: config.timezone || "Europe/Istanbul",
         });
       })

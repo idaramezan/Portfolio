@@ -1151,7 +1151,9 @@ router.put("/featured-letter/admin", requireAdmin, async (req, res) => {
       enabled=$1, template_id=$2, template_revision_id=$3, public_eyebrow=$4, public_title_override=$5,
       public_metadata_override=$6, preview_image_ids=$7::jsonb, preview_word_count=$8,
       show_on_homepage=$9, show_on_turkiye_shop=$10, show_on_international_shop=$11,
-      start_at=$12, end_at=$13, timezone=$14, updated_at=NOW() WHERE id='primary' RETURNING *`,
+        start_at=CASE WHEN $12::text IS NULL THEN NULL ELSE $12::timestamp AT TIME ZONE $14 END,
+        end_at=CASE WHEN $13::text IS NULL THEN NULL ELSE $13::timestamp AT TIME ZONE $14 END,
+        timezone=$14, updated_at=NOW() WHERE id='primary' RETURNING *`,
       [
         Boolean(req.body?.enabled),
         templateId,

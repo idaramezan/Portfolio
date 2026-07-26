@@ -35,4 +35,10 @@ if (
   );
 }
 
+if (!route.includes("$12::timestamp AT TIME ZONE $14")) {
+  throw new Error(
+    "Featured Studio Letter schedules must apply their configured timezone",
+  );
+}
+
 console.log("Featured Studio Letter placement verification passed.");
