@@ -9,6 +9,7 @@ import SettingsPage from "@/pages/admin/Settings";
 import Orders from "@/pages/admin/Orders";
 import Subscribers from "@/pages/admin/Subscribers";
 import CampaignComposer from "@/pages/admin/CampaignComposer";
+import FeaturedStudioLetter from "@/pages/admin/FeaturedStudioLetter";
 import EventRegistrations from "@/pages/admin/EventRegistrations";
 import Analytics from "@/pages/admin/Analytics";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
@@ -143,6 +144,8 @@ export default function Admin() {
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
+  if (location === "/admin/subscribers/featured-letter")
+    return <FeaturedStudioLetter />;
   if (location === "/admin/events/painting-day") return <EventRegistrations />;
   if (location === "/admin/sticker-drop") return <StickerDropList />;
   const stickerDrop = location.match(/^\/admin\/sticker-drop\/(new|[^/]+)$/);

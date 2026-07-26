@@ -7,8 +7,6 @@ import {
   normalizeNewsletterEmail,
   type StudioLetterContext,
 } from "@/lib/newsletter";
-import memoriesPhoto from "@assets/memories-of-summer-reference-photo.png";
-import memoriesPainting from "@assets/memories-of-summer-painting.JPG";
 import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 
 export type StudioLetterVariant = "story-preview" | "compact" | "footer";
@@ -26,7 +24,7 @@ export const studioLetterCopy = {
       "The next note from Aida’s studio will find its way to your inbox.",
     storySuccessTitle: "Your next studio story is on its way.",
     storySuccessBody:
-      "You’re now part of the Studio Letter. The next note from Aida’s studio will arrive in your inbox.",
+      "You’re now part of the Studio Letter. The featured letter is arriving in your inbox now.",
     duplicate:
       "You’re already on the list. The next studio note will reach you.",
     invalid: "Enter a valid email address.",
@@ -37,24 +35,9 @@ export const studioLetterCopy = {
       "Free to join. Occasional letters only. Unsubscribe whenever you like.",
     footerHeading: "Studio Letter",
     footerSubheading: "Stories, new artwork and limited studio releases.",
-    previewEyebrow: "A PREVIEW FROM THE STUDIO",
-    previewMetadata: "From Aida’s Istanbul Studio · 4 min read",
-    previewHeading: "The story behind “Memories of Summer”",
-    paragraphOne:
-      "Some paintings begin with a plan. This one began with a feeling.",
-    paragraphTwo:
-      "I was on my way to Beşiktaş on a warm summer afternoon, watching the city drift by through the car window. At one point, I caught my reflection in the side mirror. It only lasted a second, but it stayed with me.",
-    paragraphThree:
-      "For some reason, that tiny moment brought back a childhood",
-    hiddenStory:
-      "memory. I remembered sitting in the back seat of the car, half asleep after a long day, watching the sunlight dance across the windows as the world passed by. There’s something so comforting about those quiet rides, the warmth of the sun, the gentle movement of the car, and the feeling that time slowed down for a little while. When I got back to the studio, I couldn’t stop thinking about it. I picked up my oil pastels and started painting, not to recreate what I had seen, but to capture what it had made me feel. As the layers built up, so did the memory. The colours began to carry the warmth of that afternoon, while the painting slowly became a bridge between the present and those long summer days from my childhood. That’s how Memories of Summer came to life.",
     continue: "Continue reading the full story in the free Studio Letter.",
     transition:
       "Stories behind the paintings, studio notes, new originals and early notice of limited releases, sent occasionally and always free.",
-    photoCaption: "The moment that stayed with me.",
-    paintingCaption: "Memories of Summer",
-    openPhoto: "Open the reference photograph",
-    openPainting: "Open the Memories of Summer painting",
     closeImage: "Close image viewer",
   },
   tr: {
@@ -69,7 +52,7 @@ export const studioLetterCopy = {
       "Aida’nın atölyesinden gelecek bir sonraki not e-posta kutuna ulaşacak.",
     storySuccessTitle: "Bir sonraki atölye hikâyesi sana doğru yola çıktı.",
     storySuccessBody:
-      "Artık Stüdyo Mektubu’ndasın. Aida’nın atölyesinden gelecek bir sonraki not e-posta kutuna ulaşacak.",
+      "Artık Stüdyo Mektubu’ndasın. Öne çıkan mektup şimdi e-posta kutuna geliyor.",
     duplicate:
       "Zaten listedesin. Atölyeden gelecek bir sonraki not sana da ulaşacak.",
     invalid: "Geçerli bir e-posta adresi gir.",
@@ -80,23 +63,9 @@ export const studioLetterCopy = {
       "Katılım ücretsizdir. Yalnızca ara sıra gönderilir. Dilediğin zaman abonelikten ayrılabilirsin.",
     footerHeading: "Stüdyo Mektubu",
     footerSubheading: "Hikâyeler, yeni eserler ve sınırlı atölye edisyonları.",
-    previewEyebrow: "ATÖLYEDEN BİR ÖN İZLEME",
-    previewMetadata: "Aida’nın İstanbul Atölyesinden · 4 dakikalık okuma",
-    previewHeading: "“Memories of Summer”ın ardındaki hikâye",
-    paragraphOne: "Bazı resimler bir planla başlar. Bu ise bir hisle başladı.",
-    paragraphTwo:
-      "Sıcak bir yaz öğleden sonrasında Beşiktaş’a doğru giderken şehrin araba camının ardından akışını izliyordum. Bir anda yan aynada kendi yansımamı gördüm. Yalnızca bir saniye sürdü ama benimle kaldı.",
-    paragraphThree:
-      "Nedense o küçücük an, çocukluğumdan bir anıyı geri getirdi",
-    hiddenStory:
-      "Arka koltukta, uzun bir günün ardından yarı uykulu oturduğumu; dünya akıp giderken güneş ışığının camlarda dans edişini izlediğimi hatırladım. O sessiz yolculuklarda, güneşin sıcaklığında, arabanın hafif hareketinde ve zamanın bir süreliğine yavaşladığı hissinde çok huzur veren bir şey var. Atölyeye döndüğümde bunu düşünmeden edemedim. Yağlı pastellerimi elime aldım ve gördüğümü yeniden yaratmak için değil, bana hissettirdiğini yakalamak için resmetmeye başladım. Katmanlar çoğaldıkça anı da büyüdü. Renkler o öğleden sonranın sıcaklığını taşımaya başladı ve resim yavaşça bugünle çocukluğumun uzun yaz günleri arasında bir köprüye dönüştü. Memories of Summer böyle hayat buldu.",
     continue: "Hikâyenin tamamını ücretsiz Stüdyo Mektubu’nda oku.",
     transition:
       "Resimlerin ardındaki hikâyeler, atölye notları, yeni orijinaller ve sınırlı edisyonlara dair erken haberler, ara sıra ve her zaman ücretsiz.",
-    photoCaption: "Aklımda kalan o an.",
-    paintingCaption: "Memories of Summer",
-    openPhoto: "İlham veren fotoğrafı aç",
-    openPainting: "Memories of Summer eserini aç",
     closeImage: "Görsel görüntüleyiciyi kapat",
   },
 } as const;
@@ -106,6 +75,15 @@ type PreviewImage = {
   alt: string;
   caption: string;
   trigger: HTMLButtonElement;
+};
+type FeaturedLetter = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  metadata: string;
+  excerpt: string;
+  hasMore: boolean;
+  images: Array<{ id: string; url: string; alt: string; caption: string }>;
 };
 
 function ImageLightbox({
@@ -196,6 +174,7 @@ export default function StudioLetterSignup({
   >("idle");
   const [error, setError] = useState("");
   const [lightbox, setLightbox] = useState<PreviewImage | null>(null);
+  const [featured, setFeatured] = useState<FeaturedLetter | null>(null);
   const submitting = useRef(false);
   const story = variant === "story-preview";
 
@@ -204,6 +183,16 @@ export default function StudioLetterSignup({
       metadata: { form: context },
     });
   }, [context]);
+  useEffect(() => {
+    if (!story) return;
+    fetch(
+      `/api/newsletter/featured-letter?context=${encodeURIComponent(context)}`,
+      { cache: "no-store" },
+    )
+      .then((response) => (response.ok ? response.json() : null))
+      .then(setFeatured)
+      .catch(() => setFeatured(null));
+  }, [context, story]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -228,12 +217,21 @@ export default function StudioLetterSignup({
           source: NEWSLETTER_SOURCE[context],
           subscribedAt: new Date().toISOString(),
           ...analyticsContext(),
+          ...(story && featured
+            ? { featuredLetterRevisionId: featured.id }
+            : {}),
         }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || copy.error);
       setEmail(normalized);
-      setStatus(result.alreadySubscribed ? "duplicate" : "success");
+      setStatus(
+        result.featuredLetterSent
+          ? "success"
+          : result.alreadySubscribed
+            ? "duplicate"
+            : "success",
+      );
       trackAnalytics("newsletter_signup_success", {
         metadata: { form: context, newSubscriber: !result.alreadySubscribed },
       });
@@ -374,6 +372,7 @@ export default function StudioLetterSignup({
     );
 
   if (!story) return <div data-no-translate>{form}</div>;
+  if (!featured) return null;
 
   const openImage = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -393,86 +392,69 @@ export default function StudioLetterSignup({
       <div className="grid items-center gap-10 md:grid-cols-[.44fr_.56fr] md:gap-10 lg:gap-14">
         <div
           className="relative mx-auto h-[430px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
-          aria-label="The memory and the painting it inspired"
+          aria-label="Images from the featured Studio Letter"
         >
-          <button
-            type="button"
-            onClick={(event) =>
-              openImage(
-                event,
-                memoriesPhoto,
-                "Aida reflected in a car side mirror during a warm summer drive to Beşiktaş.",
-                copy.photoCaption,
-              )
-            }
-            className="group absolute inset-x-[4%] bottom-0 top-[5%] border-[9px] border-b-[38px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_12px_28px_rgba(45,37,28,.17)] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_16px_30px_rgba(45,37,28,.2)] focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:border-[11px] sm:border-b-[42px]"
-            aria-label={copy.openPhoto}
-          >
-            <img
-              src={memoriesPhoto}
-              alt="Aida reflected in a car side mirror during a warm summer drive to Beşiktaş."
-              width="941"
-              height="1672"
-              loading="lazy"
-              decoding="async"
-              className="block h-full w-full object-cover object-[68%_66%]"
-            />
-            <span className="absolute inset-x-3 bottom-3 font-hand text-base text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink">
-              {copy.photoCaption}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={(event) =>
-              openImage(
-                event,
-                memoriesPainting,
-                "Memories of Summer, an oil pastel painting inspired by the car journey.",
-                copy.paintingCaption,
-              )
-            }
-            className="group absolute left-0 top-0 z-10 w-[38%] -rotate-[4deg] border-[7px] border-b-[30px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_8px_20px_rgba(45,37,28,.18)] transition duration-300 ease-out hover:-translate-y-1 hover:-rotate-3 focus-visible:-translate-y-1 focus-visible:-rotate-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral motion-reduce:transform-none motion-reduce:transition-none sm:w-[40%] sm:border-[9px] sm:border-b-[34px] md:w-[42%]"
-            aria-label={copy.openPainting}
-          >
-            <img
-              src={memoriesPainting}
-              alt="Memories of Summer, an oil pastel painting inspired by the car journey."
-              width="1838"
-              height="1893"
-              loading="lazy"
-              decoding="async"
-              className="block aspect-[1838/1893] w-full bg-[#f3ede1] object-contain"
-            />
-            <span className="absolute inset-x-2 bottom-2 truncate font-hand text-sm text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink sm:text-base">
-              {copy.paintingCaption}
-            </span>
-          </button>
+          {featured.images.map((image, index) => (
+            <button
+              key={image.id}
+              type="button"
+              onClick={(event) =>
+                openImage(
+                  event,
+                  image.url,
+                  image.alt,
+                  image.caption || featured.title,
+                )
+              }
+              className={
+                index === 0
+                  ? "group absolute inset-x-[4%] bottom-0 top-[5%] border-[9px] border-b-[38px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_12px_28px_rgba(45,37,28,.17)] transition duration-300 hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-coral sm:border-[11px] sm:border-b-[42px]"
+                  : "group absolute left-0 top-0 z-10 w-[40%] -rotate-[4deg] border-[8px] border-b-[32px] border-[#fffdf8] bg-[#fffdf8] text-left shadow-[0_8px_20px_rgba(45,37,28,.18)] transition duration-300 hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-coral"
+              }
+              aria-label={`Open ${image.alt}`}
+            >
+              <img
+                src={image.url}
+                alt={image.alt}
+                loading="lazy"
+                decoding="async"
+                className={
+                  index === 0
+                    ? "block h-full w-full object-cover"
+                    : "block aspect-square w-full object-cover"
+                }
+              />
+              <span className="absolute inset-x-3 bottom-3 font-hand text-base text-ink/65 transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink">
+                {image.caption || featured.title}
+              </span>
+            </button>
+          ))}
         </div>
 
         <article className="border border-ink/15 bg-[#fffaf0] p-5 shadow-[0_8px_22px_rgba(49,38,26,.07)] sm:p-7 lg:p-8">
           <div className="h-0.5 w-14 bg-coral" aria-hidden="true" />
-          <p className="eyebrow mt-4 text-coral">{copy.previewEyebrow}</p>
+          <p className="eyebrow mt-4 text-coral">{featured.eyebrow}</p>
           <p className="mt-2 text-[11px] font-semibold tracking-[.08em] text-ink/45">
-            {copy.previewMetadata}
+            {featured.metadata}
           </p>
           <h2
             id={`${inputId}-heading`}
             className="mt-4 text-3xl leading-tight lg:text-4xl"
           >
-            {copy.previewHeading}
+            {featured.title}
           </h2>
           <div className="mt-4 space-y-3 text-[15px] leading-6 text-ink/75">
-            <p>{copy.paragraphOne}</p>
-            <p>{copy.paragraphTwo}</p>
-            <p>{copy.paragraphThree}</p>
+            {featured.excerpt.split(/\n\n+/).map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
           </div>
           <div
             className="pointer-events-none relative mt-1 max-h-[68px] select-none overflow-hidden bg-[#f4ead8]/65 px-1 py-1 [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,.72)_55%,transparent_100%)]"
             aria-hidden="true"
           >
             <p className="text-sm leading-6 text-ink/70 blur-[6px]">
-              {copy.hiddenStory}
+              Continue reading this Studio Letter after joining. The complete
+              story is delivered privately to your inbox.
             </p>
           </div>
           <p className="mt-2 text-sm font-semibold text-coral">

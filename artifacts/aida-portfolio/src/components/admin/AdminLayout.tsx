@@ -54,6 +54,7 @@ const groups = [
     [
       ["/admin/subscribers", "Subscribers", Users],
       ["/admin/subscribers/compose", "Email composer", Mails],
+      ["/admin/subscribers/featured-letter", "Featured letter", Sparkles],
       ["/admin/events/painting-day", "Event registrations", CalendarDays],
     ],
   ],

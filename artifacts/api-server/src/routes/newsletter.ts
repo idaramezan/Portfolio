@@ -117,6 +117,30 @@ async function ensureDeliveryColumns() {
       ADD COLUMN IF NOT EXISTS seat_count INTEGER NOT NULL DEFAULT 1,
       ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS newsletter_template_revisions (
+      id TEXT PRIMARY KEY, template_id TEXT NOT NULL REFERENCES newsletter_templates(id) ON DELETE CASCADE,
+      subject TEXT NOT NULL, preheader TEXT, blocks JSONB NOT NULL,
+      document_version INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS featured_studio_letter_config (
+      id TEXT PRIMARY KEY, enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      template_id TEXT REFERENCES newsletter_templates(id) ON DELETE SET NULL,
+      template_revision_id TEXT REFERENCES newsletter_template_revisions(id) ON DELETE SET NULL,
+      public_eyebrow TEXT, public_title_override TEXT, public_metadata_override TEXT,
+      preview_image_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+      preview_word_count INTEGER NOT NULL DEFAULT 65,
+      show_on_homepage BOOLEAN NOT NULL DEFAULT TRUE, show_on_turkiye_shop BOOLEAN NOT NULL DEFAULT TRUE,
+      show_on_international_shop BOOLEAN NOT NULL DEFAULT FALSE, start_at TIMESTAMPTZ, end_at TIMESTAMPTZ,
+      timezone TEXT NOT NULL DEFAULT 'Europe/Istanbul', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    INSERT INTO featured_studio_letter_config (id) VALUES ('primary') ON CONFLICT (id) DO NOTHING;
+    CREATE TABLE IF NOT EXISTS featured_studio_letter_deliveries (
+      subscriber_id INTEGER NOT NULL REFERENCES newsletter_subscribers(id) ON DELETE CASCADE,
+      template_revision_id TEXT NOT NULL REFERENCES newsletter_template_revisions(id) ON DELETE CASCADE,
+      sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY (subscriber_id, template_revision_id)
+    )
+  `);
 }
 
 type CampaignBlock =
@@ -216,6 +240,64 @@ function publicUrl(value: unknown) {
     return `${site}${value}`;
   }
   return safeUrl(value);
+}
+
+function storyText(blocks: CampaignBlock[]) {
+  return blocks
+    .filter((block) => block.type === "text" || block.type === "heading")
+    .map((block) => String("text" in block ? block.text : "").trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function templateImages(blocks: CampaignBlock[]) {
+  const images: Array<{
+    id: string;
+    url: string;
+    alt: string;
+    caption: string;
+  }> = [];
+  blocks.forEach((block, blockIndex) => {
+    if (block.type === "image" || block.type === "photograph") {
+      const url = publicUrl(block.url);
+      if (url)
+        images.push({
+          id: block.id || `image-${blockIndex}`,
+          url,
+          alt: block.alt || "Photograph from Aida’s studio",
+          caption: block.caption || "",
+        });
+    } else if (block.type === "photo-row") {
+      block.photos.forEach((photo, photoIndex) => {
+        const url = publicUrl(photo.url);
+        if (url)
+          images.push({
+            id: `${block.id || `row-${blockIndex}`}-${photoIndex}`,
+            url,
+            alt: photo.alt || "Photograph from Aida’s studio",
+            caption: photo.caption || "",
+          });
+      });
+    }
+  });
+  return images;
+}
+
+async function eligibleTemplate(template: any) {
+  const campaign = validateCampaign(template);
+  const text = storyText(campaign.blocks);
+  const images = templateImages(campaign.blocks);
+  if (text.split(/\s+/).filter(Boolean).length < 20)
+    throw new Error(
+      "The letter needs at least 20 words of readable story text",
+    );
+  if (!images.length)
+    throw new Error("The letter needs at least one permanent image");
+  const rawUrls = JSON.stringify(campaign.blocks);
+  if (/blob:|file:\/\/|(?:[A-Za-z]:\\|\/(?:Users|home|tmp)\/)/i.test(rawUrls))
+    throw new Error("The letter contains temporary or local media");
+  await renderCampaignBlocks(campaign.blocks);
+  return { campaign, text, images };
 }
 
 function validateCampaign(body: unknown) {
@@ -907,6 +989,195 @@ router.get("/subscribers", requireAdmin, async (req, res) => {
   }
 });
 
+router.get("/featured-letter", async (req, res) => {
+  try {
+    await ensureDeliveryColumns();
+    const context =
+      typeof req.query.context === "string" ? req.query.context : "newsletter";
+    const result = await pool.query(
+      `
+      SELECT c.*, r.subject, r.blocks
+      FROM featured_studio_letter_config c
+      LEFT JOIN newsletter_template_revisions r ON r.id = c.template_revision_id
+      WHERE c.id = 'primary' AND c.enabled = TRUE
+        AND (c.start_at IS NULL OR c.start_at <= NOW()) AND (c.end_at IS NULL OR c.end_at > NOW())
+        AND ($1 = 'newsletter' OR $1 = 'home' AND c.show_on_homepage
+          OR $1 = 'turkiye-shop' AND c.show_on_turkiye_shop
+          OR $1 = 'international-shop' AND c.show_on_international_shop)
+      LIMIT 1`,
+      [context],
+    );
+    if (!result.rowCount || !result.rows[0].blocks)
+      return res.status(404).json({ error: "No featured Studio Letter" });
+    const row = result.rows[0];
+    const text = storyText(row.blocks);
+    const words = text.split(/\s+/).filter(Boolean);
+    const visibleWords = words.slice(0, row.preview_word_count);
+    const images = templateImages(row.blocks);
+    const selected = Array.isArray(row.preview_image_ids)
+      ? row.preview_image_ids
+      : [];
+    const previewImages = (
+      selected.length
+        ? selected
+            .map((id: string) => images.find((image) => image.id === id))
+            .filter(Boolean)
+        : images
+    ).slice(0, 2);
+    return res.json({
+      id: row.template_revision_id,
+      eyebrow: row.public_eyebrow || "A PREVIEW FROM THE STUDIO",
+      title: row.public_title_override || row.subject,
+      metadata:
+        row.public_metadata_override ||
+        `From Aida’s Istanbul Studio · ${Math.max(1, Math.ceil(words.length / 200))} min read`,
+      excerpt: visibleWords.join(" "),
+      hasMore: words.length > visibleWords.length,
+      images: previewImages,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load featured Studio Letter");
+    return res
+      .status(500)
+      .json({ error: "Featured Studio Letter could not be loaded" });
+  }
+});
+
+router.get("/featured-letter/admin", requireAdmin, async (_req, res) => {
+  try {
+    await ensureDeliveryColumns();
+    const [config, templates] = await Promise.all([
+      pool.query(
+        "SELECT * FROM featured_studio_letter_config WHERE id = 'primary'",
+      ),
+      pool.query(
+        "SELECT id, name, subject, preheader, blocks, is_starter, document_version, updated_at FROM newsletter_templates ORDER BY updated_at DESC",
+      ),
+    ]);
+    const candidates = await Promise.all(
+      templates.rows.map(async (template) => {
+        try {
+          const valid = await eligibleTemplate(template);
+          return {
+            ...template,
+            eligible: true,
+            images: valid.images,
+            wordCount: valid.text.split(/\s+/).filter(Boolean).length,
+          };
+        } catch (error) {
+          return {
+            id: template.id,
+            name: template.name,
+            subject: template.subject,
+            updated_at: template.updated_at,
+            eligible: false,
+            reason: error instanceof Error ? error.message : "Invalid template",
+          };
+        }
+      }),
+    );
+    return res.json({ config: config.rows[0], templates: candidates });
+  } catch (err) {
+    return res.status(500).json({
+      error:
+        err instanceof Error
+          ? err.message
+          : "Featured letter settings could not be loaded",
+    });
+  }
+});
+
+router.put("/featured-letter/admin", requireAdmin, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await ensureDeliveryColumns();
+    const templateId =
+      typeof req.body?.templateId === "string" ? req.body.templateId : null;
+    if (!templateId && req.body?.enabled)
+      return res
+        .status(400)
+        .json({ error: "Choose a Studio Letter before enabling the feature" });
+    let revisionId: string | null = null;
+    let imageIds: string[] = [];
+    await client.query("BEGIN");
+    if (templateId) {
+      const found = await client.query(
+        "SELECT * FROM newsletter_templates WHERE id = $1",
+        [templateId],
+      );
+      if (!found.rowCount)
+        throw new Error("The selected template no longer exists");
+      const valid = await eligibleTemplate(found.rows[0]);
+      imageIds = Array.isArray(req.body.previewImageIds)
+        ? req.body.previewImageIds
+            .filter(
+              (id: unknown) =>
+                typeof id === "string" &&
+                valid.images.some((image) => image.id === id),
+            )
+            .slice(0, 2)
+        : [];
+      if (!imageIds.length)
+        imageIds = valid.images.slice(0, 2).map((image) => image.id);
+      revisionId = crypto.randomUUID();
+      await client.query(
+        `INSERT INTO newsletter_template_revisions (id, template_id, subject, preheader, blocks, document_version) VALUES ($1,$2,$3,$4,$5::jsonb,$6)`,
+        [
+          revisionId,
+          templateId,
+          valid.campaign.subject,
+          valid.campaign.preheader || null,
+          JSON.stringify(valid.campaign.blocks),
+          valid.campaign.version,
+        ],
+      );
+    }
+    const count = Math.max(
+      20,
+      Math.min(180, Number(req.body?.previewWordCount || 65)),
+    );
+    const clean = (value: unknown, max: number) =>
+      typeof value === "string" && value.trim()
+        ? value.trim().slice(0, max)
+        : null;
+    const result = await client.query(
+      `UPDATE featured_studio_letter_config SET
+      enabled=$1, template_id=$2, template_revision_id=$3, public_eyebrow=$4, public_title_override=$5,
+      public_metadata_override=$6, preview_image_ids=$7::jsonb, preview_word_count=$8,
+      show_on_homepage=$9, show_on_turkiye_shop=$10, show_on_international_shop=$11,
+      start_at=$12, end_at=$13, timezone=$14, updated_at=NOW() WHERE id='primary' RETURNING *`,
+      [
+        Boolean(req.body?.enabled),
+        templateId,
+        revisionId,
+        clean(req.body?.publicEyebrow, 100),
+        clean(req.body?.publicTitleOverride, 200),
+        clean(req.body?.publicMetadataOverride, 200),
+        JSON.stringify(imageIds),
+        count,
+        req.body?.showOnHomepage !== false,
+        req.body?.showOnTurkiyeShop !== false,
+        Boolean(req.body?.showOnInternationalShop),
+        req.body?.startAt || null,
+        req.body?.endAt || null,
+        clean(req.body?.timezone, 80) || "Europe/Istanbul",
+      ],
+    );
+    await client.query("COMMIT");
+    return res.json({ config: result.rows[0] });
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    return res.status(400).json({
+      error:
+        err instanceof Error
+          ? err.message
+          : "Featured Studio Letter could not be saved",
+    });
+  } finally {
+    client.release();
+  }
+});
+
 // Reusable bulk-email templates. All content still renders inside emailShell.
 router.get("/templates", requireAdmin, async (req, res) => {
   try {
@@ -1264,6 +1535,11 @@ router.post("/", async (req, res) => {
     );
     const subscriber = result.rows[0];
 
+    const requestedFeaturedRevision =
+      typeof req.body?.featuredLetterRevisionId === "string"
+        ? req.body.featuredLetterRevisionId
+        : null;
+
     await attributeSubscriber({
       subscriberId: subscriber.id,
       visitorUuid:
@@ -1341,6 +1617,41 @@ router.post("/", async (req, res) => {
               return "sent";
             })
           : Promise.reject(new Error("Event WhatsApp URL is unavailable")),
+      !requestedFeaturedRevision
+        ? Promise.resolve("not-requested")
+        : (async () => {
+            const featured = await pool.query(
+              `
+              SELECT r.id, r.subject, r.preheader, r.blocks
+              FROM featured_studio_letter_config c
+              JOIN newsletter_template_revisions r ON r.id = c.template_revision_id
+              LEFT JOIN featured_studio_letter_deliveries d ON d.subscriber_id = $2 AND d.template_revision_id = r.id
+              WHERE c.id='primary' AND c.enabled=TRUE AND r.id=$1 AND d.subscriber_id IS NULL
+                AND (c.start_at IS NULL OR c.start_at <= NOW()) AND (c.end_at IS NULL OR c.end_at > NOW())`,
+              [requestedFeaturedRevision, subscriber.id],
+            );
+            if (!featured.rowCount) return "already-sent-or-unavailable";
+            const letter = featured.rows[0];
+            const content = await renderCampaignBlocks(letter.blocks);
+            const unsubscribe = unsubscribeUrl(subscriber.unsubscribe_token);
+            await sendEmail({
+              to: subscriberEmail,
+              subject: letter.subject,
+              html: emailShell(content, {
+                preheader: letter.preheader || "",
+                unsubscribeUrl: unsubscribe,
+              }),
+              headers: {
+                "List-Unsubscribe": `<${unsubscribe}>`,
+                "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+              },
+            });
+            await pool.query(
+              "INSERT INTO featured_studio_letter_deliveries (subscriber_id, template_revision_id) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+              [subscriber.id, letter.id],
+            );
+            return "sent";
+          })(),
     ];
     const emailResults = await Promise.allSettled(emailTasks);
     emailResults.forEach((delivery, index) => {
@@ -1351,7 +1662,9 @@ router.post("/", async (req, res) => {
             ? "Failed to send newsletter welcome email"
             : index === 1
               ? "Failed to send owner notification email"
-              : "Failed to send event interest email",
+              : index === 2
+                ? "Failed to send event interest email"
+                : "Failed to send featured Studio Letter",
         );
     });
 
@@ -1376,6 +1689,9 @@ router.post("/", async (req, res) => {
       emailSent: emailResults.every(
         (delivery) => delivery.status === "fulfilled",
       ),
+      featuredLetterSent:
+        emailResults[3]?.status === "fulfilled" &&
+        emailResults[3].value === "sent",
       alreadySubscribed: subscriber.already_subscribed,
       success: true,
       subscriberStatus,
