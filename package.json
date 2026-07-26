@@ -10,6 +10,7 @@
     "start": "pnpm --filter @workspace/api-server run start",
     "test:sticker-drop": "node scripts/verify-sticker-drop.mjs",
     "test:studio-letter-editorial": "node scripts/verify-studio-letter-editorial.mjs",
+    "test:featured-studio-letter": "node scripts/verify-featured-studio-letter.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

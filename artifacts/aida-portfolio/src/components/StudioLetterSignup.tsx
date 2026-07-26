@@ -185,8 +185,14 @@ export default function StudioLetterSignup({
   }, [context]);
   useEffect(() => {
     if (!story) return;
+    const placement =
+      context === "turkiye"
+        ? "turkiye-shop"
+        : context === "international"
+          ? "international-shop"
+          : context;
     fetch(
-      `/api/newsletter/featured-letter?context=${encodeURIComponent(context)}`,
+      `/api/newsletter/featured-letter?context=${encodeURIComponent(placement)}`,
       { cache: "no-store" },
     )
       .then((response) => (response.ok ? response.json() : null))

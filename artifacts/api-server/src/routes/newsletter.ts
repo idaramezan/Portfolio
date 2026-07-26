@@ -992,8 +992,14 @@ router.get("/subscribers", requireAdmin, async (req, res) => {
 router.get("/featured-letter", async (req, res) => {
   try {
     await ensureDeliveryColumns();
-    const context =
+    const requestedContext =
       typeof req.query.context === "string" ? req.query.context : "newsletter";
+    const context =
+      requestedContext === "turkiye"
+        ? "turkiye-shop"
+        : requestedContext === "international"
+          ? "international-shop"
+          : requestedContext;
     const result = await pool.query(
       `
       SELECT c.*, r.subject, r.blocks
