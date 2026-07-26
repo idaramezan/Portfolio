@@ -40,6 +40,7 @@ export default function EventBanner() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const set = (key: string, value: unknown) =>
     setForm((current: any) => ({ ...current, [key]: value }));
   const load = async () => {
@@ -133,6 +134,43 @@ export default function EventBanner() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+  const uploadImage = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    setMessage("");
+    try {
+      const body = new FormData();
+      body.append("image", file);
+      body.append("productId", "media-library");
+      const response = await fetch("/api/admin/product-media", {
+        method: "POST",
+        headers: { "x-admin-password": password },
+        body,
+      });
+      const result = await response.json();
+      if (!response.ok || typeof result.imageUrl !== "string")
+        throw new Error(result.error || "Image upload failed");
+      const imageUrl = result.imageUrl;
+      set("imageUrl", imageUrl);
+      set(
+        "imageMediaId",
+        imageUrl.match(/product-images\/([^.]+)/)?.[1] || null,
+      );
+      setMedia((current) =>
+        current.includes(imageUrl) ? current : [imageUrl, ...current],
+      );
+      setMessage(
+        "Image uploaded and selected. Save the Event Banner to publish it.",
+      );
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Image upload failed",
+      );
+    } finally {
+      setUploading(false);
     }
   };
   return (
@@ -264,7 +302,41 @@ export default function EventBanner() {
           </label>
         </section>
         <section className="border border-ink/10 bg-paper p-5 md:p-7">
-          <h2 className="font-serif text-2xl">Banner image</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-serif text-2xl">Banner image</h2>
+              <p className="mt-1 text-sm text-ink/55">
+                Upload a JPG, PNG or WebP image up to 10 MB, or choose an
+                existing media-library image.
+              </p>
+            </div>
+            <label className="button-primary cursor-pointer">
+              {uploading ? "Uploading…" : "Upload image"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={uploading}
+                className="sr-only"
+                onChange={(event) => {
+                  void uploadImage(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+          </div>
+          {form.imageUrl && (
+            <figure className="mt-4 max-w-md border border-ink/10 bg-[#f3efe6] p-2">
+              <img
+                src={form.imageUrl}
+                alt={form.imageAltText || "Current Event Banner image"}
+                className="aspect-[5/4] w-full object-cover"
+                style={{ objectPosition: form.imageObjectPosition }}
+              />
+              <figcaption className="mt-2 text-xs text-ink/55">
+                Current banner image
+              </figcaption>
+            </figure>
+          )}
           <label className="mt-4 block text-sm font-semibold">
             Permanent image URL
             <input

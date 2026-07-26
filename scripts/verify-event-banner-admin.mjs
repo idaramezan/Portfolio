@@ -36,5 +36,12 @@ if (
   throw new Error("Event Banner public/admin configuration is not connected");
 if (admin.includes('set("remainingSeats"'))
   throw new Error("Admin must not manually override remaining places");
+if (
+  !admin.includes('body.append("image", file)') ||
+  !admin.includes('fetch("/api/admin/product-media"')
+)
+  throw new Error(
+    "Event Banner must upload images through the existing media library",
+  );
 
 console.log("Event Banner admin verification passed.");
