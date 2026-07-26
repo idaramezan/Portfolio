@@ -21,6 +21,8 @@ export default function EventRegistrations() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [remainingSeats, setRemainingSeats] = useState(8);
+  const [capacity, setCapacity] = useState(11);
+  const [price, setPrice] = useState(150);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -36,6 +38,8 @@ export default function EventRegistrations() {
           throw new Error(result.error || "Registrations could not be loaded");
         setRegistrations(result.registrations || []);
         setRemainingSeats(Number(result.remainingSeats ?? 0));
+        setCapacity(Number(result.config?.total_capacity ?? 11));
+        setPrice(Number(result.config?.participation_price_try ?? 150));
       })
       .catch((reason) =>
         setError(
@@ -215,7 +219,7 @@ export default function EventRegistrations() {
                         aria-label={`Seat count for ${registration.email}`}
                       >
                         {Array.from(
-                          { length: 11 },
+                          { length: capacity },
                           (_, index) => index + 1,
                         ).map((count) => (
                           <option key={count} value={count}>
@@ -240,7 +244,9 @@ export default function EventRegistrations() {
                       </select>
                     </td>
                     <td className="px-4 py-4 font-semibold">
-                      {registration.is_free ? 0 : registration.seat_count * 150}{" "}
+                      {registration.is_free
+                        ? 0
+                        : registration.seat_count * price}{" "}
                       TL
                     </td>
                     <td className="px-4 py-4 capitalize">

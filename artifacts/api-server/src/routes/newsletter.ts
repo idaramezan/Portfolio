@@ -17,9 +17,6 @@ import { attributeSubscriber } from "./analytics";
 
 const router = Router();
 const ISTANBUL_EVENT_CAMPAIGN = "istanbul-painting-day-2026-08-04";
-const ISTANBUL_EVENT_DEADLINE = new Date("2026-08-05T13:00:00.000Z");
-const ISTANBUL_EVENT_CAPACITY = 11;
-const ISTANBUL_EVENT_FEE_TRY = 150;
 
 function requireAdmin(
   request: Request,
@@ -141,6 +138,52 @@ async function ensureDeliveryColumns() {
       sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY (subscriber_id, template_revision_id)
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS event_banner_config (
+      id TEXT PRIMARY KEY, enabled BOOLEAN NOT NULL DEFAULT TRUE, status TEXT NOT NULL DEFAULT 'active',
+      internal_name TEXT NOT NULL, display_start_at TIMESTAMPTZ, display_end_at TIMESTAMPTZ,
+      timezone TEXT NOT NULL DEFAULT 'Europe/Istanbul', event_start_at TIMESTAMPTZ NOT NULL, event_end_at TIMESTAMPTZ,
+      total_capacity INTEGER NOT NULL, participation_price_try INTEGER NOT NULL, audience TEXT NOT NULL,
+      image_media_id TEXT, image_url TEXT, image_alt_text TEXT NOT NULL, image_object_position TEXT NOT NULL DEFAULT 'center',
+      location_text_en TEXT NOT NULL, location_text_tr TEXT NOT NULL, eyebrow_en TEXT NOT NULL, eyebrow_tr TEXT NOT NULL,
+      title_en TEXT NOT NULL, title_tr TEXT NOT NULL, description_en TEXT NOT NULL, description_tr TEXT NOT NULL,
+      secondary_details_en TEXT, secondary_details_tr TEXT, show_on_homepage BOOLEAN NOT NULL DEFAULT TRUE,
+      show_on_turkiye_shop BOOLEAN NOT NULL DEFAULT TRUE, show_on_international_shop BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    INSERT INTO event_banner_config (id, internal_name, display_end_at, event_start_at, total_capacity, participation_price_try,
+      audience, image_alt_text, location_text_en, location_text_tr, eyebrow_en, eyebrow_tr, title_en, title_tr,
+      description_en, description_tr, secondary_details_en, secondary_details_tr)
+    VALUES ('istanbul-painting-day-2026-08-04','Istanbul summer painting day','2026-08-05T13:00:00Z','2026-08-05T13:00:00Z',11,150,
+      'girls_only','Aida and a group of women laughing and painting together on a picnic blanket beneath the trees in an Istanbul park.',
+      'European side','Avrupa Yakası','A SUMMER PAINTING DAY IN ISTANBUL','İSTANBUL’DA BİR YAZ RESİM GÜNÜ',
+      'Paint, meet and spend a sunny afternoon together.','Resim yap, tanış ve güneşli bir öğleden sonrayı birlikte geçir.',
+      'On Wednesday, 5 August at 4 PM, Aida is hosting a small girls-only painting gathering in a park on Istanbul’s European side. No experience is needed. Just come to paint, meet new people, drink tea and enjoy a beautiful summer day together.',
+      '5 Ağustos Çarşamba günü saat 16.00’da Aida, İstanbul Avrupa Yakası’ndaki bir parkta kızlara özel küçük bir resim buluşması düzenliyor. Deneyim gerekmiyor. Resim yapmak, yeni insanlarla tanışmak, çay içmek ve güzel bir yaz gününün tadını çıkarmak için gel.',
+      'No experience needed · Tea and snacks included · Limited places','Deneyim gerekmiyor · Çay ve atıştırmalıklar dahil · Kontenjan sınırlı')
+    ON CONFLICT (id) DO NOTHING
+  `);
+}
+
+async function eventConfig() {
+  await ensureDeliveryColumns();
+  const result = await pool.query(
+    "SELECT * FROM event_banner_config WHERE id = $1",
+    [ISTANBUL_EVENT_CAMPAIGN],
+  );
+  if (!result.rowCount)
+    throw new Error("Event banner configuration is missing");
+  return result.rows[0];
+}
+
+async function eventRemainingSeats(capacity: number, client = pool) {
+  const reserved = await client.query(
+    `SELECT COALESCE(SUM(seat_count), 0)::int AS count
+     FROM newsletter_event_interests
+     WHERE campaign_id = $1 AND reservation_status IN ('confirmed', 'attended')`,
+    [ISTANBUL_EVENT_CAMPAIGN],
+  );
+  return Math.max(0, capacity - Number(reserved.rows[0]?.count || 0));
 }
 
 type CampaignBlock =
@@ -691,50 +734,64 @@ async function registerEventInterest(
   }
 }
 
-const EVENT_EMAIL_PREHEADER =
-  "A relaxed girls-only painting afternoon in Istanbul on Wednesday, 5 August at 4 PM.";
-const EVENT_WHATSAPP_MESSAGE =
-  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
-
 async function getEventWhatsappUrl() {
-  const result = await pool.query(
-    "SELECT payload FROM shop_settings WHERE id = $1 LIMIT 1",
-    ["primary"],
-  );
+  const [result, config] = await Promise.all([
+    pool.query("SELECT payload FROM shop_settings WHERE id = $1 LIMIT 1", [
+      "primary",
+    ]),
+    eventConfig(),
+  ]);
   const number = String(
     result.rows[0]?.payload?.whatsapp?.number || "",
   ).replace(/\D/g, "");
   if (!/^\d{8,15}$/.test(number))
     throw new Error("The configured WhatsApp number is missing or invalid");
-  return `https://wa.me/${number}?text=${encodeURIComponent(EVENT_WHATSAPP_MESSAGE)}`;
+  const date = new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: config.timezone,
+  }).format(new Date(config.event_start_at));
+  const message = `Hello Aida, I joined the Studio Letter through the event invitation. I would love to reserve my place for ${config.title_en} on ${date}.`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
 function buildPaintingEventInterestEmail(input: {
   whatsappUrl: string;
   unsubscribe: string;
+  config: any;
+  remainingSeats: number;
 }) {
-  const participationHtml = `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Participation fee</p><p style="margin:0;font-size:28px;font-weight:700">150 TL</p><p style="margin:9px 0 0;font-size:15px;line-height:1.65">The fee helps cover tea and snacks.</p>`;
+  const { config } = input;
+  const date = new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: config.timezone,
+  }).format(new Date(config.event_start_at));
+  const audience =
+    { girls_only: "Girls only", boys_only: "Boys only", everyone: "Everyone" }[
+      config.audience as string
+    ] || "Everyone";
+  const participationHtml = `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a44938">Participation fee</p><p style="margin:0;font-size:28px;font-weight:700">${escapeHtml(String(config.participation_price_try))} TL</p>`;
   const detailRows = [
-    ["Date", "Wednesday, 5 August 2026"],
-    ["Time", "4:00 PM"],
-    ["Location", "A park on Istanbul’s European side"],
+    ["Date and time", date],
+    ["Location", config.location_text_en],
     ["Exact park and time", "Shared after your place is personally confirmed"],
-    ["Who can join", "Girls only"],
+    ["Who can join", audience],
     ["Experience needed", "None"],
     ["Format", "A relaxed social painting gathering, not a class"],
-    ["Places", "8 places remaining"],
+    ["Places", `${input.remainingSeats} places remaining`],
   ]
     .map(
       ([label, value]) =>
         `<tr><th scope="row" style="padding:9px 12px 9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:13px;color:#75695d">${escapeHtml(label)}</th><td style="padding:9px 0;border-bottom:1px solid #ded5c6;text-align:left;vertical-align:top;font-size:14px;font-weight:600">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
-  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">I’m so happy you’d like to join us.</h1><p style="font-size:16px;line-height:1.7">Thank you for joining the Studio Letter through the Istanbul painting day invitation.</p><p style="font-size:16px;line-height:1.7">On Wednesday, 5 August at 4 PM, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.</p><p style="font-size:16px;line-height:1.7">You do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp. The exact park will be shared with confirmed participants.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p><p style="margin-top:28px;font-size:16px;line-height:1.7">I’m looking forward to painting together.</p><p style="font-size:16px;line-height:1.7">See you in Istanbul,<br><strong>Aida</strong></p>`;
-  const text = `AIDA RAMEZANI · STUDIO LETTER\n\nI’m so happy you’d like to join us.\n\nThank you for joining the Studio Letter through the Istanbul painting day invitation.\n\nOn Wednesday, 5 August at 4 PM, I’m bringing together a small group of girls for a relaxed afternoon of painting, conversation, tea and snacks in a park on Istanbul’s European side.\n\nYou do not need any painting experience. This is not a lesson or workshop. It is simply a chance to create something, meet new people and enjoy a summer day together.\n\nEVENT DETAILS\nDate: Wednesday, 5 August 2026\nTime: 4:00 PM\nLocation: A park on Istanbul’s European side\nExact park: Shared with confirmed participants\nWho can join: Girls only\nExperience needed: None\nFormat: A relaxed social painting gathering, not a class\nPlaces: 8\n\nParticipation fee: 150 TL\nThe fee helps cover tea and snacks.\n\nYour email has registered your interest, but it has not reserved a place.\n\nYour attendance is confirmed personally by Aida on WhatsApp. The exact park will be shared with confirmed participants.\n\nContact Aida to reserve my place:\n${input.whatsappUrl}\n\nI’m looking forward to painting together.\n\nSee you in Istanbul,\nAida\n\nYou received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.\nUnsubscribe: ${input.unsubscribe}`;
+  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">${escapeHtml(config.title_en)}</h1><p style="font-size:16px;line-height:1.7">${escapeHtml(config.description_en)}</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:3px solid #a44938;background:#f3eadb">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a44938;color:#fffaf1;padding:14px 22px;text-decoration:none;font-weight:700">Contact Aida to reserve my place</a></p>`;
+  const text = `${config.title_en}\n\n${config.description_en}\n\nDate: ${date}\nLocation: ${config.location_text_en}\nWho can join: ${audience}\nPlaces: ${input.remainingSeats}\nParticipation fee: ${config.participation_price_try} TL\n\nContact Aida: ${input.whatsappUrl}\nUnsubscribe: ${input.unsubscribe}`;
   return {
-    subject: "Your Istanbul painting day details from Aida 🎨",
+    subject: `${config.title_en} — details from Aida`,
     html: emailShell(content, {
-      preheader: EVENT_EMAIL_PREHEADER,
+      preheader: config.secondary_details_en || config.description_en,
       unsubscribeUrl: input.unsubscribe,
       headerLabel: "AIDA RAMEZANI · STUDIO LETTER",
       footerNote:
@@ -750,7 +807,12 @@ async function sendPaintingEventInterestEmail(input: {
   whatsappUrl: string;
   unsubscribe: string;
 }) {
-  const email = buildPaintingEventInterestEmail(input);
+  const config = await eventConfig();
+  const email = buildPaintingEventInterestEmail({
+    ...input,
+    config,
+    remainingSeats: await eventRemainingSeats(config.total_capacity),
+  });
   await sendEmail({
     to: input.to,
     subject: email.subject,
@@ -784,7 +846,152 @@ async function welcomeSubscriber(email: string, name: string | null) {
   });
 }
 
-// GET /newsletter/event-status — public availability for the August event banner
+router.get("/event-banner", async (req, res) => {
+  try {
+    const config = await eventConfig();
+    const placement =
+      typeof req.query.placement === "string" ? req.query.placement : "home";
+    const now = new Date();
+    const visible =
+      Boolean(config.enabled) &&
+      ["active", "scheduled"].includes(config.status) &&
+      (!config.display_start_at || now >= new Date(config.display_start_at)) &&
+      (!config.display_end_at || now < new Date(config.display_end_at)) &&
+      (placement === "home"
+        ? config.show_on_homepage
+        : placement === "turkiye-shop"
+          ? config.show_on_turkiye_shop
+          : placement === "international-shop"
+            ? config.show_on_international_shop
+            : false);
+    if (!visible)
+      return res.status(404).json({ error: "Event banner is not active" });
+    const remainingSeats = await eventRemainingSeats(config.total_capacity);
+    return res.json({
+      config,
+      remainingSeats,
+      campaignId: ISTANBUL_EVENT_CAMPAIGN,
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to load event banner");
+    return res.status(500).json({ error: "Event banner could not be loaded" });
+  }
+});
+
+router.get("/event-banner/admin", requireAdmin, async (_req, res) => {
+  try {
+    const config = await eventConfig();
+    const remainingSeats = await eventRemainingSeats(config.total_capacity);
+    return res.json({ config, remainingSeats });
+  } catch (err) {
+    return res.status(500).json({
+      error:
+        err instanceof Error ? err.message : "Event banner could not be loaded",
+    });
+  }
+});
+
+router.put("/event-banner/admin", requireAdmin, async (req, res) => {
+  try {
+    await ensureDeliveryColumns();
+    const value = req.body || {};
+    const statuses = new Set([
+      "draft",
+      "scheduled",
+      "active",
+      "paused",
+      "expired",
+      "completed",
+    ]);
+    const audiences = new Set(["girls_only", "boys_only", "everyone"]);
+    const required = (key: string, max = 1000) => {
+      const text = typeof value[key] === "string" ? value[key].trim() : "";
+      if (!text || text.length > max) throw new Error(`${key} is required`);
+      return text;
+    };
+    if (!statuses.has(value.status) || !audiences.has(value.audience))
+      throw new Error("Choose a valid status and audience");
+    const capacity = Number(value.totalCapacity);
+    const price = Number(value.participationPriceTry);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 10000)
+      throw new Error("Capacity must be a whole number between 1 and 10,000");
+    if (!Number.isFinite(price) || price < 0 || price > 1000000)
+      throw new Error("Enter a valid participation price");
+    const imageUrl =
+      typeof value.imageUrl === "string" && value.imageUrl.trim()
+        ? value.imageUrl.trim()
+        : null;
+    if (
+      imageUrl &&
+      (/^(?:blob:|file:|data:)/i.test(imageUrl) ||
+        (!imageUrl.startsWith("/") && !safeUrl(imageUrl)))
+    )
+      throw new Error("Choose a permanent media-library image");
+    const timezone = required("timezone", 80);
+    const result = await pool.query(
+      `UPDATE event_banner_config SET
+      enabled=$2,status=$3,internal_name=$4,
+      display_start_at=CASE WHEN $5::text IS NULL THEN NULL ELSE $5::timestamp AT TIME ZONE $28 END,
+      display_end_at=CASE WHEN $6::text IS NULL THEN NULL ELSE $6::timestamp AT TIME ZONE $28 END,
+      event_start_at=$7::timestamp AT TIME ZONE $28,
+      event_end_at=CASE WHEN $8::text IS NULL THEN NULL ELSE $8::timestamp AT TIME ZONE $28 END,
+      total_capacity=$9,participation_price_try=$10,audience=$11,image_media_id=$12,image_url=$13,
+      image_alt_text=$14,image_object_position=$15,location_text_en=$16,location_text_tr=$17,
+      eyebrow_en=$18,eyebrow_tr=$19,title_en=$20,title_tr=$21,description_en=$22,description_tr=$23,
+      secondary_details_en=$24,secondary_details_tr=$25,show_on_homepage=$26,
+      show_on_turkiye_shop=$27,timezone=$28,show_on_international_shop=$29,updated_at=NOW()
+      WHERE id=$1 RETURNING *`,
+      [
+        ISTANBUL_EVENT_CAMPAIGN,
+        Boolean(value.enabled),
+        value.status,
+        required("internalName", 120),
+        value.displayStartAt || null,
+        value.displayEndAt || null,
+        required("eventStartAt", 40),
+        value.eventEndAt || null,
+        capacity,
+        Math.round(price),
+        value.audience,
+        typeof value.imageMediaId === "string" ? value.imageMediaId : null,
+        imageUrl,
+        required("imageAltText", 300),
+        required("imageObjectPosition", 80),
+        required("locationTextEn", 300),
+        required("locationTextTr", 300),
+        required("eyebrowEn", 200),
+        required("eyebrowTr", 200),
+        required("titleEn", 300),
+        required("titleTr", 300),
+        required("descriptionEn", 2000),
+        required("descriptionTr", 2000),
+        typeof value.secondaryDetailsEn === "string" &&
+        value.secondaryDetailsEn.trim()
+          ? value.secondaryDetailsEn.trim().slice(0, 1000)
+          : null,
+        typeof value.secondaryDetailsTr === "string" &&
+        value.secondaryDetailsTr.trim()
+          ? value.secondaryDetailsTr.trim().slice(0, 1000)
+          : null,
+        Boolean(value.showOnHomepage),
+        Boolean(value.showOnTurkiyeShop),
+        timezone,
+        Boolean(value.showOnInternationalShop),
+      ],
+    );
+    return res.json({
+      config: result.rows[0],
+      remainingSeats: await eventRemainingSeats(capacity),
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error:
+        err instanceof Error ? err.message : "Event banner could not be saved",
+    });
+  }
+});
+
+// Compatibility endpoint. It preserves the confirmed/attended attendance source of truth.
 router.get("/event-status", async (req, res) => {
   try {
     const campaignId =
@@ -792,19 +999,17 @@ router.get("/event-status", async (req, res) => {
     if (campaignId !== ISTANBUL_EVENT_CAMPAIGN)
       return res.status(404).json({ error: "Event campaign not found" });
     await ensureDeliveryColumns();
-    const reserved = await pool.query(
-      `SELECT COALESCE(SUM(seat_count), 0)::int AS count
-       FROM newsletter_event_interests
-       WHERE campaign_id = $1 AND reservation_status IN ('confirmed', 'attended')`,
-      [ISTANBUL_EVENT_CAMPAIGN],
-    );
-    const remainingSeats = Math.max(
-      0,
-      ISTANBUL_EVENT_CAPACITY - Number(reserved.rows[0]?.count || 0),
-    );
+    const config = await eventConfig();
+    const remainingSeats = await eventRemainingSeats(config.total_capacity);
+    const now = new Date();
     return res.json({
       campaignId: ISTANBUL_EVENT_CAMPAIGN,
-      active: new Date() < ISTANBUL_EVENT_DEADLINE,
+      active:
+        Boolean(config.enabled) &&
+        ["active", "scheduled"].includes(config.status) &&
+        (!config.display_start_at ||
+          now >= new Date(config.display_start_at)) &&
+        (!config.display_end_at || now < new Date(config.display_end_at)),
       remainingSeats,
     });
   } catch (err) {
@@ -817,6 +1022,7 @@ router.get("/event-status", async (req, res) => {
 router.get("/event-interests", requireAdmin, async (req, res) => {
   try {
     await ensureDeliveryColumns();
+    const config = await eventConfig();
     const result = await pool.query(
       `SELECT id, email, created_at, subscriber_status, is_free, seat_count,
               CASE WHEN is_free THEN 0 ELSE seat_count * $2 END AS participation_fee_try,
@@ -825,7 +1031,7 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
        FROM newsletter_event_interests
        WHERE campaign_id = $1
        ORDER BY created_at ASC, id ASC`,
-      [ISTANBUL_EVENT_CAMPAIGN, ISTANBUL_EVENT_FEE_TRY],
+      [ISTANBUL_EVENT_CAMPAIGN, config.participation_price_try],
     );
     const reserved = result.rows.reduce(
       (total, registration) =>
@@ -836,7 +1042,8 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
     );
     return res.json({
       registrations: result.rows,
-      remainingSeats: Math.max(0, ISTANBUL_EVENT_CAPACITY - reserved),
+      remainingSeats: Math.max(0, config.total_capacity - reserved),
+      config,
     });
   } catch (err) {
     req.log.error({ err }, "Failed to load event registrations");
@@ -848,6 +1055,7 @@ router.get("/event-interests", requireAdmin, async (req, res) => {
 
 router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
   try {
+    const config = await eventConfig();
     const whatsappStatuses = new Set(["not_contacted", "contacted"]);
     const reservationStatuses = new Set([
       "interest",
@@ -864,7 +1072,7 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
       !reservationStatuses.has(reservationStatus) ||
       !Number.isInteger(seatCount) ||
       seatCount < 1 ||
-      seatCount > ISTANBUL_EVENT_CAPACITY ||
+      seatCount > config.total_capacity ||
       typeof isFree !== "boolean"
     )
       return res
@@ -891,7 +1099,7 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
         : 0;
       if (
         Number(otherReserved.rows[0]?.count || 0) + requestedReserved >
-        ISTANBUL_EVENT_CAPACITY
+        config.total_capacity
       ) {
         await client.query("ROLLBACK");
         return res.status(409).json({
@@ -926,9 +1134,9 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
           ...result.rows[0],
           participation_fee_try: isFree
             ? 0
-            : seatCount * ISTANBUL_EVENT_FEE_TRY,
+            : seatCount * config.participation_price_try,
         },
-        remainingSeats: Math.max(0, ISTANBUL_EVENT_CAPACITY - reservedCount),
+        remainingSeats: Math.max(0, config.total_capacity - reservedCount),
       });
     } catch (error) {
       await client.query("ROLLBACK").catch(() => undefined);
@@ -946,10 +1154,15 @@ router.patch("/event-interests/:id", requireAdmin, async (req, res) => {
 
 router.get("/event-email-preview", requireAdmin, async (req, res) => {
   try {
-    const whatsappUrl = await getEventWhatsappUrl();
+    const [whatsappUrl, config] = await Promise.all([
+      getEventWhatsappUrl(),
+      eventConfig(),
+    ]);
     const email = buildPaintingEventInterestEmail({
       whatsappUrl,
       unsubscribe: "https://www.aedaart.com/newsletter",
+      config,
+      remainingSeats: await eventRemainingSeats(config.total_capacity),
     });
     return res.json({
       subject: email.subject,
@@ -1502,8 +1715,15 @@ router.post("/", async (req, res) => {
         .json({ error: "Valid event campaign is required" });
     if (eventInterest && req.body?.consentToStudioLetter !== true)
       return res.status(400).json({ error: "Valid event consent is required" });
-    if (eventInterest && new Date() >= ISTANBUL_EVENT_DEADLINE)
-      return res.status(410).json({ error: "This event campaign has ended" });
+    if (eventInterest) {
+      const config = await eventConfig();
+      if (
+        !config.enabled ||
+        !["active", "scheduled"].includes(config.status) ||
+        (config.display_end_at && new Date() >= new Date(config.display_end_at))
+      )
+        return res.status(410).json({ error: "This event campaign has ended" });
+    }
 
     if (
       !email ||

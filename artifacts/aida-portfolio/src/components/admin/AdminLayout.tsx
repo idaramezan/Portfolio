@@ -48,7 +48,14 @@ const groups = [
       ["/admin/inventory", "Inventory", Boxes],
     ],
   ],
-  ["Marketing", [["/admin/sticker-drop", "Sticker Drop", Sparkles]]],
+  [
+    "Marketing",
+    [
+      ["/admin/marketing/event-banner", "Event Banner", CalendarDays],
+      ["/admin/sticker-drop", "Sticker Drop", Sparkles],
+      ["/admin/subscribers/featured-letter", "Studio Letter", Mails],
+    ],
+  ],
   [
     "Audience",
     [

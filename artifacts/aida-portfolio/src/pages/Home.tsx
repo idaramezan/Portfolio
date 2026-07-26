@@ -21,7 +21,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col overflow-hidden">
-      <IstanbulPaintingEventBanner />
+      <IstanbulPaintingEventBanner placement="home" />
       <section className="home-hero">
         <div className="section-shell home-hero__inner !py-5 md:!py-8">
           <div className="max-w-2xl">

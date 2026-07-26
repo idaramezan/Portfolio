@@ -338,7 +338,9 @@ export default function RegionalLanding({
   const base = tr ? "/shop/turkiye" : "/shop/international";
   return (
     <div>
-      {tr && <IstanbulPaintingEventBanner />}
+      <IstanbulPaintingEventBanner
+        placement={tr ? "turkiye-shop" : "international-shop"}
+      />
       <section
         className={`regional-shop-hero regional-shop-hero--${tr ? "turkiye" : "international"}`}
       >

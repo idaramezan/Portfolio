@@ -14,20 +14,45 @@ import {
 } from "@/lib/newsletter";
 import eventImage from "@assets/istanbul-summer-painting-day.png";
 import { analyticsContext, trackAnalytics } from "@/lib/analytics";
+import { useLocale } from "@/lib/locale";
 
-const CAMPAIGN_ID = "istanbul-painting-day-2026-08-04";
-const EVENT_DEADLINE = Date.parse("2026-08-05T13:00:00.000Z");
+type EventConfig = {
+  id: string;
+  timezone: string;
+  event_start_at: string;
+  total_capacity: number;
+  participation_price_try: number;
+  audience: "girls_only" | "boys_only" | "everyone";
+  image_url: string | null;
+  image_alt_text: string;
+  image_object_position: string;
+  location_text_en: string;
+  location_text_tr: string;
+  eyebrow_en: string;
+  eyebrow_tr: string;
+  title_en: string;
+  title_tr: string;
+  description_en: string;
+  description_tr: string;
+  secondary_details_en: string | null;
+  secondary_details_tr: string | null;
+};
 const WHATSAPP_MESSAGE =
   "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
 const SUCCESS_MESSAGE =
   "Event details sent. Check your inbox, and please check your Spam or Junk folder too in case the email landed there.";
 
-export default function IstanbulPaintingEventBanner() {
+export default function IstanbulPaintingEventBanner({
+  placement = "home",
+}: {
+  placement?: "home" | "turkiye-shop" | "international-shop";
+}) {
   const settings = useShopSettings();
+  const { locale } = useLocale();
   const submitting = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [active, setActive] = useState(() => Date.now() < EVENT_DEADLINE);
-  const [remainingSeats, setRemainingSeats] = useState(8);
+  const [config, setConfig] = useState<EventConfig | null>(null);
+  const [remainingSeats, setRemainingSeats] = useState(0);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -41,7 +66,7 @@ export default function IstanbulPaintingEventBanner() {
   useEffect(() => {
     trackAnalytics("painting_event_banner_viewed");
     fetch(
-      `/api/newsletter/event-status?campaignId=${encodeURIComponent(CAMPAIGN_ID)}`,
+      `/api/newsletter/event-banner?placement=${encodeURIComponent(placement)}`,
       {
         cache: "no-store",
       },
@@ -49,12 +74,12 @@ export default function IstanbulPaintingEventBanner() {
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) throw new Error();
-        setActive(Boolean(result.active));
+        setConfig(result.config || null);
         if (Number.isInteger(result.remainingSeats))
           setRemainingSeats(Math.max(0, result.remainingSeats));
       })
       .catch(() => undefined);
-  }, []);
+  }, [placement]);
 
   useEffect(
     () => () => {
@@ -63,7 +88,24 @@ export default function IstanbulPaintingEventBanner() {
     [],
   );
 
-  if (!active) return null;
+  if (!config) return null;
+  const local = locale === "tr";
+  const eventDate = new Intl.DateTimeFormat(local ? "tr-TR" : "en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: config.timezone,
+  }).format(new Date(config.event_start_at));
+  const audience = local
+    ? {
+        girls_only: "Yalnızca kızlar",
+        boys_only: "Yalnızca erkekler",
+        everyone: "Herkes",
+      }[config.audience]
+    : {
+        girls_only: "Girls only",
+        boys_only: "Boys only",
+        everyone: "Everyone",
+      }[config.audience];
 
   const showSuccessToast = () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -91,10 +133,10 @@ export default function IstanbulPaintingEventBanner() {
         body: JSON.stringify({
           email: normalized,
           source: "istanbul-painting-day-august-2026",
-          campaignId: CAMPAIGN_ID,
+          campaignId: config.id,
           eventInterest: true,
           consentToStudioLetter: true,
-          locale: "en",
+          locale,
           ...analyticsContext(),
         }),
       });
@@ -154,7 +196,7 @@ export default function IstanbulPaintingEventBanner() {
         <article className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <p className="eyebrow text-coral">
-              A SUMMER PAINTING DAY IN ISTANBUL
+              {local ? config.eyebrow_tr : config.eyebrow_en}
             </p>
             <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
               {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
@@ -165,13 +207,10 @@ export default function IstanbulPaintingEventBanner() {
             id="istanbul-painting-day-heading"
             className="mt-3 max-w-3xl text-3xl leading-tight text-[#fffaf1] md:text-4xl"
           >
-            Paint, meet and spend a sunny afternoon together.
+            {local ? config.title_tr : config.title_en}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[#fffaf1]/68 md:text-[15px]">
-            On Wednesday, 5 August at 4 PM, Aida is hosting a small girls-only
-            painting gathering in a park on Istanbul’s European side. No
-            experience is needed. Just come to paint, meet new people, drink tea
-            and enjoy a beautiful summer day together.
+            {local ? config.description_tr : config.description_en}
           </p>
 
           <ul
@@ -179,10 +218,13 @@ export default function IstanbulPaintingEventBanner() {
             aria-label="Event facts"
           >
             {[
-              [CalendarDays, "Wed, 5 August · 4 PM"],
-              [MapPin, "European side"],
-              [Users, "Girls only"],
-              [CircleCheck, "150 TL"],
+              [CalendarDays, eventDate],
+              [
+                MapPin,
+                local ? config.location_text_tr : config.location_text_en,
+              ],
+              [Users, audience],
+              [CircleCheck, `${config.participation_price_try} TL`],
             ].map(([Icon, value]) => {
               const FactIcon = Icon as typeof CalendarDays;
               return (
@@ -201,7 +243,7 @@ export default function IstanbulPaintingEventBanner() {
             })}
           </ul>
           <p className="mt-2 text-xs text-[#fffaf1]/55">
-            No experience needed · Tea and snacks included · Limited places
+            {local ? config.secondary_details_tr : config.secondary_details_en}
           </p>
 
           <div className="mt-4 border-l-2 border-coral bg-white/[.05] px-4 py-2.5">
@@ -303,16 +345,17 @@ export default function IstanbulPaintingEventBanner() {
 
         <figure className="relative rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0">
           <div className="absolute -left-2 -top-2 z-10 bg-coral px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em] text-white">
-            5 AUG · 4 PM · ISTANBUL
+            {eventDate.toUpperCase()}
           </div>
           <img
-            src={eventImage}
-            alt="Aida and a group of women laughing and painting together on a picnic blanket beneath the trees in an Istanbul park."
+            src={config.image_url || eventImage}
+            alt={config.image_alt_text}
             width="1400"
             height="1122"
             loading="eager"
             decoding="async"
-            className="aspect-[5/4] w-full object-cover object-center"
+            className="aspect-[5/4] w-full object-cover"
+            style={{ objectPosition: config.image_object_position }}
           />
           <figcaption className="px-2 pt-1.5 font-hand text-sm text-ink/65">
             A summer afternoon for painting together.

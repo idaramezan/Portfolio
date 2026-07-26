@@ -1,0 +1,51 @@
+CREATE TABLE IF NOT EXISTS event_banner_config (
+  id TEXT PRIMARY KEY,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('draft','scheduled','active','paused','expired','completed')),
+  internal_name TEXT NOT NULL,
+  display_start_at TIMESTAMPTZ,
+  display_end_at TIMESTAMPTZ,
+  timezone TEXT NOT NULL DEFAULT 'Europe/Istanbul',
+  event_start_at TIMESTAMPTZ NOT NULL,
+  event_end_at TIMESTAMPTZ,
+  total_capacity INTEGER NOT NULL CHECK (total_capacity > 0),
+  participation_price_try INTEGER NOT NULL CHECK (participation_price_try >= 0),
+  audience TEXT NOT NULL CHECK (audience IN ('girls_only','boys_only','everyone')),
+  image_media_id TEXT,
+  image_url TEXT,
+  image_alt_text TEXT NOT NULL,
+  image_object_position TEXT NOT NULL DEFAULT 'center',
+  location_text_en TEXT NOT NULL,
+  location_text_tr TEXT NOT NULL,
+  eyebrow_en TEXT NOT NULL,
+  eyebrow_tr TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  title_tr TEXT NOT NULL,
+  description_en TEXT NOT NULL,
+  description_tr TEXT NOT NULL,
+  secondary_details_en TEXT,
+  secondary_details_tr TEXT,
+  show_on_homepage BOOLEAN NOT NULL DEFAULT TRUE,
+  show_on_turkiye_shop BOOLEAN NOT NULL DEFAULT TRUE,
+  show_on_international_shop BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO event_banner_config (
+  id, internal_name, display_end_at, event_start_at, total_capacity,
+  participation_price_try, audience, image_alt_text, location_text_en,
+  location_text_tr, eyebrow_en, eyebrow_tr, title_en, title_tr,
+  description_en, description_tr, secondary_details_en, secondary_details_tr
+) VALUES (
+  'istanbul-painting-day-2026-08-04', 'Istanbul summer painting day',
+  '2026-08-05T13:00:00Z', '2026-08-05T13:00:00Z', 11, 150, 'girls_only',
+  'Aida and a group of women laughing and painting together on a picnic blanket beneath the trees in an Istanbul park.',
+  'European side', 'Avrupa Yakası', 'A SUMMER PAINTING DAY IN ISTANBUL',
+  'İSTANBUL’DA BİR YAZ RESİM GÜNÜ', 'Paint, meet and spend a sunny afternoon together.',
+  'Resim yap, tanış ve güneşli bir öğleden sonrayı birlikte geçir.',
+  'On Wednesday, 5 August at 4 PM, Aida is hosting a small girls-only painting gathering in a park on Istanbul’s European side. No experience is needed. Just come to paint, meet new people, drink tea and enjoy a beautiful summer day together.',
+  '5 Ağustos Çarşamba günü saat 16.00’da Aida, İstanbul Avrupa Yakası’ndaki bir parkta kızlara özel küçük bir resim buluşması düzenliyor. Deneyim gerekmiyor. Resim yapmak, yeni insanlarla tanışmak, çay içmek ve güzel bir yaz gününün tadını çıkarmak için gel.',
+  'No experience needed · Tea and snacks included · Limited places',
+  'Deneyim gerekmiyor · Çay ve atıştırmalıklar dahil · Kontenjan sınırlı'
+) ON CONFLICT (id) DO NOTHING;
