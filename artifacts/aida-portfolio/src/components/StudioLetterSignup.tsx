@@ -9,7 +9,8 @@ import {
 } from "@/lib/newsletter";
 import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 
-export type StudioLetterVariant = "story-preview" | "compact" | "footer";
+export type StudioLetterVariant =
+  "story-preview" | "compact" | "footer" | "hero";
 
 export const studioLetterCopy = {
   en: {
@@ -18,6 +19,7 @@ export const studioLetterCopy = {
     footerSubmit: "Join free",
     compactSubmit: "Join the Studio Letter — Free",
     storySubmit: "Read the rest in the Studio Letter",
+    heroSubmit: "Send me the Studio Letter",
     loading: "Joining…",
     successTitle: "You’re on the Studio Letter list.",
     successBody:
@@ -46,6 +48,7 @@ export const studioLetterCopy = {
     footerSubmit: "Ücretsiz katıl",
     compactSubmit: "Stüdyo Mektubu’na ücretsiz katıl",
     storySubmit: "Hikâyenin devamını Stüdyo Mektubu’nda oku",
+    heroSubmit: "Stüdyo Mektubu’nu bana gönder",
     loading: "Katılım tamamlanıyor…",
     successTitle: "Stüdyo Mektubu listesine katıldın.",
     successBody:
@@ -78,6 +81,7 @@ type PreviewImage = {
 };
 type FeaturedLetter = {
   id: string;
+  templateId: string;
   eyebrow: string;
   title: string;
   metadata: string;
@@ -175,8 +179,10 @@ export default function StudioLetterSignup({
   const [error, setError] = useState("");
   const [lightbox, setLightbox] = useState<PreviewImage | null>(null);
   const [featured, setFeatured] = useState<FeaturedLetter | null>(null);
+  const [featuredLoaded, setFeaturedLoaded] = useState(false);
   const submitting = useRef(false);
   const story = variant === "story-preview";
+  const hero = variant === "hero";
 
   useEffect(() => {
     trackAnalytics("newsletter_section_viewed", {
@@ -184,9 +190,10 @@ export default function StudioLetterSignup({
     });
   }, [context]);
   useEffect(() => {
-    if (!story) return;
-    const placement =
-      context === "turkiye"
+    if (!story && !hero) return;
+    const placement = hero
+      ? "newsletter"
+      : context === "turkiye"
         ? "turkiye-shop"
         : context === "international"
           ? "international-shop"
@@ -197,8 +204,15 @@ export default function StudioLetterSignup({
     )
       .then((response) => (response.ok ? response.json() : null))
       .then(setFeatured)
-      .catch(() => setFeatured(null));
-  }, [context, story]);
+      .catch(() => setFeatured(null))
+      .finally(() => setFeaturedLoaded(true));
+  }, [context, hero, story]);
+  useEffect(() => {
+    const subscribed = () => setStatus("success");
+    window.addEventListener("studio-letter:subscribed", subscribed);
+    return () =>
+      window.removeEventListener("studio-letter:subscribed", subscribed);
+  }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -223,8 +237,12 @@ export default function StudioLetterSignup({
           source: NEWSLETTER_SOURCE[context],
           subscribedAt: new Date().toISOString(),
           ...analyticsContext(),
-          ...(story && featured
-            ? { featuredLetterRevisionId: featured.id }
+          signupForm: hero ? "studio-letter-hero" : context,
+          ...(featured
+            ? {
+                featuredTemplateId: featured.templateId,
+                featuredLetterRevisionId: featured.id,
+              }
             : {}),
         }),
       });
@@ -237,6 +255,9 @@ export default function StudioLetterSignup({
           : result.alreadySubscribed
             ? "duplicate"
             : "success",
+      );
+      window.dispatchEvent(
+        new CustomEvent("studio-letter:subscribed", { detail: result }),
       );
       trackAnalytics("newsletter_signup_success", {
         metadata: { form: context, newSubscriber: !result.alreadySubscribed },
@@ -332,7 +353,7 @@ export default function StudioLetterSignup({
             placeholder={copy.emailPlaceholder}
             aria-invalid={status === "error" ? "true" : undefined}
             aria-describedby={status === "error" ? errorId : undefined}
-            disabled={status === "loading"}
+            disabled={status === "loading" || (hero && !featuredLoaded)}
             className={
               variant === "footer"
                 ? "footer-newsletter-input"
@@ -341,7 +362,7 @@ export default function StudioLetterSignup({
           />
           <button
             type="submit"
-            disabled={status === "loading"}
+            disabled={status === "loading" || (hero && !featuredLoaded)}
             className={
               variant === "footer"
                 ? "footer-newsletter-button"
@@ -355,7 +376,9 @@ export default function StudioLetterSignup({
                   ? copy.footerSubmit
                   : story
                     ? copy.storySubmit
-                    : copy.compactSubmit)}
+                    : hero
+                      ? copy.heroSubmit
+                      : copy.compactSubmit)}
           </button>
         </div>
         <div aria-live="polite">

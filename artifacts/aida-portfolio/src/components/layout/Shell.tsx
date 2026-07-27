@@ -14,9 +14,10 @@ import {
 import { useLocale } from "@/lib/locale";
 
 const NAV_LINKS = [
-  { href: "/shop/turkiye", label: "Türkiye Shop" },
-  { href: "/shop/international", label: "International" },
-  { href: "/about", label: "About" },
+  { href: "/shop/turkiye", en: "Türkiye Shop", tr: "Türkiye Mağaza" },
+  { href: "/shop/international", en: "International", tr: "Uluslararası" },
+  { href: "/studio-letter", en: "Studio Letter", tr: "Stüdyo Mektubu" },
+  { href: "/about", en: "About", tr: "Hakkında" },
 ];
 
 const INFORMATION_LINKS = [
@@ -125,7 +126,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     : "text-ink hover:text-coral",
                 )}
               >
-                {link.label}
+                {link[locale]}
               </Link>
             ))}
           </nav>
@@ -227,6 +228,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             ))}
             <p className="eyebrow mb-2 mt-6">Studio</p>
             {[
+              {
+                href: "/studio-letter",
+                label: locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
+              },
               { href: "/about", label: "About" },
               { href: "/links", label: "Links" },
             ].map((link) => (
@@ -301,6 +306,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </Link>
               ))}
               <Link href="/links">Links</Link>
+              <Link href="/studio-letter">
+                {locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}
+              </Link>
               <a href="mailto:aida@aedaart.com">Contact</a>
             </div>
           </nav>
@@ -315,6 +323,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </p>
             <h2 id="studio-letter-heading">{newsletterCopy.footerHeading}</h2>
             <p>{newsletterCopy.footerSubheading}</p>
+            <Link
+              href="/studio-letter"
+              className="mb-4 inline-flex text-sm font-semibold text-coral underline underline-offset-4"
+            >
+              {locale === "tr" ? "Daha fazla bilgi" : "Learn more"}
+            </Link>
             <Newsletter />
           </section>
         </div>

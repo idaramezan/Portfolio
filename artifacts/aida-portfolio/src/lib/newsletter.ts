@@ -4,6 +4,7 @@ export type StudioLetterContext =
   | "international"
   | "mystery-mail"
   | "newsletter"
+  | "studio-letter"
   | "footer";
 
 export const NEWSLETTER_SOURCE: Record<StudioLetterContext, string> = {
@@ -12,6 +13,7 @@ export const NEWSLETTER_SOURCE: Record<StudioLetterContext, string> = {
   international: "international-shop",
   "mystery-mail": "mystery-mail",
   newsletter: "newsletter-page",
+  "studio-letter": "studio-letter-page",
   footer: "footer",
 };
 

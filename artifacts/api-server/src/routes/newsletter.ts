@@ -1245,6 +1245,7 @@ router.get("/featured-letter", async (req, res) => {
     ).slice(0, 2);
     return res.json({
       id: row.template_revision_id,
+      templateId: row.template_id,
       eyebrow: row.public_eyebrow || "A PREVIEW FROM THE STUDIO",
       title: row.public_title_override || row.subject,
       metadata:
@@ -1743,6 +1744,7 @@ router.post("/", async (req, res) => {
       "international-shop",
       "mystery-mail",
       "newsletter-page",
+      "studio-letter-page",
       "istanbul-painting-day-august-2026",
       "footer",
     ]);
@@ -1782,7 +1784,10 @@ router.post("/", async (req, res) => {
         typeof req.body?.analyticsSignupPath === "string"
           ? req.body.analyticsSignupPath.slice(0, 500)
           : undefined,
-      signupForm: source || "newsletter",
+      signupForm:
+        typeof req.body?.signupForm === "string"
+          ? req.body.signupForm.slice(0, 100)
+          : source || "newsletter",
       isNew: !subscriber.already_subscribed,
     }).catch((error) =>
       req.log.error({ err: error }, "Subscriber attribution failed"),

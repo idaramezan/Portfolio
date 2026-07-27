@@ -114,6 +114,7 @@ function Router() {
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
             <Route path="/newsletter" component={Newsletter} />
+            <Route path="/studio-letter" component={Newsletter} />
             <Route path="/international">
               <RedirectTo to="/shop/international" />
             </Route>
