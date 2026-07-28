@@ -1,6 +1,6 @@
 # First-party studio analytics
 
-The storefront uses a consent-gated, first-party analytics client. It does not use advertising pixels, fingerprinting, raw IP storage, or session replay. Smartlook was removed when this system was introduced.
+The storefront uses a consent-gated, first-party analytics client alongside the Smartlook EU session-replay tracker configured in the document head. The first-party system does not use advertising pixels, fingerprinting or raw IP storage. Smartlook is a separate third-party service and follows its configured Smartlook project privacy and retention settings.
 
 ## Architecture
 

@@ -74,7 +74,11 @@ const checks = [
     "retention cleanup",
     server.includes('router.post("/cleanup", requireAdmin'),
   ],
-  ["session replay removed", !html.includes("smartlook")],
+  [
+    "Smartlook EU tracker installed",
+    html.includes("https://web-sdk.smartlook.com/recorder.js") &&
+      html.includes('region: "eu"'),
+  ],
 ];
 for (const [name, pass] of checks)
   assert.ok(pass, `Analytics verification failed: ${name}`);
