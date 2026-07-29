@@ -148,7 +148,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               disabled={isMobileMenuOpen}
               value={locale}
               onChange={(event) => setLocale(event.target.value as "en" | "tr")}
-              className="min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral"
+              className="hidden min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral md:block"
               aria-label="Language"
             >
               <option value="tr">TR</option>
@@ -157,14 +157,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setCartOpen(true)}
               disabled={isMobileMenuOpen}
-              className="relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 border border-ink/15 px-2 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3 md:border md:border-ink/15"
               aria-label={`Open collection basket, ${cartCount} items`}
             >
               <ShoppingBag size={20} />
               <span className="hidden lg:inline text-sm font-semibold">
                 Basket ({cartCount})
               </span>
-              <span className="lg:hidden text-xs font-bold">{cartCount}</span>
+              {cartCount > 0 && (
+                <span className="absolute right-0 top-0 grid min-h-5 min-w-5 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-paper lg:hidden">
+                  {cartCount}
+                </span>
+              )}
             </button>
             <button
               ref={menuButtonRef}
@@ -189,72 +193,123 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           role="dialog"
           className="fixed inset-0 z-40 h-dvh overscroll-contain overflow-y-auto bg-paper px-6 pb-10 pt-24 animate-in fade-in slide-in-from-top-10 duration-300 md:hidden"
         >
-          <div className="mb-6 border-b border-ink/10 pb-6">
-            <label className="text-xs font-bold uppercase tracking-wider">
-              Language
-              <select
-                value={locale}
-                onChange={(event) =>
-                  setLocale(event.target.value as "en" | "tr")
-                }
-                className="mt-2 min-h-11 w-full border border-ink/15 bg-paper px-3"
+          <p className="eyebrow mb-5 text-coral">
+            {locale === "tr" ? "Keşfet" : "Explore"}
+          </p>
+          <div className="divide-y divide-ink/10 border-y border-ink/10">
+            {[
+              {
+                label: locale === "tr" ? "Türkiye Mağaza" : "Türkiye Shop",
+                home: "/shop/turkiye",
+                links: [
+                  [
+                    "/shop/turkiye/prints",
+                    locale === "tr" ? "Baskılar ve Ürünler" : "Prints & Goods",
+                  ],
+                  [
+                    "/shop/turkiye/originals",
+                    locale === "tr"
+                      ? "Orijinal Resimler"
+                      : "Original Paintings",
+                  ],
+                  ["/shop/turkiye/mystery-mail", "Mystery Mail"],
+                ],
+              },
+              {
+                label:
+                  locale === "tr"
+                    ? "Uluslararası Mağaza"
+                    : "International Shop",
+                home: "/shop/international",
+                links: [
+                  [
+                    "/shop/international/prints",
+                    locale === "tr" ? "Baskılar ve Ürünler" : "Prints & Goods",
+                  ],
+                  [
+                    "/shop/international/originals",
+                    locale === "tr"
+                      ? "Orijinal Resimler"
+                      : "Original Paintings",
+                  ],
+                ],
+              },
+            ].map((group) => (
+              <details
+                key={group.home}
+                className="group py-2"
+                open={location.startsWith(group.home)}
               >
-                <option value="tr">Türkçe</option>
-                <option value="en">English</option>
-              </select>
-            </label>
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-serif text-2xl font-bold">
+                  {group.label}
+                  <span className="font-sans text-lg text-coral transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <div className="pb-3 pl-3">
+                  <Link
+                    href={group.home}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex min-h-11 items-center text-sm font-bold text-coral"
+                  >
+                    {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
+                  </Link>
+                  {group.links.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex min-h-11 items-center text-lg font-semibold"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ))}
+            {[
+              [
+                "/studio-letter",
+                locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
+              ],
+              ["/about", locale === "tr" ? "Hakkında" : "About"],
+            ].map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex min-h-14 items-center font-serif text-2xl font-bold"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
-          <p className="eyebrow mb-2">Collect</p>
-          <p className="eyebrow mb-2">Türkiye Shop</p>
-          {[
-            { href: "/shop/turkiye", label: "Shop home" },
-            ...TURKIYE_LINKS,
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
+          <div className="mt-8 grid grid-cols-2 gap-2" aria-label="Language">
+            <button
+              type="button"
+              onClick={() => setLocale("tr")}
               className={cn(
-                "flex min-h-11 items-center font-serif text-3xl font-bold",
-                location === link.href ? "text-coral" : "text-ink",
+                "min-h-11 border px-3 text-sm font-bold",
+                locale === "tr"
+                  ? "border-coral bg-coral text-paper"
+                  : "border-ink/15",
               )}
             >
-              {link.label}
-            </Link>
-          ))}
-          <p className="eyebrow mb-2 mt-6">International Shop</p>
-          {[
-            { href: "/shop/international", label: "Shop home" },
-            { href: "/shop/international/originals", label: "Originals" },
-            { href: "/shop/international/prints", label: "Prints" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex min-h-11 items-center font-serif text-3xl font-bold"
+              Türkçe
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocale("en")}
+              className={cn(
+                "min-h-11 border px-3 text-sm font-bold",
+                locale === "en"
+                  ? "border-coral bg-coral text-paper"
+                  : "border-ink/15",
+              )}
             >
-              {link.label}
-            </Link>
-          ))}
-          <p className="eyebrow mb-2 mt-6">Studio</p>
-          {[
-            {
-              href: "/studio-letter",
-              label: locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
-            },
-            { href: "/about", label: "About" },
-            { href: "/links", label: "Links" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex min-h-11 items-center font-serif text-3xl font-bold"
-            >
-              {link.label}
-            </Link>
-          ))}
+              English
+            </button>
+          </div>
         </nav>
       )}
 

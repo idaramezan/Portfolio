@@ -39,8 +39,6 @@ type EventConfig = {
 };
 const WHATSAPP_MESSAGE =
   "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
-const SUCCESS_MESSAGE =
-  "Event details sent. Check your inbox, and please check your Spam or Junk folder too in case the email landed there.";
 
 export default function IstanbulPaintingEventBanner({
   placement = "home",
@@ -59,6 +57,7 @@ export default function IstanbulPaintingEventBanner({
   >("idle");
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [mobileFormOpen, setMobileFormOpen] = useState(false);
   const [serverWhatsappUrl, setServerWhatsappUrl] = useState<string | null>(
     null,
   );
@@ -106,6 +105,52 @@ export default function IstanbulPaintingEventBanner({
         boys_only: "Boys only",
         everyone: "Everyone",
       }[config.audience];
+  const ui = local
+    ? {
+        remaining: remainingSeats === 1 ? "yer kaldı" : "yer kaldı",
+        details: "Etkinlik ayrıntıları",
+        interested: "Katılmak ister misin?",
+        join: "Etkinlik ayrıntılarını almak ve Aida ile kaydına devam etmek için Stüdyo Mektubu’na katıl.",
+        placeholder: "E-posta adresin",
+        submit: "Etkinlik ayrıntılarını al",
+        sending: "Gönderiliyor…",
+        invalid: "Geçerli bir e-posta adresi gir.",
+        error: "Etkinlik ayrıntılarını gönderemedik. Lütfen tekrar dene.",
+        success:
+          "Etkinlik ayrıntıları gönderildi. E-posta kutunu, Spam veya Gereksiz klasörünü kontrol et.",
+        emailLabel: "E-posta adresi",
+        joined:
+          "Aida’nın etkinlik notu için e-posta kutunu kontrol et. Kaydın WhatsApp üzerinden kişisel olarak devam eder.",
+        trust:
+          "Katılım ücretsizdir. Ayrıca ara sıra atölye güncellemeleri alırsın.",
+        reservation:
+          "E-postanı göndermek etkinlik ayrıntılarını yollar. Yerin yalnızca Aida’nın WhatsApp üzerinden kişisel onayından sonra ayrılır.",
+        contact: "Yerimi ayırmak için Aida ile iletişime geç",
+        openForm: "Katılmak istiyorum",
+      }
+    : {
+        remaining:
+          remainingSeats === 1 ? "place remaining" : "places remaining",
+        details: "Event details",
+        interested: "Interested in joining?",
+        join: "Join the Studio Letter to receive the event details and continue your registration with Aida.",
+        placeholder: "Your email address",
+        submit: "Get event details",
+        sending: "Sending…",
+        invalid: "Enter a valid email address.",
+        error: "We couldn’t send the event details. Please try again.",
+        success:
+          "Event details sent. Check your inbox, and please check your Spam or Junk folder too.",
+        emailLabel: "Email address",
+        joined:
+          "Check your inbox for Aida’s event note. Your registration continues personally on WhatsApp.",
+        trust:
+          "Free to join. You’ll also receive occasional studio updates and early notice of special releases.",
+        reservation:
+          "Submitting your email sends the event details. Your place is reserved only after personal confirmation with Aida on WhatsApp.",
+        contact: "Contact Aida to reserve my place",
+        openForm: "I’m interested in joining",
+      };
 
   const showSuccessToast = () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -120,7 +165,7 @@ export default function IstanbulPaintingEventBanner({
     const normalized = normalizeNewsletterEmail(email);
     if (!isValidNewsletterEmail(normalized)) {
       setStatus("error");
-      setError("Enter a valid email address.");
+      setError(ui.invalid);
       return;
     }
     submitting.current = true;
@@ -151,7 +196,7 @@ export default function IstanbulPaintingEventBanner({
       showSuccessToast();
     } catch {
       setStatus("error");
-      setError("We couldn’t send the event details. Please try again.");
+      setError(ui.error);
     } finally {
       submitting.current = false;
     }
@@ -180,7 +225,7 @@ export default function IstanbulPaintingEventBanner({
             size={20}
             aria-hidden="true"
           />
-          <p>{SUCCESS_MESSAGE}</p>
+          <p>{ui.success}</p>
           <button
             type="button"
             onClick={() => setShowToast(false)}
@@ -199,8 +244,7 @@ export default function IstanbulPaintingEventBanner({
               {local ? config.eyebrow_tr : config.eyebrow_en}
             </p>
             <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
-              {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
-              remaining
+              {remainingSeats} {ui.remaining}
             </span>
           </div>
           <h2
@@ -209,9 +253,18 @@ export default function IstanbulPaintingEventBanner({
           >
             {local ? config.title_tr : config.title_en}
           </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-[#fffaf1]/68 md:text-[15px]">
+          <p className="mt-3 hidden max-w-3xl text-sm leading-6 text-[#fffaf1]/68 sm:block md:text-[15px]">
             {local ? config.description_tr : config.description_en}
           </p>
+          <details className="group mt-3 border-y border-white/15 py-2 sm:hidden">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between text-sm font-bold">
+              {ui.details}
+              <span className="text-coral group-open:rotate-45">+</span>
+            </summary>
+            <p className="pb-2 text-sm leading-6 text-[#fffaf1]/68">
+              {local ? config.description_tr : config.description_en}
+            </p>
+          </details>
 
           <ul
             className="mt-4 flex flex-wrap gap-2 text-xs"
@@ -246,24 +299,40 @@ export default function IstanbulPaintingEventBanner({
             {local ? config.secondary_details_tr : config.secondary_details_en}
           </p>
 
-          <div className="mt-4 border-l-2 border-coral bg-white/[.05] px-4 py-2.5">
-            <p className="text-sm font-bold">
-              {remainingSeats} {remainingSeats === 1 ? "place" : "places"}{" "}
-              remaining.
-            </p>
-          </div>
+          <figure className="relative mt-5 rotate-[.2deg] border-[6px] border-b-[25px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_12px_28px_rgba(0,0,0,.28)] lg:hidden">
+            <img
+              src={config.image_url || eventImage}
+              alt={config.image_alt_text}
+              width="1400"
+              height="1122"
+              loading="eager"
+              decoding="async"
+              className="aspect-[5/4] w-full object-cover"
+              style={{ objectPosition: config.image_object_position }}
+            />
+          </figure>
 
-          <div className="mt-4 border-t border-white/15 pt-4">
+          <button
+            type="button"
+            className="button-primary mt-5 w-full lg:hidden"
+            aria-expanded={mobileFormOpen}
+            aria-controls="event-registration-form"
+            onClick={() => setMobileFormOpen((open) => !open)}
+          >
+            {ui.openForm}
+          </button>
+
+          <div
+            id="event-registration-form"
+            className={`${mobileFormOpen ? "block" : "hidden"} mt-4 border-t border-white/15 pt-4 lg:block`}
+          >
             <h3 className="font-serif text-xl text-[#fffaf1]">
-              Interested in joining?
+              {ui.interested}
             </h3>
-            <p className="mt-1 text-sm text-[#fffaf1]/60">
-              Join the Studio Letter to receive the event details and continue
-              your registration with Aida.
-            </p>
+            <p className="mt-1 text-sm text-[#fffaf1]/60">{ui.join}</p>
             <form onSubmit={submit} noValidate className="mt-3 max-w-2xl">
               <label htmlFor="istanbul-event-email" className="sr-only">
-                Email address
+                {ui.emailLabel}
               </label>
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <input
@@ -279,7 +348,7 @@ export default function IstanbulPaintingEventBanner({
                       setError("");
                     }
                   }}
-                  placeholder="Your email address"
+                  placeholder={ui.placeholder}
                   disabled={status === "loading"}
                   aria-invalid={status === "error" ? "true" : undefined}
                   aria-describedby={
@@ -294,7 +363,7 @@ export default function IstanbulPaintingEventBanner({
                   disabled={status === "loading"}
                   className="button-primary min-h-11 justify-center disabled:cursor-wait disabled:opacity-70"
                 >
-                  {status === "loading" ? "Sending…" : "Get event details"}
+                  {status === "loading" ? ui.sending : ui.submit}
                 </button>
               </div>
               <div aria-live="polite">
@@ -309,8 +378,7 @@ export default function IstanbulPaintingEventBanner({
                 )}
                 {status === "success" && (
                   <p className="mt-2 text-sm font-semibold text-[#fffaf1]">
-                    Check your inbox for Aida’s event note. Your registration
-                    continues personally on WhatsApp.
+                    {ui.joined}
                   </p>
                 )}
               </div>
@@ -318,13 +386,11 @@ export default function IstanbulPaintingEventBanner({
                 id="istanbul-event-help"
                 className="mt-2 text-xs leading-relaxed text-[#fffaf1]/50"
               >
-                Free to join. You’ll also receive occasional studio updates and
-                early notice of special releases.
+                {ui.trust}
               </p>
             </form>
             <p className="mt-2 text-xs font-semibold text-[#fffaf1]/60">
-              Submitting your email sends the event details. Your place is
-              reserved only after personal confirmation with Aida on WhatsApp.
+              {ui.reservation}
             </p>
             {status === "success" && whatsappUrl && (
               <a
@@ -336,14 +402,13 @@ export default function IstanbulPaintingEventBanner({
                   trackAnalytics("painting_event_whatsapp_clicked")
                 }
               >
-                <MessageCircle size={16} aria-hidden="true" /> Contact Aida to
-                reserve my place
+                <MessageCircle size={16} aria-hidden="true" /> {ui.contact}
               </a>
             )}
           </div>
         </article>
 
-        <figure className="relative rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0">
+        <figure className="relative hidden rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0 lg:block">
           <div className="absolute -left-2 -top-2 z-10 bg-coral px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em] text-white">
             {eventDate.toUpperCase()}
           </div>

@@ -453,7 +453,7 @@ export default function RegionalLanding({
               ))}
             </div>
           ) : international.products.length ? (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-6 lg:grid-cols-3">
               {international.products.slice(0, 6).map((p) => (
                 <InternationalProductCard key={p.id} product={p} />
               ))}

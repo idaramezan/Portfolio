@@ -413,14 +413,14 @@ export default function StudioLetterSignup({
   return (
     <section
       id="studio-letter"
-      className="section-shell scroll-mt-24 !py-12 md:!py-16 lg:!py-20"
+      className="section-shell scroll-mt-24 !py-10 md:!py-16 lg:!py-20"
       aria-labelledby={`${inputId}-heading`}
       data-studio-letter={context}
       data-no-translate
     >
       <div className="grid items-center gap-10 md:grid-cols-[.44fr_.56fr] md:gap-10 lg:gap-14">
         <div
-          className="relative mx-auto h-[430px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
+          className="relative mx-auto h-[330px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
           aria-label="Images from the featured Studio Letter"
         >
           {featured.images.map((image, index) => (
@@ -460,7 +460,7 @@ export default function StudioLetterSignup({
           ))}
         </div>
 
-        <article className="border border-ink/15 bg-[#fffaf0] p-5 shadow-[0_8px_22px_rgba(49,38,26,.07)] sm:p-7 lg:p-8">
+        <article className="border border-ink/15 bg-[#fffaf0] p-4 shadow-[0_8px_22px_rgba(49,38,26,.07)] sm:p-7 lg:p-8">
           <div className="h-0.5 w-14 bg-coral" aria-hidden="true" />
           <p className="eyebrow mt-4 text-coral">{featured.eyebrow}</p>
           <p className="mt-2 text-[11px] font-semibold tracking-[.08em] text-ink/45">

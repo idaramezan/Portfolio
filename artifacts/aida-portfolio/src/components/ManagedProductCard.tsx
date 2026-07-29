@@ -56,12 +56,15 @@ export default function ManagedProductCard({
 
   const add = () => {
     if (original && region === "TR" && !rate) {
-      setFeedback("Türkiye pricing is temporarily unavailable. Please try again shortly.");
+      setFeedback(
+        "Türkiye pricing is temporarily unavailable. Please try again shortly.",
+      );
       return;
     }
-    const converted = original && region === "TR" && rate
-      ? convertUsdCentsToTry(product.priceUsdCents, rate)
-      : undefined;
+    const converted =
+      original && region === "TR" && rate
+        ? convertUsdCentsToTry(product.priceUsdCents, rate)
+        : undefined;
     const result = addItemToCart(
       {
         id: `${original ? "original" : "product"}-${product.id}`,
@@ -100,8 +103,12 @@ export default function ManagedProductCard({
   };
 
   return (
-    <article className={`managed-product-card ${sold ? "managed-product-card--sold" : ""}`}>
-      <div className={`managed-product-card__media ${original ? "managed-product-card__media--artwork" : "managed-product-card__media--goods"}`}>
+    <article
+      className={`managed-product-card ${sold ? "managed-product-card--sold" : ""}`}
+    >
+      <div
+        className={`managed-product-card__media ${original ? "managed-product-card__media--artwork" : "managed-product-card__media--goods"}`}
+      >
         <img
           src={product.imageUrl}
           alt={product.altText || `${product.name}, ${categoryLabel(product)}`}
@@ -113,22 +120,41 @@ export default function ManagedProductCard({
       <div className="managed-product-card__body">
         <div className="flex flex-wrap gap-2">
           <span className="badge">{categoryLabel(product)}</span>
-          {sold && <span className="badge !border-coral !text-coral">SOLD OUT</span>}
+          {sold && (
+            <span className="badge !border-coral !text-coral">SOLD OUT</span>
+          )}
         </div>
-        <h3 className="mt-4 text-3xl">{product.name}</h3>
-        <p className="mt-3 text-[.68rem] font-bold uppercase tracking-[.16em] text-ink/50">
+        <h3 className="managed-product-card__title mt-4 text-3xl">
+          {product.name}
+        </h3>
+        <p className="managed-product-card__meta mt-3 text-[.68rem] font-bold uppercase tracking-[.16em] text-ink/50">
           {original
             ? formatArtworkSurface(product.artworkSurface)
             : categoryLabel(product)}
         </p>
-        {original && <p className="mt-2 text-sm text-ink/55">{product.dimension}</p>}
+        {original && (
+          <p className="mt-2 text-sm text-ink/55">{product.dimension}</p>
+        )}
         <div className="mt-5 flex items-baseline gap-2 font-bold">
-          {product.category === "print" && <span className="text-sm">From</span>}
-          <Money baseAmountUsdCents={price} canonicalCurrency={original ? "USD" : "TRY"} showBase />
+          {product.category === "print" && (
+            <span className="text-sm">From</span>
+          )}
+          <Money
+            baseAmountUsdCents={price}
+            canonicalCurrency={original ? "USD" : "TRY"}
+            showBase
+          />
         </div>
-        <p className={`mt-4 text-sm font-semibold ${region === "TR" ? "text-green" : "text-ink/60"}`}>
+        <p
+          className={`managed-product-card__shipping mt-4 text-sm font-semibold ${region === "TR" ? "text-green" : "text-ink/60"}`}
+        >
           {region === "TR" ? (
-            <span className="flex items-center gap-2"><PackageCheck size={17} aria-hidden="true" />{original ? "Free shipping within Türkiye" : "Shipping price will be calculated based on the package size"}</span>
+            <span className="flex items-center gap-2">
+              <PackageCheck size={17} aria-hidden="true" />
+              {original
+                ? "Free shipping within Türkiye"
+                : "Shipping price will be calculated based on the package size"}
+            </span>
           ) : (
             "International shipping is calculated separately."
           )}
@@ -157,7 +183,10 @@ export default function ManagedProductCard({
               {original ? "View painting" : "View details"}
             </button>
           ) : null}
-          <p aria-live="polite" className="min-h-4 text-xs font-semibold text-coral">
+          <p
+            aria-live="polite"
+            className="min-h-4 text-xs font-semibold text-coral"
+          >
             {feedback && feedback !== "Added to basket" ? feedback : ""}
           </p>
         </div>

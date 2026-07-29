@@ -5,6 +5,19 @@ const shell = readFileSync(
   new URL("../src/components/layout/Shell.tsx", import.meta.url),
   "utf8",
 );
+const home = readFileSync(
+  new URL("../src/pages/Home.tsx", import.meta.url),
+  "utf8",
+);
+const styles = readFileSync(
+  new URL("../src/index.css", import.meta.url),
+  "utf8",
+);
+const eventBanner = readFileSync(
+  new URL("../src/components/IstanbulPaintingEventBanner.tsx", import.meta.url),
+  "utf8",
+);
+const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 const headerClose = shell.indexOf("</header>");
 const overlay = shell.indexOf("{isMobileMenuOpen && (");
@@ -27,6 +40,35 @@ assert.ok(
 assert.ok(
   shell.includes("disabled={isMobileMenuOpen}"),
   "header controls behind the mobile overlay must be disabled",
+);
+assert.ok(
+  !shell.includes("items-center font-serif text-3xl font-bold"),
+  "mobile navigation must not render every destination as an oversized heading",
+);
+assert.ok(
+  shell.includes('locale === "tr" ? "Baskılar ve Ürünler"'),
+  "mobile commerce navigation must have first-party Turkish labels",
+);
+assert.ok(
+  home.includes('className="hidden border-y border-ink/10 bg-card md:block"') &&
+    home.includes("What would you like to discover?"),
+  "mobile homepage must replace the duplicate region chooser with direct discovery",
+);
+assert.ok(
+  styles.includes("grid-template-columns: repeat(2, minmax(0, 1fr))") &&
+    styles.includes("padding-block: 3rem"),
+  "mobile product previews and section rhythm must be compact",
+);
+assert.ok(
+  eventBanner.includes("Event details") &&
+    eventBanner.includes("lg:hidden") &&
+    eventBanner.includes("hidden rotate-[.35deg]") &&
+    eventBanner.includes("mobileFormOpen"),
+  "Event Banner must use its compact mobile image/details treatment",
+);
+assert.ok(
+  app.includes('lazy(() => import("@/pages/Admin"))'),
+  "mobile storefront must not eagerly download the admin application",
 );
 
 console.log("Mobile navigation verification passed.");

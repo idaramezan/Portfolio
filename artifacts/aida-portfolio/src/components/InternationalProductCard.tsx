@@ -11,7 +11,7 @@ export default function InternationalProductCard({
   const prices = [...new Set(product.variants.map((x) => x.price.formatted))];
   return (
     <article
-      className={`group border border-ink/10 bg-card ${compact ? "grid grid-cols-[92px_1fr]" : ""}`}
+      className={`international-product-card group border border-ink/10 bg-card ${compact ? "grid grid-cols-[92px_1fr]" : ""}`}
     >
       {product.primaryImage ? (
         <img
@@ -28,7 +28,9 @@ export default function InternationalProductCard({
           aria-hidden="true"
         />
       )}
-      <div className={compact ? "p-4" : "p-5"}>
+      <div
+        className={`international-product-card__body ${compact ? "p-4" : "p-5"}`}
+      >
         <span className="eyebrow">International · Fulfilled by Fourthwall</span>
         <h3 className={`mt-2 ${compact ? "text-xl" : "text-2xl"}`}>
           {product.name}

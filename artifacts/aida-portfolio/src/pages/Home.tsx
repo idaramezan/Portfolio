@@ -1,6 +1,11 @@
 import { ArrowRight, PackageCheck } from "lucide-react";
 import { Link } from "wouter";
-import { homeAboutImage, heroPortrait } from "@/lib/assets";
+import {
+  homeAboutImage,
+  heroPortrait,
+  originalsCoverImage,
+  printsCoverImage,
+} from "@/lib/assets";
 import { productRepository } from "@/lib/productRepository";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
@@ -37,20 +42,26 @@ export default function Home() {
             </p>
             <div className="mt-5 flex flex-col items-start gap-2 sm:flex-row sm:items-center md:mt-8">
               <Link
-                href="/shop/turkiye"
+                href="/shop/turkiye/prints"
                 className="button-primary"
-                aria-label="Shop originals, Prints and Goods and Mystery Mail in Türkiye"
+                aria-label="Shop prints and art goods in Türkiye"
               >
-                Shop in Türkiye <ArrowRight size={17} />
+                Shop Prints <ArrowRight size={17} />
               </Link>
               <Link
-                href="/shop/international"
+                href="/shop/turkiye/originals"
                 className="button-secondary"
-                aria-label="Shop originals and international prints"
+                aria-label="View original paintings"
               >
-                Shop internationally
+                View Originals
               </Link>
             </div>
+            <Link
+              href="/shop/international"
+              className="button-link mt-3 text-sm"
+            >
+              Shopping outside Türkiye? Choose international delivery
+            </Link>
           </div>
           <div className="home-hero-media relative flex min-h-0 flex-col">
             <ArtistPhotoFrame
@@ -63,7 +74,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-ink/10 bg-card">
+      <section className="hidden border-y border-ink/10 bg-card md:block">
         <div className="section-shell">
           <div className="section-heading">
             <p className="eyebrow">Shopping location</p>
@@ -126,6 +137,49 @@ export default function Home() {
                 </Link>
               </div>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-ink/10 bg-card py-10 md:hidden">
+        <div className="px-4">
+          <p className="eyebrow text-coral">Start collecting</p>
+          <h2 className="mt-3 text-3xl">What would you like to discover?</h2>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            {[
+              [
+                "/shop/turkiye/prints",
+                printsCoverImage,
+                "Prints & Goods",
+                "Accessible studio editions",
+              ],
+              [
+                "/shop/turkiye/originals",
+                originalsCoverImage,
+                "Originals",
+                "One-of-a-kind paintings",
+              ],
+            ].map(([href, image, title, description]) => (
+              <Link
+                key={href}
+                href={href}
+                className="group border border-ink/10 bg-paper p-2"
+              >
+                <img
+                  src={image}
+                  alt=""
+                  className="aspect-square w-full object-cover"
+                  loading="eager"
+                />
+                <h3 className="mt-3 text-xl">{title}</h3>
+                <p className="mt-1 text-xs leading-5 text-ink/55">
+                  {description}
+                </p>
+                <span className="mt-3 inline-flex min-h-10 items-center text-xs font-bold text-coral">
+                  Explore <ArrowRight size={14} />
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

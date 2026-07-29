@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { Route, Switch, Router as WouterRouter, useLocation } from "wouter";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 import Shell from "@/components/layout/Shell";
 import Home from "@/pages/Home";
@@ -11,7 +11,6 @@ import Prints from "@/pages/Prints";
 import Gallery from "@/pages/Gallery";
 import ShopOriginals from "@/pages/ShopOriginals";
 import About from "@/pages/About";
-import Admin from "@/pages/Admin";
 import StudioMail from "@/pages/StudioMail";
 import StudioMailDetail from "@/pages/StudioMailDetail";
 import HowToCollect from "@/pages/HowToCollect";
@@ -29,6 +28,21 @@ import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 import StickerDropExperience from "@/components/StickerDropExperience";
 
 const queryClient = new QueryClient();
+const Admin = lazy(() => import("@/pages/Admin"));
+
+function AdminRoute() {
+  return (
+    <Suspense
+      fallback={
+        <main className="grid min-h-screen place-items-center bg-[#f3efe6] font-semibold text-ink">
+          Loading studio administration…
+        </main>
+      }
+    >
+      <Admin />
+    </Suspense>
+  );
+}
 
 function RedirectTo({ to }: { to: string }) {
   const search = window.location.search;
@@ -44,8 +58,8 @@ const regional =
 function Router() {
   return (
     <Switch>
-      <Route path="/admin/*" component={Admin} />
-      <Route path="/admin" component={Admin} />
+      <Route path="/admin/*" component={AdminRoute} />
+      <Route path="/admin" component={AdminRoute} />
       <Route path="/links" component={Links} />
       <Route>
         <Shell>
