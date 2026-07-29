@@ -818,7 +818,8 @@
   grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(48px, 6vw, 88px);
-  min-height: 620px;
+  min-height: 0;
+  padding-block: 4.5rem;
 }
 
 .home-live-section__content {
@@ -922,7 +923,7 @@
 .home-live-section__artworks {
   position: relative;
   min-width: 0;
-  height: clamp(470px, 38vw, 540px);
+  height: 300px;
 }
 
 .home-live-section__piece {
@@ -1534,6 +1535,310 @@
   color: var(--color-paper);
   background: var(--color-ink);
   border-top: 1px solid rgb(246 241 231 / 0.12);
+}
+
+/* Editorial homepage */
+.home-editorial {
+  background: #f7f1e6;
+}
+
+.home-market-hero__layout {
+  display: grid;
+  min-height: min(720px, calc(100svh - 76px));
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  align-items: center;
+  gap: clamp(3rem, 6vw, 6rem);
+  padding-block: clamp(3.5rem, 7vw, 6.5rem);
+}
+
+.home-market-hero__content h1 {
+  max-width: 760px;
+  margin-top: 1rem;
+  font-size: clamp(3.8rem, 6vw, 6.6rem);
+  line-height: 0.94;
+}
+
+.home-market-hero__intro {
+  max-width: 650px;
+  margin-top: 1.5rem;
+  font-size: clamp(1.08rem, 1.5vw, 1.3rem);
+  line-height: 1.6;
+  color: rgb(27 26 23 / 0.68);
+}
+
+.home-market-hero__image {
+  width: 100%;
+  max-height: 610px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.home-market-actions {
+  display: grid;
+  max-width: 680px;
+  margin-top: 2rem;
+  border-block: 1px solid rgb(27 26 23 / 0.16);
+}
+
+.home-market-action {
+  position: relative;
+  display: grid;
+  min-height: 78px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  padding: 0.85rem 3rem 0.85rem 0;
+  transition: color 180ms ease;
+}
+
+.home-market-action + .home-market-action {
+  border-top: 1px solid rgb(27 26 23 / 0.12);
+}
+
+.home-market-action strong {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+}
+
+.home-market-action span {
+  grid-column: 1;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: rgb(27 26 23 / 0.56);
+}
+
+.home-market-action svg {
+  position: absolute;
+  right: 0;
+  top: calc(50% - 10px);
+  width: 20px;
+}
+
+.home-market-action--primary strong,
+.home-market-action:hover strong {
+  color: var(--color-coral);
+}
+
+.home-category-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr 0.75fr;
+  gap: 2rem;
+}
+
+.home-category-link {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border-top: 1px solid rgb(27 26 23 / 0.16);
+  padding-top: 1rem;
+}
+
+.home-category-link--feature {
+  grid-row: span 2;
+}
+
+.home-category-link--text {
+  justify-content: flex-end;
+  background: var(--color-blue);
+  padding: 1.5rem;
+  color: var(--color-paper);
+}
+
+.home-category-link img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.home-category-link--feature img {
+  aspect-ratio: 4 / 5;
+}
+
+.home-category-link h3 {
+  margin-top: 1rem;
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+}
+
+.home-category-link--text h3 {
+  margin-top: 0;
+  color: var(--color-paper);
+}
+
+.home-category-link p {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgb(27 26 23 / 0.62);
+}
+
+.home-category-link--text p {
+  color: rgb(251 245 233 / 0.68);
+}
+
+.home-category-link span {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-top: 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgb(27 26 23 / 0.2);
+  text-underline-offset: 4px;
+}
+
+.home-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.home-studio-letter {
+  background: var(--color-blue);
+  color: var(--color-paper);
+}
+
+.home-studio-letter .studio-letter-preview article {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-studio-letter .studio-letter-preview h2,
+.home-studio-letter .studio-letter-preview label {
+  color: var(--color-paper);
+}
+
+.home-studio-letter .studio-letter-preview article p:not(.text-coral) {
+  color: rgb(251 245 233 / 0.7);
+}
+
+.home-studio-letter .studio-letter-preview article > div:last-of-type {
+  border-color: rgb(251 245 233 / 0.2);
+}
+
+.home-about-teaser {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: clamp(2.5rem, 7vw, 7rem);
+}
+
+.home-about-teaser > img {
+  width: 100%;
+  max-height: 390px;
+  border: 10px solid #fffdf8;
+  border-bottom-width: 34px;
+  object-fit: cover;
+  box-shadow: 0 12px 30px rgb(45 37 28 / 0.12);
+  transform: rotate(-0.7deg);
+}
+
+.home-about-teaser h2 {
+  max-width: 650px;
+  margin-top: 0.75rem;
+  font-size: clamp(2.5rem, 5vw, 4.7rem);
+  line-height: 0.98;
+}
+
+.home-about-teaser > div > p:not(.eyebrow) {
+  max-width: 600px;
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: rgb(27 26 23 / 0.65);
+}
+
+.home-about-teaser .button-link {
+  margin-top: 1rem;
+}
+
+@media (max-width: 767px) {
+  .home-event-announcement h2 {
+    font-size: 1.45rem;
+  }
+
+  .home-market-hero__layout {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  .home-market-hero__content h1 {
+    font-size: clamp(2.75rem, 12.5vw, 3.15rem);
+    line-height: 0.99;
+  }
+
+  .home-market-hero__intro {
+    margin-top: 1rem;
+    font-size: 1.05rem;
+  }
+
+  .home-market-actions {
+    margin-top: 1.25rem;
+  }
+
+  .home-market-action {
+    min-height: 72px;
+  }
+
+  .home-market-hero__image {
+    max-height: 300px;
+    object-position: center 35%;
+  }
+
+  .home-category-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .home-category-link,
+  .home-category-link--feature {
+    display: grid;
+    grid-row: auto;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .home-category-link img,
+  .home-category-link--feature img {
+    height: 142px;
+    aspect-ratio: auto;
+  }
+
+  .home-category-link h3 {
+    margin-top: 0;
+    font-size: 1.55rem;
+  }
+
+  .home-category-link--text {
+    display: block;
+    padding: 1.25rem;
+  }
+
+  .home-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .home-product-tile:nth-child(n + 5) {
+    display: none;
+  }
+
+  .home-about-teaser {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .home-about-teaser > img {
+    max-height: 230px;
+    border-width: 7px;
+    border-bottom-width: 24px;
+  }
+
+  .home-about-teaser h2 {
+    font-size: 2.45rem;
+  }
 }
 
 .footer-main,

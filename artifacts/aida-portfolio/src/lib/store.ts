@@ -775,6 +775,10 @@ export function getActiveShoppingRegion(): ShoppingRegion {
   const stored = localStorage.getItem(ACTIVE_REGION_KEY);
   return stored === "INTERNATIONAL" ? "INTERNATIONAL" : "TR";
 }
+export function hasActiveShoppingRegionPreference() {
+  if (!isBrowser()) return false;
+  return localStorage.getItem(ACTIVE_REGION_KEY) !== null;
+}
 export function setActiveShoppingRegion(region: ShoppingRegion) {
   if (!isBrowser()) return;
   localStorage.setItem(ACTIVE_REGION_KEY, region);

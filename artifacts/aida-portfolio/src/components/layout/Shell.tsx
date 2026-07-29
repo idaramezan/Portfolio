@@ -38,6 +38,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const mobileMenuRef = useRef<HTMLElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [activeEvent, setActiveEvent] = useState(false);
   const activeRegion: ShoppingRegion =
     location.startsWith("/shop/international") ||
     location.startsWith("/basket/international")
@@ -47,13 +48,24 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const { locale, setLocale } = useLocale();
   const newsletterCopy = studioLetterCopy[locale];
   const siteLinks = loadShopSettings().siteLinks;
+  const isHome = location === "/";
+  const manageAnalytics = () =>
+    window.dispatchEvent(new CustomEvent("analytics:manage"));
 
   useEffect(() => {
-    setActiveShoppingRegion(activeRegion);
+    if (location.startsWith("/shop/") || location.startsWith("/basket/"))
+      setActiveShoppingRegion(activeRegion);
     const sync = () => setCartCount(getCartCount(activeRegion));
     window.addEventListener("cart:updated", sync);
     return () => window.removeEventListener("cart:updated", sync);
   }, [activeRegion]);
+
+  useEffect(() => {
+    fetch("/api/newsletter/event-banner?placement=home")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((result) => setActiveEvent(Boolean(result?.config)))
+      .catch(() => setActiveEvent(false));
+  }, []);
 
   useEffect(() => {
     const pathname = location.split(/[?#]/, 1)[0];
@@ -273,6 +285,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
               ],
               ["/about", locale === "tr" ? "Hakkında" : "About"],
+              ...(activeEvent
+                ? [["/event", locale === "tr" ? "Etkinlik" : "Event"]]
+                : []),
             ].map(([href, label]) => (
               <Link
                 key={href}
@@ -310,6 +325,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               English
             </button>
           </div>
+          <button
+            type="button"
+            onClick={manageAnalytics}
+            className="mt-4 min-h-11 text-sm font-semibold underline underline-offset-4"
+          >
+            {locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}
+          </button>
         </nav>
       )}
 
@@ -419,7 +441,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </p>
             <h2 id="studio-letter-heading">{newsletterCopy.footerHeading}</h2>
             <p className="footer-newsletter-copy">
-              {newsletterCopy.footerSubheading}
+              {isHome
+                ? locale === "tr"
+                  ? "Ücretsiz sanat hikâyeleri ve stüdyo notları."
+                  : "Free art stories and studio notes."
+                : newsletterCopy.footerSubheading}
             </p>
             <Link
               href="/studio-letter"
@@ -427,7 +453,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             >
               {locale === "tr" ? "Daha fazla bilgi" : "Learn more"}
             </Link>
-            <Newsletter />
+            {!isHome && <Newsletter />}
           </section>
         </div>
 
@@ -437,6 +463,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             reserved.
           </p>
           <p>Made by hand in Istanbul.</p>
+          <button
+            type="button"
+            onClick={manageAnalytics}
+            className="min-h-11 text-left underline underline-offset-4"
+          >
+            Manage analytics
+          </button>
         </div>
       </footer>
 

@@ -15,6 +15,7 @@ import {
 import eventImage from "@assets/istanbul-summer-painting-day.png";
 import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 import { useLocale } from "@/lib/locale";
+import { Link } from "wouter";
 
 type EventConfig = {
   id: string;
@@ -42,8 +43,10 @@ const WHATSAPP_MESSAGE =
 
 export default function IstanbulPaintingEventBanner({
   placement = "home",
+  compact = false,
 }: {
   placement?: "home" | "turkiye-shop" | "international-shop";
+  compact?: boolean;
 }) {
   const settings = useShopSettings();
   const { locale } = useLocale();
@@ -207,6 +210,41 @@ export default function IstanbulPaintingEventBanner({
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
     : null;
   const whatsappUrl = serverWhatsappUrl || fallbackWhatsappUrl;
+
+  if (compact) {
+    return (
+      <section
+        className="home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1]"
+        aria-labelledby="home-event-heading"
+        data-no-translate
+      >
+        <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-5 md:grid-cols-[auto_1fr_auto] md:px-8 md:py-4">
+          <p className="text-[11px] font-bold uppercase tracking-[.12em] text-coral">
+            {eventDate}
+          </p>
+          <div>
+            <h2 id="home-event-heading" className="text-2xl text-[#fffaf1]">
+              {local ? config.title_tr : config.title_en}
+            </h2>
+            <p className="mt-1 text-sm text-[#fffaf1]/65">
+              {audience} ·{" "}
+              {local ? config.location_text_tr : config.location_text_en} ·{" "}
+              <strong className="text-[#fffaf1]">
+                {remainingSeats} {ui.remaining}
+              </strong>
+            </p>
+          </div>
+          <Link
+            href="/event"
+            className="button-link min-h-11 !text-coral"
+            onClick={() => trackAnalytics("homepage_event_clicked")}
+          >
+            {local ? "Etkinlik ayrıntıları" : "View event details"} →
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

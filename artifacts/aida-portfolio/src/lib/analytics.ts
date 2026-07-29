@@ -30,7 +30,13 @@ export type AnalyticsEventName =
   | "sticker_drop_dismissed"
   | "sticker_drop_add_to_basket"
   | "sticker_drop_external_product_clicked"
-  | "sticker_drop_sold_out_viewed";
+  | "sticker_drop_sold_out_viewed"
+  | "homepage_market_selected"
+  | "homepage_category_clicked"
+  | "homepage_product_clicked"
+  | "homepage_event_clicked"
+  | "homepage_about_clicked"
+  | "homepage_tiktok_clicked";
 
 export const ANALYTICS_CONSENT_KEY = "aida-analytics-consent";
 const VISITOR_COOKIE = "aida_analytics_visitor";

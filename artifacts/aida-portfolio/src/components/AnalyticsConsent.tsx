@@ -69,15 +69,6 @@ export default function AnalyticsConsent() {
           </div>
         </aside>
       )}
-      {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="fixed bottom-3 left-3 z-40 border border-ink/15 bg-paper px-3 py-2 text-xs font-semibold shadow-sm focus-visible:ring-2 focus-visible:ring-coral"
-        >
-          Manage analytics
-        </button>
-      )}
     </>
   );
 }

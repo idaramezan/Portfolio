@@ -26,6 +26,7 @@ import Newsletter from "@/pages/Newsletter";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 import StickerDropExperience from "@/components/StickerDropExperience";
+import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -129,6 +130,9 @@ function Router() {
             <Route path="/about" component={About} />
             <Route path="/newsletter" component={Newsletter} />
             <Route path="/studio-letter" component={Newsletter} />
+            <Route path="/event">
+              {() => <IstanbulPaintingEventBanner placement="home" />}
+            </Route>
             <Route path="/international">
               <RedirectTo to="/shop/international" />
             </Route>

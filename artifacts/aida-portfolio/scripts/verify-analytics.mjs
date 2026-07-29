@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const client = read("../src/lib/analytics.ts");
 const consent = read("../src/components/AnalyticsConsent.tsx");
+const shell = read("../src/components/layout/Shell.tsx");
 const server = read("../../api-server/src/routes/analytics.ts");
 const dashboard = read("../src/pages/admin/Analytics.tsx");
 const newsletter = read("../../api-server/src/routes/newsletter.ts");
@@ -26,7 +27,10 @@ const checks = [
     "consent choices",
     consent.includes("Accept analytics") &&
       consent.includes("Decline analytics") &&
-      consent.includes("Manage analytics"),
+      consent.includes('window.addEventListener("analytics:manage"') &&
+      shell.includes("Manage analytics") &&
+      shell.includes('new CustomEvent("analytics:manage")') &&
+      !consent.includes("fixed bottom-3 left-3"),
   ],
   [
     "typed event allowlist",

@@ -1,288 +1,434 @@
-import { ArrowRight, PackageCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
+import { useState } from "react";
 import {
-  homeAboutImage,
+  getResponsiveImageSrcSet,
   heroPortrait,
+  homeAboutImage,
+  mysteryMailCoverImage,
   originalsCoverImage,
   printsCoverImage,
+  studioMailCoverImage,
 } from "@/lib/assets";
-import { productRepository } from "@/lib/productRepository";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import ArtistPhotoFrame from "@/components/ArtistPhotoFrame";
+import { useShopSettings } from "@/hooks/use-shop-settings";
+import { useInternationalProducts } from "@/hooks/use-international";
+import {
+  getActiveShoppingRegion,
+  hasActiveShoppingRegionPreference,
+  setActiveShoppingRegion,
+  type ManagedProduct,
+  type ShoppingRegion,
+} from "@/lib/store";
+import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
+import { trackAnalytics } from "@/lib/analytics";
+import Money from "@/components/Money";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
-import turkiyeFlagBackground from "@assets/home-turkiye-flag.jpg";
-import internationalFlagsBackground from "@assets/home-international-flags.jpg";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
 const SEO_DESCRIPTION =
   "Shop original paintings, Prints & Goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani.";
 
+function ProductTile({
+  product,
+  market,
+}: {
+  product: ManagedProduct;
+  market: ShoppingRegion;
+}) {
+  const original = product.kind === "original";
+  const href = `/shop/${market === "TR" ? "turkiye" : "international"}/${original ? "originals" : "prints"}${original && product.slug ? `/${product.slug}` : `?product=${product.id}`}`;
+  const canonicalCurrency = product.priceCurrency || (original ? "USD" : "TRY");
+  const amount = product.priceMinor ?? product.priceUsdCents;
+  return (
+    <article className="home-product-tile">
+      <Link
+        href={href}
+        className="group block"
+        onClick={() =>
+          trackAnalytics("homepage_product_clicked", {
+            entityType: original ? "original" : "product",
+            entityId: product.id,
+            entityName: product.name,
+            metadata: { market },
+          })
+        }
+      >
+        <img
+          src={product.imageUrl}
+          alt={product.altText || product.name}
+          loading="lazy"
+          decoding="async"
+          className="aspect-[4/5] w-full bg-white object-contain transition-transform duration-300 group-hover:scale-[1.01]"
+        />
+        <div className="pt-4">
+          <p className="text-[11px] font-bold uppercase tracking-[.1em] text-ink/45">
+            {original ? "Original oil pastel" : product.category || "Print"} ·{" "}
+            {isSoldOut(product) ? "Sold" : "Available"}
+          </p>
+          <h3 className="mt-2 text-2xl leading-tight">{product.name}</h3>
+          <Money
+            baseAmountUsdCents={amount}
+            canonicalCurrency={canonicalCurrency}
+            className="mt-2 block text-sm font-bold"
+          />
+          <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-ink underline decoration-ink/25 underline-offset-4">
+            {original ? "View artwork" : "See options"} →
+          </span>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
 export default function Home() {
   usePageMeta(SEO_TITLE, SEO_DESCRIPTION);
-  const links = productRepository.getSettings().siteLinks;
+  const settings = useShopSettings();
+  const international = useInternationalProducts();
+  const [market, setMarket] = useState<ShoppingRegion>(() =>
+    getActiveShoppingRegion(),
+  );
+  const [hasPreference, setHasPreference] = useState(() =>
+    hasActiveShoppingRegionPreference(),
+  );
+  const links = settings.siteLinks;
+
+  const chooseMarket = (next: ShoppingRegion) => {
+    setActiveShoppingRegion(next);
+    setMarket(next);
+    setHasPreference(true);
+    trackAnalytics("homepage_market_selected", {
+      metadata: { market: next },
+    });
+  };
+
+  const base = market === "TR" ? "/shop/turkiye" : "/shop/international";
+  const originals = settings.originalProducts
+    .filter(
+      (product) =>
+        isPubliclyVisible(product) &&
+        (market === "TR"
+          ? product.availableInTurkiye !== false
+          : product.availableInternationally !== false),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt || 0).getTime() -
+        new Date(a.updatedAt || 0).getTime(),
+    );
+  const localPrints = settings.printProducts
+    .filter(
+      (product) =>
+        isPubliclyVisible(product) && product.availableInTurkiye !== false,
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt || 0).getTime() -
+        new Date(a.updatedAt || 0).getTime(),
+    );
+  const latestLocal = [
+    ...originals.slice(0, 2),
+    ...localPrints.slice(0, 2),
+  ].slice(0, 4);
+
+  const categoryItems =
+    market === "TR"
+      ? [
+          {
+            href: "/shop/turkiye/originals",
+            image: originalsCoverImage,
+            title: "Original Art",
+            copy: "One-of-a-kind oil pastel paintings.",
+            cta: "Explore originals",
+            feature: true,
+          },
+          {
+            href: "/shop/turkiye/prints",
+            image: printsCoverImage,
+            title: "Prints & Stickers",
+            copy: "Signed, accessible pieces from Aida’s work.",
+            cta: "Shop prints and stickers",
+          },
+          {
+            href: "/shop/turkiye/mystery-mail",
+            image: mysteryMailCoverImage,
+            title: "Mystery Mail",
+            copy: "A sealed themed art package with a few surprises.",
+            cta: "Discover Mystery Mail",
+          },
+          {
+            href: "/studio-letter",
+            image: studioMailCoverImage,
+            title: "Studio Letter",
+            copy: "Free personal stories from Aida’s studio.",
+            cta: "Read about the Studio Letter",
+            textOnly: true,
+          },
+        ]
+      : [
+          {
+            href: "/shop/international/originals",
+            image: originalsCoverImage,
+            title: "Original Art",
+            copy: "One-of-a-kind paintings shipped worldwide.",
+            cta: "Explore originals",
+            feature: true,
+          },
+          {
+            href: "/shop/international/prints",
+            image: printsCoverImage,
+            title: "Prints & Goods",
+            copy: "Accessible editions fulfilled internationally.",
+            cta: "Shop prints and goods",
+          },
+          {
+            href: "/studio-letter",
+            image: studioMailCoverImage,
+            title: "Studio Letter",
+            copy: "Free personal stories from Aida’s studio.",
+            cta: "Read about the Studio Letter",
+            textOnly: true,
+          },
+        ];
 
   return (
-    <div className="flex flex-col overflow-hidden">
-      <IstanbulPaintingEventBanner placement="home" />
-      <section className="home-hero">
-        <div className="section-shell home-hero__inner !py-5 md:!py-8">
-          <div className="max-w-2xl">
-            <p className="eyebrow">
-              Original paintings • Prints & Goods • Mystery Mail
+    <div className="home-editorial flex flex-col overflow-hidden">
+      <IstanbulPaintingEventBanner placement="home" compact />
+
+      <section className="home-market-hero">
+        <div className="section-shell home-market-hero__layout">
+          <div className="home-market-hero__content">
+            <p className="eyebrow">Art from Aida’s Istanbul studio</p>
+            <h1>Pieces made to hold a memory.</h1>
+            <p className="home-market-hero__intro">
+              Original paintings, signed prints and small studio editions,
+              available in Türkiye and internationally.
             </p>
-            <h1 className="home-hero-title mt-3 font-serif text-ink md:mt-5">
-              Original Art, Prints & Goods and Mystery Mail
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-ink/70 md:mt-6 md:text-xl">
-              Discover one of a kind paintings, signed art prints and small
-              themed art packages created by Istanbul artist Aida Ramezani.
-            </p>
-            <div className="mt-5 grid w-full max-w-xl grid-cols-2 gap-2 md:mt-8">
+            <div className="home-market-actions" aria-label="Choose your shop">
               <Link
-                href="/shop/turkiye/prints"
-                className="button-primary w-full justify-center px-3 text-center"
-                aria-label="Shop prints and art goods in Türkiye"
+                href="/shop/turkiye"
+                className="home-market-action home-market-action--primary"
+                onClick={() => chooseMarket("TR")}
               >
-                Shop Prints <ArrowRight size={17} />
+                <strong>Shop in Türkiye</strong>
+                <span>Originals, prints, stickers and Mystery Mail</span>
+                <ArrowRight aria-hidden="true" />
               </Link>
               <Link
-                href="/shop/turkiye/originals"
-                className="button-secondary w-full justify-center px-3 text-center"
-                aria-label="View original paintings"
+                href="/shop/international"
+                className="home-market-action"
+                onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                View Originals
+                <strong>Shop internationally</strong>
+                <span>Original paintings and worldwide products</span>
+                <ArrowRight aria-hidden="true" />
               </Link>
             </div>
-            <Link
-              href="/shop/international"
-              className="button-link mt-3 text-sm"
+          </div>
+          <img
+            src={heroPortrait}
+            srcSet={getResponsiveImageSrcSet(heroPortrait)}
+            sizes="(max-width: 767px) 100vw, 48vw"
+            alt="Aida Ramezani in her Istanbul studio"
+            width="800"
+            height="1000"
+            fetchPriority="high"
+            className="home-market-hero__image"
+          />
+        </div>
+      </section>
+
+      <section className="section-shell home-categories">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
+          <div>
+            <p className="eyebrow">Your collection</p>
+            <h2 className="mt-2 text-4xl md:text-5xl">
+              What are you looking for?
+            </h2>
+          </div>
+          {hasPreference && (
+            <div className="text-sm text-ink/60">
+              Shopping {market === "TR" ? "in Türkiye" : "internationally"} ·{" "}
+              <button
+                type="button"
+                className="min-h-11 font-bold text-ink underline underline-offset-4"
+                onClick={() => setHasPreference(false)}
+              >
+                Change
+              </button>
+            </div>
+          )}
+        </div>
+        {!hasPreference && (
+          <div className="mt-5 flex gap-2" aria-label="Choose category market">
+            <button
+              className="button-primary"
+              onClick={() => chooseMarket("TR")}
             >
-              Shopping outside Türkiye? Choose international delivery
+              Türkiye
+            </button>
+            <button
+              className="button-secondary"
+              onClick={() => chooseMarket("INTERNATIONAL")}
+            >
+              International
+            </button>
+          </div>
+        )}
+        <div className="home-category-grid mt-8">
+          {categoryItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`home-category-link ${item.feature ? "home-category-link--feature" : ""} ${item.textOnly ? "home-category-link--text" : ""}`}
+              onClick={() =>
+                trackAnalytics("homepage_category_clicked", {
+                  metadata: { market, category: item.title },
+                })
+              }
+            >
+              {!item.textOnly && (
+                <img src={item.image} alt="" loading="lazy" decoding="async" />
+              )}
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+                <span>{item.cta} →</span>
+              </div>
             </Link>
-          </div>
-          <div className="home-hero-media relative flex min-h-0 flex-col">
-            <ArtistPhotoFrame
-              variant="hero"
-              src={heroPortrait}
-              alt="Istanbul artist Aida Ramezani smiling and holding one of her artworks"
-              caption="Aida in her Istanbul studio"
-            />
-          </div>
+          ))}
         </div>
       </section>
 
-      <section className="hidden border-y border-ink/10 bg-card md:block">
-        <div className="section-shell">
-          <div className="section-heading">
-            <p className="eyebrow">Shopping location</p>
-            <h2>Choose Your Shop</h2>
+      <section className="section-shell home-latest !pt-4">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Available now</p>
+            <h2 className="mt-2 text-4xl md:text-5xl">
+              Recently from the studio
+            </h2>
           </div>
-          <div className="mt-10 grid gap-px bg-ink/10 md:grid-cols-2">
-            <article className="relative isolate overflow-hidden bg-paper p-7 md:p-10">
-              <img
-                src={turkiyeFlagBackground}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.11]"
-              />
-              <div className="flex h-full flex-col items-start">
-                <p className="eyebrow">Türkiye</p>
-                <h3 className="mt-3 text-3xl">Shop within Türkiye</h3>
-                <p className="mt-4 flex-1 leading-relaxed text-ink/70">
-                  Browse original paintings, signed prints, T-shirts, mugs,
-                  stickers and the current Mystery Mail. Add your selections to
-                  your basket and continue personally with Aida on WhatsApp.
-                </p>
-                <p className="mt-5 text-sm font-semibold">
-                  Originals · Prints & Goods · Mystery Mail
-                </p>
-                <Link href="/shop/turkiye" className="button-primary mt-7">
-                  Enter the Türkiye Shop <ArrowRight size={16} />
-                </Link>
-              </div>
-            </article>
-            <article className="relative isolate overflow-hidden bg-paper p-7 md:p-10">
-              <img
-                src={internationalFlagsBackground}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.1]"
-              />
-              <div className="flex h-full flex-col items-start">
-                <p className="eyebrow">International</p>
-                <h3 className="mt-3 text-3xl">Shop internationally</h3>
-                <p className="mt-4 flex-1 leading-relaxed text-ink/70">
-                  Collect an original directly from Aida or explore
-                  international prints available through Fourthwall.
-                </p>
-                <p className="mt-5 text-sm font-semibold">
-                  Originals · International Prints
-                </p>
-                <p className="mt-2 text-sm text-ink/60">
-                  Original shipping is quoted separately. Print shipping is
-                  calculated by Fourthwall.
-                </p>
-                <Link
-                  href="/shop/international"
-                  className="button-secondary mt-7"
-                >
-                  Enter the International Shop <ArrowRight size={16} />
-                </Link>
-              </div>
-            </article>
-          </div>
+          <Link href={base} className="button-link hidden sm:inline-flex">
+            View all →
+          </Link>
         </div>
-      </section>
-
-      <section className="border-y border-ink/10 bg-card py-10 md:hidden">
-        <div className="px-4">
-          <p className="eyebrow text-coral">Choose where we deliver</p>
-          <h2 className="mt-3 text-3xl">Find the right shop for you</h2>
-          <div className="mt-6 space-y-6">
-            {[
-              {
-                region: "In Türkiye",
-                note: "Local delivery · Order with Aida",
-                items: [
-                  ["/shop/turkiye/prints", printsCoverImage, "Prints & Goods"],
-                  ["/shop/turkiye/originals", originalsCoverImage, "Originals"],
-                ],
-              },
-              {
-                region: "Outside Türkiye",
-                note: "Worldwide options · International delivery",
-                items: [
-                  [
-                    "/shop/international/prints",
-                    printsCoverImage,
-                    "International Prints",
-                  ],
-                  [
-                    "/shop/international/originals",
-                    originalsCoverImage,
-                    "International Originals",
-                  ],
-                ],
-              },
-            ].map((group) => (
-              <div key={group.region}>
-                <div className="flex items-end justify-between gap-3 border-b border-ink/15 pb-2">
-                  <h3 className="text-xl">{group.region}</h3>
-                  <p className="text-right text-[10px] font-semibold uppercase tracking-wide text-ink/50">
-                    {group.note}
-                  </p>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  {group.items.map(([href, image, title]) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      className="group border border-ink/10 bg-paper p-2"
-                    >
-                      <img
-                        src={image}
-                        alt=""
-                        className="aspect-square w-full object-cover"
-                        loading="eager"
-                      />
-                      <h4 className="mt-3 text-lg leading-tight">{title}</h4>
-                      <span className="mt-2 inline-flex min-h-9 items-center text-xs font-bold text-coral">
-                        Shop <ArrowRight size={14} />
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+        {market === "TR" ? (
+          <div className="home-product-grid mt-8">
+            {latestLocal.map((product) => (
+              <ProductTile key={product.id} product={product} market={market} />
             ))}
           </div>
+        ) : (
+          <div className="home-product-grid mt-8">
+            {originals.slice(0, 2).map((product) => (
+              <ProductTile key={product.id} product={product} market={market} />
+            ))}
+            {international.products.slice(0, 2).map((product) => (
+              <article key={product.id} className="home-product-tile">
+                <a
+                  href={product.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() =>
+                    trackAnalytics("homepage_product_clicked", {
+                      entityType: "fourthwall",
+                      entityId: product.id,
+                      entityName: product.name,
+                      metadata: { market },
+                    })
+                  }
+                >
+                  {product.primaryImage && (
+                    <img
+                      src={product.primaryImage.url}
+                      width={product.primaryImage.width || 800}
+                      height={product.primaryImage.height || 800}
+                      alt={product.primaryImage.alt}
+                      loading="lazy"
+                      className="aspect-[4/5] w-full bg-white object-contain"
+                    />
+                  )}
+                  <div className="pt-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[.1em] text-ink/45">
+                      International print ·{" "}
+                      {product.soldOut ? "Sold out" : "Available"}
+                    </p>
+                    <h3 className="mt-2 text-2xl">{product.name}</h3>
+                    <p className="mt-2 text-sm font-bold">
+                      {product.price.formatted}
+                    </p>
+                    <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold underline decoration-ink/25 underline-offset-4">
+                      View product →
+                    </span>
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
+        )}
+        <Link href={base} className="button-link mt-7 sm:hidden">
+          View all available pieces →
+        </Link>
+      </section>
+
+      <div className="home-studio-letter">
+        <StudioLetterSignup variant="story-preview" context="home" />
+      </div>
+
+      <section className="home-about-teaser section-shell">
+        <img
+          src={homeAboutImage}
+          srcSet={getResponsiveImageSrcSet(homeAboutImage)}
+          sizes="(max-width: 767px) 100vw, 42vw"
+          alt="Aida preparing artwork in her Istanbul studio"
+          loading="lazy"
+        />
+        <div>
+          <p className="eyebrow">About the artist</p>
+          <h2>Made by Aida in Istanbul.</h2>
+          <p>
+            Original art, prints and studio packages created and prepared
+            personally by Aida Ramezani.
+          </p>
+          <Link
+            href="/about"
+            className="button-link"
+            onClick={() => trackAnalytics("homepage_about_clicked")}
+          >
+            Meet Aida →
+          </Link>
         </div>
       </section>
 
       <TikTokLiveSection tiktokUrl={links.tiktokUrl} />
 
-      <StudioLetterSignup variant="story-preview" context="home" />
-
-      <section className="home-about border-y border-ink/10 bg-ochre/10">
-        <div className="section-shell grid gap-6 md:gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-          <ArtistPhotoFrame
-            src={homeAboutImage}
-            alt="Aida Ramezani holding a carefully packed artwork in her Istanbul studio"
-          />
-          <div className="section-heading">
-            <p className="eyebrow">About the artist</p>
-            <h2>Made by Aida Ramezani in Istanbul</h2>
-            <p className="home-about__secondary-copy">
-              Every original painting, studio good and Mystery Mail package is
-              created, selected or prepared personally in the studio.
+      <section className="home-quiet-row border-t border-ink/15">
+        <div className="section-shell flex flex-col gap-4 !py-10 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl">
+              {market === "TR"
+                ? "Ordering in Türkiye"
+                : "Collecting internationally"}
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-ink/65">
+              {market === "TR"
+                ? "Add your pieces to the basket and continue with Aida to confirm availability, delivery and payment details."
+                : "Originals are arranged personally with Aida; international products are fulfilled through Fourthwall."}
             </p>
-            <p>
-              The goal is to make collecting art feel personal, approachable and
-              connected to the artist who created it.
-            </p>
-            <Link href="/about" className="button-link mt-2">
-              Meet the artist <ArrowRight size={16} />
-            </Link>
           </div>
+          <Link href="/how-to-collect" className="button-link">
+            How ordering works →
+          </Link>
         </div>
       </section>
 
-      <section className="section-shell">
-        <div className="section-heading">
-          <p className="eyebrow">Ordering</p>
-          <h2>How Turkey Orders Work</h2>
-        </div>
-        <ol className="mt-10 grid gap-px bg-ink/10 md:grid-cols-3">
-          {[
-            [
-              "01",
-              "Choose your artwork",
-              "Explore the available originals, Prints & Goods and Mystery Mail.",
-            ],
-            [
-              "02",
-              "Add items to your basket",
-              "Select your preferred products and framing options.",
-            ],
-            [
-              "03",
-              "Continue to WhatsApp",
-              "Send your basket through WhatsApp to confirm availability, delivery and payment details.",
-            ],
-          ].map(([number, title, copy]) => (
-            <li key={number} className="bg-card p-7">
-              <span className="font-hand text-2xl text-coral">{number}</span>
-              <h3 className="mt-5 text-2xl">{title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-ink/65">{copy}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-6 border-l-2 border-coral pl-5 text-sm leading-relaxed text-ink/65">
-          <p>No online payment is collected through this website.</p>
-          <p>
-            International originals are arranged with Aida. International prints
-            are completed through Fourthwall.
-          </p>
-        </div>
-      </section>
-
-      <section className="bg-blue text-paper">
-        <div className="section-shell text-center">
-          <p className="eyebrow !text-paper/55">Social</p>
-          <h2 className="mt-4 text-4xl text-paper md:text-6xl">
-            Follow the Studio
-          </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-paper/70">
-            See new paintings, behind the scenes studio moments, packaging
-            videos and upcoming releases.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+      <section className="home-social-strip bg-blue text-paper">
+        <div className="section-shell flex flex-col gap-4 !py-9 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-2xl text-paper">Follow the studio</h2>
+          <div className="flex flex-wrap gap-6 text-sm font-bold">
             {[
               ["Instagram", links.instagramUrl],
               ["TikTok", links.tiktokUrl],
@@ -293,7 +439,7 @@ export default function Home() {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="button-secondary !border-paper/40 !text-paper hover:!bg-paper hover:!text-ink"
+                className="min-h-11 content-center underline decoration-paper/30 underline-offset-4"
               >
                 {label}
               </a>

@@ -4,6 +4,7 @@ import {
   type TikTokLiveArtwork,
 } from "@/config/tiktok-live";
 import { formatCompactNumber } from "@/lib/compact-number";
+import { trackAnalytics } from "@/lib/analytics";
 
 interface TikTokLiveSectionProps {
   tiktokUrl: string;
@@ -110,17 +111,21 @@ export default function TikTokLiveSection({
               {tiktokLiveSection.eyebrow}
             </p>
           </div>
-          <h2 id="tiktok-live-heading">{tiktokLiveSection.heading}</h2>
+          <h2 id="tiktok-live-heading">Watch new pieces come to life.</h2>
           <p className="home-live-section__description">
-            {tiktokLiveSection.description}
+            Join Aida in the studio for live painting sessions, new artwork and
+            behind-the-scenes moments.
           </p>
-          <LiveSocialProof />
+          <p className="mt-4 text-sm font-semibold text-paper/60">
+            Watched by thousands during live sessions.
+          </p>
           <div className="home-live-section__actions">
             <a
               href={tiktokUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="button-primary"
+              onClick={() => trackAnalytics("homepage_tiktok_clicked")}
             >
               {tiktokLiveSection.primaryCtaLabel}
               <ArrowUpRight size={16} aria-hidden="true" />
@@ -139,7 +144,7 @@ export default function TikTokLiveSection({
             )}
           </div>
         </div>
-        <LiveArtworkComposition artworks={artworks} />
+        <LiveArtworkComposition artworks={artworks.slice(0, 2)} />
       </div>
     </section>
   );

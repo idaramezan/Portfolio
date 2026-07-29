@@ -43,6 +43,12 @@ const EVENTS = new Set([
   "sticker_drop_add_to_basket",
   "sticker_drop_external_product_clicked",
   "sticker_drop_sold_out_viewed",
+  "homepage_market_selected",
+  "homepage_category_clicked",
+  "homepage_product_clicked",
+  "homepage_event_clicked",
+  "homepage_about_clicked",
+  "homepage_tiktok_clicked",
 ]);
 const META_KEYS = new Set([
   "productType",
