@@ -211,133 +211,247 @@ export default function IstanbulPaintingEventBanner({
     : null;
   const whatsappUrl = serverWhatsappUrl || fallbackWhatsappUrl;
 
-  if (compact) {
-    return (
-      <section
-        className="home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1]"
-        aria-labelledby="home-event-heading"
-        data-no-translate
-      >
-        <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-5 md:grid-cols-[auto_1fr_auto] md:px-8 md:py-4">
-          <p className="text-[11px] font-bold uppercase tracking-[.12em] text-coral">
-            {eventDate}
-          </p>
-          <div>
-            <h2 id="home-event-heading" className="text-2xl text-[#fffaf1]">
-              {local ? config.title_tr : config.title_en}
-            </h2>
-            <p className="mt-1 text-sm text-[#fffaf1]/65">
-              {audience} ·{" "}
-              {local ? config.location_text_tr : config.location_text_en} ·{" "}
-              <strong className="text-[#fffaf1]">
-                {remainingSeats} {ui.remaining}
-              </strong>
-            </p>
-          </div>
-          <Link
-            href="/event"
-            className="button-link min-h-11 !text-coral"
-            onClick={() => trackAnalytics("homepage_event_clicked")}
-          >
-            {local ? "Etkinlik ayrıntıları" : "View event details"} →
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  return (
+  const compactAnnouncement = compact ? (
     <section
-      className="relative border-b border-white/10 bg-[#11110f] text-[#fffaf1]"
-      aria-labelledby="istanbul-painting-day-heading"
+      className="home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1] md:hidden"
+      aria-labelledby="home-event-heading"
       data-no-translate
     >
-      {showToast && (
-        <div
-          className="fixed right-4 top-24 z-[80] flex max-w-sm items-start gap-3 border border-white/15 bg-[#1b1b18] p-4 text-sm leading-6 text-[#fffaf1] shadow-2xl"
-          role="status"
-          aria-live="polite"
-        >
-          <CircleCheck
-            className="mt-0.5 shrink-0 text-coral"
-            size={20}
-            aria-hidden="true"
-          />
-          <p>{ui.success}</p>
-          <button
-            type="button"
-            onClick={() => setShowToast(false)}
-            className="-mr-1 -mt-1 grid min-h-11 min-w-11 place-items-center text-[#fffaf1]/70 hover:text-white focus-visible:ring-2 focus-visible:ring-coral"
-            aria-label="Close notification"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-      )}
-
-      <div className="section-shell grid items-center gap-7 !py-9 md:!py-11 lg:grid-cols-[1.27fr_1fr] lg:gap-12 lg:!py-12">
-        <article className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="eyebrow text-coral">
-              {local ? config.eyebrow_tr : config.eyebrow_en}
-            </p>
-            <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
-              {remainingSeats} {ui.remaining}
-            </span>
-          </div>
-          <h2
-            id="istanbul-painting-day-heading"
-            className="mt-3 max-w-3xl text-3xl leading-tight text-[#fffaf1] md:text-4xl"
-          >
+      <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-5 md:grid-cols-[auto_1fr_auto] md:px-8 md:py-4">
+        <p className="text-[11px] font-bold uppercase tracking-[.12em] text-coral">
+          {eventDate}
+        </p>
+        <div>
+          <h2 id="home-event-heading" className="text-2xl text-[#fffaf1]">
             {local ? config.title_tr : config.title_en}
           </h2>
-          <p className="mt-3 hidden max-w-3xl text-sm leading-6 text-[#fffaf1]/68 sm:block md:text-[15px]">
-            {local ? config.description_tr : config.description_en}
+          <p className="mt-1 text-sm text-[#fffaf1]/65">
+            {audience} ·{" "}
+            {local ? config.location_text_tr : config.location_text_en} ·{" "}
+            <strong className="text-[#fffaf1]">
+              {remainingSeats} {ui.remaining}
+            </strong>
           </p>
-          <details className="group mt-3 border-y border-white/15 py-2 sm:hidden">
-            <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between text-sm font-bold">
-              {ui.details}
-              <span className="text-coral group-open:rotate-45">+</span>
-            </summary>
-            <p className="pb-2 text-sm leading-6 text-[#fffaf1]/68">
+        </div>
+        <Link
+          href="/event"
+          className="button-link min-h-11 !text-coral"
+          onClick={() => trackAnalytics("homepage_event_clicked")}
+        >
+          {local ? "Etkinlik ayrıntıları" : "View event details"} →
+        </Link>
+      </div>
+    </section>
+  ) : null;
+
+  return (
+    <>
+      {compactAnnouncement}
+      <section
+        className={`relative border-b border-white/10 bg-[#11110f] text-[#fffaf1] ${compact ? "hidden md:block" : ""}`}
+        aria-labelledby="istanbul-painting-day-heading"
+        data-no-translate
+      >
+        {showToast && (
+          <div
+            className="fixed right-4 top-24 z-[80] flex max-w-sm items-start gap-3 border border-white/15 bg-[#1b1b18] p-4 text-sm leading-6 text-[#fffaf1] shadow-2xl"
+            role="status"
+            aria-live="polite"
+          >
+            <CircleCheck
+              className="mt-0.5 shrink-0 text-coral"
+              size={20}
+              aria-hidden="true"
+            />
+            <p>{ui.success}</p>
+            <button
+              type="button"
+              onClick={() => setShowToast(false)}
+              className="-mr-1 -mt-1 grid min-h-11 min-w-11 place-items-center text-[#fffaf1]/70 hover:text-white focus-visible:ring-2 focus-visible:ring-coral"
+              aria-label="Close notification"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        <div className="section-shell grid items-center gap-7 !py-9 md:!py-11 lg:grid-cols-[1.27fr_1fr] lg:gap-12 lg:!py-12">
+          <article className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="eyebrow text-coral">
+                {local ? config.eyebrow_tr : config.eyebrow_en}
+              </p>
+              <span className="border border-coral/70 px-2 py-1 text-[9px] font-bold uppercase tracking-[.15em] text-coral">
+                {remainingSeats} {ui.remaining}
+              </span>
+            </div>
+            <h2
+              id="istanbul-painting-day-heading"
+              className="mt-3 max-w-3xl text-3xl leading-tight text-[#fffaf1] md:text-4xl"
+            >
+              {local ? config.title_tr : config.title_en}
+            </h2>
+            <p className="mt-3 hidden max-w-3xl text-sm leading-6 text-[#fffaf1]/68 sm:block md:text-[15px]">
               {local ? config.description_tr : config.description_en}
             </p>
-          </details>
+            <details className="group mt-3 border-y border-white/15 py-2 sm:hidden">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between text-sm font-bold">
+                {ui.details}
+                <span className="text-coral group-open:rotate-45">+</span>
+              </summary>
+              <p className="pb-2 text-sm leading-6 text-[#fffaf1]/68">
+                {local ? config.description_tr : config.description_en}
+              </p>
+            </details>
 
-          <ul
-            className="mt-4 flex flex-wrap gap-2 text-xs"
-            aria-label="Event facts"
-          >
-            {[
-              [CalendarDays, eventDate],
-              [
-                MapPin,
-                local ? config.location_text_tr : config.location_text_en,
-              ],
-              [Users, audience],
-              [CircleCheck, `${config.participation_price_try} TL`],
-            ].map(([Icon, value]) => {
-              const FactIcon = Icon as typeof CalendarDays;
-              return (
-                <li
-                  key={value as string}
-                  className="flex min-h-9 items-center gap-2 border border-white/15 bg-white/[.04] px-3"
-                >
-                  <FactIcon
-                    size={13}
-                    className="text-coral"
-                    aria-hidden="true"
+            <ul
+              className="mt-4 flex flex-wrap gap-2 text-xs"
+              aria-label="Event facts"
+            >
+              {[
+                [CalendarDays, eventDate],
+                [
+                  MapPin,
+                  local ? config.location_text_tr : config.location_text_en,
+                ],
+                [Users, audience],
+                [CircleCheck, `${config.participation_price_try} TL`],
+              ].map(([Icon, value]) => {
+                const FactIcon = Icon as typeof CalendarDays;
+                return (
+                  <li
+                    key={value as string}
+                    className="flex min-h-9 items-center gap-2 border border-white/15 bg-white/[.04] px-3"
+                  >
+                    <FactIcon
+                      size={13}
+                      className="text-coral"
+                      aria-hidden="true"
+                    />
+                    <span className="font-semibold">{value as string}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-2 text-xs text-[#fffaf1]/55">
+              {local
+                ? config.secondary_details_tr
+                : config.secondary_details_en}
+            </p>
+
+            <figure className="relative mt-5 rotate-[.2deg] border-[6px] border-b-[25px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_12px_28px_rgba(0,0,0,.28)] lg:hidden">
+              <img
+                src={config.image_url || eventImage}
+                alt={config.image_alt_text}
+                width="1400"
+                height="1122"
+                loading="eager"
+                decoding="async"
+                className="aspect-[5/4] w-full object-cover"
+                style={{ objectPosition: config.image_object_position }}
+              />
+            </figure>
+
+            <button
+              type="button"
+              className="button-primary mt-5 w-full lg:hidden"
+              aria-expanded={mobileFormOpen}
+              aria-controls="event-registration-form"
+              onClick={() => setMobileFormOpen((open) => !open)}
+            >
+              {ui.openForm}
+            </button>
+
+            <div
+              id="event-registration-form"
+              className={`${mobileFormOpen ? "block" : "hidden"} mt-4 border-t border-white/15 pt-4 lg:block`}
+            >
+              <h3 className="font-serif text-xl text-[#fffaf1]">
+                {ui.interested}
+              </h3>
+              <p className="mt-1 text-sm text-[#fffaf1]/60">{ui.join}</p>
+              <form onSubmit={submit} noValidate className="mt-3 max-w-2xl">
+                <label htmlFor="istanbul-event-email" className="sr-only">
+                  {ui.emailLabel}
+                </label>
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <input
+                    id="istanbul-event-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      if (status === "error") {
+                        setStatus("idle");
+                        setError("");
+                      }
+                    }}
+                    placeholder={ui.placeholder}
+                    disabled={status === "loading"}
+                    aria-invalid={status === "error" ? "true" : undefined}
+                    aria-describedby={
+                      status === "error"
+                        ? "istanbul-event-error"
+                        : "istanbul-event-help"
+                    }
+                    className="min-h-11 min-w-0 border border-white/25 bg-white/[.07] px-4 text-base text-white outline-none placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-coral"
                   />
-                  <span className="font-semibold">{value as string}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 text-xs text-[#fffaf1]/55">
-            {local ? config.secondary_details_tr : config.secondary_details_en}
-          </p>
+                  <button
+                    type="submit"
+                    disabled={status === "loading"}
+                    className="button-primary min-h-11 justify-center disabled:cursor-wait disabled:opacity-70"
+                  >
+                    {status === "loading" ? ui.sending : ui.submit}
+                  </button>
+                </div>
+                <div aria-live="polite">
+                  {status === "error" && (
+                    <p
+                      id="istanbul-event-error"
+                      role="alert"
+                      className="mt-2 text-sm font-semibold text-coral"
+                    >
+                      {error}
+                    </p>
+                  )}
+                  {status === "success" && (
+                    <p className="mt-2 text-sm font-semibold text-[#fffaf1]">
+                      {ui.joined}
+                    </p>
+                  )}
+                </div>
+                <p
+                  id="istanbul-event-help"
+                  className="mt-2 text-xs leading-relaxed text-[#fffaf1]/50"
+                >
+                  {ui.trust}
+                </p>
+              </form>
+              <p className="mt-2 text-xs font-semibold text-[#fffaf1]/60">
+                {ui.reservation}
+              </p>
+              {status === "success" && whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-coral underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-coral"
+                  onClick={() =>
+                    trackAnalytics("painting_event_whatsapp_clicked")
+                  }
+                >
+                  <MessageCircle size={16} aria-hidden="true" /> {ui.contact}
+                </a>
+              )}
+            </div>
+          </article>
 
-          <figure className="relative mt-5 rotate-[.2deg] border-[6px] border-b-[25px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_12px_28px_rgba(0,0,0,.28)] lg:hidden">
+          <figure className="relative hidden rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0 lg:block">
+            <div className="absolute -left-2 -top-2 z-10 bg-coral px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em] text-white">
+              {eventDate.toUpperCase()}
+            </div>
             <img
               src={config.image_url || eventImage}
               alt={config.image_alt_text}
@@ -348,123 +462,12 @@ export default function IstanbulPaintingEventBanner({
               className="aspect-[5/4] w-full object-cover"
               style={{ objectPosition: config.image_object_position }}
             />
+            <figcaption className="px-2 pt-1.5 font-hand text-sm text-ink/65">
+              A summer afternoon for painting together.
+            </figcaption>
           </figure>
-
-          <button
-            type="button"
-            className="button-primary mt-5 w-full lg:hidden"
-            aria-expanded={mobileFormOpen}
-            aria-controls="event-registration-form"
-            onClick={() => setMobileFormOpen((open) => !open)}
-          >
-            {ui.openForm}
-          </button>
-
-          <div
-            id="event-registration-form"
-            className={`${mobileFormOpen ? "block" : "hidden"} mt-4 border-t border-white/15 pt-4 lg:block`}
-          >
-            <h3 className="font-serif text-xl text-[#fffaf1]">
-              {ui.interested}
-            </h3>
-            <p className="mt-1 text-sm text-[#fffaf1]/60">{ui.join}</p>
-            <form onSubmit={submit} noValidate className="mt-3 max-w-2xl">
-              <label htmlFor="istanbul-event-email" className="sr-only">
-                {ui.emailLabel}
-              </label>
-              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                <input
-                  id="istanbul-event-email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    if (status === "error") {
-                      setStatus("idle");
-                      setError("");
-                    }
-                  }}
-                  placeholder={ui.placeholder}
-                  disabled={status === "loading"}
-                  aria-invalid={status === "error" ? "true" : undefined}
-                  aria-describedby={
-                    status === "error"
-                      ? "istanbul-event-error"
-                      : "istanbul-event-help"
-                  }
-                  className="min-h-11 min-w-0 border border-white/25 bg-white/[.07] px-4 text-base text-white outline-none placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-coral"
-                />
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="button-primary min-h-11 justify-center disabled:cursor-wait disabled:opacity-70"
-                >
-                  {status === "loading" ? ui.sending : ui.submit}
-                </button>
-              </div>
-              <div aria-live="polite">
-                {status === "error" && (
-                  <p
-                    id="istanbul-event-error"
-                    role="alert"
-                    className="mt-2 text-sm font-semibold text-coral"
-                  >
-                    {error}
-                  </p>
-                )}
-                {status === "success" && (
-                  <p className="mt-2 text-sm font-semibold text-[#fffaf1]">
-                    {ui.joined}
-                  </p>
-                )}
-              </div>
-              <p
-                id="istanbul-event-help"
-                className="mt-2 text-xs leading-relaxed text-[#fffaf1]/50"
-              >
-                {ui.trust}
-              </p>
-            </form>
-            <p className="mt-2 text-xs font-semibold text-[#fffaf1]/60">
-              {ui.reservation}
-            </p>
-            {status === "success" && whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-coral underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-coral"
-                onClick={() =>
-                  trackAnalytics("painting_event_whatsapp_clicked")
-                }
-              >
-                <MessageCircle size={16} aria-hidden="true" /> {ui.contact}
-              </a>
-            )}
-          </div>
-        </article>
-
-        <figure className="relative hidden rotate-[.35deg] border-[8px] border-b-[32px] border-[#fffaf1] bg-[#fffaf1] shadow-[0_18px_40px_rgba(0,0,0,.35)] motion-reduce:rotate-0 lg:block">
-          <div className="absolute -left-2 -top-2 z-10 bg-coral px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.12em] text-white">
-            {eventDate.toUpperCase()}
-          </div>
-          <img
-            src={config.image_url || eventImage}
-            alt={config.image_alt_text}
-            width="1400"
-            height="1122"
-            loading="eager"
-            decoding="async"
-            className="aspect-[5/4] w-full object-cover"
-            style={{ objectPosition: config.image_object_position }}
-          />
-          <figcaption className="px-2 pt-1.5 font-hand text-sm text-ink/65">
-            A summer afternoon for painting together.
-          </figcaption>
-        </figure>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 }
