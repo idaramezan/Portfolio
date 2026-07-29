@@ -8,6 +8,7 @@ export interface InternationalProduct {
   price: { amount: number; currency: string; formatted: string };
   available: boolean;
   soldOut: boolean;
+  updatedAt?: string;
   variants: {
     id: string;
     name: string;

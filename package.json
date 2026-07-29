@@ -13,6 +13,7 @@
     "test:featured-studio-letter": "node scripts/verify-featured-studio-letter.mjs",
     "test:event-banner-admin": "node scripts/verify-event-banner-admin.mjs",
     "test:studio-letter-page": "node scripts/verify-studio-letter-page.mjs",
+    "test:shop-preview-order": "node scripts/verify-shop-preview-order.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

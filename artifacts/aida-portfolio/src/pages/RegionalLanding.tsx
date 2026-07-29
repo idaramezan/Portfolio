@@ -17,7 +17,7 @@ import {
   heroPortrait,
 } from "@/lib/assets";
 import { getMysteryMailCountdown } from "@/lib/mystery-mail";
-import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
+import { isPubliclyVisible } from "@/lib/product-status";
 import {
   setActiveShoppingRegion,
   type ManagedProduct,
@@ -104,14 +104,11 @@ function sortedPreview(products: ManagedProduct[], region: ShoppingRegion) {
           : p.availableInternationally !== false),
     )
     .sort((a, b) => {
-      const availability = Number(isSoldOut(a)) - Number(isSoldOut(b));
-      if (availability) return availability;
       return (
         Date.parse(b.updatedAt || "1970-01-01") -
         Date.parse(a.updatedAt || "1970-01-01")
       );
-    })
-    .slice(0, 8);
+    });
 }
 
 function ProductPreview({
@@ -127,7 +124,7 @@ function ProductPreview({
   return products.length ? (
     <>
       <ul className="managed-product-grid mt-10">
-        {products.map((product) => (
+        {products.slice(0, 6).map((product) => (
           <li key={product.id} className="flex min-w-0">
             <ManagedProductCard
               product={product}
@@ -360,11 +357,11 @@ export default function RegionalLanding({
                 : "Explore original oil pastel paintings available for international delivery, or shop prints and art goods through Aida’s international Fourthwall store."}
             </p>
             <div className="regional-shop-hero__actions">
-              <Link href={`${base}/originals`} className="button-primary">
-                Explore original paintings
-              </Link>
-              <Link href={`${base}/prints`} className="button-secondary">
+              <Link href={`${base}/prints`} className="button-primary">
                 {tr ? "Browse prints & goods" : "Shop prints & goods"}
+              </Link>
+              <Link href={`${base}/originals`} className="button-secondary">
+                Explore original paintings
               </Link>
             </div>
             {tr && (
@@ -415,23 +412,6 @@ export default function RegionalLanding({
         </div>
       </section>
       {tr && <MysteryFeature />}
-      <section className="section-shell">
-        <p className="eyebrow">{tr ? "New from the studio" : "Original art"}</p>
-        <h2 className="mt-3 text-4xl md:text-5xl">
-          {tr
-            ? "Latest original paintings"
-            : "Original paintings available internationally"}
-        </h2>
-        <p className="mt-4 max-w-2xl text-ink/65">
-          {tr
-            ? "One-of-a-kind oil pastel works, signed by Aida and available only once."
-            : "One-of-a-kind works sent from Aida’s Istanbul studio. International shipping is calculated separately after your location is confirmed."}
-        </p>
-        <ProductPreview products={originals} region={region} />
-        <Link href={`${base}/originals`} className="button-primary mt-9">
-          {tr ? "View all originals" : "View all original paintings"}
-        </Link>
-      </section>
       {tr ? (
         <section className="section-shell bg-ochre/10">
           <p className="eyebrow">Prints & goods</p>
@@ -443,9 +423,11 @@ export default function RegionalLanding({
             artwork.
           </p>
           <ProductPreview products={prints} region="TR" prints />
-          <Link href="/shop/turkiye/prints" className="button-primary mt-9">
-            View all prints & goods
-          </Link>
+          {prints.length > 6 && (
+            <Link href="/shop/turkiye/prints" className="button-primary mt-9">
+              See more prints & goods
+            </Link>
+          )}
         </section>
       ) : (
         <section className="section-shell bg-ochre/10">
@@ -463,7 +445,7 @@ export default function RegionalLanding({
               className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
               aria-label="Loading international products"
             >
-              {[1, 2, 3, 4].map((x) => (
+              {[1, 2, 3, 4, 5, 6].map((x) => (
                 <div key={x} className="animate-pulse border border-ink/10">
                   <div className="aspect-square bg-ink/10" />
                   <div className="m-5 h-16 bg-ink/10" />
@@ -471,8 +453,8 @@ export default function RegionalLanding({
               ))}
             </div>
           ) : international.products.length ? (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {international.products.slice(0, 8).map((p) => (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {international.products.slice(0, 6).map((p) => (
                 <InternationalProductCard key={p.id} product={p} />
               ))}
             </div>
@@ -500,14 +482,35 @@ export default function RegionalLanding({
               )}
             </div>
           )}
-          <Link
-            href="/shop/international/prints"
-            className="button-primary mt-9"
-          >
-            View all prints & goods
-          </Link>
+          {international.products.length > 6 && (
+            <Link
+              href="/shop/international/prints"
+              className="button-primary mt-9"
+            >
+              See more prints & goods
+            </Link>
+          )}
         </section>
       )}
+      <section className="section-shell">
+        <p className="eyebrow">{tr ? "New from the studio" : "Original art"}</p>
+        <h2 className="mt-3 text-4xl md:text-5xl">
+          {tr
+            ? "Latest original paintings"
+            : "Original paintings available internationally"}
+        </h2>
+        <p className="mt-4 max-w-2xl text-ink/65">
+          {tr
+            ? "One-of-a-kind oil pastel works, signed by Aida and available only once."
+            : "One-of-a-kind works sent from Aida’s Istanbul studio. International shipping is calculated separately after your location is confirmed."}
+        </p>
+        <ProductPreview products={originals} region={region} />
+        {originals.length > 6 && (
+          <Link href={`${base}/originals`} className="button-primary mt-9">
+            {tr ? "See more originals" : "See more original paintings"}
+          </Link>
+        )}
+      </section>
       <StudioLetterSignup
         variant="story-preview"
         context={tr ? "turkiye" : "international"}
@@ -557,20 +560,20 @@ export default function RegionalLanding({
           </h2>
           <div className="mt-9 grid gap-px bg-ink/10 md:grid-cols-2">
             <div className="bg-card p-8">
+              <h3 className="text-3xl">Prints & goods</h3>
+              <p className="mt-4 leading-8 text-ink/65">
+                Purchased through Fourthwall · Payment completed on Fourthwall ·
+                Fulfilled and shipped through Fourthwall · Availability and
+                shipping shown there
+              </p>
+            </div>
+            <div className="bg-card p-8">
               <h3 className="text-3xl">Original paintings</h3>
               <p className="mt-4 leading-8 text-ink/65">
                 Ordered directly from Aida · Product price excludes
                 international shipping · Shipping quote confirmed after
                 destination is provided · Personally packed in Istanbul ·
                 Availability confirmed before final order
-              </p>
-            </div>
-            <div className="bg-card p-8">
-              <h3 className="text-3xl">Prints & goods</h3>
-              <p className="mt-4 leading-8 text-ink/65">
-                Purchased through Fourthwall · Payment completed on Fourthwall ·
-                Fulfilled and shipped through Fourthwall · Availability and
-                shipping shown there
               </p>
             </div>
           </div>
@@ -586,18 +589,18 @@ export default function RegionalLanding({
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
-              href={`${base}/originals`}
-              className="button-primary !bg-paper !text-ink"
-            >
-              Explore original paintings
-            </Link>
-            <Link
               href={`${base}/prints`}
-              className="button-secondary !border-paper !text-paper"
+              className="button-primary !bg-paper !text-ink"
             >
               {tr
                 ? "Browse prints & goods"
                 : "Shop prints & goods internationally"}
+            </Link>
+            <Link
+              href={`${base}/originals`}
+              className="button-secondary !border-paper !text-paper"
+            >
+              Explore original paintings
             </Link>
           </div>
         </div>
