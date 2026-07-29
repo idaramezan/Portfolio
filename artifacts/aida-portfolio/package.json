@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-strip-types scripts/test-turkiye-products.ts",
     "test:newsletter": "node scripts/verify-newsletter-acquisition.mjs",
-    "test:analytics": "node scripts/verify-analytics.mjs"
+    "test:analytics": "node scripts/verify-analytics.mjs",
+    "test:mobile-nav": "node scripts/verify-mobile-navigation.mjs"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",

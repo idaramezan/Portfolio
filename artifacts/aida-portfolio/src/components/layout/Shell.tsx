@@ -68,6 +68,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
     const menu = mobileMenuRef.current;
     const focusable = () =>
       Array.from(
@@ -95,7 +99,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       }
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
   }, [isMobileMenuOpen]);
 
   useEffect(() => setIsMobileMenuOpen(false), [location]);
@@ -137,6 +145,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </label>
             <select
               id="language-select"
+              disabled={isMobileMenuOpen}
               value={locale}
               onChange={(event) => setLocale(event.target.value as "en" | "tr")}
               className="min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral"
@@ -146,8 +155,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <option value="en">EN</option>
             </select>
             <button
-              ref={menuButtonRef}
               onClick={() => setCartOpen(true)}
+              disabled={isMobileMenuOpen}
               className="relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 border border-ink/15 px-2 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
               aria-label={`Open collection basket, ${cartCount} items`}
             >
@@ -158,6 +167,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <span className="lg:hidden text-xs font-bold">{cartCount}</span>
             </button>
             <button
+              ref={menuButtonRef}
               className="md:hidden z-50 min-h-11 min-w-11 p-2 text-ink hover:text-coral focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
@@ -168,85 +178,85 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-
-        {isMobileMenuOpen && (
-          <nav
-            ref={mobileMenuRef}
-            id="mobile-navigation"
-            aria-label="Mobile navigation"
-            aria-modal="true"
-            role="dialog"
-            className="md:hidden fixed inset-0 overflow-y-auto bg-paper z-40 pt-24 pb-10 px-6 animate-in slide-in-from-top-10 fade-in duration-300"
-          >
-            <div className="mb-6 border-b border-ink/10 pb-6">
-              <label className="text-xs font-bold uppercase tracking-wider">
-                Language
-                <select
-                  value={locale}
-                  onChange={(event) =>
-                    setLocale(event.target.value as "en" | "tr")
-                  }
-                  className="mt-2 min-h-11 w-full border border-ink/15 bg-paper px-3"
-                >
-                  <option value="tr">Türkçe</option>
-                  <option value="en">English</option>
-                </select>
-              </label>
-            </div>
-            <p className="eyebrow mb-2">Collect</p>
-            <p className="eyebrow mb-2">Türkiye Shop</p>
-            {[
-              { href: "/shop/turkiye", label: "Shop home" },
-              ...TURKIYE_LINKS,
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex min-h-11 items-center font-serif text-3xl font-bold",
-                  location === link.href ? "text-coral" : "text-ink",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <p className="eyebrow mb-2 mt-6">International Shop</p>
-            {[
-              { href: "/shop/international", label: "Shop home" },
-              { href: "/shop/international/originals", label: "Originals" },
-              { href: "/shop/international/prints", label: "Prints" },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex min-h-11 items-center font-serif text-3xl font-bold"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <p className="eyebrow mb-2 mt-6">Studio</p>
-            {[
-              {
-                href: "/studio-letter",
-                label: locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
-              },
-              { href: "/about", label: "About" },
-              { href: "/links", label: "Links" },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex min-h-11 items-center font-serif text-3xl font-bold"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        )}
       </header>
+
+      {isMobileMenuOpen && (
+        <nav
+          ref={mobileMenuRef}
+          id="mobile-navigation"
+          aria-label="Mobile navigation"
+          aria-modal="true"
+          role="dialog"
+          className="fixed inset-0 z-40 h-dvh overscroll-contain overflow-y-auto bg-paper px-6 pb-10 pt-24 animate-in fade-in slide-in-from-top-10 duration-300 md:hidden"
+        >
+          <div className="mb-6 border-b border-ink/10 pb-6">
+            <label className="text-xs font-bold uppercase tracking-wider">
+              Language
+              <select
+                value={locale}
+                onChange={(event) =>
+                  setLocale(event.target.value as "en" | "tr")
+                }
+                className="mt-2 min-h-11 w-full border border-ink/15 bg-paper px-3"
+              >
+                <option value="tr">Türkçe</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+          </div>
+          <p className="eyebrow mb-2">Collect</p>
+          <p className="eyebrow mb-2">Türkiye Shop</p>
+          {[
+            { href: "/shop/turkiye", label: "Shop home" },
+            ...TURKIYE_LINKS,
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={cn(
+                "flex min-h-11 items-center font-serif text-3xl font-bold",
+                location === link.href ? "text-coral" : "text-ink",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <p className="eyebrow mb-2 mt-6">International Shop</p>
+          {[
+            { href: "/shop/international", label: "Shop home" },
+            { href: "/shop/international/originals", label: "Originals" },
+            { href: "/shop/international/prints", label: "Prints" },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex min-h-11 items-center font-serif text-3xl font-bold"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <p className="eyebrow mb-2 mt-6">Studio</p>
+          {[
+            {
+              href: "/studio-letter",
+              label: locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
+            },
+            { href: "/about", label: "About" },
+            { href: "/links", label: "Links" },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex min-h-11 items-center font-serif text-3xl font-bold"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
 
       <main className="flex-1 w-full">{children}</main>
 
