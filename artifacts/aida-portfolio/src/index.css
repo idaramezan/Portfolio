@@ -1020,6 +1020,14 @@
 }
 
 @media (max-width: 700px) {
+  .home-live-section .section-shell {
+    padding-block: 2.25rem;
+  }
+
+  .home-live-section__layout {
+    gap: 1.25rem;
+  }
+
   .home-live-section__identity {
     gap: 0.75rem;
     padding-block: 0.2rem;
@@ -1031,13 +1039,31 @@
   }
 
   .home-live-section h2 {
-    font-size: clamp(2.65rem, 12vw, 4rem);
+    margin-top: 0.65rem;
+    font-size: 2.35rem;
+  }
+
+  .home-live-section__description {
+    display: none;
+  }
+
+  .home-live-section__proof {
+    margin-top: 1rem;
+  }
+
+  .home-live-section__proof-value {
+    font-size: 2.7rem;
+  }
+
+  .home-live-section__supporting-metrics {
+    margin-top: 0.4rem;
   }
 
   .home-live-section__actions {
     align-items: stretch;
     flex-direction: column;
     gap: 0.75rem;
+    margin-top: 1rem;
   }
 
   .home-live-section__actions a {
@@ -1050,17 +1076,14 @@
   }
 
   .home-live-section__artworks {
-    display: flex;
-    height: auto;
+    display: grid;
+    height: 145px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: none;
-    gap: 1rem;
-    margin-inline: -1rem;
-    padding: 0.75rem 1rem 1.5rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-padding-inline: 1rem;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   .home-live-section__piece,
@@ -1072,10 +1095,18 @@
     position: relative;
     inset: auto;
     display: block;
-    width: min(78vw, 330px);
-    flex: 0 0 min(78vw, 330px);
-    scroll-snap-align: start;
+    width: 100%;
+    height: 145px;
     transform: none;
+  }
+
+  .home-live-section__piece img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .home-live-section__piece:nth-child(n + 3) {
+    display: none;
   }
 }
 
@@ -1540,6 +1571,10 @@
   grid-area: newsletter;
 }
 
+.footer-mobile-links {
+  display: none;
+}
+
 .footer-brand h2 {
   font-size: clamp(1.75rem, 2.4vw, 2.15rem);
   line-height: 1;
@@ -1737,11 +1772,69 @@
     grid-template-areas:
       "brand"
       "newsletter"
-      "shop"
-      "information";
+      "mobile-links";
     grid-template-columns: minmax(0, 1fr);
-    gap: 34px;
-    padding-block: 56px 42px;
+    gap: 24px;
+    padding-block: 36px 28px;
+  }
+
+  .footer-brand-copy,
+  .footer-desktop-links,
+  .footer-newsletter .footer-eyebrow,
+  .footer-newsletter-copy,
+  .footer-newsletter > a {
+    display: none;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .footer-brand h2 {
+    font-size: 1.65rem;
+  }
+
+  .footer-socials {
+    margin-top: 0;
+  }
+
+  .footer-socials a {
+    min-height: 36px;
+    font-size: 0.75rem;
+  }
+
+  .footer-mobile-links {
+    grid-area: mobile-links;
+    display: grid;
+    border-block: 1px solid rgb(246 241 231 / 0.14);
+  }
+
+  .footer-mobile-links details + details {
+    border-top: 1px solid rgb(246 241 231 / 0.14);
+  }
+
+  .footer-mobile-links summary {
+    min-height: 48px;
+    cursor: pointer;
+    padding-block: 15px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-paper);
+  }
+
+  .footer-mobile-links .footer-links {
+    padding-bottom: 12px;
+  }
+
+  .footer-newsletter h2 {
+    font-size: 1.35rem;
+  }
+
+  .footer-newsletter-form {
+    margin-top: 12px;
   }
 
   .footer-newsletter-controls {
@@ -1767,7 +1860,7 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
-    padding-block: 22px 26px;
+    padding-block: 16px 20px;
   }
 }
 
@@ -1820,6 +1913,50 @@
     margin-bottom: 32px;
     padding: 20px;
     clip-path: none;
+  }
+
+  .studio-letter-preview__images {
+    height: 180px;
+  }
+
+  .studio-letter-preview__images > button:first-child {
+    inset: 0 8%;
+    border-width: 6px;
+    border-bottom-width: 26px;
+  }
+
+  .studio-letter-preview__images > button:nth-child(n + 2) {
+    display: none;
+  }
+
+  .studio-letter-preview__excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .studio-letter-preview__excerpt p:nth-child(n + 2),
+  .studio-letter-preview__blur {
+    display: none;
+  }
+
+  .studio-letter-preview__transition {
+    margin-bottom: 0.75rem;
+  }
+
+  .home-about .artist-photo-frame {
+    max-height: 240px;
+    overflow: hidden;
+  }
+
+  .home-about .artist-photo-frame img {
+    height: 240px;
+    object-fit: cover;
+  }
+
+  .home-about__secondary-copy {
+    display: none;
   }
 }
 

@@ -45,42 +45,70 @@ const copy = {
   },
 } as const;
 
-export function ShopPageHeader({ region, category }: { region: ShoppingRegion; category?: ShopCategory }) {
+export function ShopPageHeader({
+  region,
+  category,
+}: {
+  region: ShoppingRegion;
+  category?: ShopCategory;
+}) {
+  const internationalPage = region === "INTERNATIONAL" && category;
+  const heading =
+    internationalPage === "originals"
+      ? "One-of-a-kind paintings, available worldwide."
+      : internationalPage === "prints"
+        ? "Art prints and goods, delivered internationally."
+        : copy[region].heading;
+  const description =
+    internationalPage === "originals"
+      ? "Collect an original oil pastel painting directly from Aida. Each work is unique; international shipping is quoted for your destination."
+      : internationalPage === "prints"
+        ? "Choose accessible editions and art goods inspired by Aida’s paintings. Ordering, payment and worldwide fulfilment are handled by Fourthwall."
+        : copy[region].description;
   return (
     <section className="section-shell !pb-8">
       <p className="eyebrow">{copy[region].eyebrow}</p>
-      <h1 className="mt-4 max-w-5xl text-5xl md:text-7xl">
-        {copy[region].heading}
-      </h1>
+      <h1 className="mt-4 max-w-5xl text-5xl md:text-7xl">{heading}</h1>
       <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/70">
-        {copy[region].description}
+        {description}
       </p>
       {region === "TR" ? (
         <div className="shipping-banner !mx-0 !mt-8 !max-w-none">
           <PackageCheck aria-hidden="true" />
           <p>
-            <strong>{category === "prints" ? "Shipping price will be calculated based on the package size" : "Free shipping within Türkiye"}</strong>
+            <strong>
+              {category === "prints"
+                ? "Shipping price will be calculated based on the package size"
+                : "Free shipping within Türkiye"}
+            </strong>
             <br />
             Add your chosen pieces to the Collection Basket, then continue on
             WhatsApp to confirm availability and details.
           </p>
         </div>
+      ) : category ? (
+        <aside className="mt-8 border-l-2 border-coral bg-card p-5">
+          <p className="eyebrow text-coral">Another way to collect</p>
+          <h2 className="mt-2 text-2xl">
+            {category === "originals"
+              ? "Love the art, but need a more affordable option?"
+              : "Looking for the one-of-a-kind artwork?"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/65">
+            {category === "originals"
+              ? "Choose a print edition to enjoy Aida’s work at a more accessible price, with international fulfilment included in checkout."
+              : "Explore original paintings collected directly from Aida; shipping is arranged personally for your destination."}
+          </p>
+          <Link
+            href={`/shop/international/${category === "originals" ? "prints" : "originals"}`}
+            className="button-link mt-3"
+          >
+            {category === "originals" ? "Explore prints" : "View originals"}{" "}
+            <ExternalLink size={14} aria-hidden="true" />
+          </Link>
+        </aside>
       ) : (
-        <div className="mt-8 grid gap-px bg-ink/10 sm:grid-cols-2">
-          <div className="bg-card p-5">
-            <p className="eyebrow">Originals</p>
-            <p className="mt-2 text-sm">
-              Collected directly from Aida. Shipping is calculated separately
-              for your destination.
-            </p>
-          </div>
-          <div className="bg-card p-5">
-            <p className="eyebrow">Prints</p>
-            <p className="mt-2 text-sm">
-              Ordered, paid for and fulfilled through Fourthwall.
-            </p>
-          </div>
-        </div>
+        <div />
       )}
     </section>
   );
@@ -258,15 +286,20 @@ export default function RegionalShop({
   const requestedFilter = new URLSearchParams(filterSearch).get(
     "category",
   ) as TurkeyProductCategory | null;
+  const publicPrintProducts = settings.printProducts.filter(
+    (product) =>
+      isPubliclyVisible(product) && product.availableInTurkiye !== false,
+  );
+  const availableFilterValues = filterValues.filter((value) =>
+    publicPrintProducts.some(
+      (product) => (product.category || "print") === value,
+    ),
+  );
   const activeFilter =
-    requestedFilter && filterValues.includes(requestedFilter)
+    requestedFilter && availableFilterValues.includes(requestedFilter)
       ? requestedFilter
       : null;
-  const products = settings.printProducts
-    .filter(
-      (product) =>
-        isPubliclyVisible(product) && product.availableInTurkiye !== false,
-    )
+  const products = publicPrintProducts
     .filter(
       (product) =>
         !activeFilter || (product.category || "print") === activeFilter,
@@ -285,7 +318,10 @@ export default function RegionalShop({
                   key={product.id}
                   product={product}
                   region={region}
-                  viewHref={originalDetailHref(region === "TR" ? "turkiye" : "international", product.slug || product.id)}
+                  viewHref={originalDetailHref(
+                    region === "TR" ? "turkiye" : "international",
+                    product.slug || product.id,
+                  )}
                 />
               ))}
             </div>
@@ -317,26 +353,34 @@ export default function RegionalShop({
                   { value: "mug", label: "Mugs" },
                   { value: "print", label: "Prints" },
                   { value: "sticker", label: "Stickers" },
-                ].map((filter) => (
-                  <Link
-                    key={filter.label}
-                    onClick={() =>
-                      setFilterSearch(
-                        filter.value ? `?category=${filter.value}` : "",
-                      )
-                    }
-                    href={
-                      filter.value
-                        ? `/shop/turkiye/prints?category=${filter.value}`
-                        : "/shop/turkiye/prints"
-                    }
-                    aria-current={
-                      activeFilter === filter.value ? "page" : undefined
-                    }
-                  >
-                    {filter.label}
-                  </Link>
-                ))}
+                ]
+                  .filter(
+                    (filter) =>
+                      filter.value === null ||
+                      availableFilterValues.includes(
+                        filter.value as TurkeyProductCategory,
+                      ),
+                  )
+                  .map((filter) => (
+                    <Link
+                      key={filter.label}
+                      onClick={() =>
+                        setFilterSearch(
+                          filter.value ? `?category=${filter.value}` : "",
+                        )
+                      }
+                      href={
+                        filter.value
+                          ? `/shop/turkiye/prints?category=${filter.value}`
+                          : "/shop/turkiye/prints"
+                      }
+                      aria-current={
+                        activeFilter === filter.value ? "page" : undefined
+                      }
+                    >
+                      {filter.label}
+                    </Link>
+                  ))}
               </nav>
             </div>
             {products.length ? (

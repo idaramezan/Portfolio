@@ -40,17 +40,17 @@ export default function Home() {
               Discover one of a kind paintings, signed art prints and small
               themed art packages created by Istanbul artist Aida Ramezani.
             </p>
-            <div className="mt-5 flex flex-col items-start gap-2 sm:flex-row sm:items-center md:mt-8">
+            <div className="mt-5 grid w-full max-w-xl grid-cols-2 gap-2 md:mt-8">
               <Link
                 href="/shop/turkiye/prints"
-                className="button-primary"
+                className="button-primary w-full justify-center px-3 text-center"
                 aria-label="Shop prints and art goods in Türkiye"
               >
                 Shop Prints <ArrowRight size={17} />
               </Link>
               <Link
                 href="/shop/turkiye/originals"
-                className="button-secondary"
+                className="button-secondary w-full justify-center px-3 text-center"
                 aria-label="View original paintings"
               >
                 View Originals
@@ -143,42 +143,63 @@ export default function Home() {
 
       <section className="border-y border-ink/10 bg-card py-10 md:hidden">
         <div className="px-4">
-          <p className="eyebrow text-coral">Start collecting</p>
-          <h2 className="mt-3 text-3xl">What would you like to discover?</h2>
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <p className="eyebrow text-coral">Choose where we deliver</p>
+          <h2 className="mt-3 text-3xl">Find the right shop for you</h2>
+          <div className="mt-6 space-y-6">
             {[
-              [
-                "/shop/turkiye/prints",
-                printsCoverImage,
-                "Prints & Goods",
-                "Accessible studio editions",
-              ],
-              [
-                "/shop/turkiye/originals",
-                originalsCoverImage,
-                "Originals",
-                "One-of-a-kind paintings",
-              ],
-            ].map(([href, image, title, description]) => (
-              <Link
-                key={href}
-                href={href}
-                className="group border border-ink/10 bg-paper p-2"
-              >
-                <img
-                  src={image}
-                  alt=""
-                  className="aspect-square w-full object-cover"
-                  loading="eager"
-                />
-                <h3 className="mt-3 text-xl">{title}</h3>
-                <p className="mt-1 text-xs leading-5 text-ink/55">
-                  {description}
-                </p>
-                <span className="mt-3 inline-flex min-h-10 items-center text-xs font-bold text-coral">
-                  Explore <ArrowRight size={14} />
-                </span>
-              </Link>
+              {
+                region: "In Türkiye",
+                note: "Local delivery · Order with Aida",
+                items: [
+                  ["/shop/turkiye/prints", printsCoverImage, "Prints & Goods"],
+                  ["/shop/turkiye/originals", originalsCoverImage, "Originals"],
+                ],
+              },
+              {
+                region: "Outside Türkiye",
+                note: "Worldwide options · International delivery",
+                items: [
+                  [
+                    "/shop/international/prints",
+                    printsCoverImage,
+                    "International Prints",
+                  ],
+                  [
+                    "/shop/international/originals",
+                    originalsCoverImage,
+                    "International Originals",
+                  ],
+                ],
+              },
+            ].map((group) => (
+              <div key={group.region}>
+                <div className="flex items-end justify-between gap-3 border-b border-ink/15 pb-2">
+                  <h3 className="text-xl">{group.region}</h3>
+                  <p className="text-right text-[10px] font-semibold uppercase tracking-wide text-ink/50">
+                    {group.note}
+                  </p>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {group.items.map(([href, image, title]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="group border border-ink/10 bg-paper p-2"
+                    >
+                      <img
+                        src={image}
+                        alt=""
+                        className="aspect-square w-full object-cover"
+                        loading="eager"
+                      />
+                      <h4 className="mt-3 text-lg leading-tight">{title}</h4>
+                      <span className="mt-2 inline-flex min-h-9 items-center text-xs font-bold text-coral">
+                        Shop <ArrowRight size={14} />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -188,8 +209,8 @@ export default function Home() {
 
       <StudioLetterSignup variant="story-preview" context="home" />
 
-      <section className="border-y border-ink/10 bg-ochre/10">
-        <div className="section-shell grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+      <section className="home-about border-y border-ink/10 bg-ochre/10">
+        <div className="section-shell grid gap-6 md:gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <ArtistPhotoFrame
             src={homeAboutImage}
             alt="Aida Ramezani holding a carefully packed artwork in her Istanbul studio"
@@ -197,7 +218,7 @@ export default function Home() {
           <div className="section-heading">
             <p className="eyebrow">About the artist</p>
             <h2>Made by Aida Ramezani in Istanbul</h2>
-            <p>
+            <p className="home-about__secondary-copy">
               Every original painting, studio good and Mystery Mail package is
               created, selected or prepared personally in the studio.
             </p>

@@ -17,6 +17,10 @@ const eventBanner = readFileSync(
   new URL("../src/components/IstanbulPaintingEventBanner.tsx", import.meta.url),
   "utf8",
 );
+const regionalShop = readFileSync(
+  new URL("../src/components/RegionalShop.tsx", import.meta.url),
+  "utf8",
+);
 const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
 
 const headerClose = shell.indexOf("</header>");
@@ -51,8 +55,14 @@ assert.ok(
 );
 assert.ok(
   home.includes('className="hidden border-y border-ink/10 bg-card md:block"') &&
-    home.includes("What would you like to discover?"),
-  "mobile homepage must replace the duplicate region chooser with direct discovery",
+    home.includes("Choose where we deliver") &&
+    home.includes("/shop/international/prints"),
+  "mobile homepage discovery must distinguish Türkiye and international shops",
+);
+assert.ok(
+  home.includes("grid w-full max-w-xl grid-cols-2") &&
+    home.includes("w-full justify-center"),
+  "mobile hero actions must fill one balanced row",
 );
 assert.ok(
   styles.includes("grid-template-columns: repeat(2, minmax(0, 1fr))") &&
@@ -69,6 +79,18 @@ assert.ok(
 assert.ok(
   app.includes('lazy(() => import("@/pages/Admin"))'),
   "mobile storefront must not eagerly download the admin application",
+);
+assert.ok(
+  styles.includes(".home-live-section__piece:nth-child(n + 3)") &&
+    styles.includes(".studio-letter-preview__blur") &&
+    styles.includes(".footer-mobile-links"),
+  "long homepage and footer modules must have compact mobile treatments",
+);
+assert.ok(
+  regionalShop.includes("availableFilterValues.includes") &&
+    regionalShop.includes("Another way to collect") &&
+    regionalShop.includes("Explore prints"),
+  "shops must hide empty filters and offer a useful alternative collection",
 );
 
 console.log("Mobile navigation verification passed.");

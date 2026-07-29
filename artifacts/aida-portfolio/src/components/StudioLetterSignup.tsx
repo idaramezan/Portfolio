@@ -413,14 +413,14 @@ export default function StudioLetterSignup({
   return (
     <section
       id="studio-letter"
-      className="section-shell scroll-mt-24 !py-10 md:!py-16 lg:!py-20"
+      className="studio-letter-preview section-shell scroll-mt-24 !py-8 md:!py-16 lg:!py-20"
       aria-labelledby={`${inputId}-heading`}
       data-studio-letter={context}
       data-no-translate
     >
       <div className="grid items-center gap-10 md:grid-cols-[.44fr_.56fr] md:gap-10 lg:gap-14">
         <div
-          className="relative mx-auto h-[330px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
+          className="studio-letter-preview__images relative mx-auto h-[230px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
           aria-label="Images from the featured Studio Letter"
         >
           {featured.images.map((image, index) => (
@@ -472,13 +472,13 @@ export default function StudioLetterSignup({
           >
             {featured.title}
           </h2>
-          <div className="mt-4 space-y-3 text-[15px] leading-6 text-ink/75">
+          <div className="studio-letter-preview__excerpt mt-4 space-y-3 text-[15px] leading-6 text-ink/75">
             {featured.excerpt.split(/\n\n+/).map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
           <div
-            className="pointer-events-none relative mt-1 max-h-[68px] select-none overflow-hidden bg-[#f4ead8]/65 px-1 py-1 [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,.72)_55%,transparent_100%)]"
+            className="studio-letter-preview__blur pointer-events-none relative mt-1 max-h-[68px] select-none overflow-hidden bg-[#f4ead8]/65 px-1 py-1 [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,.72)_55%,transparent_100%)]"
             aria-hidden="true"
           >
             <p className="text-sm leading-6 text-ink/70 blur-[6px]">
@@ -490,7 +490,7 @@ export default function StudioLetterSignup({
             {copy.continue}
           </p>
           <div className="mt-4 border-t border-ink/15 pt-4">
-            <p className="mb-4 text-sm leading-5 text-ink/65">
+            <p className="studio-letter-preview__transition mb-4 text-sm leading-5 text-ink/65">
               {copy.transition}
             </p>
             {form}

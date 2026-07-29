@@ -358,7 +358,9 @@ assert.ok(managedCardSource.includes('"Choose options"'));
 assert.ok(managedCardSource.includes('"View painting"'));
 assert.ok(managedCardSource.includes("disabled={!purchasable ||"));
 assert.ok(managedCardSource.includes("convertUsdCentsToTry"));
-assert.ok(managedCardSource.includes('canonicalCurrency: original ? "USD" : "TRY"'));
+assert.ok(
+  managedCardSource.includes('canonicalCurrency: original ? "USD" : "TRY"'),
+);
 assert.ok(managedCardSource.includes("original ? 1 : product.maxPerUser"));
 assert.ok(siteStyles.includes(".managed-product-card__media--artwork"));
 assert.ok(siteStyles.includes("aspect-ratio: 4 / 5"));
@@ -387,7 +389,8 @@ assert.ok(liveConfigSource.includes("comments: 3817"));
 assert.ok(liveConfigSource.includes("displayOrder: 5"));
 assert.ok(!liveConfigSource.includes("plateSmall"));
 assert.ok(siteStyles.includes(".home-live-section__layout"));
-assert.ok(siteStyles.includes("scroll-snap-type: x proximity"));
+assert.ok(siteStyles.includes(".home-live-section__piece:nth-child(n + 3)"));
+assert.ok(siteStyles.includes("height: 145px"));
 assert.ok(siteStyles.includes("@media (prefers-reduced-motion: reduce)"));
 
 const editorSource = readFileSync(
@@ -504,11 +507,19 @@ const storeSource = readFileSync(
 assert.ok(storeSource.includes("Something new is taking shape."));
 assert.ok(storeSource.includes('storefrontMode: "active-edition"'));
 assert.ok(basketSource.includes("sizeSecondaryLabel"));
-assert.ok(basketSource.includes('basketCurrency = region === "TR" ? "TRY" : "USD"'));
-const shellSource = readFileSync(new URL("../src/components/layout/Shell.tsx", import.meta.url), "utf8");
+assert.ok(
+  basketSource.includes('basketCurrency = region === "TR" ? "TRY" : "USD"'),
+);
+const shellSource = readFileSync(
+  new URL("../src/components/layout/Shell.tsx", import.meta.url),
+  "utf8",
+);
 assert.ok(!shellSource.includes("currency-select"));
-const appSource = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
-assert.ok(appSource.includes('/shop/turkiye/originals/:slug'));
-assert.ok(appSource.includes('/shop/international/originals/:slug'));
+const appSource = readFileSync(
+  new URL("../src/App.tsx", import.meta.url),
+  "utf8",
+);
+assert.ok(appSource.includes("/shop/turkiye/originals/:slug"));
+assert.ok(appSource.includes("/shop/international/originals/:slug"));
 
 console.log("Türkiye product pricing and validation tests passed.");

@@ -319,7 +319,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="footer-main">
           <section className="footer-brand" aria-labelledby="footer-brand-name">
             <h2 id="footer-brand-name">Aida Ramezani</h2>
-            <p>
+            <p className="footer-brand-copy">
               Original oil pastel paintings, Prints & Goods and limited Mystery
               Mail editions, created by Aida Ramezani in Istanbul.
             </p>
@@ -346,7 +346,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </section>
 
-          <nav className="footer-shop" aria-label="Shop links">
+          <nav
+            className="footer-shop footer-desktop-links"
+            aria-label="Shop links"
+          >
             <p className="footer-eyebrow">Shop in Türkiye</p>
             <div className="footer-links">
               <Link href="/shop/turkiye">Türkiye shop home</Link>
@@ -362,7 +365,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </nav>
 
-          <nav className="footer-information" aria-label="Information links">
+          <nav
+            className="footer-information footer-desktop-links"
+            aria-label="Information links"
+          >
             <p className="footer-eyebrow">Information</p>
             <div className="footer-links">
               {INFORMATION_LINKS.map((link) => (
@@ -378,6 +384,31 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </nav>
 
+          <div className="footer-mobile-links">
+            <details>
+              <summary>Shop</summary>
+              <div className="footer-links">
+                <Link href="/shop/turkiye/prints">Türkiye prints & goods</Link>
+                <Link href="/shop/turkiye/originals">Türkiye originals</Link>
+                <Link href="/shop/international/prints">
+                  International prints
+                </Link>
+                <Link href="/shop/international/originals">
+                  International originals
+                </Link>
+              </div>
+            </details>
+            <details>
+              <summary>Information</summary>
+              <div className="footer-links">
+                <Link href="/about">About</Link>
+                <Link href="/how-to-collect">How to collect</Link>
+                <Link href="/studio-letter">Studio Letter</Link>
+                <a href="mailto:aida@aedaart.com">Contact</a>
+              </div>
+            </details>
+          </div>
+
           <section
             className="footer-newsletter"
             aria-labelledby="studio-letter-heading"
@@ -387,7 +418,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               {newsletterCopy.footerHeading}
             </p>
             <h2 id="studio-letter-heading">{newsletterCopy.footerHeading}</h2>
-            <p>{newsletterCopy.footerSubheading}</p>
+            <p className="footer-newsletter-copy">
+              {newsletterCopy.footerSubheading}
+            </p>
             <Link
               href="/studio-letter"
               className="mb-4 inline-flex text-sm font-semibold text-coral underline underline-offset-4"
