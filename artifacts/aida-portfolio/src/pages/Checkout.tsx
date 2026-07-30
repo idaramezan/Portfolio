@@ -4,6 +4,7 @@ import { Check, Copy, Upload } from "lucide-react";
 import { clearCart, loadCart, type CartItem, type ShoppingRegion } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { trackAnalytics } from "@/lib/analytics";
+import { useToast } from "@/hooks/use-toast";
 
 const PROVINCES = "Adana,Adıyaman,Afyonkarahisar,Ağrı,Aksaray,Amasya,Ankara,Antalya,Ardahan,Artvin,Aydın,Balıkesir,Bartın,Batman,Bayburt,Bilecik,Bingöl,Bitlis,Bolu,Burdur,Bursa,Çanakkale,Çankırı,Çorum,Denizli,Diyarbakır,Düzce,Edirne,Elazığ,Erzincan,Erzurum,Eskişehir,Gaziantep,Giresun,Gümüşhane,Hakkâri,Hatay,Iğdır,Isparta,İstanbul,İzmir,Kahramanmaraş,Karabük,Karaman,Kars,Kastamonu,Kayseri,Kilis,Kırıkkale,Kırklareli,Kırşehir,Kocaeli,Konya,Kütahya,Malatya,Manisa,Mardin,Mersin,Muğla,Muş,Nevşehir,Niğde,Ordu,Osmaniye,Rize,Sakarya,Samsun,Şanlıurfa,Siirt,Sinop,Sivas,Şırnak,Tekirdağ,Tokat,Trabzon,Tunceli,Uşak,Van,Yalova,Yozgat,Zonguldak".split(",");
 const COUNTRY_CODES = "AD AE AF AG AI AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG UY UZ VA VC VE VN VU WS YE ZA ZM ZW".split(" ");
@@ -16,10 +17,12 @@ const money=(minor:number,currency:string)=>new Intl.NumberFormat(currency==="TR
 
 export default function Checkout({ market }: { market: "turkiye" | "international_original" }) {
   const region: ShoppingRegion = market === "turkiye" ? "TR" : "INTERNATIONAL";
+  const { toast } = useToast();
   const { locale } = useLocale(); const [,navigate]=useLocation();
   const cart=useMemo(()=>loadCart(region),[region]); const key=`checkout-draft:${market}`;
   const [form,setForm]=useState<typeof initial>(()=>{const base={...initial,countryCode:market==="turkiye"?"TR":"",countryName:market==="turkiye"?"Türkiye":""};try{return {...base,...JSON.parse(sessionStorage.getItem(key)||"{}"),consent:false};}catch{return base;}});
   const [quote,setQuote]=useState<Quote|null>(null),[bank,setBank]=useState<Bank|null>(null),[receipt,setReceipt]=useState<File|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[copied,setCopied]=useState("");
+  useEffect(()=>{if(error)toast({title:"Order could not be submitted",description:error,variant:"destructive"});},[error,toast]);
   const idempotency=useMemo(()=>{const k=`checkout-idempotency:${market}`;let value=sessionStorage.getItem(k);if(!value){value=crypto.randomUUID();sessionStorage.setItem(k,value);}return value;},[market]);
   const reference=`PAY-${idempotency.slice(0,8).toUpperCase()}`;
   const countries=useMemo(()=>{const names=new Intl.DisplayNames([locale],{type:"region"});return COUNTRY_CODES.map(code=>({code,name:names.of(code)||code})).sort((a,b)=>a.name.localeCompare(b.name,locale));},[locale]);
