@@ -49,6 +49,7 @@ export default function ManagedProductCard({
   const purchasable = isPurchasable(product);
   const original = product.kind === "original";
   const configurable = productNeedsOptions(product);
+  const openDetails = onView || onChooseOptions;
   const price =
     product.category === "print"
       ? getPrintStartingPrice(product.priceUsdCents, product.printOptions)
@@ -106,6 +107,20 @@ export default function ManagedProductCard({
     <article
       className={`managed-product-card ${sold ? "managed-product-card--sold" : ""}`}
     >
+      {viewHref ? (
+        <Link
+          href={viewHref}
+          className="managed-product-card__detail-hit-area"
+          aria-label={`View ${product.name}`}
+        />
+      ) : openDetails ? (
+        <button
+          type="button"
+          className="managed-product-card__detail-hit-area"
+          aria-label={`View ${product.name}`}
+          onClick={openDetails}
+        />
+      ) : null}
       <div
         className={`managed-product-card__media ${original ? "managed-product-card__media--artwork" : "managed-product-card__media--goods"}`}
       >

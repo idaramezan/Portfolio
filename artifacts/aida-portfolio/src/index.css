@@ -635,11 +635,26 @@
 }
 
 .managed-product-card {
+  position: relative;
   display: flex;
   min-width: 0;
   flex-direction: column;
   border: 1px solid rgb(27 26 23 / 0.1);
   background: hsl(var(--card));
+}
+
+.managed-product-card__detail-hit-area {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+
+.managed-product-card__detail-hit-area:focus-visible {
+  outline: 3px solid var(--color-candy-pink);
+  outline-offset: 5px;
 }
 
 .managed-product-card__media {
@@ -687,6 +702,8 @@
 }
 
 .managed-product-card__actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   min-width: 0;
   flex-direction: column;

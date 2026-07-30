@@ -364,6 +364,8 @@ const managedCardSource = readFileSync(
 assert.ok(managedCardSource.includes('"Add to basket"'));
 assert.ok(managedCardSource.includes('"Choose options"'));
 assert.ok(managedCardSource.includes('"View painting"'));
+assert.ok(managedCardSource.includes("managed-product-card__detail-hit-area"));
+assert.ok(managedCardSource.includes("const openDetails = onView || onChooseOptions"));
 assert.ok(managedCardSource.includes("disabled={!purchasable ||"));
 assert.ok(managedCardSource.includes("convertUsdCentsToTry"));
 assert.ok(
