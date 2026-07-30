@@ -36,7 +36,7 @@ const originalDetail = readFileSync(
 );
 
 const headerClose = shell.indexOf("</header>");
-const overlay = shell.indexOf("{isMobileMenuOpen && (");
+const overlay = shell.indexOf('className="mobile-menu-overlay md:hidden"');
 assert.ok(
   headerClose >= 0 && overlay > headerClose,
   "mobile overlay must be outside the backdrop-filtered header",
@@ -63,8 +63,26 @@ assert.ok(
   shell.includes("mobile-menu__close") &&
     shell.includes("mobile-menu__chevron") &&
     shell.includes("mobile-menu__languages") &&
-    shell.includes("Privacy choices"),
+    shell.includes("Privacy choices") &&
+    shell.includes("aria-expanded={isOpen}") &&
+    shell.includes("aria-controls={submenuId}"),
   "mobile overlay must provide a clear close action, expandable groups, language, and privacy controls",
+);
+assert.ok(
+  shell.includes("Explore the studio") &&
+    shell.includes("Originals, prints, goods and Mystery Mail") &&
+    shell.includes("Originals and worldwide studio products") &&
+    shell.includes("About Aida") &&
+    shell.includes("mobile-menu__event-badge") &&
+    !shell.includes("mobile-menu__letter-card"),
+  "mobile navigation must be a compact studio index without a duplicate Studio Letter card",
+);
+assert.ok(
+  editorialStyles.includes('transform: translateX(100%)') &&
+    editorialStyles.includes('.mobile-menu[data-open="true"]') &&
+    editorialStyles.includes("max-width: 359px") &&
+    editorialStyles.includes("border-radius: 999px"),
+  "mobile drawer must animate safely and use compact responsive language controls",
 );
 assert.ok(
   shell.includes("disabled={isMobileMenuOpen}"),
@@ -80,7 +98,7 @@ assert.ok(
 );
 assert.ok(
   shell.includes("setActiveEvent(Boolean(result?.config))") &&
-    shell.includes('activeEvent\n                ? [["/event"'),
+    shell.includes('activeEvent && <div className="mobile-menu__row"><Link href="/event"'),
   "mobile navigation must expose Event only while an active config exists",
 );
 assert.ok(

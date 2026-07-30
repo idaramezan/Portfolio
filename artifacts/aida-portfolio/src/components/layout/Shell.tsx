@@ -36,6 +36,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openMobileShop, setOpenMobileShop] = useState<"turkiye" | "international" | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeEvent, setActiveEvent] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
@@ -214,27 +215,29 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {isMobileMenuOpen && (
-        <>
-          <div className="mobile-menu-backdrop md:hidden" aria-hidden="true" onClick={() => closeMobileMenu(true)} />
-          <nav
-            ref={mobileMenuRef}
-            id="mobile-navigation"
-            aria-label="Mobile navigation"
-            aria-modal="true"
-            role="dialog"
-            className="mobile-menu md:hidden"
-          >
+      {isMobileMenuOpen && <div className="mobile-menu-overlay md:hidden" aria-hidden="true" onClick={() => closeMobileMenu(true)} />}
+      <nav
+        ref={mobileMenuRef}
+        id="mobile-navigation"
+        aria-label={locale === "tr" ? "Mobil gezinme" : "Mobile navigation"}
+        aria-modal="true"
+        aria-hidden={!isMobileMenuOpen}
+        role="dialog"
+        data-open={isMobileMenuOpen}
+        className="mobile-menu md:hidden"
+      >
             <header className="mobile-menu__header">
               <Link href="/" className="mobile-menu__brand" onClick={() => closeMobileMenu()}>Aida Ramezani</Link>
               <button type="button" className="mobile-menu__close" aria-label="Close menu" onClick={() => closeMobileMenu(true)}><X aria-hidden="true" /></button>
             </header>
-            <p className="mobile-menu__eyebrow">{locale === "tr" ? "Keşfet" : "Explore"}</p>
-            <div className="mobile-menu__primary">
-            {[
+            <p className="mobile-menu__eyebrow">{locale === "tr" ? "Stüdyoyu keşfet" : "Explore the studio"}</p>
+            <div className="mobile-menu__navigation">
+            {([
               {
+                id: "turkiye" as const,
                 label: locale === "tr" ? "Türkiye Mağaza" : "Türkiye Shop",
                 home: "/shop/turkiye",
+                description: locale === "tr" ? "Orijinaller, baskılar, ürünler ve Mystery Mail" : "Originals, prints, goods and Mystery Mail",
                 links: [
                   [
                     "/shop/turkiye/prints",
@@ -250,11 +253,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ],
               },
               {
+                id: "international" as const,
                 label:
                   locale === "tr"
                     ? "Uluslararası Mağaza"
                     : "International Shop",
                 home: "/shop/international",
+                description: locale === "tr" ? "Orijinaller ve dünya çapında stüdyo ürünleri" : "Originals and worldwide studio products",
                 links: [
                   [
                     "/shop/international/prints",
@@ -268,17 +273,25 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   ],
                 ],
               },
-            ].map((group) => (
-              <details
-                key={group.home}
-                className="mobile-menu__group group"
-                open={location.startsWith(group.home)}
-              >
-                <summary className="mobile-menu__link">
-                  {group.label}
-                  <ChevronDown className="mobile-menu__chevron" aria-hidden="true" />
-                </summary>
-                <div className="mobile-menu__submenu">
+            ]).map((group) => {
+              const isOpen = openMobileShop === group.id;
+              const submenuId = `mobile-${group.id}-shop-links`;
+              return (
+              <div key={group.home} className="mobile-menu__row">
+                <button
+                  type="button"
+                  className="mobile-menu__trigger"
+                  aria-expanded={isOpen}
+                  aria-controls={submenuId}
+                  onClick={() => setOpenMobileShop(isOpen ? null : group.id)}
+                >
+                  <span className="mobile-menu__trigger-copy">
+                    <span className="mobile-menu__trigger-title">{group.label}</span>
+                    {!isOpen && <span className="mobile-menu__trigger-description">{group.description}</span>}
+                  </span>
+                  <ChevronDown className={cn("mobile-menu__chevron", isOpen && "is-open")} aria-hidden="true" />
+                </button>
+                {isOpen && <div id={submenuId} className="mobile-menu__submenu">
                   <Link
                     href={group.home}
                     onClick={() => closeMobileMenu()}
@@ -294,35 +307,32 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       {label}
                     </Link>
                   ))}
-                </div>
-              </details>
-            ))}
+                </div>}
+              </div>
+              );
+            })}
             {[
               [
                 "/studio-letter",
                 locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
               ],
-              ["/about", locale === "tr" ? "Hakkında" : "About"],
-              ...(activeEvent
-                ? [["/event", locale === "tr" ? "Etkinlik" : "Event"]]
-                : []),
+              ["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"],
             ].map(([href, label]) => (
+              <div className="mobile-menu__row" key={href}>
               <Link
-                key={href}
                 href={href}
                 onClick={() => closeMobileMenu()}
                 className="mobile-menu__link"
               >
                 {label}
               </Link>
+              </div>
             ))}
+            {activeEvent && <div className="mobile-menu__row"><Link href="/event" onClick={() => closeMobileMenu()} className="mobile-menu__link"><span>{locale === "tr" ? "Etkinlik" : "Current Event"}</span><span className="mobile-menu__event-badge">{locale === "tr" ? "Güncel" : "Current"}</span></Link></div>}
             </div>
-            <aside className="mobile-menu__letter-card">
-              <h3>{locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}</h3>
-              <p>{locale === "tr" ? "Aida’nın atölyesinden ücretsiz kişisel hikâyeler ve notlar." : "Free personal stories and notes from Aida’s studio."}</p>
-              <Link href="/studio-letter" onClick={() => closeMobileMenu()}>{locale === "tr" ? "Mektubu oku" : "Read the Studio Letter"} →</Link>
-            </aside>
-            <div className="mobile-menu__languages" aria-label="Language">
+            <p className="mobile-menu__note">{locale === "tr" ? "Aida’nın İstanbul stüdyosundan kişisel sanat hikâyeleri ve ilk bakışlar." : "Personal art stories and first looks from Aida’s Istanbul studio."}</p>
+            <footer className="mobile-menu__footer">
+            <div className="mobile-menu__languages" aria-label={locale === "tr" ? "Dil" : "Language"}>
             <button
               type="button"
               onClick={() => setLocale("tr")}
@@ -340,13 +350,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               English
             </button>
             </div>
-            <footer className="mobile-menu__footer">
-              <div>{[["Instagram", siteLinks.instagramUrl],["TikTok", siteLinks.tiktokUrl],["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}</a>)}</div>
+              <div className="mobile-menu__secondary-links">{[["Instagram", siteLinks.instagramUrl],["TikTok", siteLinks.tiktokUrl],["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}</a>)}
               <button type="button" onClick={manageAnalytics}>{locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}</button>
+              </div>
             </footer>
           </nav>
-        </>
-      )}
 
       <main className="flex-1 w-full">{children}</main>
 
