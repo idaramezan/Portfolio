@@ -5,6 +5,7 @@ import {
   centsToUsd,
   formatPrintSize,
   getPrintStartingPrice,
+  getTurkiyeCataloguePrice,
   getPrintConfigurationKey,
   normalizePrintSizes,
   normalizePrintOptions,
@@ -33,6 +34,9 @@ assert.equal(normalizeArtworkSurface("paper"), "paper");
 assert.equal(normalizeArtworkSurface("canvas"), "canvas");
 assert.equal(normalizeArtworkSurface(undefined), "paper");
 assert.equal(normalizeArtworkSurface("wood"), "paper");
+assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, "40"), 400000);
+assert.equal(getTurkiyeCataloguePrice({ kind: "print", category: "sticker", priceUsdCents: 25000 }, "40"), 25000);
+assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, null), Number.POSITIVE_INFINITY);
 assert.equal(formatArtworkSurface("paper"), "Oil pastel on paper");
 assert.equal(formatArtworkSurface("canvas"), "Oil pastel on canvas");
 assert.deepEqual(Object.keys(ARTWORK_SURFACE_LABELS), ["paper", "canvas"]);

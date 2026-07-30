@@ -27,6 +27,8 @@ import { useLocale } from "@/lib/locale";
 import { originalDetailHref } from "@/lib/market";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
+import { useCurrency } from "@/lib/currency";
+import { getTurkiyeCataloguePrice } from "@/lib/turkiye-products";
 
 const turkiyeFaq = [
   [
@@ -385,6 +387,7 @@ function CompactMysteryFeature({ edition }: { edition: NonNullable<ReturnType<ty
 
 function TurkiyeCatalogue() {
   const settings = useShopSettings();
+  const { rate } = useCurrency();
   const now = useServerNow();
   const { locale } = useLocale();
   const text = turkiyeCatalogueCopy[locale];
@@ -425,13 +428,17 @@ function TurkiyeCatalogue() {
       if (activeCategory === "goods") return product.category === "tshirt" || product.category === "mug";
       return false;
     });
+    const newestFirst = (a: ManagedProduct, b: ManagedProduct) =>
+      Date.parse(b.updatedAt || "1970-01-01") - Date.parse(a.updatedAt || "1970-01-01") ||
+      (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER);
+    const turkiyePrice = (product: ManagedProduct) => getTurkiyeCataloguePrice(product, rate);
     return all.sort((a, b) => {
-      if (urlState.sort === "price-low") return a.priceUsdCents - b.priceUsdCents;
-      if (urlState.sort === "price-high") return b.priceUsdCents - a.priceUsdCents;
+      if (urlState.sort === "price-low") return turkiyePrice(a) - turkiyePrice(b) || newestFirst(a, b);
+      if (urlState.sort === "price-high") return turkiyePrice(b) - turkiyePrice(a) || newestFirst(a, b);
       if (urlState.sort === "name") return a.name.localeCompare(b.name, locale);
-      return Date.parse(b.updatedAt || "1970-01-01") - Date.parse(a.updatedAt || "1970-01-01");
+      return newestFirst(a, b);
     });
-  }, [originals, printProducts, activeCategory, urlState.sort, locale]);
+  }, [originals, printProducts, activeCategory, urlState.sort, locale, rate]);
   const categoryHref = (category: TurkiyeCategory) => {
     const query = new URLSearchParams();
     if (category !== "all") query.set("category", category);

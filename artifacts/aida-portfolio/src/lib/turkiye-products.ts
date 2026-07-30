@@ -268,3 +268,22 @@ export function getPrintStartingPrice(
       : 0,
   }).unitPriceCents;
 }
+
+export function getTurkiyeCataloguePrice(
+  product: {
+    kind: "print" | "original";
+    category?: TurkeyProductCategory;
+    priceUsdCents: number;
+    printOptions?: PrintProductOptions;
+  },
+  usdTryRate: string | number | null,
+) {
+  if (product.kind === "original") {
+    if (!usdTryRate || !Number.isFinite(Number(usdTryRate)))
+      return Number.POSITIVE_INFINITY;
+    return Math.round(product.priceUsdCents * Number(usdTryRate));
+  }
+  return product.category === "print"
+    ? getPrintStartingPrice(product.priceUsdCents, product.printOptions)
+    : product.priceUsdCents;
+}
