@@ -1,0 +1,470 @@
+/*
+ * PLAYFUL STUDIO EDITORIAL
+ * One shared visual language for editorial, paper, catalogue, studio and utility UI.
+ */
+:root {
+  --color-paper: #f7f0e5;
+  --color-paper-soft: #fbf6ee;
+  --color-paper-light: #fff9f2;
+  --color-white-warm: #fffdf8;
+  --color-ink: #1b1917;
+  --color-ink-soft: #37332f;
+  --color-muted: #756f67;
+  --color-muted-light: #9b948b;
+  --color-line: #d9d0c3;
+  --color-line-dark: #beb3a4;
+  --color-footer: #181816;
+  --color-candy-pink: #a94468;
+  --color-candy-pink-light: #f0ccda;
+  --color-butter: #f3d878;
+  --color-sky: #a9cddd;
+  --color-mint: #b9d2b0;
+  --color-lilac: #c8b8d7;
+  --color-tomato: #c94f3d;
+  --color-studio-blue: #294d75;
+  --shadow-paper: 5px 6px 0 rgb(27 25 23 / 0.16);
+  --shadow-paper-small: 3px 3px 0 rgb(27 25 23 / 0.14);
+  --shadow-photo: 0 18px 45px rgb(59 43 28 / 0.15);
+  --rough-paper: polygon(1% 4%, 4% 1%, 9% 3%, 14% 0%, 19% 2%, 25% 1%, 31% 3%, 37% 0%, 44% 2%, 50% 1%, 57% 3%, 64% 0%, 70% 2%, 77% 1%, 84% 3%, 91% 0%, 97% 2%, 100% 5%, 98% 12%, 100% 20%, 98% 29%, 100% 39%, 98% 49%, 100% 60%, 98% 70%, 100% 80%, 98% 90%, 100% 97%, 96% 100%, 88% 98%, 80% 100%, 72% 98%, 64% 100%, 56% 98%, 48% 100%, 40% 98%, 32% 100%, 24% 98%, 16% 100%, 8% 98%, 1% 100%, 3% 92%, 0% 84%, 2% 74%, 0% 64%, 2% 54%, 0% 44%, 2% 34%, 0% 24%, 2% 14%);
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-candy-pink-light);
+  color: var(--color-ink);
+}
+
+.studio-wordmark {
+  display: inline-grid;
+  line-height: 1;
+}
+
+.studio-wordmark > span {
+  font-family: var(--font-serif);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.studio-wordmark small {
+  margin-top: 0.3rem;
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-muted);
+}
+
+.paper-tag {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.3rem 0.65rem;
+  clip-path: polygon(2% 8%, 97% 1%, 100% 90%, 4% 100%);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.paper-tag--pink { background: var(--color-candy-pink-light); }
+.paper-tag--butter { background: var(--color-butter); }
+.paper-tag--mint { background: var(--color-mint); }
+.paper-tag--sky { background: var(--color-sky); }
+.paper-tag--lilac { background: var(--color-lilac); }
+
+.utility-message {
+  border-left: 4px solid var(--color-studio-blue);
+  background: color-mix(in srgb, var(--color-sky) 25%, var(--color-paper-light));
+  padding: 0.85rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.utility-message--success { border-left-color: #47724b; background: #edf5eb; }
+.utility-message--error { border-left-color: var(--color-tomato); background: #fff0ed; }
+
+/* Editorial personality */
+[data-public-site] h1,
+[data-public-site] h2,
+[data-public-site] h3 {
+  text-wrap: balance;
+}
+
+[data-public-site] h1 {
+  letter-spacing: -0.045em;
+}
+
+[data-public-site] p {
+  text-wrap: pretty;
+}
+
+.section-shell {
+  max-width: 1280px;
+}
+
+.section-heading,
+.originals-hero__content,
+.about-hero__content {
+  position: relative;
+}
+
+/* Playful paper personality. Rough edges belong to actions and labels, not cards. */
+.button-primary,
+.footer-newsletter-button,
+.admin-button {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  background: var(--color-candy-pink);
+  color: var(--color-white-warm);
+  clip-path: var(--rough-paper);
+  box-shadow: none;
+  font-family: var(--font-play);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  text-transform: none;
+  filter: drop-shadow(4px 5px 0 rgb(27 25 23 / 0.15));
+  transition: translate 160ms ease, filter 160ms ease, background-color 160ms ease;
+}
+
+.button-primary:hover,
+.footer-newsletter-button:hover,
+.admin-button:hover {
+  translate: 0 -2px;
+  background: var(--color-tomato);
+  filter: drop-shadow(5px 7px 0 rgb(27 25 23 / 0.15));
+}
+
+.button-primary:active,
+.footer-newsletter-button:active,
+.admin-button:active {
+  translate: 2px 2px;
+  filter: drop-shadow(1px 2px 0 rgb(27 25 23 / 0.14));
+}
+
+.button-primary:disabled,
+.admin-button:disabled {
+  filter: grayscale(0.45);
+  translate: 0;
+}
+
+.button-secondary {
+  border: 1px solid var(--color-line-dark);
+  background: var(--color-paper-light);
+  box-shadow: var(--shadow-paper-small);
+  color: var(--color-ink);
+}
+
+.button-secondary:hover {
+  border-color: var(--color-ink);
+  background: var(--color-butter);
+  color: var(--color-ink);
+}
+
+.button-link {
+  text-decoration-color: var(--color-candy-pink);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+}
+
+.eyebrow,
+.badge,
+.footer-eyebrow {
+  width: fit-content;
+  font-family: var(--font-sans);
+}
+
+.badge {
+  border: 1px solid rgb(27 25 23 / 0.08);
+  background: var(--color-butter);
+  clip-path: polygon(2% 8%, 98% 1%, 100% 91%, 4% 100%);
+  color: var(--color-ink);
+}
+
+.badge:nth-child(even) {
+  background: var(--color-mint);
+  clip-path: polygon(1% 2%, 100% 8%, 97% 100%, 3% 94%);
+}
+
+/* Product catalogue personality */
+.managed-product-grid {
+  gap: clamp(1.75rem, 3vw, 3.5rem) clamp(1rem, 2.5vw, 2.5rem);
+}
+
+.managed-product-card,
+.international-product-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.managed-product-card__media,
+.international-product-card img {
+  border: 1px solid rgb(27 25 23 / 0.08);
+  background: var(--color-paper-soft);
+}
+
+.managed-product-card__body {
+  padding: 1.25rem 0 0;
+}
+
+.managed-product-card__title {
+  font-size: clamp(1.55rem, 2.4vw, 2rem);
+  line-height: 1.08;
+}
+
+.managed-product-card__actions {
+  margin-top: 1.15rem;
+}
+
+.managed-product-card__actions .button-primary {
+  width: auto;
+  min-width: 10rem;
+  align-self: flex-start;
+}
+
+.managed-product-card__media img {
+  transition: transform 500ms cubic-bezier(.2,.7,.2,1);
+}
+
+.managed-product-card:hover .managed-product-card__media img {
+  transform: scale(1.018);
+}
+
+.shop-category-tabs {
+  gap: 0.35rem;
+  border: 0;
+  padding-block: 0.5rem;
+}
+
+.shop-category-tabs a {
+  min-height: 44px;
+  border: 0 !important;
+  background: transparent;
+  clip-path: polygon(2% 6%, 98% 1%, 100% 92%, 3% 100%);
+  font-family: var(--font-play);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.shop-category-tabs a:nth-child(4n + 1) { background: var(--color-candy-pink-light); }
+.shop-category-tabs a:nth-child(4n + 2) { background: color-mix(in srgb, var(--color-butter) 74%, white); }
+.shop-category-tabs a:nth-child(4n + 3) { background: color-mix(in srgb, var(--color-sky) 60%, white); }
+.shop-category-tabs a:nth-child(4n) { background: color-mix(in srgb, var(--color-mint) 68%, white); }
+
+.shop-category-tabs a[aria-current="page"] {
+  box-shadow: inset 0 -4px 0 var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* Personal studio personality */
+.editorial-photo__paper,
+.artist-photo-frame,
+.studio-letter-preview__images img,
+.about-hero__visual img,
+.collector-experience__video-frame {
+  border-color: var(--color-white-warm);
+  box-shadow: var(--shadow-photo);
+}
+
+.editorial-photo__paper figcaption,
+.artist-photo-frame figcaption,
+.studio-letter-preview__caption {
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+}
+
+.studio-letter-preview,
+.home-studio-letter {
+  --studio-letter-accent: var(--color-candy-pink);
+}
+
+.studio-letter-preview__content .eyebrow,
+.collector-experience .eyebrow {
+  color: var(--color-candy-pink);
+}
+
+/* Utility personality: compact, neutral, accessible. */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border: 1px solid var(--color-line-dark);
+  border-radius: 0;
+  background: var(--color-white-warm);
+  color: var(--color-ink);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-studio-blue);
+  outline: 2px solid color-mix(in srgb, var(--color-sky) 55%, transparent);
+  outline-offset: 1px;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--color-tomato);
+  background: #fff4f1;
+}
+
+[role="dialog"] > div,
+[role="alertdialog"] > div,
+.popover-content {
+  border-color: var(--color-line);
+  background: var(--color-paper-light);
+  box-shadow: 0 28px 80px rgb(27 25 23 / 0.25);
+}
+
+[role="status"],
+[role="alert"] {
+  text-wrap: pretty;
+}
+
+/* Shared shell */
+[data-public-site] > header {
+  border-color: var(--color-line);
+  background: color-mix(in srgb, var(--color-paper) 92%, transparent);
+}
+
+[data-public-site] > header nav a {
+  font-weight: 650;
+}
+
+.public-footer {
+  background: var(--color-footer);
+}
+
+.footer-socials a {
+  border-color: rgb(255 253 248 / 0.2);
+}
+
+.footer-socials a:hover {
+  background: var(--color-candy-pink);
+  color: var(--color-ink);
+}
+
+/* Admin system */
+[data-admin-site] {
+  background: #f3ede4;
+}
+
+[data-admin-site] .admin-sidebar {
+  border-color: var(--color-line);
+  background: var(--color-paper-light);
+}
+
+[data-admin-site] .admin-sidebar nav > div > p {
+  color: var(--color-muted);
+}
+
+[data-admin-site] .admin-sidebar nav a {
+  border-left: 3px solid transparent;
+}
+
+[data-admin-site] .admin-sidebar nav a.bg-coral {
+  border-left-color: var(--color-tomato);
+  background: var(--color-candy-pink-light);
+  color: var(--color-ink);
+}
+
+[data-admin-site] main > div,
+[data-admin-site] main > section,
+[data-admin-site] main > form {
+  border-color: var(--color-line);
+}
+
+[data-admin-site] table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white-warm);
+}
+
+[data-admin-site] th {
+  background: var(--color-paper-soft);
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-admin-site] th,
+[data-admin-site] td {
+  border-bottom: 1px solid var(--color-line);
+}
+
+[data-admin-site] button:not(.button-primary):not(.admin-button) {
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+[data-admin-site] button:not(.button-primary):not(.admin-button):hover {
+  background-color: color-mix(in srgb, var(--color-candy-pink-light) 55%, transparent);
+}
+
+/* Error, empty and loading states */
+.animate-pulse {
+  background-image: linear-gradient(100deg, transparent 25%, rgb(255 255 255 / .48) 45%, transparent 65%);
+  background-size: 220% 100%;
+}
+
+[data-public-site] main > :only-child[role="alert"],
+.turkiye-catalogue__empty {
+  border: 1px dashed var(--color-line-dark);
+  background: var(--color-paper-soft);
+}
+
+@media (max-width: 767px) {
+  .button-primary,
+  .button-secondary {
+    min-height: 50px;
+  }
+
+  .section-shell {
+    padding-inline: 1.1rem;
+  }
+
+  .managed-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 0.85rem;
+  }
+
+  .managed-product-card__body {
+    padding-top: 0.9rem;
+  }
+
+  .managed-product-card__title {
+    font-size: 1.35rem;
+  }
+
+  .managed-product-card__actions .button-primary {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.75rem;
+    font-size: 0.88rem;
+  }
+
+  .shop-category-tabs {
+    padding-inline: 0.75rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-primary,
+  .button-secondary,
+  .managed-product-card__media img {
+    transition: none;
+  }
+}

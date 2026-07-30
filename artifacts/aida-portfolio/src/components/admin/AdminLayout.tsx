@@ -22,6 +22,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { PaperTag, StudioWordmark } from "@/components/ui/playful-studio";
 
 const groups = [
   [
@@ -92,7 +93,7 @@ export default function AdminLayout({
     <>
       <div className="flex h-16 items-center justify-between border-b border-ink/10 px-5">
         <Link href="/admin" className="font-serif text-xl font-bold">
-          Aida Studio
+          <StudioWordmark compact />
         </Link>
         <button
           className="lg:hidden"
@@ -134,7 +135,7 @@ export default function AdminLayout({
     </>
   );
   return (
-    <div className="min-h-screen bg-[#f3efe6] font-sans text-ink">
+    <div data-admin-site className="min-h-screen bg-[#f3efe6] font-sans text-ink">
       <aside className="admin-sidebar fixed inset-y-0 left-0 z-40 w-64 flex-col border-r border-ink/10 bg-paper">
         {sidebar}
       </aside>
@@ -169,13 +170,12 @@ export default function AdminLayout({
                 <ChevronRight size={12} />
                 <span>{title}</span>
               </nav>
-              <h1 className="font-serif text-2xl font-bold md:text-3xl">
-                {title}
-              </h1>
+              <h1 className="font-serif text-2xl font-bold md:text-3xl">{title}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {actions}
+            <PaperTag tone="butter" className="hidden lg:inline-flex">Studio admin</PaperTag>
             <a
               href="/"
               className="hidden min-h-10 items-center border border-ink/15 px-3 text-sm font-semibold sm:flex"

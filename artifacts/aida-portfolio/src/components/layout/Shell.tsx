@@ -12,6 +12,7 @@ import {
   type ShoppingRegion,
 } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
+import { StudioWordmark } from "@/components/ui/playful-studio";
 
 const NAV_LINKS = [
   { href: "/shop/turkiye", en: "Türkiye Shop", tr: "Türkiye Mağaza" },
@@ -128,7 +129,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             href="/"
             className="z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
           >
-            Aida Ramezani
+            <StudioWordmark compact />
           </Link>
 
           <nav
