@@ -53,6 +53,7 @@ export default function OriginalDetail({ market }: { market: Market }) {
             <ManagedProductCard
               product={product}
               region={market === "turkiye" ? "TR" : "INTERNATIONAL"}
+              hideImage
             />
             <p className="mt-5 text-sm text-ink/60">
               Certificate of authenticity included.{" "}

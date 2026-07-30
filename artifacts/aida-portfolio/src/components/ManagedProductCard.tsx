@@ -36,12 +36,14 @@ export default function ManagedProductCard({
   viewHref,
   onView,
   onChooseOptions,
+  hideImage = false,
 }: {
   product: ManagedProduct;
   region: ShoppingRegion;
   viewHref?: string;
   onView?: () => void;
   onChooseOptions?: () => void;
+  hideImage?: boolean;
 }) {
   const [feedback, setFeedback] = useState("");
   const { rate, rateDate } = useCurrency();
@@ -121,17 +123,19 @@ export default function ManagedProductCard({
           onClick={openDetails}
         />
       ) : null}
-      <div
-        className={`managed-product-card__media ${original ? "managed-product-card__media--artwork" : "managed-product-card__media--goods"}`}
-      >
-        <img
-          src={product.imageUrl}
-          alt={product.altText || `${product.name}, ${categoryLabel(product)}`}
-          loading="lazy"
-          decoding="async"
-          sizes="(max-width: 640px) calc(100vw - 36px), (max-width: 1100px) 45vw, 280px"
-        />
-      </div>
+      {!hideImage && (
+        <div
+          className={`managed-product-card__media ${original ? "managed-product-card__media--artwork" : "managed-product-card__media--goods"}`}
+        >
+          <img
+            src={product.imageUrl}
+            alt={product.altText || `${product.name}, ${categoryLabel(product)}`}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 640px) calc(100vw - 36px), (max-width: 1100px) 45vw, 280px"
+          />
+        </div>
+      )}
       <div className="managed-product-card__body">
         <div className="flex flex-wrap gap-2">
           <span className="badge">{categoryLabel(product)}</span>
