@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ExternalLink, PackageCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ExternalLink, MessageCircle, PackageCheck } from "lucide-react";
 import { Link } from "wouter";
 import InternationalProductCard from "@/components/InternationalProductCard";
 import Money from "@/components/Money";
@@ -313,6 +313,178 @@ function MysteryFeature() {
   );
 }
 
+type TurkiyeCategory = "all" | "originals" | "prints" | "stickers" | "goods" | "mystery-mail";
+type TurkiyeSort = "newest" | "price-low" | "price-high" | "name";
+
+const turkiyeCatalogueCopy = {
+  en: {
+    eyebrow: "Türkiye Shop",
+    heading: "Art available in Türkiye",
+    description: "Original paintings, signed prints, stickers and Mystery Mail, with free delivery across Türkiye.",
+    utility: "Shopping in Türkiye",
+    change: "Change",
+    categories: { all: "All", originals: "Originals", prints: "Prints", stickers: "Stickers", goods: "Goods", "mystery-mail": "Mystery Mail" },
+    results: "Available from the studio",
+    showing: "currently available pieces",
+    sort: "Sort products",
+    newest: "Newest",
+    low: "Price: low to high",
+    high: "Price: high to low",
+    name: "Name",
+    empty: "No products are currently available in this category.",
+    orderTitle: "A personal order, kept simple.",
+    orderBody: "Choose a piece or product and add it to your basket. Continue on WhatsApp so Aida can personally confirm availability, options, payment and delivery before preparing your order.",
+    faqTitle: "Before you order",
+  },
+  tr: {
+    eyebrow: "Türkiye Mağazası",
+    heading: "Türkiye’de mevcut sanat eserleri",
+    description: "Orijinal resimler, imzalı baskılar, stickerlar ve Mystery Mail; Türkiye’nin her yerine ücretsiz teslimatla.",
+    utility: "Türkiye’den alışveriş",
+    change: "Değiştir",
+    categories: { all: "Tümü", originals: "Orijinaller", prints: "Baskılar", stickers: "Stickerlar", goods: "Ürünler", "mystery-mail": "Mystery Mail" },
+    results: "Atölyeden mevcut ürünler",
+    showing: "ürün şu anda mevcut",
+    sort: "Ürünleri sırala",
+    newest: "En yeni",
+    low: "Fiyat: düşükten yükseğe",
+    high: "Fiyat: yüksekten düşüğe",
+    name: "İsim",
+    empty: "Bu kategoride şu anda mevcut ürün yok.",
+    orderTitle: "Kişisel ve kolay bir sipariş.",
+    orderBody: "Eserini veya ürününü seçip sepete ekle. Aida’nın stok, seçenekler, ödeme ve teslimatı kişisel olarak onaylaması için WhatsApp’tan devam et.",
+    faqTitle: "Sipariş vermeden önce",
+  },
+} as const;
+
+function activeMystery(settings: ReturnType<typeof useShopSettings>, now: number) {
+  const edition = settings.studioMailPackages.find((item) => item.id === settings.mysteryMail.activeEditionId);
+  if (!edition || settings.mysteryMail.storefrontMode === "not-available-yet") return null;
+  const remaining = Date.parse(edition.expiresAt || "") - now;
+  return edition.status === "published" && edition.inventory > 0 && remaining > 0 ? edition : null;
+}
+
+function CompactMysteryFeature({ edition }: { edition: NonNullable<ReturnType<typeof activeMystery>> }) {
+  const { locale } = useLocale();
+  const title = locale === "tr" && edition.titleTr ? edition.titleTr : edition.title;
+  const description = locale === "tr" && edition.shortDescriptionTr ? edition.shortDescriptionTr : edition.shortDescription;
+  return (
+    <section className="turkiye-catalogue__mystery section-shell" aria-labelledby="turkiye-mystery-heading">
+      <img src={edition.coverImage || mysteryMailCoverImage} alt="Mystery Mail sealed art parcel" />
+      <div>
+        <p className="eyebrow text-coral">{locale === "tr" ? "Sınırlı Mystery Mail" : "Limited Mystery Mail"}</p>
+        <h2 id="turkiye-mystery-heading" className="mt-2 text-3xl md:text-4xl">{title}</h2>
+        <p className="mt-3 line-clamp-2 text-sm text-ink/65">{description}</p>
+      </div>
+      <div className="turkiye-catalogue__mystery-action">
+        <Money baseAmountUsdCents={edition.priceUsdCents} canonicalCurrency="TRY" className="font-bold" />
+        <Link href="/shop/turkiye/mystery-mail" className="button-link">{locale === "tr" ? "Edisyonu gör" : "View edition"} →</Link>
+      </div>
+    </section>
+  );
+}
+
+function TurkiyeCatalogue() {
+  const settings = useShopSettings();
+  const now = useServerNow();
+  const { locale } = useLocale();
+  const text = turkiyeCatalogueCopy[locale];
+  const [selected, setSelected] = useState<ManagedProduct | null>(null);
+  const readState = () => {
+    const query = new URLSearchParams(window.location.search);
+    return {
+      category: (query.get("category") || "all") as TurkiyeCategory,
+      sort: (query.get("sort") || "newest") as TurkiyeSort,
+    };
+  };
+  const [urlState, setUrlState] = useState(readState);
+  useEffect(() => {
+    const sync = () => setUrlState(readState());
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, []);
+
+  const originals = settings.originalProducts.filter((product) => isPubliclyVisible(product) && product.availableInTurkiye !== false);
+  const printProducts = settings.printProducts.filter((product) => isPubliclyVisible(product) && product.availableInTurkiye !== false);
+  const mystery = activeMystery(settings, now);
+  const availableCategories = useMemo(() => {
+    const values: TurkiyeCategory[] = ["all"];
+    if (originals.length) values.push("originals");
+    if (printProducts.some((product) => (product.category || "print") === "print")) values.push("prints");
+    if (printProducts.some((product) => product.category === "sticker")) values.push("stickers");
+    if (printProducts.some((product) => product.category === "tshirt" || product.category === "mug")) values.push("goods");
+    if (mystery) values.push("mystery-mail");
+    return values;
+  }, [originals, printProducts, mystery]);
+  const activeCategory = availableCategories.includes(urlState.category) ? urlState.category : "all";
+  const products = useMemo(() => {
+    const all = [...originals, ...printProducts].filter((product) => {
+      if (activeCategory === "all") return true;
+      if (activeCategory === "originals") return product.kind === "original";
+      if (activeCategory === "prints") return product.kind !== "original" && (product.category || "print") === "print";
+      if (activeCategory === "stickers") return product.category === "sticker";
+      if (activeCategory === "goods") return product.category === "tshirt" || product.category === "mug";
+      return false;
+    });
+    return all.sort((a, b) => {
+      if (urlState.sort === "price-low") return a.priceUsdCents - b.priceUsdCents;
+      if (urlState.sort === "price-high") return b.priceUsdCents - a.priceUsdCents;
+      if (urlState.sort === "name") return a.name.localeCompare(b.name, locale);
+      return Date.parse(b.updatedAt || "1970-01-01") - Date.parse(a.updatedAt || "1970-01-01");
+    });
+  }, [originals, printProducts, activeCategory, urlState.sort, locale]);
+  const categoryHref = (category: TurkiyeCategory) => {
+    const query = new URLSearchParams();
+    if (category !== "all") query.set("category", category);
+    if (urlState.sort !== "newest") query.set("sort", urlState.sort);
+    return `/shop/turkiye${query.size ? `?${query}` : ""}`;
+  };
+  const changeSort = (sort: TurkiyeSort) => {
+    const query = new URLSearchParams(window.location.search);
+    if (sort === "newest") query.delete("sort"); else query.set("sort", sort);
+    const href = `/shop/turkiye${query.size ? `?${query}` : ""}`;
+    window.history.pushState({}, "", href);
+    setUrlState(readState());
+  };
+  const faq = locale === "tr" ? [
+    ["Siparişimi nasıl tamamlarım?", "Ürünleri sepete ekledikten sonra WhatsApp’tan devam et. Aida stok, seçenekler, ödeme ve teslimatı kişisel olarak onaylar."],
+    ["Türkiye içinde teslimat nasıl yapılır?", "Teslimat ayrıntıları ve varsa kargo ücreti seçtiğin ürünlere ve adresine göre WhatsApp üzerinden netleştirilir."],
+    ["Orijinal eserler tek mi?", "Evet. Her orijinal eser benzersizdir ve satıldıktan sonra yeniden sipariş edilemez."],
+  ] as const : turkiyeFaq.slice(0, 3);
+
+  return (
+    <div className="turkiye-catalogue">
+      <IstanbulPaintingEventBanner placement="turkiye-shop" compact />
+      <header className="section-shell turkiye-catalogue__intro">
+        <p className="eyebrow">{text.eyebrow}</p>
+        <h1>{text.heading}</h1>
+        <p>{text.description}</p>
+        <div className="turkiye-catalogue__market"><span>{text.utility}</span><Link href="/">{text.change}</Link></div>
+      </header>
+      <div className="turkiye-catalogue__controls">
+        <nav className="section-shell shop-category-tabs" aria-label={locale === "tr" ? "Ürün kategorileri" : "Product categories"}>
+          {availableCategories.map((category) => (
+            <Link key={category} href={categoryHref(category)} onClick={() => setUrlState({ ...urlState, category })} aria-current={activeCategory === category ? "page" : undefined}>{text.categories[category]}</Link>
+          ))}
+        </nav>
+      </div>
+      {mystery && (activeCategory === "all" || activeCategory === "mystery-mail") && <CompactMysteryFeature edition={mystery} />}
+      {activeCategory !== "mystery-mail" && (
+        <section className="section-shell turkiye-catalogue__products" aria-labelledby="turkiye-products-heading">
+          <div className="turkiye-catalogue__results-head">
+            <div><p className="eyebrow">{text.results}</p><h2 id="turkiye-products-heading">{products.length} {text.showing}</h2></div>
+            <label><span>{text.sort}</span><select value={urlState.sort} onChange={(event) => changeSort(event.target.value as TurkiyeSort)}><option value="newest">{text.newest}</option><option value="price-low">{text.low}</option><option value="price-high">{text.high}</option><option value="name">{text.name}</option></select></label>
+          </div>
+          {products.length ? <div className="managed-product-grid">{products.map((product) => <ManagedProductCard key={`${product.kind}-${product.id}`} product={product} region="TR" viewHref={product.kind === "original" ? originalDetailHref("turkiye", product.slug || product.id) : undefined} onView={product.kind === "original" ? undefined : () => setSelected(product)} onChooseOptions={() => setSelected(product)} />)}</div> : <p className="turkiye-catalogue__empty">{text.empty}</p>}
+        </section>
+      )}
+      <section className="turkiye-catalogue__ordering"><div className="section-shell"><MessageCircle aria-hidden="true" /><div><p className="eyebrow">WhatsApp</p><h2>{text.orderTitle}</h2><p>{text.orderBody}</p></div></div></section>
+      <section className="section-shell turkiye-catalogue__faq"><p className="eyebrow">FAQ</p><h2>{text.faqTitle}</h2><div>{faq.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div><Link href="/shop/international" className="button-link">{locale === "tr" ? "Türkiye dışında mı alışveriş yapıyorsun? Uluslararası mağazaya git" : "Shopping outside Türkiye? Visit the International shop"} →</Link></section>
+      <TurkeyProductDialog product={selected} onClose={() => setSelected(null)} />
+    </div>
+  );
+}
+
 export default function RegionalLanding({
   region,
 }: {
@@ -333,6 +505,7 @@ export default function RegionalLanding({
   const originals = sortedPreview(settings.originalProducts, region);
   const prints = sortedPreview(settings.printProducts, "TR");
   const base = tr ? "/shop/turkiye" : "/shop/international";
+  if (tr) return <TurkiyeCatalogue />;
   return (
     <div>
       <IstanbulPaintingEventBanner

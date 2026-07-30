@@ -12,6 +12,7 @@ import CampaignComposer from "@/pages/admin/CampaignComposer";
 import FeaturedStudioLetter from "@/pages/admin/FeaturedStudioLetter";
 import EventRegistrations from "@/pages/admin/EventRegistrations";
 import EventBanner from "@/pages/admin/EventBanner";
+import CollectorExperience from "@/pages/admin/CollectorExperience";
 import Analytics from "@/pages/admin/Analytics";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
@@ -149,6 +150,8 @@ export default function Admin() {
     return <FeaturedStudioLetter />;
   if (location === "/admin/events/painting-day") return <EventRegistrations />;
   if (location === "/admin/marketing/event-banner") return <EventBanner />;
+  if (location === "/admin/marketing/collector-experience")
+    return <CollectorExperience />;
   if (location === "/admin/sticker-drop") return <StickerDropList />;
   const stickerDrop = location.match(/^\/admin\/sticker-drop\/(new|[^/]+)$/);
   if (stickerDrop) return <StickerDropEditor id={stickerDrop[1]} />;

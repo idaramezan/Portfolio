@@ -3,8 +3,23 @@ import { Check } from "lucide-react";
 import { Link } from "wouter";
 import { useLocale } from "@/lib/locale";
 
-const YOUTUBE_VIDEO_ID = "gAJYgEfwpQg";
-const YOUTUBE_EMBED_URL = `https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${YOUTUBE_VIDEO_ID}&rel=0&modestbranding=1`;
+const DEFAULT_YOUTUBE_VIDEO_ID = "gAJYgEfwpQg";
+
+type VideoConfig = {
+  videoSource: "uploaded" | "youtube";
+  uploadedVideoUrl: string | null;
+  youtubeVideoId: string | null;
+  posterUrl: string | null;
+  youtubeHasEmbeddedBorders: boolean;
+};
+
+const defaultVideoConfig: VideoConfig = {
+  videoSource: "youtube",
+  uploadedVideoUrl: null,
+  youtubeVideoId: DEFAULT_YOUTUBE_VIDEO_ID,
+  posterUrl: null,
+  youtubeHasEmbeddedBorders: true,
+};
 
 const copy = {
   en: {
@@ -61,7 +76,19 @@ export default function OriginalCollectorExperience({
   const { locale } = useLocale();
   const text = copy[locale];
   const visualRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+  const [playerActivated, setPlayerActivated] = useState(false);
+  const [videoConfig, setVideoConfig] = useState(defaultVideoConfig);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/collector-experience", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (payload?.config) setVideoConfig(payload.config);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const visual = visualRef.current;
@@ -71,13 +98,23 @@ export default function OriginalCollectorExperience({
     ).matches;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setInView(entry.isIntersecting && !reducedMotion);
+        if (entry.isIntersecting && !reducedMotion) {
+          setPlayerActivated(true);
+          observer.disconnect();
+        }
       },
-      { threshold: 0.35 },
+      { rootMargin: "160px 0px", threshold: 0.1 },
     );
     observer.observe(visual);
     return () => observer.disconnect();
   }, []);
+
+  const youtubeVideoId =
+    videoConfig.youtubeVideoId || DEFAULT_YOUTUBE_VIDEO_ID;
+  const youtubeEmbedUrl = `https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${youtubeVideoId}&rel=0&modestbranding=1&controls=0&disablekb=1`;
+  const posterUrl =
+    videoConfig.posterUrl ||
+    `https://i.ytimg.com/vi/${youtubeVideoId}/hq2.jpg`;
 
   return (
     <section
@@ -99,17 +136,31 @@ export default function OriginalCollectorExperience({
 
         <div ref={visualRef} className="collector-experience__visual">
           <div className="collector-experience__video-frame">
-            {inView ? (
+            {playerActivated &&
+            videoConfig.videoSource === "uploaded" &&
+            videoConfig.uploadedVideoUrl ? (
+              <video
+                src={videoConfig.uploadedVideoUrl}
+                poster={posterUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-label={text.videoTitle}
+              />
+            ) : playerActivated ? (
               <iframe
-                src={YOUTUBE_EMBED_URL}
+                src={youtubeEmbedUrl}
                 title={text.videoTitle}
                 allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin"
+                loading="lazy"
                 allowFullScreen
               />
             ) : (
               <img
-                src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hq2.jpg`}
+                src={posterUrl}
                 alt=""
                 width="480"
                 height="854"

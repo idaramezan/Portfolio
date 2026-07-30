@@ -210,10 +210,11 @@ export default function IstanbulPaintingEventBanner({
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
     : null;
   const whatsappUrl = serverWhatsappUrl || fallbackWhatsappUrl;
+  const shopStrip = compact && placement === "turkiye-shop";
 
   const compactAnnouncement = compact ? (
     <section
-      className="home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1] md:hidden"
+      className={`home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1] ${shopStrip ? "" : "md:hidden"}`}
       aria-labelledby="home-event-heading"
       data-no-translate
     >
@@ -247,6 +248,7 @@ export default function IstanbulPaintingEventBanner({
   return (
     <>
       {compactAnnouncement}
+      {!shopStrip && (
       <section
         className={`relative border-b border-white/10 bg-[#11110f] text-[#fffaf1] ${compact ? "hidden md:block" : ""}`}
         aria-labelledby="istanbul-painting-day-heading"
@@ -468,6 +470,7 @@ export default function IstanbulPaintingEventBanner({
           </figure>
         </div>
       </section>
+      )}
     </>
   );
 }

@@ -152,9 +152,19 @@ assert.ok(
     collectorExperience.includes("prefers-reduced-motion: reduce") &&
     collectorExperience.includes("youtube-nocookie.com/embed") &&
     collectorExperience.includes("autoplay=1&mute=1&playsinline=1") &&
-    collectorExperience.includes("setInView(entry.isIntersecting") &&
+    collectorExperience.includes("setPlayerActivated(true)") &&
+    collectorExperience.includes("observer.disconnect()") &&
+    collectorExperience.includes('videoConfig.videoSource === "uploaded"') &&
+    collectorExperience.includes("playsInline") &&
     collectorExperience.includes("gAJYgEfwpQg"),
-  "collector film must mount the muted YouTube Short only in view and respect reduced motion",
+  "collector film must activate once near view, support native video, and respect reduced motion",
+);
+assert.ok(
+  styles.includes("aspect-ratio: 9 / 16") &&
+    styles.includes("pointer-events: none") &&
+    styles.includes("position: absolute") &&
+    !styles.includes("padding-bottom: 56.25%"),
+  "collector film must use a stable portrait frame that cannot capture mobile scrolling",
 );
 assert.ok(
   originalDetail.includes("<OriginalCollectorExperience compact") &&

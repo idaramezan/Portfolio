@@ -20,6 +20,7 @@ if (process.env.DATABASE_URL) {
     { default: productImagesRouter },
     { default: ordersRouter },
     { default: stickerDropRouter },
+    { default: collectorExperienceRouter },
   ] = await Promise.all([
     import("./artworks"),
     import("./events"),
@@ -30,6 +31,7 @@ if (process.env.DATABASE_URL) {
     import("./product-images"),
     import("./orders"),
     import("./sticker-drop"),
+    import("./collector-experience"),
   ]);
   router.use("/artworks", artworksRouter);
   router.use("/events", eventsRouter);
@@ -40,6 +42,7 @@ if (process.env.DATABASE_URL) {
   router.use("/admin", productMediaRouter);
   router.use("/admin/orders", ordersRouter);
   router.use(stickerDropRouter);
+  router.use(collectorExperienceRouter);
 } else {
   router.use(
     ["/artworks", "/events", "/newsletter", "/product-images"],
