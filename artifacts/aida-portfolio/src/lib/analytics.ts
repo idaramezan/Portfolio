@@ -43,7 +43,11 @@ export type AnalyticsEventName =
   | "homepage_product_clicked"
   | "homepage_event_clicked"
   | "homepage_about_clicked"
-  | "homepage_tiktok_clicked";
+  | "homepage_tiktok_clicked"
+  | "stream_platform_click"
+  | "discord_join_click"
+  | "stream_section_view"
+  | "discord_section_view";
 
 export const ANALYTICS_CONSENT_KEY = "aida-analytics-consent";
 const VISITOR_COOKIE = "aida_analytics_visitor";

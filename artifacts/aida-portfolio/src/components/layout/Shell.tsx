@@ -11,6 +11,7 @@ import {
 } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { StudioWordmark } from "@/components/ui/playful-studio";
+import { trackAnalytics } from "@/lib/analytics";
 
 const NAV_LINKS = [
   { href: "/shop/turkiye", en: "Türkiye Shop", tr: "Türkiye Mağaza" },
@@ -48,6 +49,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
   const { locale, setLocale } = useLocale();
   const siteLinks = loadShopSettings().siteLinks;
+  const socialLinks = [
+    ["Instagram", siteLinks.instagramUrl], ["TikTok", siteLinks.tiktokUrl],
+    ["Twitch", siteLinks.twitchUrl], ["Kick", siteLinks.kickUrl],
+    ["YouTube", siteLinks.youtubeUrl], ["Discord", siteLinks.discordUrl],
+  ].filter((entry): entry is [string, string] => Boolean(entry[1]));
+  const trackSocial = (label: string, location: string) => {
+    const platform = label.toLowerCase();
+    if (["tiktok", "twitch", "kick"].includes(platform))
+      trackAnalytics("stream_platform_click", { metadata: { platform, location } });
+    if (platform === "discord")
+      trackAnalytics("discord_join_click", { metadata: { location } });
+  };
   const manageAnalytics = () =>
     window.dispatchEvent(new CustomEvent("analytics:manage"));
   const closeMobileMenu = (restoreFocus = false) => {
@@ -350,7 +363,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               English
             </button>
             </div>
-              <div className="mobile-menu__secondary-links">{[["Instagram", siteLinks.instagramUrl],["TikTok", siteLinks.tiktokUrl],["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}</a>)}
+              <div className="mobile-menu__secondary-links">{socialLinks.map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" onClick={() => trackSocial(label, "mobile_menu")}>{label}</a>)}
               <button type="button" onClick={manageAnalytics}>{locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}</button>
               </div>
             </footer>
@@ -365,7 +378,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <h2 className="site-footer__brand">Aida Ramezani</h2>
               <p className="site-footer__studio-line">Original art, studio stories and small editions made by Aida in Istanbul.</p>
               <div className="site-footer__social" aria-label="Aida Ramezani on social media">
-                {[["Instagram", siteLinks.instagramUrl], ["TikTok", siteLinks.tiktokUrl], ["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}<span className="sr-only"> opens in a new tab</span></a>)}
+                {socialLinks.map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" onClick={() => trackSocial(label, "site_footer")}>{label}<span className="sr-only"> opens in a new tab</span></a>)}
               </div>
             </section>
             <section className="site-footer__letter">

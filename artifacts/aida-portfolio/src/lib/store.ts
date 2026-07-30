@@ -128,6 +128,9 @@ export interface ShopSettings {
   siteLinks: {
     instagramUrl: string;
     tiktokUrl: string;
+    twitchUrl: string;
+    kickUrl: string;
+    discordUrl: string;
     youtubeUrl: string;
     instagramHandle: string;
     tiktokHandle: string;
@@ -378,6 +381,9 @@ export function getDefaultSettings(): ShopSettings {
     siteLinks: {
       instagramUrl: "https://instagram.com/aedaart",
       tiktokUrl: "https://www.tiktok.com/@aedapaints",
+      twitchUrl: "",
+      kickUrl: "",
+      discordUrl: "",
       youtubeUrl: "https://www.youtube.com/@AedaArt",
       instagramHandle: "@aedaart",
       tiktokHandle: "@aedapaints",
@@ -452,6 +458,10 @@ export function loadShopSettings(): ShopSettings {
             ...DEFAULT_MYSTERY_MAIL_EMPTY_STATE,
             ...(saved.mysteryMail?.emptyState || {}),
           },
+        },
+        siteLinks: {
+          ...defaults.siteLinks,
+          ...(saved.siteLinks || {}),
         },
         printProducts: Array.isArray(saved.printProducts)
           ? saved.printProducts.map(

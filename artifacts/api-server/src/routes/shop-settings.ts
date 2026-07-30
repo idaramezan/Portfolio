@@ -42,6 +42,16 @@ function isShopSettings(value: unknown): value is Record<string, unknown> {
   );
 }
 
+function validPublicSocialUrls(settings: Record<string, unknown>) {
+  const links = settings.siteLinks;
+  if (!links || typeof links !== "object" || Array.isArray(links)) return true;
+  return ["instagramUrl", "tiktokUrl", "twitchUrl", "kickUrl", "discordUrl", "youtubeUrl"].every((key) => {
+    const value = String((links as Record<string, unknown>)[key] || "").trim();
+    if (!value) return true;
+    try { return new URL(value).protocol === "https:"; } catch { return false; }
+  });
+}
+
 router.get("/shop-settings", async (request, response) => {
   try {
     await ensureTable();
@@ -64,6 +74,8 @@ router.get("/shop-settings", async (request, response) => {
 router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
   if (!isShopSettings(request.body?.settings))
     return response.status(400).json({ error: "Valid shop settings are required" });
+  if (!validPublicSocialUrls(request.body.settings))
+    return response.status(400).json({ error: "Social links must be valid HTTPS URLs" });
   try {
     await ensureTable();
     const result = await pool.query(

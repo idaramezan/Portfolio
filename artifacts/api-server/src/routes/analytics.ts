@@ -56,6 +56,10 @@ const EVENTS = new Set([
   "homepage_event_clicked",
   "homepage_about_clicked",
   "homepage_tiktok_clicked",
+  "stream_platform_click",
+  "discord_join_click",
+  "stream_section_view",
+  "discord_section_view",
 ]);
 const META_KEYS = new Set([
   "productType",
@@ -72,6 +76,8 @@ const META_KEYS = new Set([
   "market",
   "placement",
   "destinationType",
+  "platform",
+  "location",
 ]);
 const recent = new Map<string, number>();
 let lastMaintenanceAt = 0;

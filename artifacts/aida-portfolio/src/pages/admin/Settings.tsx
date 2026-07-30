@@ -353,6 +353,9 @@ export default function SettingsPage({
                 ["instagramHandle", "Instagram handle"],
                 ["tiktokUrl", "TikTok URL"],
                 ["tiktokHandle", "TikTok handle"],
+                ["twitchUrl", "Twitch channel URL"],
+                ["kickUrl", "Kick channel URL"],
+                ["discordUrl", "Discord invite URL"],
                 ["youtubeUrl", "YouTube URL"],
                 ["youtubeLabel", "YouTube channel"],
               ] as const
@@ -360,6 +363,8 @@ export default function SettingsPage({
               <label key={key}>
                 {label}
                 <input
+                  type={key.endsWith("Url") ? "url" : "text"}
+                  placeholder={key.endsWith("Url") ? "https://…" : undefined}
                   value={settings.siteLinks[key]}
                   onChange={(e) =>
                     setSettings((x) => ({

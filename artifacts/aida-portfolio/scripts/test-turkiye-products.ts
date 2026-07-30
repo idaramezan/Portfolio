@@ -339,6 +339,10 @@ const siteStyles = readFileSync(
   new URL("../src/index.css", import.meta.url),
   "utf8",
 );
+const editorialStyles = readFileSync(
+  new URL("../src/playful-studio-editorial.css", import.meta.url),
+  "utf8",
+);
 assert.ok(siteStyles.includes(".print-modal-overlay"));
 assert.ok(siteStyles.includes(".print-modal__content"));
 assert.ok(siteStyles.includes("@media (min-width: 900px)"));
@@ -378,19 +382,21 @@ const liveConfigSource = readFileSync(
   new URL("../src/config/tiktok-live.ts", import.meta.url),
   "utf8",
 );
-assert.ok(liveSectionSource.includes("if (!enabled) return null"));
+assert.ok(liveSectionSource.includes("if (!platforms.length) return null"));
 assert.ok(liveSectionSource.includes('target="_blank"'));
 assert.ok(liveSectionSource.includes('rel="noopener noreferrer"'));
-assert.ok(liveSectionSource.includes("LiveSocialProof"));
+assert.ok(liveSectionSource.includes("StreamingPlatformPass"));
+assert.ok(liveSectionSource.includes('"stream_platform_click"'));
+assert.ok(liveSectionSource.includes('"stream_section_view"'));
 assert.ok(!liveSectionSource.includes("<figcaption"));
 assert.ok(liveConfigSource.includes("Painted live. Watched by thousands."));
 assert.equal((liveConfigSource.match(/collageStyleKey:/g) || []).length, 6);
 assert.ok(liveConfigSource.includes("comments: 3817"));
 assert.ok(liveConfigSource.includes("displayOrder: 5"));
 assert.ok(!liveConfigSource.includes("plateSmall"));
-assert.ok(siteStyles.includes(".home-live-section__layout"));
-assert.ok(siteStyles.includes(".home-live-section__piece:nth-child(n + 3)"));
-assert.ok(siteStyles.includes("height: 145px"));
+assert.ok(editorialStyles.includes(".studio-streams__layout"));
+assert.ok(editorialStyles.includes(".stream-pass--twitch"));
+assert.ok(editorialStyles.includes(".studio-discord__board"));
 assert.ok(siteStyles.includes("@media (prefers-reduced-motion: reduce)"));
 
 const editorSource = readFileSync(

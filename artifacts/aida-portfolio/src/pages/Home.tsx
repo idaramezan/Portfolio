@@ -24,6 +24,7 @@ import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { trackAnalytics } from "@/lib/analytics";
 import Money from "@/components/Money";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
+import StudioDiscordSection from "@/components/StudioDiscordSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
@@ -494,7 +495,8 @@ export default function Home() {
         </div>
       </section>
 
-      <TikTokLiveSection tiktokUrl={links.tiktokUrl} secondaryCtaLabel="" />
+      <TikTokLiveSection links={{ tiktokUrl: links.tiktokUrl, twitchUrl: links.twitchUrl, kickUrl: links.kickUrl }} />
+      <StudioDiscordSection discordUrl={links.discordUrl} />
     </div>
   );
 }
