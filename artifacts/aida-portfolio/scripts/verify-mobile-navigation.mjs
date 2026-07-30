@@ -34,6 +34,10 @@ assert.ok(
   "menu trigger must own the focus-return ref",
 );
 assert.ok(
+  shell.includes("h-20 max-w-7xl") && shell.includes("whitespace-nowrap"),
+  "mobile header must remain an 80px non-wrapping bar",
+);
+assert.ok(
   shell.includes('document.body.style.overflow = "hidden"'),
   "open mobile menu must lock background scrolling",
 );
@@ -81,8 +85,16 @@ assert.ok(
 assert.ok(
   !home.includes("Choose where we deliver") &&
     !home.includes("How Turkey Orders Work") &&
-    !home.includes("Follow the Studio"),
+    !home.includes("Ordering in Türkiye") &&
+    !home.includes("Follow the Studio") &&
+    !home.includes("home-social-strip"),
   "homepage must not repeat the removed routing and oversized information sections",
+);
+assert.ok(
+  home.includes("home-market-hero__image--mobile") &&
+    home.indexOf("home-market-hero__image--mobile") <
+      home.indexOf("home-market-actions"),
+  "mobile hero photograph must connect the introduction to the market actions",
 );
 assert.ok(
   styles.includes("grid-template-columns: repeat(2, minmax(0, 1fr))") &&

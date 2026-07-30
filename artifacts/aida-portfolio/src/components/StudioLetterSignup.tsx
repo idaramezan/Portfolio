@@ -18,7 +18,7 @@ export const studioLetterCopy = {
     emailPlaceholder: "Your email address",
     footerSubmit: "Join free",
     compactSubmit: "Join the Studio Letter — Free",
-    storySubmit: "Read the rest in the Studio Letter",
+    storySubmit: "Send me the full story",
     heroSubmit: "Send me the Studio Letter",
     loading: "Joining…",
     successTitle: "You’re on the Studio Letter list.",
@@ -47,7 +47,7 @@ export const studioLetterCopy = {
     emailPlaceholder: "E-posta adresin",
     footerSubmit: "Ücretsiz katıl",
     compactSubmit: "Stüdyo Mektubu’na ücretsiz katıl",
-    storySubmit: "Hikâyenin devamını Stüdyo Mektubu’nda oku",
+    storySubmit: "Hikâyenin tamamını gönder",
     heroSubmit: "Stüdyo Mektubu’nu bana gönder",
     loading: "Katılım tamamlanıyor…",
     successTitle: "Stüdyo Mektubu listesine katıldın.",
@@ -478,13 +478,12 @@ export default function StudioLetterSignup({
             ))}
           </div>
           <div
-            className="studio-letter-preview__blur pointer-events-none relative mt-1 max-h-[68px] select-none overflow-hidden bg-[#f4ead8]/65 px-1 py-1 [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,.72)_55%,transparent_100%)]"
+            className="studio-letter-preview__blur pointer-events-none mt-3 space-y-2 select-none"
             aria-hidden="true"
           >
-            <p className="text-sm leading-6 text-ink/70 blur-[6px]">
-              Continue reading this Studio Letter after joining. The complete
-              story is delivered privately to your inbox.
-            </p>
+            <span className="block h-2.5 w-full bg-current opacity-20 blur-[4px]" />
+            <span className="block h-2.5 w-[88%] bg-current opacity-15 blur-[5px]" />
+            <span className="block h-2.5 w-[64%] bg-current opacity-10 blur-[6px]" />
           </div>
           <p className="mt-2 text-sm font-semibold text-coral">
             {copy.continue}

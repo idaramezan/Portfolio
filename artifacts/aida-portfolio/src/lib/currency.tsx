@@ -20,13 +20,22 @@ export function getManualCurrencyRate(): ManualRate | null {
     return Number.isFinite(Number(value?.rate)) && Number(value.rate) > 0
       ? { rate: Number(value.rate), rateDate: String(value.rateDate || "") }
       : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 export function saveManualCurrencyRate(rate: number) {
-  const rateDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const rateDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
   localStorage.setItem(MANUAL_RATE_KEY, JSON.stringify({ rate, rateDate }));
 }
-export function clearManualCurrencyRate() { localStorage.removeItem(MANUAL_RATE_KEY); }
+export function clearManualCurrencyRate() {
+  localStorage.removeItem(MANUAL_RATE_KEY);
+}
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [market, setMarket] = useState<Market>(() => marketFromPath());
@@ -48,27 +57,31 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const refresh = () => {
       setLoading(true);
-    const manual = getManualCurrencyRate();
-    if (manual) {
-      setRate(String(manual.rate));
-      setRateDate(manual.rateDate);
-      setFallback(false);
-      setLoading(false);
-      return;
-    }
-    fetch("/api/exchange-rates/USD/TRY")
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then(async (data) => {
-        if (!Number.isFinite(Number(data.rate)) || Number(data.rate) <= 0)
-          throw new Error("Invalid exchange rate");
-        setRate(String(data.rate));
-        setRateDate(data.rateDate || null);
-        setFallback(Boolean(data.isFallback));
-        const { migrateLegacyTryPricing } = await import("@/lib/pricing-migration");
-        migrateLegacyTryPricing(Number(data.rate), String(data.rateDate || ""));
-      })
-      .catch(() => setRate(null))
-      .finally(() => setLoading(false));
+      const manual = getManualCurrencyRate();
+      if (manual) {
+        setRate(String(manual.rate));
+        setRateDate(manual.rateDate);
+        setFallback(false);
+        setLoading(false);
+        return;
+      }
+      fetch("/api/exchange-rates/USD/TRY")
+        .then((response) => (response.ok ? response.json() : Promise.reject()))
+        .then(async (data) => {
+          if (!Number.isFinite(Number(data.rate)) || Number(data.rate) <= 0)
+            throw new Error("Invalid exchange rate");
+          setRate(String(data.rate));
+          setRateDate(data.rateDate || null);
+          setFallback(Boolean(data.isFallback));
+          const { migrateLegacyTryPricing } =
+            await import("@/lib/pricing-migration");
+          migrateLegacyTryPricing(
+            Number(data.rate),
+            String(data.rateDate || ""),
+          );
+        })
+        .catch(() => setRate(null))
+        .finally(() => setLoading(false));
     };
     refresh();
     window.addEventListener("currency-rate:updated", refresh);
@@ -102,12 +115,16 @@ export function convertUsdCentsToTry(amount: number, rate: string | number) {
   return Math.round((amount * scaled) / 1_000_000);
 }
 
-export function formatCurrencyMinor(amountMinor: number, currency: CurrencyCode) {
-  return new Intl.NumberFormat(currency === "TRY" ? "tr-TR" : "en-US", {
-    style: "currency",
-    currency,
+export function formatCurrencyMinor(
+  amountMinor: number,
+  currency: CurrencyCode,
+  locale: "en" | "tr" = currency === "TRY" ? "tr" : "en",
+) {
+  const number = new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
     maximumFractionDigits: currency === "TRY" ? 0 : 2,
+    minimumFractionDigits: currency === "TRY" ? 0 : 2,
   }).format(amountMinor / 100);
+  return currency === "TRY" ? `${number} TL` : `$${number}`;
 }
 
 export function formatMoney(
@@ -115,10 +132,15 @@ export function formatMoney(
   canonicalCurrency: CurrencyCode,
   marketCurrency: CurrencyCode,
   rate: string | null,
+  locale: "en" | "tr" = marketCurrency === "TRY" ? "tr" : "en",
 ) {
   if (canonicalCurrency === marketCurrency)
-    return formatCurrencyMinor(amountMinor, canonicalCurrency);
+    return formatCurrencyMinor(amountMinor, canonicalCurrency, locale);
   if (canonicalCurrency === "USD" && marketCurrency === "TRY" && rate)
-    return formatCurrencyMinor(convertUsdCentsToTry(amountMinor, rate), "TRY");
+    return formatCurrencyMinor(
+      convertUsdCentsToTry(amountMinor, rate),
+      "TRY",
+      locale,
+    );
   return "";
 }

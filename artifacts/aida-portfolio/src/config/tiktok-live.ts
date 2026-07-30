@@ -27,7 +27,7 @@ export const tiktokLiveSection = {
   heading: "Painted live. Watched by thousands.",
   description:
     "Aida paints in real time from her Istanbul studio. These works were created during recent TikTok LIVE sessions.",
-  primaryCtaLabel: "Join the next LIVE",
+  primaryCtaLabel: "Watch and follow on TikTok",
   secondaryCtaLabel: "Follow Aida on TikTok",
   statsLabel: "Recent TikTok LIVE performance",
   stats: {

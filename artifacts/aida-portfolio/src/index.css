@@ -1573,6 +1573,10 @@
   object-position: center;
 }
 
+.home-market-hero__image--mobile {
+  display: none;
+}
+
 .home-market-actions {
   display: grid;
   max-width: 680px;
@@ -1681,9 +1685,6 @@
   margin-top: 0.65rem;
   font-size: 0.82rem;
   font-weight: 700;
-  text-decoration: underline;
-  text-decoration-color: rgb(27 26 23 / 0.2);
-  text-underline-offset: 4px;
 }
 
 .home-product-grid {
@@ -1709,7 +1710,7 @@
 }
 
 .home-studio-letter .studio-letter-preview article p:not(.text-coral) {
-  color: rgb(251 245 233 / 0.7);
+  color: rgb(251 245 233 / 0.88);
 }
 
 .home-studio-letter .studio-letter-preview article > div:last-of-type {
@@ -1729,6 +1730,7 @@
   border: 10px solid #fffdf8;
   border-bottom-width: 34px;
   object-fit: cover;
+  object-position: 50% 25%;
   box-shadow: 0 12px 30px rgb(45 37 28 / 0.12);
   transform: rotate(-0.7deg);
 }
@@ -1752,6 +1754,38 @@
   margin-top: 1rem;
 }
 
+.home-editorial .home-live-section {
+  border-block-color: rgb(27 26 23 / 0.12);
+  background: #f7f1e6;
+  color: var(--color-ink);
+}
+
+.home-editorial .home-live-section__layout {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
+  gap: 3rem;
+  padding-block: 3rem;
+}
+
+.home-editorial .home-live-section h2 {
+  max-width: 620px;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  color: var(--color-ink);
+}
+
+.home-editorial .home-live-section__description,
+.home-editorial .home-live-section__content > p {
+  color: rgb(27 26 23 / 0.65);
+}
+
+.home-editorial .home-live-section__artworks {
+  height: 190px;
+}
+
+.home-editorial .home-live-section__piece {
+  box-shadow: 0 8px 18px rgb(45 37 28 / 0.14);
+}
+
 @media (max-width: 767px) {
   .home-event-announcement h2 {
     font-size: 1.45rem;
@@ -1761,12 +1795,12 @@
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
-    padding-block: 2.5rem;
+    padding-block: 2.25rem 3rem;
   }
 
   .home-market-hero__content h1 {
-    font-size: clamp(2.75rem, 12.5vw, 3.15rem);
-    line-height: 0.99;
+    font-size: clamp(2.65rem, 12vw, 3.05rem);
+    line-height: 1.01;
   }
 
   .home-market-hero__intro {
@@ -1775,16 +1809,23 @@
   }
 
   .home-market-actions {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
   }
 
   .home-market-action {
     min-height: 72px;
   }
 
-  .home-market-hero__image {
-    max-height: 300px;
-    object-position: center 35%;
+  .home-market-hero__layout > .home-market-hero__image {
+    display: none;
+  }
+
+  .home-market-hero__image--mobile {
+    display: block;
+    max-height: none;
+    margin-top: 1.25rem;
+    aspect-ratio: 5 / 6;
+    object-position: center 30%;
   }
 
   .home-category-grid {
@@ -1796,14 +1837,16 @@
   .home-category-link--feature {
     display: grid;
     grid-row: auto;
-    grid-template-columns: 116px minmax(0, 1fr);
-    gap: 1rem;
+    grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+    padding-block: 0 1.75rem;
   }
 
   .home-category-link img,
   .home-category-link--feature img {
-    height: 142px;
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 4 / 5;
   }
 
   .home-category-link h3 {
@@ -1821,6 +1864,23 @@
     gap: 1rem;
   }
 
+  .home-product-tile--original:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .home-product-tile--original:first-child img {
+    max-height: 430px;
+    aspect-ratio: auto;
+  }
+
+  .home-product-tile--goods h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1.35rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
   .home-product-tile:nth-child(n + 5) {
     display: none;
   }
@@ -1831,13 +1891,37 @@
   }
 
   .home-about-teaser > img {
-    max-height: 230px;
+    height: 280px;
+    max-height: none;
     border-width: 7px;
     border-bottom-width: 24px;
   }
 
   .home-about-teaser h2 {
-    font-size: 2.45rem;
+    font-size: 2.35rem;
+  }
+
+  .home-editorial .home-live-section__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 2.5rem;
+  }
+
+  .home-editorial .home-live-section__identity {
+    margin-bottom: 0;
+  }
+
+  .home-editorial .home-live-section h2 {
+    font-size: 2rem;
+  }
+
+  .home-editorial .home-live-section__artworks {
+    height: 110px;
+  }
+
+  .home-editorial .home-live-section__piece,
+  .home-editorial .home-live-section__piece img {
+    height: 110px;
   }
 }
 
@@ -2085,10 +2169,21 @@
 
   .footer-brand-copy,
   .footer-desktop-links,
-  .footer-newsletter .footer-eyebrow,
-  .footer-newsletter-copy,
-  .footer-newsletter > a {
+  .footer-newsletter .footer-eyebrow {
     display: none;
+  }
+
+  .footer-newsletter-copy {
+    margin-top: 0.5rem !important;
+    font-size: 0.82rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .footer-newsletter > a {
+    min-height: 40px;
+    align-items: center;
+    margin-bottom: 0;
+    text-decoration: none;
   }
 
   .footer-brand {
@@ -2122,12 +2217,32 @@
   }
 
   .footer-mobile-links summary {
+    position: relative;
+    display: flex;
     min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
     padding-block: 15px;
     font-size: 0.82rem;
     font-weight: 700;
     color: var(--color-paper);
+  }
+
+  .footer-mobile-links summary::marker,
+  .footer-mobile-links summary::-webkit-details-marker {
+    display: none;
+    content: "";
+  }
+
+  .footer-mobile-links summary::after {
+    font-size: 1.1rem;
+    font-weight: 400;
+    content: "+";
+  }
+
+  .footer-mobile-links details[open] summary::after {
+    content: "−";
   }
 
   .footer-mobile-links .footer-links {
@@ -2221,7 +2336,7 @@
   }
 
   .studio-letter-preview__images {
-    height: 180px;
+    height: 160px;
   }
 
   .studio-letter-preview__images > button:first-child {
@@ -2235,15 +2350,17 @@
   }
 
   .studio-letter-preview__excerpt {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    font-size: 0.9rem;
+    line-height: 1.55;
   }
 
-  .studio-letter-preview__excerpt p:nth-child(n + 2),
-  .studio-letter-preview__blur {
-    display: none;
+  .home-studio-letter .studio-letter-preview h2 {
+    font-size: clamp(2.5rem, 11vw, 2.9rem);
+    line-height: 1.02;
+  }
+
+  .home-studio-letter .studio-letter-preview__blur {
+    color: var(--color-paper);
   }
 
   .studio-letter-preview__transition {

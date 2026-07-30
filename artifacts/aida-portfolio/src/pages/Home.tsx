@@ -44,7 +44,9 @@ function ProductTile({
   const canonicalCurrency = product.priceCurrency || (original ? "USD" : "TRY");
   const amount = product.priceMinor ?? product.priceUsdCents;
   return (
-    <article className="home-product-tile">
+    <article
+      className={`home-product-tile ${original ? "home-product-tile--original" : "home-product-tile--goods"}`}
+    >
       <Link
         href={href}
         className="group block"
@@ -130,8 +132,8 @@ export default function Home() {
         new Date(a.updatedAt || 0).getTime(),
     );
   const latestLocal = [
-    ...originals.slice(0, 2),
-    ...localPrints.slice(0, 2),
+    ...originals.slice(0, 1),
+    ...localPrints.slice(0, 3),
   ].slice(0, 4);
 
   const categoryItems =
@@ -165,7 +167,6 @@ export default function Home() {
             title: "Studio Letter",
             copy: "Free personal stories from Aida’s studio.",
             cta: "Read about the Studio Letter",
-            textOnly: true,
           },
         ]
       : [
@@ -190,7 +191,6 @@ export default function Home() {
             title: "Studio Letter",
             copy: "Free personal stories from Aida’s studio.",
             cta: "Read about the Studio Letter",
-            textOnly: true,
           },
         ];
 
@@ -207,6 +207,16 @@ export default function Home() {
               Original paintings, signed prints and small studio editions,
               available in Türkiye and internationally.
             </p>
+            <img
+              src={heroPortrait}
+              srcSet={getResponsiveImageSrcSet(heroPortrait)}
+              sizes="100vw"
+              alt="Aida Ramezani in her Istanbul studio"
+              width="800"
+              height="1000"
+              fetchPriority="high"
+              className="home-market-hero__image home-market-hero__image--mobile"
+            />
             <div className="home-market-actions" aria-label="Choose your shop">
               <Link
                 href="/shop/turkiye"
@@ -283,16 +293,14 @@ export default function Home() {
             <Link
               key={item.href}
               href={item.href}
-              className={`home-category-link ${item.feature ? "home-category-link--feature" : ""} ${item.textOnly ? "home-category-link--text" : ""}`}
+              className={`home-category-link ${item.feature ? "home-category-link--feature" : ""}`}
               onClick={() =>
                 trackAnalytics("homepage_category_clicked", {
                   metadata: { market, category: item.title },
                 })
               }
             >
-              {!item.textOnly && (
-                <img src={item.image} alt="" loading="lazy" decoding="async" />
-              )}
+              <img src={item.image} alt="" loading="lazy" decoding="async" />
               <div>
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
@@ -304,16 +312,13 @@ export default function Home() {
       </section>
 
       <section className="section-shell home-latest !pt-4">
-        <div className="flex items-end justify-between gap-4">
+        <div>
           <div>
             <p className="eyebrow">Available now</p>
             <h2 className="mt-2 text-4xl md:text-5xl">
               Recently from the studio
             </h2>
           </div>
-          <Link href={base} className="button-link hidden sm:inline-flex">
-            View all →
-          </Link>
         </div>
         {market === "TR" ? (
           <div className="home-product-grid mt-8">
@@ -323,7 +328,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="home-product-grid mt-8">
-            {originals.slice(0, 2).map((product) => (
+            {originals.slice(0, 1).map((product) => (
               <ProductTile key={product.id} product={product} market={market} />
             ))}
             {international.products.slice(0, 2).map((product) => (
@@ -403,50 +408,7 @@ export default function Home() {
         </div>
       </section>
 
-      <TikTokLiveSection tiktokUrl={links.tiktokUrl} />
-
-      <section className="home-quiet-row border-t border-ink/15">
-        <div className="section-shell flex flex-col gap-4 !py-10 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl">
-              {market === "TR"
-                ? "Ordering in Türkiye"
-                : "Collecting internationally"}
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-ink/65">
-              {market === "TR"
-                ? "Add your pieces to the basket and continue with Aida to confirm availability, delivery and payment details."
-                : "Originals are arranged personally with Aida; international products are fulfilled through Fourthwall."}
-            </p>
-          </div>
-          <Link href="/how-to-collect" className="button-link">
-            How ordering works →
-          </Link>
-        </div>
-      </section>
-
-      <section className="home-social-strip bg-blue text-paper">
-        <div className="section-shell flex flex-col gap-4 !py-9 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl text-paper">Follow the studio</h2>
-          <div className="flex flex-wrap gap-6 text-sm font-bold">
-            {[
-              ["Instagram", links.instagramUrl],
-              ["TikTok", links.tiktokUrl],
-              ["YouTube", links.youtubeUrl],
-            ].map(([label, href]) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="min-h-11 content-center underline decoration-paper/30 underline-offset-4"
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TikTokLiveSection tiktokUrl={links.tiktokUrl} secondaryCtaLabel="" />
     </div>
   );
 }

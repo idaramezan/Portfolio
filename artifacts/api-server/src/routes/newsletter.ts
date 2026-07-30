@@ -287,8 +287,13 @@ function publicUrl(value: unknown) {
 
 function storyText(blocks: CampaignBlock[]) {
   return blocks
-    .filter((block) => block.type === "text" || block.type === "heading")
-    .map((block) => String("text" in block ? block.text : "").trim())
+    .filter(
+      (block) =>
+        block.type === "text" &&
+        block.size !== "heading" &&
+        block.size !== "large",
+    )
+    .map((block) => (block.type === "text" ? String(block.text).trim() : ""))
     .filter(Boolean)
     .join("\n\n");
 }
@@ -1231,7 +1236,8 @@ router.get("/featured-letter", async (req, res) => {
     const row = result.rows[0];
     const text = storyText(row.blocks);
     const words = text.split(/\s+/).filter(Boolean);
-    const visibleWords = words.slice(0, row.preview_word_count);
+    const previewWordCount = context === "home" ? 55 : row.preview_word_count;
+    const visibleWords = words.slice(0, previewWordCount);
     const images = templateImages(row.blocks);
     const selected = Array.isArray(row.preview_image_ids)
       ? row.preview_image_ids

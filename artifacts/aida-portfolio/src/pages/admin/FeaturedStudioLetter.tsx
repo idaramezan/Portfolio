@@ -39,7 +39,7 @@ export default function FeaturedStudioLetter() {
     enabled: false,
     templateId: "",
     previewImageIds: [],
-    previewWordCount: 65,
+    previewWordCount: 55,
     showOnHomepage: true,
     showOnTurkiyeShop: true,
     showOnInternationalShop: false,

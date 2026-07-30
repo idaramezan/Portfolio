@@ -123,10 +123,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
       <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-ink/5">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-2">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-2 px-4 py-0 md:h-auto md:px-8 md:py-5">
           <Link
             href="/"
-            className="shrink-0 font-serif text-xl sm:text-2xl lg:text-3xl font-bold tracking-tighter text-ink hover:text-coral transition-colors z-50"
+            className="z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
           >
             Aida Ramezani
           </Link>
