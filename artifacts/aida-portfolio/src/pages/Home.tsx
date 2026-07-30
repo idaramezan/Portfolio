@@ -136,7 +136,7 @@ export default function Home() {
           {
             href: "/shop/turkiye/originals",
             image: originalsCoverImage,
-            title: "Original Art",
+            title: "Originals",
             copy: "One-of-a-kind oil pastel paintings.",
           },
           {
@@ -156,7 +156,7 @@ export default function Home() {
           {
             href: "/shop/international/originals",
             image: originalsCoverImage,
-            title: "Original Art",
+            title: "Originals",
             copy: "One-of-a-kind paintings available worldwide.",
           },
           {
@@ -258,7 +258,6 @@ export default function Home() {
               <img src={item.image} alt="" loading="lazy" decoding="async" />
               <span className="home-category-link__content">
                 <h3>{item.title}</h3>
-                <p>{item.copy}</p>
                 <span className="home-category-link__cta">Explore →</span>
               </span>
             </Link>
