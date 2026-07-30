@@ -10,6 +10,7 @@ export default function AnalyticsConsent() {
   const [open, setOpen] = useState(
     () => localStorage.getItem(ANALYTICS_CONSENT_KEY) === null,
   );
+  const [showDetails, setShowDetails] = useState(false);
   useEffect(() => {
     const manage = () => setOpen(true);
     window.addEventListener("analytics:manage", manage);
@@ -28,7 +29,7 @@ export default function AnalyticsConsent() {
     <>
       {open && (
         <aside
-          className="fixed inset-x-3 bottom-3 z-[100] mx-auto max-w-2xl border border-ink/15 bg-paper p-5 shadow-2xl"
+          className="analytics-sheet fixed inset-x-0 bottom-0 z-[100] mx-auto bg-paper shadow-2xl"
           role="dialog"
           aria-labelledby="analytics-consent-title"
           aria-describedby="analytics-consent-copy"
@@ -40,32 +41,34 @@ export default function AnalyticsConsent() {
           >
             <X size={18} />
           </button>
+          <div className="analytics-sheet__inner">
           <div className="flex gap-3 pr-10">
-            <BarChart3 className="mt-1 shrink-0 text-coral" />
+            <span className="analytics-sheet__icon"><BarChart3 aria-hidden="true" /></span>
             <div>
-              <h2 id="analytics-consent-title" className="font-serif text-2xl">
-                Studio analytics preferences
+              <h2 id="analytics-consent-title">
+                Analytics preferences
               </h2>
               <p
                 id="analytics-consent-copy"
                 className="mt-2 text-sm leading-6 text-ink/65"
               >
-                Analytics helps Aida understand which pages and studio projects
-                visitors find useful. It uses a random first-party identifier
-                and approximate location. No raw IP address is stored.
+                Analytics helps Aida understand which pages and studio projects visitors find useful. A random first-party identifier and approximate location may be used. Raw IP addresses are not stored.
               </p>
+              {showDetails && <p className="analytics-sheet__details">You can accept or decline now and change your choice later from Privacy choices in the footer or mobile menu.</p>}
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="analytics-sheet__actions">
             <button
-              className="button-primary"
+              className="analytics-sheet__accept"
               onClick={() => choose("accepted")}
             >
               Accept analytics
             </button>
-            <button className="admin-button" onClick={() => choose("declined")}>
+            <button className="analytics-sheet__decline" onClick={() => choose("declined")}>
               Decline analytics
             </button>
+            <button type="button" className="analytics-sheet__manage" onClick={() => setShowDetails((value) => !value)}>Manage preferences</button>
+          </div>
           </div>
         </aside>
       )}

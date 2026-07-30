@@ -1,21 +1,16 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Globe2, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import {
   getResponsiveImageSrcSet,
   heroPortrait,
   homeAboutImage,
-  mysteryMailCoverImage,
-  originalsCoverImage,
-  printsCoverImage,
-  studioMailCoverImage,
 } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
 import {
   getActiveShoppingRegion,
-  hasActiveShoppingRegionPreference,
   setActiveShoppingRegion,
   type ManagedProduct,
   type ShoppingRegion,
@@ -94,15 +89,11 @@ export default function Home() {
   const [market, setMarket] = useState<ShoppingRegion>(() =>
     getActiveShoppingRegion(),
   );
-  const [hasPreference, setHasPreference] = useState(() =>
-    hasActiveShoppingRegionPreference(),
-  );
   const links = settings.siteLinks;
 
   const chooseMarket = (next: ShoppingRegion) => {
     setActiveShoppingRegion(next);
     setMarket(next);
-    setHasPreference(true);
     trackAnalytics("homepage_market_selected", {
       metadata: { market: next },
     });
@@ -142,56 +133,40 @@ export default function Home() {
       ? [
           {
             href: "/shop/turkiye/originals",
-            image: originalsCoverImage,
             title: "Original Art",
-            copy: "One-of-a-kind oil pastel paintings.",
-            cta: "Explore originals",
-            feature: true,
+            number: "01",
           },
           {
             href: "/shop/turkiye/prints",
-            image: printsCoverImage,
             title: "Prints & Stickers",
-            copy: "Signed, accessible pieces from Aida’s work.",
-            cta: "Shop prints and stickers",
+            number: "02",
           },
           {
             href: "/shop/turkiye/mystery-mail",
-            image: mysteryMailCoverImage,
             title: "Mystery Mail",
-            copy: "A sealed themed art package with a few surprises.",
-            cta: "Discover Mystery Mail",
+            number: "03",
           },
           {
             href: "/studio-letter",
-            image: studioMailCoverImage,
             title: "Studio Letter",
-            copy: "Free personal stories from Aida’s studio.",
-            cta: "Read about the Studio Letter",
+            number: "04",
           },
         ]
       : [
           {
             href: "/shop/international/originals",
-            image: originalsCoverImage,
             title: "Original Art",
-            copy: "One-of-a-kind paintings shipped worldwide.",
-            cta: "Explore originals",
-            feature: true,
+            number: "01",
           },
           {
             href: "/shop/international/prints",
-            image: printsCoverImage,
             title: "Prints & Goods",
-            copy: "Accessible editions fulfilled internationally.",
-            cta: "Shop prints and goods",
+            number: "02",
           },
           {
             href: "/studio-letter",
-            image: studioMailCoverImage,
             title: "Studio Letter",
-            copy: "Free personal stories from Aida’s studio.",
-            cta: "Read about the Studio Letter",
+            number: "03",
           },
         ];
 
@@ -224,18 +199,18 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
+                <span className="home-market-action__top"><span className="home-market-action__label"><MapPin size={13} aria-hidden="true" /> Local shop</span><ArrowRight aria-hidden="true" /></span>
                 <strong>Shop in Türkiye</strong>
                 <span>Originals, prints, stickers and Mystery Mail</span>
-                <ArrowRight aria-hidden="true" />
               </Link>
               <Link
                 href="/shop/international"
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
+                <span className="home-market-action__top"><span className="home-market-action__label"><Globe2 size={13} aria-hidden="true" /> Worldwide</span><ArrowRight aria-hidden="true" /></span>
                 <strong>Shop internationally</strong>
-                <span>Original paintings and worldwide products</span>
-                <ArrowRight aria-hidden="true" />
+                <span>Original paintings and worldwide studio products</span>
               </Link>
             </div>
           </div>
@@ -255,58 +230,27 @@ export default function Home() {
       <section className="section-shell home-categories">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
           <div>
-            <p className="eyebrow">Your collection</p>
+            <p className="eyebrow">Browse the studio</p>
             <h2 className="mt-2 text-4xl md:text-5xl">
               What are you looking for?
             </h2>
           </div>
-          {hasPreference && (
-            <div className="text-sm text-ink/60">
-              Shopping {market === "TR" ? "in Türkiye" : "internationally"} ·{" "}
-              <button
-                type="button"
-                className="min-h-11 font-bold text-ink underline underline-offset-4"
-                onClick={() => setHasPreference(false)}
-              >
-                Change
-              </button>
-            </div>
-          )}
         </div>
-        {!hasPreference && (
-          <div className="mt-5 flex gap-2" aria-label="Choose category market">
-            <button
-              className="button-primary"
-              onClick={() => chooseMarket("TR")}
-            >
-              Türkiye
-            </button>
-            <button
-              className="button-secondary"
-              onClick={() => chooseMarket("INTERNATIONAL")}
-            >
-              International
-            </button>
-          </div>
-        )}
         <div className="home-category-grid mt-8">
-          {categoryItems.map((item) => (
+          {categoryItems.map((item, index) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`home-category-link ${item.feature ? "home-category-link--feature" : ""}`}
+              className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
               onClick={() =>
                 trackAnalytics("homepage_category_clicked", {
                   metadata: { market, category: item.title },
                 })
               }
             >
-              <img src={item.image} alt="" loading="lazy" decoding="async" />
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.copy}</p>
-                <span>{item.cta} →</span>
-              </div>
+              <span className="home-category-link__number">{item.number}</span>
+              <h3>{item.title}</h3>
+              <ArrowRight aria-hidden="true" />
             </Link>
           ))}
         </div>

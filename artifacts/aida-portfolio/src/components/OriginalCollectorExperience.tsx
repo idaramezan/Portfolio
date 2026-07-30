@@ -76,7 +76,9 @@ export default function OriginalCollectorExperience({
   const { locale } = useLocale();
   const text = copy[locale];
   const visualRef = useRef<HTMLDivElement>(null);
+  const nativeVideoRef = useRef<HTMLVideoElement>(null);
   const [playerActivated, setPlayerActivated] = useState(false);
+  const [mediaInView, setMediaInView] = useState(false);
   const [videoConfig, setVideoConfig] = useState(defaultVideoConfig);
 
   useEffect(() => {
@@ -98,9 +100,9 @@ export default function OriginalCollectorExperience({
     ).matches;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        setMediaInView(entry.isIntersecting);
         if (entry.isIntersecting && !reducedMotion) {
           setPlayerActivated(true);
-          observer.disconnect();
         }
       },
       { rootMargin: "160px 0px", threshold: 0.1 },
@@ -108,6 +110,13 @@ export default function OriginalCollectorExperience({
     observer.observe(visual);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const video = nativeVideoRef.current;
+    if (!video) return;
+    if (mediaInView) void video.play().catch(() => undefined);
+    else video.pause();
+  }, [mediaInView, playerActivated, videoConfig.videoSource]);
 
   const youtubeVideoId =
     videoConfig.youtubeVideoId || DEFAULT_YOUTUBE_VIDEO_ID;
@@ -140,9 +149,10 @@ export default function OriginalCollectorExperience({
             videoConfig.videoSource === "uploaded" &&
             videoConfig.uploadedVideoUrl ? (
               <video
+                ref={nativeVideoRef}
                 src={videoConfig.uploadedVideoUrl}
                 poster={posterUrl}
-                autoPlay
+                autoPlay={mediaInView}
                 muted
                 loop
                 playsInline

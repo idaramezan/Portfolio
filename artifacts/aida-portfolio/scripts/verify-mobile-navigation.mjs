@@ -73,15 +73,16 @@ assert.ok(
 assert.ok(
   home.includes("Shop in Türkiye") &&
     home.includes("Shop internationally") &&
-    home.includes("hasActiveShoppingRegionPreference") &&
+    home.includes("home-market-action__label") &&
     home.includes("homepage_market_selected"),
-  "homepage hero must offer and persist both market paths",
+  "homepage hero must offer both market paths as postcard navigation",
 );
 assert.ok(
   home.includes("What are you looking for?") &&
     home.includes("/shop/international/prints") &&
-    home.includes("categoryItems"),
-  "homepage categories must adapt to Türkiye and international markets",
+    home.includes("home-category-link--paper") &&
+    !home.includes("hasActiveShoppingRegionPreference"),
+  "homepage categories must adapt to each market without a duplicated selector",
 );
 assert.ok(
   home.includes("isPubliclyVisible(product)") &&

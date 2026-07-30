@@ -409,9 +409,9 @@ function framedImage(photo: any, width = "100%", rotation = 0) {
     style === "studio-photograph"
       ? `padding:10px 10px 24px;background:#fffdf7;border:1px solid rgba(91,77,58,.22);box-shadow:0 10px 22px rgba(54,43,29,.10),0 2px 5px rgba(54,43,29,.06);transform:rotate(${rotation}deg)`
       : style === "clean"
-        ? "border:1px solid #d9d0c3"
+        ? "border:1px solid #ddd1c6"
         : "";
-  const image = `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};${frame}"><tr><td><img src="${escapeHtml(url)}" alt="${escapeHtml(altText)}" style="display:block;width:100%;max-width:100%;height:auto" /></td></tr>${photo.caption ? `<tr><td style="padding-top:8px;font-size:13px;line-height:1.4;color:#756f67;font-style:italic">${escapeHtml(photo.caption)}</td></tr>` : ""}</table>`;
+  const image = `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};${frame}"><tr><td><img src="${escapeHtml(url)}" alt="${escapeHtml(altText)}" style="display:block;width:100%;max-width:100%;height:auto" /></td></tr>${photo.caption ? `<tr><td style="padding-top:8px;font-size:13px;line-height:1.4;color:#756a70;font-style:italic">${escapeHtml(photo.caption)}</td></tr>` : ""}</table>`;
   const link = safeUrl(photo.linkUrl);
   return link
     ? `<a href="${escapeHtml(link)}" style="text-decoration:none">${image}</a>`
@@ -472,12 +472,12 @@ function productMarkup(item: any, catalog: any[], width = "100%") {
     "";
   const cta = item.ctaText || (available ? "View product" : "View the artwork");
   const image = `<a href="${escapeHtml(url.toString())}"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" width="560" style="display:block;width:100%;max-width:100%;height:auto" /></a>`;
-  const info = `${item.showProductType === false ? "" : `<p style="display:inline-block;margin:0 0 7px;padding:5px 8px;background:#f3d878;color:#1b1917;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">${escapeHtml(item.customEyebrow || product.category || product.kind || "From the studio")}</p>`}<h3 style="margin:0 0 8px;font-family:Georgia,serif;font-size:24px;line-height:1.2">${escapeHtml(title)}</h3>${item.showDescription === false || !description ? "" : `<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#756f67">${escapeHtml(description)}</p>`}${price ? `<p style="margin:0 0 12px;font-weight:700">${escapeHtml(price)}</p>` : ""}${!available ? `<p style="margin:0 0 12px;color:#c94f3d;font-weight:700">${product.kind === "original" ? "Sold" : "Sold out"}</p>` : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#a94468" style="background:#a94468"><a href="${escapeHtml(url.toString())}" style="display:inline-block;padding:13px 20px;color:#fffdf8;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">${escapeHtml(cta)}</a></td></tr></table>`;
+  const info = `${item.showProductType === false ? "" : `<p style="display:inline-block;margin:0 0 7px;padding:5px 8px;background:#f3db98;color:#392a34;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase">${escapeHtml(item.customEyebrow || product.category || product.kind || "From the studio")}</p>`}<h3 style="margin:0 0 8px;font-family:Georgia,serif;font-size:24px;line-height:1.2">${escapeHtml(title)}</h3>${item.showDescription === false || !description ? "" : `<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#756a70">${escapeHtml(description)}</p>`}${price ? `<p style="margin:0 0 12px;font-weight:700">${escapeHtml(price)}</p>` : ""}${!available ? `<p style="margin:0 0 12px;color:#c94f3d;font-weight:700">${product.kind === "original" ? "Sold" : "Sold out"}</p>` : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#b84775" style="background:#b84775"><a href="${escapeHtml(url.toString())}" style="display:inline-block;padding:13px 20px;color:#fff9f1;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">${escapeHtml(cta)}</a></td></tr></table>`;
   if (item.layout === "featured" || item.layout === "horizontal") {
     const imageWidth = item.layout === "featured" ? 58 : 36;
-    return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fffdf8;border:1px solid #d9d0c3" class="email-row"><tr><td class="email-column" width="${imageWidth}%" valign="middle" style="padding:12px">${image}</td><td class="email-column" width="${100 - imageWidth}%" valign="middle" style="padding:18px">${info}</td></tr></table>`;
+    return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fff9f1;border:1px solid #ddd1c6" class="email-row"><tr><td class="email-column" width="${imageWidth}%" valign="middle" style="padding:12px">${image}</td><td class="email-column" width="${100 - imageWidth}%" valign="middle" style="padding:18px">${info}</td></tr></table>`;
   }
-  return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fffdf8;border:1px solid #d9d0c3"><tr><td style="padding:12px">${image}</td></tr><tr><td style="padding:8px 16px 18px">${info}</td></tr></table>`;
+  return `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" style="width:${width};background:#fff9f1;border:1px solid #ddd1c6"><tr><td style="padding:12px">${image}</td></tr><tr><td style="padding:8px 16px 18px">${info}</td></tr></table>`;
 }
 
 async function renderCampaignBlocks(blocks: CampaignBlock[]) {
@@ -540,7 +540,7 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
           const url = safeUrl(block.url);
           if (!url || !block.text?.trim())
             throw new Error("Every button needs text and a valid link");
-          return `<p style="margin:24px 0;text-align:center"><a href="${escapeHtml(url)}" style="display:inline-block;background:#a94468;color:#fffdf8;padding:14px 23px;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">${escapeHtml(block.text.trim())}</a></p>`;
+          return `<p style="margin:24px 0;text-align:center"><a href="${escapeHtml(url)}" style="display:inline-block;background:#b84775;color:#fff9f1;padding:14px 23px;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">${escapeHtml(block.text.trim())}</a></p>`;
         }
         if (block.type === "text") {
           if (typeof block.text !== "string" || block.text.length > 5000)
@@ -555,7 +555,7 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
           const linkText = block.linkText?.trim();
           const linked =
             link && linkText
-              ? `${text}<br><a href="${escapeHtml(link)}" style="color:#a94468;text-decoration:underline">${escapeHtml(linkText)}</a>`
+              ? `${text}<br><a href="${escapeHtml(link)}" style="color:#b84775;text-decoration:underline">${escapeHtml(linkText)}</a>`
               : text;
           return `<p style="margin:0 0 18px;font-size:${size}px;line-height:1.7;text-align:${align};font-weight:${weight};font-style:${style}">${linked}</p>`;
         }
@@ -776,7 +776,7 @@ function buildPaintingEventInterestEmail(input: {
     { girls_only: "Girls only", boys_only: "Boys only", everyone: "Everyone" }[
       config.audience as string
     ] || "Everyone";
-  const participationHtml = `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a94468">Participation fee</p><p style="margin:0;font-size:28px;font-weight:700">${escapeHtml(String(config.participation_price_try))} TL</p>`;
+  const participationHtml = `<p style="margin:0 0 5px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#b84775">Participation fee</p><p style="margin:0;font-size:28px;font-weight:700">${escapeHtml(String(config.participation_price_try))} TL</p>`;
   const detailRows = [
     ["Date and time", date],
     ["Location", config.location_text_en],
@@ -788,10 +788,10 @@ function buildPaintingEventInterestEmail(input: {
   ]
     .map(
       ([label, value]) =>
-        `<tr><th scope="row" style="padding:9px 12px 9px 0;border-bottom:1px solid #d9d0c3;text-align:left;vertical-align:top;font-size:13px;color:#756f67">${escapeHtml(label)}</th><td style="padding:9px 0;border-bottom:1px solid #d9d0c3;text-align:left;vertical-align:top;font-size:14px;font-weight:600">${escapeHtml(value)}</td></tr>`,
+        `<tr><th scope="row" style="padding:9px 12px 9px 0;border-bottom:1px solid #ddd1c6;text-align:left;vertical-align:top;font-size:13px;color:#756a70">${escapeHtml(label)}</th><td style="padding:9px 0;border-bottom:1px solid #ddd1c6;text-align:left;vertical-align:top;font-size:14px;font-weight:600">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
-  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">${escapeHtml(config.title_en)}</h1><p style="font-size:16px;line-height:1.7">${escapeHtml(config.description_en)}</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:4px solid #a94468;background:#f7e5ec">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#a94468;color:#fffdf8;padding:14px 22px;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">Contact Aida to reserve my place</a></p>`;
+  const content = `<h1 style="margin:0 0 22px;font-size:31px;line-height:1.2">${escapeHtml(config.title_en)}</h1><p style="font-size:16px;line-height:1.7">${escapeHtml(config.description_en)}</p><table role="presentation" style="width:100%;margin:24px 0;border-collapse:collapse">${detailRows}</table><div style="margin:24px 0;padding:18px;border-left:4px solid #b84775;background:#f7e5ec">${participationHtml}</div><p style="font-size:16px;line-height:1.7"><strong>Your email has registered your interest, but it has not reserved a place.</strong></p><p style="font-size:16px;line-height:1.7">Your attendance is confirmed personally by Aida on WhatsApp.</p><p style="margin:26px 0;text-align:center"><a href="${escapeHtml(input.whatsappUrl)}" style="display:inline-block;background:#b84775;color:#fff9f1;padding:14px 22px;font-family:Arial Black,Arial,sans-serif;text-decoration:none;font-weight:900">Contact Aida to reserve my place</a></p>`;
   const text = `${config.title_en}\n\n${config.description_en}\n\nDate: ${date}\nLocation: ${config.location_text_en}\nWho can join: ${audience}\nPlaces: ${input.remainingSeats}\nParticipation fee: ${config.participation_price_try} TL\n\nContact Aida: ${input.whatsappUrl}\nUnsubscribe: ${input.unsubscribe}`;
   return {
     subject: `${config.title_en} — details from Aida`,
@@ -1697,7 +1697,7 @@ async function unsubscribe(req: Request, res: Response) {
       .status(200)
       .type("html")
       .send(
-        '<!doctype html><html><body style="margin:0;background:#f0e6d8;color:#1b1917;font-family:Arial,sans-serif"><main style="max-width:560px;margin:80px auto;background:#fff9f2;border:1px solid #d9d0c3;padding:40px"><p style="display:inline-block;background:#efcad8;padding:6px 9px;font-size:11px;font-weight:700;text-transform:uppercase">Studio Letter</p><h1>You have been unsubscribed.</h1><p>You will no longer receive Studio Letter campaigns.</p><p><a href="https://www.aedaart.com" style="color:#a94468">Return to Aida’s website</a></p></main></body></html>',
+        '<!doctype html><html><body style="margin:0;background:#f1e7d8;color:#392a34;font-family:Arial,sans-serif"><main style="max-width:560px;margin:80px auto;background:#fff9f2;border:1px solid #ddd1c6;padding:40px"><p style="display:inline-block;background:#f5d5e2;padding:6px 9px;font-size:11px;font-weight:700;text-transform:uppercase">Studio Letter</p><h1>You have been unsubscribed.</h1><p>You will no longer receive Studio Letter campaigns.</p><p><a href="https://www.aedaart.com" style="color:#b84775">Return to Aida’s website</a></p></main></body></html>',
       );
   } catch (err) {
     req.log.error({ err }, "Failed to unsubscribe newsletter reader");

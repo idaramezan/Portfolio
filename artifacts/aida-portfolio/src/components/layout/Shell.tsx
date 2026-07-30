@@ -40,6 +40,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeEvent, setActiveEvent] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
   const activeRegion: ShoppingRegion =
     location.startsWith("/shop/international") ||
     location.startsWith("/basket/international")
@@ -52,6 +53,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const isHome = location === "/";
   const manageAnalytics = () =>
     window.dispatchEvent(new CustomEvent("analytics:manage"));
+
+  useEffect(() => {
+    const updateHeader = () => setHeaderScrolled(window.scrollY > 24);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
 
   useEffect(() => {
     if (location.startsWith("/shop/") || location.startsWith("/basket/"))
@@ -123,7 +131,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
-      <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-ink/5">
+      <header data-scrolled={headerScrolled || undefined} className="site-header sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-ink/5">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-2 px-4 py-0 md:h-auto md:px-8 md:py-5">
           <Link
             href="/"

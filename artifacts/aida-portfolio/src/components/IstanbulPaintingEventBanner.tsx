@@ -214,29 +214,29 @@ export default function IstanbulPaintingEventBanner({
 
   const compactAnnouncement = compact ? (
     <section
-      className={`home-event-announcement border-b border-white/10 bg-[#171713] text-[#fffaf1] ${shopStrip ? "" : "md:hidden"}`}
+      className={`home-event-announcement ${shopStrip ? "" : "md:hidden"}`}
       aria-labelledby="home-event-heading"
       data-no-translate
     >
       <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-5 md:grid-cols-[auto_1fr_auto] md:px-8 md:py-4">
-        <p className="text-[11px] font-bold uppercase tracking-[.12em] text-coral">
+        <p className="home-event-announcement__date">
           {eventDate}
         </p>
         <div>
-          <h2 id="home-event-heading" className="text-2xl text-[#fffaf1]">
+          <h2 id="home-event-heading">
             {local ? config.title_tr : config.title_en}
           </h2>
-          <p className="mt-1 text-sm text-[#fffaf1]/65">
+          <p className="home-event-announcement__details">
             {audience} ·{" "}
             {local ? config.location_text_tr : config.location_text_en} ·{" "}
-            <strong className="text-[#fffaf1]">
+            <strong className="home-event-announcement__places">
               {remainingSeats} {ui.remaining}
             </strong>
           </p>
         </div>
         <Link
           href="/event"
-          className="button-link min-h-11 !text-coral"
+          className="button-primary home-event-announcement__cta"
           onClick={() => trackAnalytics("homepage_event_clicked")}
         >
           {local ? "Etkinlik ayrıntıları" : "View event details"} →
@@ -250,7 +250,7 @@ export default function IstanbulPaintingEventBanner({
       {compactAnnouncement}
       {!shopStrip && (
       <section
-        className={`relative border-b border-white/10 bg-[#11110f] text-[#fffaf1] ${compact ? "hidden md:block" : ""}`}
+        className={`event-ticket relative border-b ${compact ? "hidden md:block" : ""}`}
         aria-labelledby="istanbul-painting-day-heading"
         data-no-translate
       >

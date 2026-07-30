@@ -17,6 +17,7 @@
     "test:collector-experience": "node scripts/verify-collector-experience.mjs",
     "test:turkiye-catalogue": "node scripts/verify-turkiye-catalogue.mjs",
     "test:design-system": "node scripts/verify-playful-studio-editorial.mjs",
+    "test:palette-refinement": "node scripts/verify-palette-refinement.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
