@@ -99,6 +99,13 @@ export default function IstanbulPaintingEventBanner({
     timeStyle: "short",
     timeZone: config.timezone,
   }).format(new Date(config.event_start_at));
+  const eventTeaserDate = new Intl.DateTimeFormat(local ? "tr-TR" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: config.timezone,
+  }).format(new Date(config.event_start_at));
   const audience = local
     ? {
         girls_only: "Yalnızca kızlar",
@@ -236,19 +243,19 @@ export default function IstanbulPaintingEventBanner({
           />
         </figure>
         <div className="home-event-announcement__content">
-          <p className="home-event-announcement__date">{eventDate}</p>
-          <h2 id="home-event-heading">
+          <p className="home-event-announcement__date">{eventTeaserDate}</p>
+          <h2 id="home-event-heading" className="home-event-announcement__title">
             {bannerTitle}
           </h2>
           <p className="home-event-announcement__details">
             {audience} ·{" "}
-            {local ? config.location_text_tr : config.location_text_en} ·{" "}
-            <strong className="home-event-announcement__places">
-              {soldOut
-                ? local ? "Tamamen dolu" : "Fully booked"
-                : `${remainingSeats} ${ui.remaining}`}
-            </strong>
+            {local ? config.location_text_tr : config.location_text_en}
           </p>
+          <strong className="home-event-announcement__places">
+            {soldOut
+              ? local ? "Tamamen dolu" : "Fully booked"
+              : `${remainingSeats} ${ui.remaining}`}
+          </strong>
           <Link
             href="/event"
             className="editorial-paper-tab home-event-announcement__cta"

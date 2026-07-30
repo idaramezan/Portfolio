@@ -141,20 +141,23 @@ export default function Home() {
           {
             href: "/shop/turkiye/originals",
             image: originalsCoverImage,
-            title: "Originals",
+            title: "Original Art",
             copy: "One-of-a-kind oil pastel paintings.",
+            number: "01",
           },
           {
             href: "/shop/turkiye/prints",
             image: printsCoverImage,
             title: "Prints & Stickers",
-            copy: "Signed prints, stickers and useful studio goods.",
+            copy: "Signed prints, stickers and studio pieces.",
+            number: "02",
           },
           {
             href: "/studio-letter",
             image: studioMailCoverImage,
             title: "Studio Letter",
             copy: "Free personal stories and notes from Aida’s studio.",
+            number: "03",
           },
           ...(mysteryMailAvailable
             ? [{
@@ -162,6 +165,7 @@ export default function Home() {
                 image: mysteryMailCoverImage,
                 title: "Mystery Mail",
                 copy: "A limited surprise parcel packed in Aida’s studio.",
+                number: "04",
               }]
             : []),
         ]
@@ -169,20 +173,23 @@ export default function Home() {
           {
             href: "/shop/international/originals",
             image: originalsCoverImage,
-            title: "Originals",
+            title: "Original Art",
             copy: "One-of-a-kind paintings available worldwide.",
+            number: "01",
           },
           {
             href: "/shop/international/prints",
             image: printsCoverImage,
             title: "Prints & Goods",
             copy: "Worldwide editions and practical studio products.",
+            number: "02",
           },
           {
             href: "/studio-letter",
             image: studioMailCoverImage,
             title: "Studio Letter",
             copy: "Free personal stories and notes from Aida’s studio.",
+            number: "03",
           },
         ];
 
@@ -215,12 +222,7 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <img
-                  src={originalsCoverImage}
-                  alt="Original artwork and packaging from Aida’s Istanbul studio"
-                  width="420"
-                  height="520"
-                />
+                <span className="home-market-action__media"><img src={originalsCoverImage} alt="Original artwork and packaging from Aida’s Istanbul studio" width="420" height="520" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Local shop</span>
                   <strong>Shop in Türkiye</strong>
@@ -233,12 +235,7 @@ export default function Home() {
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <img
-                  src={printsCoverImage}
-                  alt="Aida’s prints prepared for collectors worldwide"
-                  width="420"
-                  height="520"
-                />
+                <span className="home-market-action__media"><img src={printsCoverImage} alt="Aida’s prints prepared for collectors worldwide" width="420" height="520" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Worldwide</span>
                   <strong>Shop internationally</strong>
@@ -261,11 +258,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-shell home-categories">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
+      <section className="section-shell home-categories collection-navigation-section home-section">
+        <div className="collection-navigation-section__header flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
           <div>
             <p className="eyebrow">Browse the studio</p>
-            <h2 className="mt-2 text-4xl md:text-5xl">
+            <h2 className="collection-navigation-section__title mt-2 text-4xl md:text-5xl">
               What are you looking for?
             </h2>
           </div>
@@ -276,19 +273,20 @@ export default function Home() {
               key={item.href}
               href={item.href}
               className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
+              aria-label={`${item.title === "Studio Letter" ? "Read about" : "Explore"} ${item.title}`}
               onClick={() =>
                 trackAnalytics("homepage_category_clicked", {
                   metadata: { market, category: item.title },
                 })
               }
             >
-              <img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" />
+              <span className="home-category-link__media"><img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" /></span>
               <span className="home-category-link__content">
-                <span className="home-category-link__label">Studio collection</span>
+                <span className="home-category-link__number">{item.number}</span>
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
-                <span className="home-category-link__cta">Explore <ArrowRight aria-hidden="true" /></span>
               </span>
+              <ArrowRight className="home-category-link__arrow" aria-hidden="true" />
             </Link>
           ))}
         </div>

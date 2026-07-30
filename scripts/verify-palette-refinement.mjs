@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 
 const css = readFileSync(new URL("../artifacts/aida-portfolio/src/playful-studio-editorial.css", import.meta.url), "utf8");
+const baseCss = readFileSync(new URL("../artifacts/aida-portfolio/src/index.css", import.meta.url), "utf8");
 const home = readFileSync(new URL("../artifacts/aida-portfolio/src/pages/Home.tsx", import.meta.url), "utf8");
 const event = readFileSync(new URL("../artifacts/aida-portfolio/src/components/IstanbulPaintingEventBanner.tsx", import.meta.url), "utf8");
 const consent = readFileSync(new URL("../artifacts/aida-portfolio/src/components/AnalyticsConsent.tsx", import.meta.url), "utf8");
@@ -16,7 +17,8 @@ assert.ok(css.includes("background: var(--blue-light) !important") && css.includ
 assert.ok(css.includes("-webkit-line-clamp: initial") && css.includes("max-height: none") && css.includes("overflow: visible"), "event banner must be content-driven and untruncated");
 assert.ok(!css.includes(".home-event-announcement {\n  position: relative;\n  overflow: hidden") && !css.includes("home-category-link--paper > span:not") && event.includes("home-event-announcement__photo") && event.includes("bannerTitle"), "event CTA, image, and short title must remain visible");
 assert.ok(home.includes("home-market-action__arrow") && css.includes("border-left-color: var(--blue-dark)") && !css.includes(".home-market-action:nth-child(2) {\n  border-color: color-mix"), "destination postcards must use restrained pink and blue accents");
-assert.ok(home.includes('title: "Originals"') && home.includes("<p>{item.copy}</p>") && home.includes("home-category-link__label"), "category navigation must provide image-led editorial context");
+assert.ok(home.includes('title: "Original Art"') && home.includes("<p>{item.copy}</p>") && home.includes("home-category-link__number") && !home.includes("Studio collection"), "category navigation must provide compact image-led editorial context");
+assert.ok(!baseCss.includes(".home-market-action span {\n  grid-column: 1") && !baseCss.includes(".home-market-action svg {\n  position: absolute") && css.includes("grid-template-columns: 112px minmax(0, 1fr) 28px"), "legacy mobile card positioning must stay removed");
 assert.ok(css.includes(".managed-product-card__title") && css.includes(".international-product-card") && css.includes("margin-top: auto"), "product cards must have defined equal-height surfaces and bottom-aligned actions");
 assert.ok(video.includes("video.pause()") && video.includes("mediaInView"), "native packaging video must pause off-screen");
 assert.ok(css.includes('[id^="smartlook-feedback"]'), "public Smartlook feedback handle must be hidden without removing analytics");

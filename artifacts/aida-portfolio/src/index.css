@@ -1848,116 +1848,6 @@
   display: none;
 }
 
-.home-market-actions {
-  display: grid;
-  max-width: 680px;
-  margin-top: 2rem;
-  border-block: 1px solid rgb(27 26 23 / 0.16);
-}
-
-.home-market-action {
-  position: relative;
-  display: grid;
-  min-height: 78px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-content: center;
-  padding: 0.85rem 3rem 0.85rem 0;
-  transition: color 180ms ease;
-}
-
-.home-market-action + .home-market-action {
-  border-top: 1px solid rgb(27 26 23 / 0.12);
-}
-
-.home-market-action strong {
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-}
-
-.home-market-action span {
-  grid-column: 1;
-  margin-top: 0.2rem;
-  font-size: 0.8rem;
-  color: rgb(27 26 23 / 0.56);
-}
-
-.home-market-action svg {
-  position: absolute;
-  right: 0;
-  top: calc(50% - 10px);
-  width: 20px;
-}
-
-.home-market-action--primary strong,
-.home-market-action:hover strong {
-  color: var(--color-coral);
-}
-
-.home-category-grid {
-  display: grid;
-  grid-template-columns: 1.25fr 0.75fr 0.75fr;
-  gap: 2rem;
-}
-
-.home-category-link {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  border-top: 1px solid rgb(27 26 23 / 0.16);
-  padding-top: 1rem;
-}
-
-.home-category-link--feature {
-  grid-row: span 2;
-}
-
-.home-category-link--text {
-  justify-content: flex-end;
-  background: var(--color-blue);
-  padding: 1.5rem;
-  color: var(--color-paper);
-}
-
-.home-category-link img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
-
-.home-category-link--feature img {
-  aspect-ratio: 4 / 5;
-}
-
-.home-category-link h3 {
-  margin-top: 1rem;
-  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
-}
-
-.home-category-link--text h3 {
-  margin-top: 0;
-  color: var(--color-paper);
-}
-
-.home-category-link p {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: rgb(27 26 23 / 0.62);
-}
-
-.home-category-link--text p {
-  color: rgb(251 245 233 / 0.68);
-}
-
-.home-category-link span {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  margin-top: 0.65rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
 .home-product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2215,14 +2105,6 @@
     font-size: 1.05rem;
   }
 
-  .home-market-actions {
-    margin-top: 1rem;
-  }
-
-  .home-market-action {
-    min-height: 72px;
-  }
-
   .home-market-hero__layout > .home-market-hero__image {
     display: none;
   }
@@ -2233,37 +2115,6 @@
     margin-top: 1.25rem;
     aspect-ratio: 5 / 6;
     object-position: center 30%;
-  }
-
-  .home-category-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-  }
-
-  .home-category-link,
-  .home-category-link--feature {
-    display: grid;
-    grid-row: auto;
-    grid-template-columns: minmax(0, 36%) minmax(0, 1fr);
-    align-items: center;
-    gap: 1.25rem;
-    padding-block: 0 1.75rem;
-  }
-
-  .home-category-link img,
-  .home-category-link--feature img {
-    height: auto;
-    aspect-ratio: 4 / 5;
-  }
-
-  .home-category-link h3 {
-    margin-top: 0;
-    font-size: 1.55rem;
-  }
-
-  .home-category-link--text {
-    display: block;
-    padding: 1.25rem;
   }
 
   .home-product-grid {
