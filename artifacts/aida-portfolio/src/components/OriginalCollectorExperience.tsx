@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link } from "wouter";
 import { useLocale } from "@/lib/locale";
-import { homeAboutImage } from "@/lib/assets";
 
-const VIDEO_URL = "/media/d0ac24737dfea34e49d57bf415d027f4.MP4";
+const YOUTUBE_VIDEO_ID = "gAJYgEfwpQg";
+const YOUTUBE_EMBED_URL = `https://www.youtube-nocookie.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${YOUTUBE_VIDEO_ID}&rel=0&modestbranding=1`;
 
 const copy = {
   en: {
@@ -26,8 +26,7 @@ const copy = {
       "The exact frame and presentation may vary slightly depending on the artwork and delivery destination.",
     primary: "Explore available originals",
     secondary: "See how collecting works",
-    play: "Play packaging film",
-    pause: "Pause packaging film",
+    videoTitle: "Aida packing an original artwork order",
   },
   tr: {
     eyebrow: "Atölyeden evine",
@@ -48,8 +47,7 @@ const copy = {
       "Çerçeve ve sunum, esere ve teslimat yerine göre küçük farklılıklar gösterebilir.",
     primary: "Mevcut orijinalleri keşfet",
     secondary: "Koleksiyon süreci nasıl işliyor?",
-    play: "Paketleme filmini oynat",
-    pause: "Paketleme filmini duraklat",
+    videoTitle: "Aida orijinal eser siparişini paketliyor",
   },
 } as const;
 
@@ -62,35 +60,24 @@ export default function OriginalCollectorExperience({
 }) {
   const { locale } = useLocale();
   const text = copy[locale];
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(false);
+  const visualRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const visual = visualRef.current;
+    if (!visual) return;
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !reducedMotion) {
-          void video.play().catch(() => undefined);
-        } else {
-          video.pause();
-        }
+        setInView(entry.isIntersecting && !reducedMotion);
       },
       { threshold: 0.35 },
     );
-    observer.observe(video);
+    observer.observe(visual);
     return () => observer.disconnect();
   }, []);
-
-  const togglePlayback = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) void video.play().catch(() => undefined);
-    else video.pause();
-  };
 
   return (
     <section
@@ -110,32 +97,25 @@ export default function OriginalCollectorExperience({
           )}
         </div>
 
-        <div className="collector-experience__visual">
+        <div ref={visualRef} className="collector-experience__visual">
           <div className="collector-experience__video-frame">
-            <video
-              ref={videoRef}
-              muted
-              playsInline
-              preload="metadata"
-              poster={homeAboutImage}
-              onPlay={() => setPlaying(true)}
-              onPause={() => setPlaying(false)}
-              onEnded={() => setPlaying(false)}
-            >
-              <source src={VIDEO_URL} type="video/mp4" />
-            </video>
-            <button
-              type="button"
-              onClick={togglePlayback}
-              className="collector-experience__play"
-              aria-label={playing ? text.pause : text.play}
-            >
-              {playing ? (
-                <Pause aria-hidden="true" />
-              ) : (
-                <Play aria-hidden="true" />
-              )}
-            </button>
+            {inView ? (
+              <iframe
+                src={YOUTUBE_EMBED_URL}
+                title={text.videoTitle}
+                allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
+              <img
+                src={`https://i.ytimg.com/vi/${YOUTUBE_VIDEO_ID}/hq2.jpg`}
+                alt=""
+                width="480"
+                height="854"
+                loading="lazy"
+              />
+            )}
           </div>
         </div>
 

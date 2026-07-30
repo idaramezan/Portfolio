@@ -1236,8 +1236,10 @@ router.get("/featured-letter", async (req, res) => {
     const row = result.rows[0];
     const text = storyText(row.blocks);
     const words = text.split(/\s+/).filter(Boolean);
-    const previewWordCount = context === "home" ? 55 : row.preview_word_count;
-    const visibleWords = words.slice(0, previewWordCount);
+    const desktopWordCount = Math.min(55, row.preview_word_count);
+    const mobileWordCount = Math.min(34, desktopWordCount);
+    const desktopWords = words.slice(0, desktopWordCount);
+    const mobileWords = words.slice(0, mobileWordCount);
     const images = templateImages(row.blocks);
     const selected = Array.isArray(row.preview_image_ids)
       ? row.preview_image_ids
@@ -1257,8 +1259,10 @@ router.get("/featured-letter", async (req, res) => {
       metadata:
         row.public_metadata_override ||
         `From Aida’s Istanbul Studio · ${Math.max(1, Math.ceil(words.length / 200))} min read`,
-      excerpt: visibleWords.join(" "),
-      hasMore: words.length > visibleWords.length,
+      excerpt: desktopWords.join(" "),
+      desktopExcerpt: desktopWords.join(" "),
+      mobileExcerpt: mobileWords.join(" "),
+      hasMore: words.length > desktopWords.length,
       images: previewImages,
     });
   } catch (err) {

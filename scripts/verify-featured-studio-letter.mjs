@@ -45,10 +45,23 @@ if (
   !route.includes('block.type === "text"') ||
   !route.includes('block.size !== "heading"') ||
   !route.includes('block.size !== "large"') ||
-  !route.includes('context === "home" ? 55')
+  !route.includes("Math.min(55, row.preview_word_count)") ||
+  !route.includes("Math.min(34, desktopWordCount)") ||
+  !route.includes("desktopExcerpt") ||
+  !route.includes("mobileExcerpt")
 ) {
   throw new Error(
     "Homepage preview must expose exactly 55 story-body words without headings",
+  );
+}
+
+if (
+  !component.includes("featured.mobileExcerpt") ||
+  !component.includes("featured.desktopExcerpt") ||
+  !component.includes('presentation?: "compact" | "standard" | "page-feature"')
+) {
+  throw new Error(
+    "Featured Letter must select safe responsive excerpts through one controlled component",
   );
 }
 

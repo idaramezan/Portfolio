@@ -149,12 +149,12 @@ assert.ok(
 );
 assert.ok(
   collectorExperience.includes("IntersectionObserver") &&
-    collectorExperience.includes("video.pause()") &&
     collectorExperience.includes("prefers-reduced-motion: reduce") &&
-    collectorExperience.includes("playsInline") &&
-    collectorExperience.includes('preload="metadata"') &&
-    collectorExperience.includes("muted"),
-  "collector film must autoplay only in view and respect mobile playback preferences",
+    collectorExperience.includes("youtube-nocookie.com/embed") &&
+    collectorExperience.includes("autoplay=1&mute=1&playsinline=1") &&
+    collectorExperience.includes("setInView(entry.isIntersecting") &&
+    collectorExperience.includes("gAJYgEfwpQg"),
+  "collector film must mount the muted YouTube Short only in view and respect reduced motion",
 );
 assert.ok(
   originalDetail.includes("<OriginalCollectorExperience compact") &&

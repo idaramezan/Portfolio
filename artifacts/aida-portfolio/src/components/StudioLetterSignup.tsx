@@ -24,22 +24,22 @@ export const studioLetterCopy = {
     successTitle: "You’re on the Studio Letter list.",
     successBody:
       "The next note from Aida’s studio will find its way to your inbox.",
-    storySuccessTitle: "Your next studio story is on its way.",
+    storySuccessTitle: "The full story is on its way.",
     storySuccessBody:
-      "You’re now part of the Studio Letter. The featured letter is arriving in your inbox now.",
+      "Check your inbox, and your Spam or Junk folder in case it landed there.",
     duplicate:
       "You’re already on the list. The next studio note will reach you.",
     invalid: "Enter a valid email address.",
     error: "We couldn’t add you just now. Please try again.",
+    storyError: "We couldn’t send the story. Please try again.",
     trust:
       "Free to join. Occasional letters only. Unsubscribe whenever you like.",
-    storyTrust:
-      "Free to join. Occasional letters only. Unsubscribe whenever you like.",
+    storyTrust: "Free to join · Occasional letters · Unsubscribe anytime",
     footerHeading: "Studio Letter",
     footerSubheading: "Stories, new artwork and limited studio releases.",
-    continue: "Continue reading the full story in the free Studio Letter.",
+    continue: "The rest of this story can arrive in your inbox.",
     transition:
-      "Stories behind the paintings, studio notes, new originals and early notice of limited releases, sent occasionally and always free.",
+      "Free personal stories, studio notes and first looks at new work.",
     closeImage: "Close image viewer",
   },
   tr: {
@@ -53,22 +53,23 @@ export const studioLetterCopy = {
     successTitle: "Stüdyo Mektubu listesine katıldın.",
     successBody:
       "Aida’nın atölyesinden gelecek bir sonraki not e-posta kutuna ulaşacak.",
-    storySuccessTitle: "Bir sonraki atölye hikâyesi sana doğru yola çıktı.",
+    storySuccessTitle: "Hikâyenin tamamı yolda.",
     storySuccessBody:
-      "Artık Stüdyo Mektubu’ndasın. Öne çıkan mektup şimdi e-posta kutuna geliyor.",
+      "Gelen kutunu ve Spam veya Gereksiz klasörünü kontrol et.",
     duplicate:
       "Zaten listedesin. Atölyeden gelecek bir sonraki not sana da ulaşacak.",
     invalid: "Geçerli bir e-posta adresi gir.",
     error: "Şu anda kaydını tamamlayamadık. Lütfen tekrar dene.",
+    storyError: "Hikâyeyi gönderemedik. Lütfen tekrar dene.",
     trust:
       "Katılım tamamen ücretsizdir. Yalnızca ara sıra e-posta gönderilir. Dilediğin zaman abonelikten ayrılabilirsin.",
     storyTrust:
-      "Katılım ücretsizdir. Yalnızca ara sıra gönderilir. Dilediğin zaman abonelikten ayrılabilirsin.",
+      "Katılım ücretsiz · Mektuplar ara sıra gelir · İstediğin zaman ayrılabilirsin",
     footerHeading: "Stüdyo Mektubu",
     footerSubheading: "Hikâyeler, yeni eserler ve sınırlı atölye edisyonları.",
-    continue: "Hikâyenin tamamını ücretsiz Stüdyo Mektubu’nda oku.",
+    continue: "Bu hikâyenin devamı gelen kutuna ulaşabilir.",
     transition:
-      "Resimlerin ardındaki hikâyeler, atölye notları, yeni orijinaller ve sınırlı edisyonlara dair erken haberler, ara sıra ve her zaman ücretsiz.",
+      "Ücretsiz kişisel hikâyeler, atölye notları ve yeni eserlere ilk bakışlar.",
     closeImage: "Görsel görüntüleyiciyi kapat",
   },
 } as const;
@@ -86,6 +87,8 @@ type FeaturedLetter = {
   title: string;
   metadata: string;
   excerpt: string;
+  desktopExcerpt?: string;
+  mobileExcerpt?: string;
   hasMore: boolean;
   images: Array<{ id: string; url: string; alt: string; caption: string }>;
 };
@@ -161,12 +164,14 @@ export default function StudioLetterSignup({
   submitLabel,
   trustText,
   dark = false,
+  presentation = "standard",
 }: {
   variant: StudioLetterVariant;
   context: StudioLetterContext;
   submitLabel?: Partial<Record<SiteLocale, string>>;
   trustText?: Partial<Record<SiteLocale, string>>;
   dark?: boolean;
+  presentation?: "compact" | "standard" | "page-feature";
 }) {
   const { locale } = useLocale();
   const copy = studioLetterCopy[locale];
@@ -180,6 +185,9 @@ export default function StudioLetterSignup({
   const [lightbox, setLightbox] = useState<PreviewImage | null>(null);
   const [featured, setFeatured] = useState<FeaturedLetter | null>(null);
   const [featuredLoaded, setFeaturedLoaded] = useState(false);
+  const [mobilePreview, setMobilePreview] = useState(
+    () => window.matchMedia("(max-width: 767px)").matches,
+  );
   const submitting = useRef(false);
   const story = variant === "story-preview";
   const hero = variant === "hero";
@@ -207,6 +215,12 @@ export default function StudioLetterSignup({
       .catch(() => setFeatured(null))
       .finally(() => setFeaturedLoaded(true));
   }, [context, hero, story]);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMobilePreview(media.matches);
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
   useEffect(() => {
     const subscribed = () => setStatus("success");
     window.addEventListener("studio-letter:subscribed", subscribed);
@@ -264,7 +278,7 @@ export default function StudioLetterSignup({
       });
     } catch {
       setStatus("error");
-      setError(copy.error);
+      setError(story ? copy.storyError : copy.error);
       trackAnalytics("newsletter_signup_failed", {
         metadata: { form: context },
       });
@@ -316,7 +330,11 @@ export default function StudioLetterSignup({
       <form
         onSubmit={submit}
         noValidate
-        className={variant === "footer" ? "footer-newsletter-form" : "w-full"}
+        className={
+          variant === "footer"
+            ? "footer-newsletter-form"
+            : `w-full ${story ? "studio-letter-preview__form" : ""}`
+        }
       >
         <label
           htmlFor={inputId}
@@ -402,6 +420,9 @@ export default function StudioLetterSignup({
 
   if (!story) return <div data-no-translate>{form}</div>;
   if (!featured) return null;
+  const excerpt = mobilePreview
+    ? featured.mobileExcerpt || featured.excerpt
+    : featured.desktopExcerpt || featured.excerpt;
 
   const openImage = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -413,14 +434,14 @@ export default function StudioLetterSignup({
   return (
     <section
       id="studio-letter"
-      className="studio-letter-preview section-shell scroll-mt-24 !py-8 md:!py-16 lg:!py-20"
+      className={`studio-letter-preview studio-letter-preview--${presentation} section-shell scroll-mt-24`}
       aria-labelledby={`${inputId}-heading`}
       data-studio-letter={context}
       data-no-translate
     >
-      <div className="grid items-center gap-10 md:grid-cols-[.44fr_.56fr] md:gap-10 lg:gap-14">
+      <div className="studio-letter-preview__layout">
         <div
-          className="studio-letter-preview__images relative mx-auto h-[230px] w-full max-w-[520px] sm:h-[500px] md:h-[540px] lg:h-[570px]"
+          className={`studio-letter-preview__images ${featured.images.length === 1 ? "studio-letter-preview__images--single" : "studio-letter-preview__images--double"}`}
           aria-label="Images from the featured Studio Letter"
         >
           {featured.images.map((image, index) => (
@@ -449,7 +470,7 @@ export default function StudioLetterSignup({
                 decoding="async"
                 className={
                   index === 0
-                    ? "block h-full w-full object-cover"
+                    ? "block h-full w-full object-contain"
                     : "block aspect-square w-full object-cover"
                 }
               />
@@ -460,7 +481,7 @@ export default function StudioLetterSignup({
           ))}
         </div>
 
-        <article className="border border-ink/15 bg-[#fffaf0] p-4 shadow-[0_8px_22px_rgba(49,38,26,.07)] sm:p-7 lg:p-8">
+        <article className="studio-letter-preview__content">
           <div className="h-0.5 w-14 bg-coral" aria-hidden="true" />
           <p className="eyebrow mt-4 text-coral">{featured.eyebrow}</p>
           <p className="mt-2 text-[11px] font-semibold tracking-[.08em] text-ink/45">
@@ -468,12 +489,12 @@ export default function StudioLetterSignup({
           </p>
           <h2
             id={`${inputId}-heading`}
-            className="mt-4 text-3xl leading-tight lg:text-4xl"
+            className="studio-letter-preview__title"
           >
             {featured.title}
           </h2>
           <div className="studio-letter-preview__excerpt mt-4 space-y-3 text-[15px] leading-6 text-ink/75">
-            {featured.excerpt.split(/\n\n+/).map((paragraph, index) => (
+            {excerpt.split(/\n\n+/).map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
@@ -481,15 +502,12 @@ export default function StudioLetterSignup({
             className="studio-letter-preview__blur pointer-events-none mt-3 space-y-2 select-none"
             aria-hidden="true"
           >
-            <span className="block h-2.5 w-full bg-current opacity-20 blur-[4px]" />
-            <span className="block h-2.5 w-[88%] bg-current opacity-15 blur-[5px]" />
-            <span className="block h-2.5 w-[64%] bg-current opacity-10 blur-[6px]" />
+            <span className="block h-2 w-[88%] bg-current opacity-15 blur-[4px]" />
+            <span className="block h-2 w-[62%] bg-current opacity-10 blur-[5px]" />
           </div>
-          <p className="mt-2 text-sm font-semibold text-coral">
-            {copy.continue}
-          </p>
-          <div className="mt-4 border-t border-ink/15 pt-4">
-            <p className="studio-letter-preview__transition mb-4 text-sm leading-5 text-ink/65">
+          <p className="studio-letter-preview__continue">{copy.continue}</p>
+          <div className="studio-letter-preview__signup">
+            <p className="studio-letter-preview__transition">
               {copy.transition}
             </p>
             {form}

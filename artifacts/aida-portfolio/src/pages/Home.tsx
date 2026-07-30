@@ -385,7 +385,11 @@ export default function Home() {
       />
 
       <div className="home-studio-letter">
-        <StudioLetterSignup variant="story-preview" context="home" />
+        <StudioLetterSignup
+          variant="story-preview"
+          context="home"
+          presentation="compact"
+        />
       </div>
 
       <section className="home-about-teaser section-shell">
