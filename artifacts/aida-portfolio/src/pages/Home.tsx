@@ -295,6 +295,7 @@ export default function Home() {
             >
               <span className="home-category-link__media"><img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" /></span>
               <span className="home-category-link__content">
+                <span className="home-category-link__number home-category-link__number--desktop">{item.number}</span>
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
                 <span className="home-category-link__cta">
