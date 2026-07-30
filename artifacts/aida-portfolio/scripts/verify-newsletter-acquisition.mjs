@@ -7,6 +7,7 @@ import {
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const signup = read("../src/components/StudioLetterSignup.tsx");
+const storefrontCss = read("../src/index.css");
 const home = read("../src/pages/Home.tsx");
 const regional = read("../src/pages/RegionalLanding.tsx");
 const mystery = read("../src/pages/MysteryMail.tsx");
@@ -27,7 +28,7 @@ const adminLayout = read("../src/components/admin/AdminLayout.tsx");
 const checks = [
   [
     "homepage story-preview section",
-    home.includes('variant="story-preview" context="home"'),
+    home.includes('variant="story-preview"') && home.includes('context="home"'),
   ],
   [
     "Türkiye shop editorial source",
@@ -50,7 +51,7 @@ const checks = [
   ],
   [
     "Links page newsletter option",
-    links.includes('href="/newsletter"') &&
+    links.includes('href="/studio-letter"') &&
       links.includes("Join the Studio Letter"),
   ],
   [
@@ -66,7 +67,7 @@ const checks = [
   [
     "loading blocks duplicate submits",
     signup.includes("submitting.current") &&
-      signup.includes('disabled={status === "loading"}'),
+      signup.includes('disabled={status === "loading"'),
   ],
   [
     "duplicate success state",
@@ -106,38 +107,34 @@ const checks = [
   ],
   [
     "English and Turkish copy",
-    signup.includes(
-      "Some paintings begin with a plan. This one began with a feeling.",
-    ) &&
-      signup.includes(
-        "Bazı resimler bir planla başlar. Bu ise bir hisle başladı.",
-      ),
+    signup.includes("Send me the full story") &&
+      signup.includes("Hikâyenin tamamını gönder"),
   ],
   [
     "responsive story-preview layout",
-    signup.includes("md:grid-cols-[.44fr_.56fr]") &&
-      signup.includes("md:h-[540px]") &&
-      signup.includes("motion-reduce:transition-none"),
+    storefrontCss.includes(".studio-letter-preview__layout") &&
+      storefrontCss.includes("grid-template-columns: minmax(0, 0.44fr) minmax(0, 0.56fr)") &&
+      storefrontCss.includes("@media (max-width: 767px)"),
   ],
   [
-    "story locks immediately after childhood",
-    signup.includes("brought back a childhood") &&
-      signup.includes("memory. I remembered sitting in the back seat") &&
+    "story preview remains server-controlled and safely obscured",
+    signup.includes("featured.mobileExcerpt || featured.excerpt") &&
+      signup.includes("featured.desktopExcerpt || featured.excerpt") &&
       signup.includes('aria-hidden="true"') &&
-      signup.includes("blur-[6px]") &&
+      signup.includes("blur-[4px]") &&
       signup.includes("pointer-events-none") &&
       signup.includes("select-none"),
   ],
   [
-    "exact story invitation and CTA",
-    signup.includes(
-      "Continue reading the full story in the free Studio Letter.",
-    ) && signup.includes("Read the rest in the Studio Letter"),
+    "localized story invitation and CTA",
+    signup.includes("copy.continue") &&
+      signup.includes("copy.transition") &&
+      signup.includes("copy.storySubmit"),
   ],
   [
-    "exact story assets and non-cropping painting",
-    signup.includes("memories-of-summer-reference-photo.png") &&
-      signup.includes("memories-of-summer-painting.JPG") &&
+    "admin-selected story assets and non-cropping primary image",
+    signup.includes("featured.images.map") &&
+      signup.includes("image.url") &&
       signup.includes("object-contain"),
   ],
   [
@@ -224,16 +221,16 @@ const checks = [
   ],
   [
     "painting event banner placement",
-    home.indexOf("<IstanbulPaintingEventBanner />") <
-      home.indexOf('<section className="home-hero">') &&
-      regional.includes("{tr && <IstanbulPaintingEventBanner />}") &&
-      regional.indexOf("{tr && <IstanbulPaintingEventBanner />}") <
+    home.indexOf('<IstanbulPaintingEventBanner placement="home" compact />') <
+      home.indexOf('<section className="home-market-hero">') &&
+      regional.includes('placement="turkiye-shop"') &&
+      regional.indexOf('placement="turkiye-shop"') <
         regional.indexOf("regional-shop-hero"),
   ],
   [
     "event-specific newsletter metadata",
     eventBanner.includes('source: "istanbul-painting-day-august-2026"') &&
-      eventBanner.includes("campaignId: CAMPAIGN_ID") &&
+      eventBanner.includes("campaignId: config.id") &&
       eventBanner.includes("eventInterest: true") &&
       eventBanner.includes("consentToStudioLetter: true"),
   ],
@@ -252,29 +249,26 @@ const checks = [
       eventBanner.includes("encodeURIComponent(WHATSAPP_MESSAGE)"),
   ],
   [
-    "event campaign expiry uses Istanbul equivalent UTC deadline",
-    eventBanner.includes("2026-08-05T13:00:00.000Z") &&
-      backend.includes('new Date("2026-08-05T13:00:00.000Z")'),
+    "event campaign expiry is database-driven",
+    backend.includes("config.display_end_at") &&
+      backend.includes("now < new Date(config.display_end_at)"),
   ],
   [
-    "compact dark promotional event banner",
-    eventBanner.includes("bg-[#11110f]") &&
+    "compact image-led event notice",
+    eventBanner.includes("home-event-announcement__photo") &&
       eventBanner.includes("remainingSeats") &&
-      eventBanner.includes(
-        "No experience needed · Tea and snacks included · Limited places",
-      ) &&
-      eventBanner.includes("5 AUG · 4 PM") &&
+      eventBanner.includes("bannerTitle") &&
       !eventBanner.includes("Sparkles") &&
       !eventBanner.includes("Availability"),
   ],
   [
     "private event-specific HTML and plain-text email",
     backend.includes("sendPaintingEventInterestEmail") &&
-      backend.includes("Your Istanbul painting day details from Aida 🎨") &&
+      backend.includes("buildPaintingEventInterestEmail") &&
       backend.includes(
         "Your attendance is confirmed personally by Aida on WhatsApp",
       ) &&
-      backend.includes("EVENT_EMAIL_PREHEADER") &&
+      backend.includes("config.secondary_details_en || config.description_en") &&
       backend.includes("text,") &&
       emailBackend.includes("text: input.text"),
   ],
@@ -288,14 +282,14 @@ const checks = [
       !backend.includes("participationFeeTry:"),
   ],
   [
-    "event participation fee is 150 TL",
-    eventBanner.includes('[CircleCheck, "150 TL"]') &&
+    "event participation fee remains database-driven",
+    eventBanner.includes("participation_price_try") &&
       backend.includes("seat_count * $2 END AS participation_fee_try") &&
-      backend.includes("Participation fee: 150 TL"),
+      backend.includes("config.participation_price_try"),
   ],
   [
     "confirmed seat capacity drives public availability",
-    backend.includes("ISTANBUL_EVENT_CAPACITY = 11") &&
+    backend.includes("eventRemainingSeats(config.total_capacity)") &&
       backend.includes("SUM(seat_count)") &&
       backend.includes("reservation_status IN ('confirmed', 'attended')") &&
       backend.includes("remainingSeats") &&
@@ -308,7 +302,7 @@ const checks = [
       backend.includes("Not enough places remain for this reservation") &&
       eventAdmin.includes("Seat count") &&
       eventAdmin.includes('value={registration.is_free ? "free" : "paid"}') &&
-      eventAdmin.includes("registration.seat_count * 150"),
+      eventAdmin.includes("registration.seat_count * price"),
   ],
   [
     "complimentary eligibility is never public",

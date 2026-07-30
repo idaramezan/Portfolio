@@ -147,6 +147,7 @@ async function ensureDeliveryColumns() {
       image_media_id TEXT, image_url TEXT, image_alt_text TEXT NOT NULL, image_object_position TEXT NOT NULL DEFAULT 'center',
       location_text_en TEXT NOT NULL, location_text_tr TEXT NOT NULL, eyebrow_en TEXT NOT NULL, eyebrow_tr TEXT NOT NULL,
       title_en TEXT NOT NULL, title_tr TEXT NOT NULL, description_en TEXT NOT NULL, description_tr TEXT NOT NULL,
+      banner_short_title_en TEXT, banner_short_title_tr TEXT,
       secondary_details_en TEXT, secondary_details_tr TEXT, show_on_homepage BOOLEAN NOT NULL DEFAULT TRUE,
       show_on_turkiye_shop BOOLEAN NOT NULL DEFAULT TRUE, show_on_international_shop BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -163,6 +164,9 @@ async function ensureDeliveryColumns() {
       'No experience needed · Tea and snacks included · Limited places','Deneyim gerekmiyor · Çay ve atıştırmalıklar dahil · Kontenjan sınırlı')
     ON CONFLICT (id) DO NOTHING
   `);
+  await pool.query(`ALTER TABLE event_banner_config
+    ADD COLUMN IF NOT EXISTS banner_short_title_en TEXT,
+    ADD COLUMN IF NOT EXISTS banner_short_title_tr TEXT`);
 }
 
 async function eventConfig() {
@@ -944,7 +948,8 @@ router.put("/event-banner/admin", requireAdmin, async (req, res) => {
       image_alt_text=$14,image_object_position=$15,location_text_en=$16,location_text_tr=$17,
       eyebrow_en=$18,eyebrow_tr=$19,title_en=$20,title_tr=$21,description_en=$22,description_tr=$23,
       secondary_details_en=$24,secondary_details_tr=$25,show_on_homepage=$26,
-      show_on_turkiye_shop=$27,timezone=$28,show_on_international_shop=$29,updated_at=NOW()
+      show_on_turkiye_shop=$27,timezone=$28,show_on_international_shop=$29,
+      banner_short_title_en=$30,banner_short_title_tr=$31,updated_at=NOW()
       WHERE id=$1 RETURNING *`,
       [
         ISTANBUL_EVENT_CAMPAIGN,
@@ -982,6 +987,12 @@ router.put("/event-banner/admin", requireAdmin, async (req, res) => {
         Boolean(value.showOnTurkiyeShop),
         timezone,
         Boolean(value.showOnInternationalShop),
+        typeof value.bannerShortTitleEn === "string" && value.bannerShortTitleEn.trim()
+          ? value.bannerShortTitleEn.trim().slice(0, 180)
+          : null,
+        typeof value.bannerShortTitleTr === "string" && value.bannerShortTitleTr.trim()
+          ? value.bannerShortTitleTr.trim().slice(0, 180)
+          : null,
       ],
     );
     return res.json({

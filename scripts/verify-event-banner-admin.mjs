@@ -18,6 +18,10 @@ const admin = readFileSync(
   ),
   "utf8",
 );
+const migration = readFileSync(
+  new URL("../lib/db/migrations/0007_event_banner_short_title.sql", import.meta.url),
+  "utf8",
+);
 
 const attendanceSource = "reservation_status IN ('confirmed', 'attended')";
 if (
@@ -27,6 +31,13 @@ if (
   throw new Error(
     "Existing confirmed/attended remaining-seat calculation was not preserved",
   );
+if (
+  !migration.includes("banner_short_title_en") ||
+  !route.includes("banner_short_title_en=$30") ||
+  !admin.includes("bannerShortTitleEn") ||
+  !banner.includes("config.banner_short_title_en || config.title_en")
+)
+  throw new Error("Optional event banner short titles are not wired end-to-end");
 if (!route.includes("pg_advisory_xact_lock(hashtext($1))"))
   throw new Error("Existing event reservation capacity lock was not preserved");
 if (

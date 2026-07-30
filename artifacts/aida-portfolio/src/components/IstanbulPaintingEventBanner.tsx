@@ -33,6 +33,8 @@ type EventConfig = {
   eyebrow_tr: string;
   title_en: string;
   title_tr: string;
+  banner_short_title_en: string | null;
+  banner_short_title_tr: string | null;
   description_en: string;
   description_tr: string;
   secondary_details_en: string | null;
@@ -211,36 +213,52 @@ export default function IstanbulPaintingEventBanner({
     : null;
   const whatsappUrl = serverWhatsappUrl || fallbackWhatsappUrl;
   const shopStrip = compact && placement === "turkiye-shop";
+  const bannerTitle = local
+    ? config.banner_short_title_tr || config.title_tr
+    : config.banner_short_title_en || config.title_en;
+  const bannerImage = config.image_url || eventImage;
+  const soldOut = remainingSeats <= 0;
 
   const compactAnnouncement = compact ? (
     <section
-      className={`home-event-announcement ${shopStrip ? "" : "md:hidden"}`}
+      className="home-event-announcement"
       aria-labelledby="home-event-heading"
       data-no-translate
     >
-      <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-5 md:grid-cols-[auto_1fr_auto] md:px-8 md:py-4">
-        <p className="home-event-announcement__date">
-          {eventDate}
-        </p>
-        <div>
+      <div className="home-event-announcement__inner">
+        <figure className="home-event-announcement__photo">
+          <img
+            src={bannerImage}
+            alt={config.image_alt_text}
+            width="480"
+            height="600"
+            style={{ objectPosition: config.image_object_position }}
+          />
+        </figure>
+        <div className="home-event-announcement__content">
+          <p className="home-event-announcement__date">{eventDate}</p>
           <h2 id="home-event-heading">
-            {local ? config.title_tr : config.title_en}
+            {bannerTitle}
           </h2>
           <p className="home-event-announcement__details">
             {audience} ·{" "}
             {local ? config.location_text_tr : config.location_text_en} ·{" "}
             <strong className="home-event-announcement__places">
-              {remainingSeats} {ui.remaining}
+              {soldOut
+                ? local ? "Tamamen dolu" : "Fully booked"
+                : `${remainingSeats} ${ui.remaining}`}
             </strong>
           </p>
+          <Link
+            href="/event"
+            className="editorial-paper-tab home-event-announcement__cta"
+            onClick={() => trackAnalytics("homepage_event_clicked")}
+          >
+            {soldOut
+              ? local ? "Etkinliği görüntüle" : "View event"
+              : local ? "Etkinlik ayrıntıları" : "View event details"} →
+          </Link>
         </div>
-        <Link
-          href="/event"
-          className="button-primary home-event-announcement__cta"
-          onClick={() => trackAnalytics("homepage_event_clicked")}
-        >
-          {local ? "Etkinlik ayrıntıları" : "View event details"} →
-        </Link>
       </div>
     </section>
   ) : null;
@@ -248,7 +266,7 @@ export default function IstanbulPaintingEventBanner({
   return (
     <>
       {compactAnnouncement}
-      {!shopStrip && (
+      {!shopStrip && !compact && (
       <section
         className={`event-ticket relative border-b ${compact ? "hidden md:block" : ""}`}
         aria-labelledby="istanbul-painting-day-heading"

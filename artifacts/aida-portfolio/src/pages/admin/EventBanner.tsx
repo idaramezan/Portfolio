@@ -12,6 +12,8 @@ const textFields = [
   ["eyebrowTr", "Eyebrow — Turkish"],
   ["titleEn", "Title — English"],
   ["titleTr", "Title — Turkish"],
+  ["bannerShortTitleEn", "Banner short title — English (optional)"],
+  ["bannerShortTitleTr", "Banner short title — Turkish (optional)"],
 ] as const;
 
 function inZone(value: string | null, timezone: string) {
@@ -82,6 +84,8 @@ export default function EventBanner() {
         eyebrowTr: c.eyebrow_tr,
         titleEn: c.title_en,
         titleTr: c.title_tr,
+        bannerShortTitleEn: c.banner_short_title_en || "",
+        bannerShortTitleTr: c.banner_short_title_tr || "",
         descriptionEn: c.description_en,
         descriptionTr: c.description_tr,
         secondaryDetailsEn: c.secondary_details_en || "",

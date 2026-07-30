@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import {
   getResponsiveImageSrcSet,
   heroPortrait,
@@ -7,6 +8,7 @@ import {
   originalsCoverImage,
   printsCoverImage,
   studioMailCoverImage,
+  mysteryMailCoverImage,
 } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -127,9 +129,12 @@ export default function Home() {
     );
   const latestLocal = [
     ...originals.slice(0, 1),
-    ...localPrints.slice(0, 3),
-  ].slice(0, 4);
+    ...localPrints.slice(0, 2),
+  ].slice(0, 3);
 
+  const mysteryMailAvailable = settings.studioMailPackages.some((item) =>
+    isPubliclyVisible(item),
+  );
   const categoryItems =
     market === "TR"
       ? [
@@ -151,6 +156,14 @@ export default function Home() {
             title: "Studio Letter",
             copy: "Free personal stories and notes from Aida’s studio.",
           },
+          ...(mysteryMailAvailable
+            ? [{
+                href: "/shop/turkiye/mystery-mail",
+                image: mysteryMailCoverImage,
+                title: "Mystery Mail",
+                copy: "A limited surprise parcel packed in Aida’s studio.",
+              }]
+            : []),
         ]
       : [
           {
@@ -202,22 +215,36 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
+                <img
+                  src={originalsCoverImage}
+                  alt="Original artwork and packaging from Aida’s Istanbul studio"
+                  width="420"
+                  height="520"
+                />
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Local shop</span>
                   <strong>Shop in Türkiye</strong>
                   <span>Originals, prints, stickers and Mystery Mail</span>
                 </span>
+                <span className="home-market-action__arrow" aria-hidden="true"><ArrowRight /></span>
               </Link>
               <Link
                 href="/shop/international"
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
+                <img
+                  src={printsCoverImage}
+                  alt="Aida’s prints prepared for collectors worldwide"
+                  width="420"
+                  height="520"
+                />
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Worldwide</span>
                   <strong>Shop internationally</strong>
                   <span>Original paintings and worldwide studio products</span>
                 </span>
+                <span className="home-market-action__arrow" aria-hidden="true"><ArrowRight /></span>
               </Link>
             </div>
           </div>
@@ -255,10 +282,12 @@ export default function Home() {
                 })
               }
             >
-              <img src={item.image} alt="" loading="lazy" decoding="async" />
+              <img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" />
               <span className="home-category-link__content">
+                <span className="home-category-link__label">Studio collection</span>
                 <h3>{item.title}</h3>
-                <span className="home-category-link__cta">Explore →</span>
+                <p>{item.copy}</p>
+                <span className="home-category-link__cta">Explore <ArrowRight aria-hidden="true" /></span>
               </span>
             </Link>
           ))}
@@ -279,6 +308,11 @@ export default function Home() {
             {latestLocal.map((product) => (
               <ProductTile key={product.id} product={product} market={market} />
             ))}
+            <Link href={base} className="home-product-view-all">
+              <span>Studio shelf</span>
+              <strong>View all available work</strong>
+              <span>Browse the complete collection →</span>
+            </Link>
           </div>
         ) : (
           <div className="home-product-grid mt-8">
@@ -326,11 +360,13 @@ export default function Home() {
                 </a>
               </article>
             ))}
+            <Link href={base} className="home-product-view-all">
+              <span>Studio shelf</span>
+              <strong>View all available work</strong>
+              <span>Browse the complete collection →</span>
+            </Link>
           </div>
         )}
-        <Link href={base} className="button-link mt-7 sm:hidden">
-          View all available pieces →
-        </Link>
       </section>
 
       <OriginalCollectorExperience

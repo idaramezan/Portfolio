@@ -468,7 +468,7 @@ export default function MysteryMail() {
                 {copy.closedBody}
               </p>
             </div>
-            <div className="min-w-0 border border-paper/15 bg-[#24231f]">
+            <div className="min-w-0 border border-ink/15 bg-paper-light text-ink">
               <img
                 src={mysteryMailCoverImage}
                 alt="A sealed Mystery Mail art parcel from Aida Ramezani’s studio between editions."
@@ -531,7 +531,7 @@ export default function MysteryMail() {
               className="aspect-[4/3] w-full border border-paper/15 object-cover shadow-2xl"
             />
             {current && (
-              <div className="border-x border-b border-paper/15 bg-[#24231f] p-5 md:p-6">
+              <div className="border-x border-b border-ink/15 bg-paper-light p-5 text-ink md:p-6">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
                     <p className="eyebrow !text-paper/45">Edition price</p>
