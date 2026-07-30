@@ -1468,3 +1468,77 @@ iframe[src*="feedback.smartlook"],
   .home-category-link--paper p { display: -webkit-box; max-width: 28ch; overflow: hidden; font-size: 15px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .home-category-link__arrow { position: absolute; right: 20px; bottom: 20px; width: 44px; height: 44px; padding: 12px; border-radius: 50%; background: var(--pink); color: white; }
 }
+
+/* Large paper category tabs — desktop only; mobile remains unchanged. */
+@media (min-width: 1024px) {
+  .turkiye-catalogue__controls {
+    position: static;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+    margin-block: 32px;
+  }
+
+  .shop-category-tabs,
+  .turkiye-catalogue__controls .shop-category-tabs {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible;
+    padding: 0 !important;
+    border: 0;
+  }
+
+  .shop-category-tabs a,
+  .shop-category-tabs a:nth-child(n),
+  .turkiye-catalogue__controls .shop-category-tabs a {
+    min-width: 0;
+    min-height: 64px;
+    transform: none;
+    justify-content: center;
+    border: 1px solid var(--line) !important;
+    border-radius: 3px;
+    background: var(--paper) !important;
+    clip-path: none;
+    padding: 16px 22px;
+    color: var(--ink-plum);
+    box-shadow: none;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-align: center;
+    text-transform: none;
+    white-space: normal;
+    transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .shop-category-tabs a:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--pink-dark) 55%, var(--line)) !important;
+    background: color-mix(in srgb, var(--pink-light) 38%, var(--paper)) !important;
+    color: var(--ink-plum);
+  }
+
+  .shop-category-tabs a[aria-current="page"],
+  .shop-category-tabs a:nth-child(n)[aria-current="page"] {
+    transform: translateY(-2px);
+    border-color: var(--pink-dark) !important;
+    background: var(--pink-light) !important;
+    color: var(--ink-plum);
+    box-shadow: 0 4px 0 var(--pink-dark);
+  }
+
+  .shop-category-tabs a:active,
+  .shop-category-tabs a[aria-current="page"]:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 var(--pink-dark);
+  }
+
+  .shop-category-tabs a:focus-visible {
+    outline: 2px solid var(--pink-dark);
+    outline-offset: 3px;
+  }
+}
