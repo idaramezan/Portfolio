@@ -27,6 +27,8 @@ import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 import StickerDropExperience from "@/components/StickerDropExperience";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
+import Checkout, { CheckoutSuccess } from "@/pages/Checkout";
+import EventApply from "@/pages/EventApply";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -133,6 +135,10 @@ function Router() {
             <Route path="/event">
               {() => <IstanbulPaintingEventBanner placement="home" />}
             </Route>
+            <Route path="/checkout/turkiye">{() => <Checkout market="turkiye" />}</Route>
+            <Route path="/checkout/international-originals">{() => <Checkout market="international_original" />}</Route>
+            <Route path="/checkout/success/:orderNumber">{(params) => <CheckoutSuccess orderNumber={params.orderNumber} />}</Route>
+            <Route path="/events/:eventId/apply">{(params) => <EventApply eventId={params.eventId} />}</Route>
             <Route path="/international">
               <RedirectTo to="/shop/international" />
             </Route>

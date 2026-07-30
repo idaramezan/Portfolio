@@ -15,10 +15,12 @@ type Registration = {
   whatsapp_confirmation_status: "not_contacted" | "contacted";
   reservation_status: "interest" | "confirmed" | "cancelled" | "attended";
 };
+type Application = { id:string; application_number:string; full_name:string; age:number; eligibility_response:string; email:string; phone:string; status:string; created_at:string };
 
 export default function EventRegistrations() {
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [remainingSeats, setRemainingSeats] = useState(8);
   const [capacity, setCapacity] = useState(11);
@@ -49,7 +51,11 @@ export default function EventRegistrations() {
         ),
       )
       .finally(() => setLoading(false));
+    fetch("/api/admin/checkout/event-applications", { headers: { "x-admin-password": password }, cache: "no-store" })
+      .then(async response => { const result=await response.json(); if(!response.ok) throw new Error(result.error); setApplications(result.applications||[]); })
+      .catch(reason=>setError(reason instanceof Error?reason.message:"Applications could not be loaded"));
   };
+  const updateApplication=async(application:Application,status:string)=>{const response=await fetch(`/api/admin/checkout/event-applications/${application.id}/status`,{method:"PATCH",headers:{"content-type":"application/json","x-admin-password":password},body:JSON.stringify({status})});const result=await response.json();if(!response.ok)return setError(result.error||"Application could not be updated");setMessage(`Application ${application.application_number} updated.`);load();};
 
   useEffect(load, []);
 
@@ -126,6 +132,11 @@ export default function EventRegistrations() {
         </button>
       }
     >
+      <section className="mb-8 border border-ink/10 bg-paper p-5">
+        <h2 className="font-serif text-2xl">Applications</h2>
+        <p className="mt-1 text-sm text-ink/55">Applications begin as pending and reserve capacity only after acceptance.</p>
+        <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr className="border-b border-ink/10"><th className="p-3">Application</th><th>Name</th><th>Age</th><th>Eligibility</th><th>Contact</th><th>Status</th></tr></thead><tbody>{applications.map(application=><tr key={application.id} className="border-b border-ink/10"><td className="p-3 font-bold">{application.application_number}</td><td>{application.full_name}</td><td>{application.age}</td><td>{application.eligibility_response}</td><td>{application.email}<br/>{application.phone}</td><td><select className="admin-input !mt-0" value={application.status} onChange={event=>void updateApplication(application,event.target.value)}>{["pending","accepted","waitlisted","rejected","cancelled","attended"].map(status=><option key={status}>{status}</option>)}</select></td></tr>)}</tbody></table></div>
+      </section>
       <section className="border border-ink/10 bg-paper p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

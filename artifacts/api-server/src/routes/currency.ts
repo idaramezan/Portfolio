@@ -45,6 +45,10 @@ async function fetchRate(): Promise<{ value: CachedRate | null; fallback: boolea
   }
 }
 
+export async function getUsdTryRate() {
+  return (await fetchRate()).value;
+}
+
 async function respond(req: Request, res: any) {
   const result = await fetchRate();
   return res.status(result.value ? 200 : 503).json({

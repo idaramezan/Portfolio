@@ -8,7 +8,7 @@ const paths = [
     steps: [
       "Choose Originals, Prints & Goods or Mystery Mail.",
       "Add items to the Türkiye Basket.",
-      "Continue with Aida on WhatsApp.",
+      "Continue to checkout and enter delivery details.",
       "Availability is confirmed personally.",
       "Shipping details are confirmed based on the selected pieces.",
     ],
@@ -20,7 +20,7 @@ const paths = [
     steps: [
       "Browse internationally available originals.",
       "Add the selected original to the International Basket.",
-      "Continue with Aida on WhatsApp.",
+      "Complete the bank transfer and upload your receipt for review.",
       "Availability and international shipping are confirmed.",
       "Shipping is paid separately from the artwork price.",
     ],

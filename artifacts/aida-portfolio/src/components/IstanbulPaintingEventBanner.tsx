@@ -399,82 +399,12 @@ export default function IstanbulPaintingEventBanner({
               <h3 className="font-serif text-xl text-[#fffaf1]">
                 {ui.interested}
               </h3>
-              <p className="mt-1 text-sm text-[#fffaf1]/60">{ui.join}</p>
-              <form onSubmit={submit} noValidate className="mt-3 max-w-2xl">
-                <label htmlFor="istanbul-event-email" className="sr-only">
-                  {ui.emailLabel}
-                </label>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <input
-                    id="istanbul-event-email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      if (status === "error") {
-                        setStatus("idle");
-                        setError("");
-                      }
-                    }}
-                    placeholder={ui.placeholder}
-                    disabled={status === "loading"}
-                    aria-invalid={status === "error" ? "true" : undefined}
-                    aria-describedby={
-                      status === "error"
-                        ? "istanbul-event-error"
-                        : "istanbul-event-help"
-                    }
-                    className="min-h-11 min-w-0 border border-white/25 bg-white/[.07] px-4 text-base text-white outline-none placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-coral"
-                  />
-                  <button
-                    type="submit"
-                    disabled={status === "loading"}
-                    className="button-primary min-h-11 justify-center disabled:cursor-wait disabled:opacity-70"
-                  >
-                    {status === "loading" ? ui.sending : ui.submit}
-                  </button>
-                </div>
-                <div aria-live="polite">
-                  {status === "error" && (
-                    <p
-                      id="istanbul-event-error"
-                      role="alert"
-                      className="mt-2 text-sm font-semibold text-coral"
-                    >
-                      {error}
-                    </p>
-                  )}
-                  {status === "success" && (
-                    <p className="mt-2 text-sm font-semibold text-[#fffaf1]">
-                      {ui.joined}
-                    </p>
-                  )}
-                </div>
-                <p
-                  id="istanbul-event-help"
-                  className="mt-2 text-xs leading-relaxed text-[#fffaf1]/50"
-                >
-                  {ui.trust}
-                </p>
-              </form>
-              <p className="mt-2 text-xs font-semibold text-[#fffaf1]/60">
-                {ui.reservation}
+              <p className="mt-1 max-w-2xl text-sm text-[#fffaf1]/60">
+                {local ? "Başvurunuz beklemede başlar. Aida yerinizi onayladığında e-posta alırsınız." : "Your application starts as pending. You will receive an email when Aida confirms your place."}
               </p>
-              {status === "success" && whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-coral underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-coral"
-                  onClick={() =>
-                    trackAnalytics("painting_event_whatsapp_clicked")
-                  }
-                >
-                  <MessageCircle size={16} aria-hidden="true" /> {ui.contact}
-                </a>
-              )}
+              <PaperButton href={`/events/${encodeURIComponent(config.id)}/apply`} variant="pink" size="sm" arrow className="mt-4">
+                {local ? "Etkinliğe başvur" : "Apply for the event"}
+              </PaperButton>
             </div>
           </article>
 

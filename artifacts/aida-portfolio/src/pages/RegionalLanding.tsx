@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, MessageCircle, PackageCheck } from "lucide-react";
+import { ExternalLink, PackageCheck } from "lucide-react";
 import { Link } from "wouter";
 import InternationalProductCard from "@/components/InternationalProductCard";
 import Money from "@/components/Money";
@@ -35,7 +35,7 @@ const turkiyeFaq = [
   ],
   [
     "How do I place an order?",
-    "Add the pieces you want to your basket, then continue to WhatsApp. Your selected products, options and total are included automatically.",
+    "Add the pieces you want to your basket, continue to checkout, complete the bank transfer and upload your receipt for review.",
   ],
   [
     "Can I order more than one product?",
@@ -333,7 +333,7 @@ const turkiyeCatalogueCopy = {
     name: "Name",
     empty: "No products are currently available in this category.",
     orderTitle: "A personal order, kept simple.",
-    orderBody: "Choose a piece or product and add it to your basket. Continue on WhatsApp so Aida can personally confirm availability, options, payment and delivery before preparing your order.",
+    orderBody: "Choose a piece or product, review your basket, enter delivery details, complete the bank transfer and upload the receipt. You will receive order updates by email.",
     faqTitle: "Before you order",
   },
   tr: {
@@ -352,7 +352,7 @@ const turkiyeCatalogueCopy = {
     name: "İsim",
     empty: "Bu kategoride şu anda mevcut ürün yok.",
     orderTitle: "Kişisel ve kolay bir sipariş.",
-    orderBody: "Eserini veya ürününü seçip sepete ekle. Aida’nın stok, seçenekler, ödeme ve teslimatı kişisel olarak onaylaması için WhatsApp’tan devam et.",
+    orderBody: "Eserini veya ürününü seç, sepetini gözden geçir, teslimat bilgilerini gir, banka transferini tamamla ve dekontu yükle. Sipariş güncellemelerini e-postayla alırsın.",
     faqTitle: "Sipariş vermeden önce",
   },
 } as const;
@@ -446,8 +446,8 @@ function TurkiyeCatalogue() {
     setUrlState(readState());
   };
   const faq = locale === "tr" ? [
-    ["Siparişimi nasıl tamamlarım?", "Ürünleri sepete ekledikten sonra WhatsApp’tan devam et. Aida stok, seçenekler, ödeme ve teslimatı kişisel olarak onaylar."],
-    ["Türkiye içinde teslimat nasıl yapılır?", "Teslimat ayrıntıları ve varsa kargo ücreti seçtiğin ürünlere ve adresine göre WhatsApp üzerinden netleştirilir."],
+    ["Siparişimi nasıl tamamlarım?", "Ürünleri sepete ekle, teslimat bilgilerini gir, banka transferini tamamla ve ödeme dekontunu yükle."],
+    ["Türkiye içinde teslimat nasıl yapılır?", "Orijinaller ücretsiz gönderilir. Baskı teslimatı ilk baskı için 200 TL, her ek baskı için 20 TL’dir."],
     ["Orijinal eserler tek mi?", "Evet. Her orijinal eser benzersizdir ve satıldıktan sonra yeniden sipariş edilemez."],
   ] as const : turkiyeFaq.slice(0, 3);
 
@@ -477,7 +477,7 @@ function TurkiyeCatalogue() {
           {products.length ? <div className="managed-product-grid">{products.map((product) => <ManagedProductCard key={`${product.kind}-${product.id}`} product={product} region="TR" viewHref={product.kind === "original" ? originalDetailHref("turkiye", product.slug || product.id) : undefined} onView={product.kind === "original" ? undefined : () => setSelected(product)} onChooseOptions={() => setSelected(product)} />)}</div> : <p className="turkiye-catalogue__empty">{text.empty}</p>}
         </section>
       )}
-      <section className="turkiye-catalogue__ordering"><div className="section-shell"><MessageCircle aria-hidden="true" /><div><p className="eyebrow">WhatsApp</p><h2>{text.orderTitle}</h2><p>{text.orderBody}</p></div></div></section>
+      <section className="turkiye-catalogue__ordering"><div className="section-shell"><PackageCheck aria-hidden="true" /><div><p className="eyebrow">Secure checkout</p><h2>{text.orderTitle}</h2><p>{text.orderBody}</p></div></div></section>
       <section className="section-shell turkiye-catalogue__faq"><p className="eyebrow">FAQ</p><h2>{text.faqTitle}</h2><div>{faq.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div><Link href="/shop/international" className="button-link">{locale === "tr" ? "Türkiye dışında mı alışveriş yapıyorsun? Uluslararası mağazaya git" : "Shopping outside Türkiye? Visit the International shop"} →</Link></section>
       <TurkeyProductDialog product={selected} onClose={() => setSelected(null)} />
     </div>
@@ -546,7 +546,7 @@ export default function RegionalLanding({
             )}
             <p className="regional-shop-hero__trust">
               {tr
-                ? "Personally confirmed on WhatsApp · Packed by the artist"
+                ? "Bank-transfer checkout · Packed by the artist"
                 : "Originals confirmed personally · International shipping calculated separately · Prints fulfilled through Fourthwall"}
             </p>
           </div>
@@ -708,7 +708,7 @@ export default function RegionalLanding({
               [
                 "03",
                 "Confirm with Aida",
-                "Continue to WhatsApp with your order already prepared for personal confirmation.",
+                "Enter delivery details, complete the bank transfer and upload the receipt for review.",
               ],
             ].map(([n, h, p]) => (
               <li key={n} className="bg-card p-7">

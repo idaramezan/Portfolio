@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { PackageCheck, X } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { Link } from "wouter";
 import {
   getCanonicalCartItemPricing,
   isCartItemAvailable,
@@ -9,7 +9,6 @@ import {
 } from "@/lib/store";
 import Money from "@/components/Money";
 import { cn } from "@/lib/utils";
-import { formatCurrencyMinor } from "@/lib/currency";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
@@ -23,11 +22,6 @@ export default function CartDrawer({
   region?: "TR" | "INTERNATIONAL";
 }) {
   const [cart, setCart] = useState(loadCart(region));
-  const [runtimeWhatsapp, setRuntimeWhatsapp] = useState<{
-    configured: boolean;
-    enabled: boolean;
-    number: string | null;
-  } | null>(null);
   const settings = useShopSettings();
   const now = useServerNow();
   useEffect(() => {
@@ -39,13 +33,6 @@ export default function CartDrawer({
     if (open) setCart(loadCart(region));
     if (open) trackAnalytics("basket_opened");
   }, [open, region]);
-  useEffect(() => {
-    if (!open) return;
-    fetch("/api/storefront-config")
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((payload) => setRuntimeWhatsapp(payload.whatsapp || null))
-      .catch(() => setRuntimeWhatsapp(null));
-  }, [open]);
   const canonicalUnitPrice = (item: (typeof cart)[number]) =>
     getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
     item.priceUsdCents;
@@ -77,76 +64,6 @@ export default function CartDrawer({
       hasCatalogRecord(item) &&
       !isCartItemAvailable(item, settings, now, region),
   );
-  const effectiveWhatsappNumber = runtimeWhatsapp?.configured
-    ? runtimeWhatsapp.number || ""
-    : settings.whatsapp.number;
-  const whatsappEnabled = runtimeWhatsapp?.configured
-    ? runtimeWhatsapp.enabled
-    : settings.whatsapp.enabled;
-  const productLink = (item: (typeof cart)[number]) => {
-    const baseId = item.id.split(":")[0];
-    let path: string;
-    if (item.kind === "original") {
-      const id = baseId.replace(/^original-/, "");
-      const product = settings.originalProducts.find(
-        (entry) => entry.id === id,
-      );
-      const slug = product?.slug || product?.id || id;
-      path = `/shop/${region === "TR" ? "turkiye" : "international"}/originals/${encodeURIComponent(slug)}`;
-    } else if (item.kind === "studio-mail") {
-      path = "/shop/turkiye/mystery-mail";
-    } else {
-      const id =
-        item.productId ||
-        baseId.replace(/^print-product-/, "").replace(/^product-/, "");
-      path = `/shop/turkiye/prints?product=${encodeURIComponent(id)}`;
-    }
-    return new URL(path, window.location.origin).toString();
-  };
-  const orderMessage = [
-    settings.whatsapp.greeting,
-    "",
-    region === "TR"
-      ? "I would like to complete my order for these items:"
-      : "I would like to complete my international order for these artworks:",
-    "",
-    ...cart.flatMap((item, index) =>
-      [
-        `${index + 1}. ${item.title}`,
-        `Product link: ${productLink(item)}`,
-        item.printConfiguration
-          ? `Size: ${item.printConfiguration.sizeLabel}`
-          : "",
-        item.printConfiguration?.sizeSecondaryLabel || "",
-        item.printConfiguration
-          ? `Framing: ${item.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`
-          : "",
-        item.selectedColor ? `Color: ${item.selectedColor}` : "",
-        `Quantity: ${item.quantity}`,
-        `Line total: ${formatCurrencyMinor(canonicalUnitPrice(item) * item.quantity, basketCurrency)}`,
-        "",
-      ].filter(Boolean),
-    ),
-    `${region === "TR" ? "Items" : "Artwork"} subtotal: ${formatCurrencyMinor(subtotal, basketCurrency)}`,
-    region === "TR"
-      ? hasSeparatelyConfirmedShipping
-        ? "Shipping price will be calculated based on the package size."
-        : "Shipping within Türkiye: Free"
-      : "International shipping will be calculated separately based on destination.",
-    "",
-    "My name:",
-    region === "TR" ? "Delivery city:" : "Delivery country and city:",
-    "Questions or notes:",
-  ]
-    .filter((line) => line !== "")
-    .join("\n");
-  const whatsappUrl =
-    cart.length > 0 &&
-    unavailableItems.length === 0 &&
-    whatsappEnabled &&
-    /^\d{8,15}$/.test(effectiveWhatsappNumber)
-      ? `https://wa.me/${effectiveWhatsappNumber}?text=${encodeURIComponent(orderMessage)}`
-      : null;
   return (
     <div
       className={cn(
@@ -207,6 +124,15 @@ export default function CartDrawer({
                 )}
                 <div className="flex-1">
                   <h3 className="text-xl">{x.title}</h3>
+                  {x.printConfiguration && (
+                    <p className="text-xs text-ink/55">
+                      {x.printConfiguration.sizeLabel}
+                      {x.printConfiguration.sizeSecondaryLabel
+                        ? ` · ${x.printConfiguration.sizeSecondaryLabel}`
+                        : ""}
+                      {` · ${x.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`}
+                    </p>
+                  )}
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
                   {unavailableItems.some((item) => item.id === x.id) && (
                     <p
@@ -217,11 +143,14 @@ export default function CartDrawer({
                       continuing.
                     </p>
                   )}
-                  <Money
-                    baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
-                    canonicalCurrency={basketCurrency}
-                    className="mt-2 block text-sm font-bold"
-                  />
+                  <p className="mt-2 text-sm">
+                    <span className="text-ink/55">Line total: </span>
+                    <Money
+                      baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
+                      canonicalCurrency={basketCurrency}
+                      className="font-bold"
+                    />
+                  </p>
                 </div>
                 <button
                   onClick={() => removeCartItem(x.id, region)}
@@ -246,21 +175,19 @@ export default function CartDrawer({
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
               {hasSeparatelyConfirmedShipping
-                ? "Shipping price will be calculated based on the package size"
+                ? "Print delivery: 200 TL for the first print + 20 TL for each additional print"
                 : "Free shipping within Türkiye"}
             </p>
           ) : (
             <p className="mt-3 text-sm font-semibold">
-              International shipping is not included
+              International original delivery: 100 USD per order
             </p>
           )}
-          {whatsappUrl ? (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          {cart.length > 0 && unavailableItems.length === 0 && !cart.some(item => item.kind === "studio-mail") ? (
+            <Link
+              href={region === "TR" ? "/checkout/turkiye" : "/checkout/international-originals"}
               onClick={() => {
-                trackAnalytics("whatsapp_checkout_started", {
+                trackAnalytics("checkout_started", {
                   metadata: {
                     quantity: cart.reduce(
                       (sum, item) => sum + item.quantity,
@@ -274,9 +201,8 @@ export default function CartDrawer({
               }}
               className="button-primary mt-6 w-full"
             >
-              <FaWhatsapp size={20} aria-hidden="true" />
-              Complete Order with Aida
-            </a>
+              Continue to checkout
+            </Link>
           ) : (
             <div>
               <button
@@ -284,13 +210,11 @@ export default function CartDrawer({
                 disabled
                 className="button-primary mt-6 w-full opacity-45"
               >
-                <FaWhatsapp size={20} aria-hidden="true" />
-                Complete Order with Aida
+                Continue to checkout
               </button>
               {cart.length > 0 && unavailableItems.length === 0 && (
                 <p role="status" className="mt-2 text-xs text-ink/60">
-                  Connecting to WhatsApp. Please reopen the basket if this takes
-                  more than a moment.
+                  Remove unavailable or unsupported items before checkout.
                 </p>
               )}
             </div>

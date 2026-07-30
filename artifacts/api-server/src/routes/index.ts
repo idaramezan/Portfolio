@@ -21,6 +21,7 @@ if (process.env.DATABASE_URL) {
     { default: ordersRouter },
     { default: stickerDropRouter },
     { default: collectorExperienceRouter },
+    { default: checkoutRouter, adminCheckoutRouter },
   ] = await Promise.all([
     import("./artworks"),
     import("./events"),
@@ -32,6 +33,7 @@ if (process.env.DATABASE_URL) {
     import("./orders"),
     import("./sticker-drop"),
     import("./collector-experience"),
+    import("./checkout"),
   ]);
   router.use("/artworks", artworksRouter);
   router.use("/events", eventsRouter);
@@ -43,6 +45,8 @@ if (process.env.DATABASE_URL) {
   router.use("/admin/orders", ordersRouter);
   router.use(stickerDropRouter);
   router.use(collectorExperienceRouter);
+  router.use("/checkout", checkoutRouter);
+  router.use("/admin/checkout", adminCheckoutRouter);
 } else {
   router.use(
     ["/artworks", "/events", "/newsletter", "/product-images"],

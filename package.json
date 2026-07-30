@@ -18,6 +18,7 @@
     "test:turkiye-catalogue": "node scripts/verify-turkiye-catalogue.mjs",
     "test:design-system": "node scripts/verify-playful-studio-editorial.mjs",
     "test:palette-refinement": "node scripts/verify-palette-refinement.mjs",
+    "test:first-party-checkout": "node scripts/verify-first-party-checkout.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
