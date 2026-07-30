@@ -5,6 +5,9 @@ import {
   getResponsiveImageSrcSet,
   heroPortrait,
   homeAboutImage,
+  originalsCoverImage,
+  printsCoverImage,
+  studioMailCoverImage,
 } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -133,39 +136,46 @@ export default function Home() {
       ? [
           {
             href: "/shop/turkiye/originals",
+            image: originalsCoverImage,
             title: "Original Art",
+            copy: "One-of-a-kind oil pastel paintings.",
             number: "01",
           },
           {
             href: "/shop/turkiye/prints",
+            image: printsCoverImage,
             title: "Prints & Stickers",
+            copy: "Signed prints, stickers and useful studio goods.",
             number: "02",
           },
           {
-            href: "/shop/turkiye/mystery-mail",
-            title: "Mystery Mail",
-            number: "03",
-          },
-          {
             href: "/studio-letter",
+            image: studioMailCoverImage,
             title: "Studio Letter",
-            number: "04",
+            copy: "Free personal stories and notes from Aida’s studio.",
+            number: "03",
           },
         ]
       : [
           {
             href: "/shop/international/originals",
+            image: originalsCoverImage,
             title: "Original Art",
+            copy: "One-of-a-kind paintings available worldwide.",
             number: "01",
           },
           {
             href: "/shop/international/prints",
+            image: printsCoverImage,
             title: "Prints & Goods",
+            copy: "Worldwide editions and practical studio products.",
             number: "02",
           },
           {
             href: "/studio-letter",
+            image: studioMailCoverImage,
             title: "Studio Letter",
+            copy: "Free personal stories and notes from Aida’s studio.",
             number: "03",
           },
         ];
@@ -199,18 +209,18 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <span className="home-market-action__top"><span className="home-market-action__label"><MapPin size={13} aria-hidden="true" /> Local shop</span><ArrowRight aria-hidden="true" /></span>
-                <strong>Shop in Türkiye</strong>
-                <span>Originals, prints, stickers and Mystery Mail</span>
+                <img src={originalsCoverImage} alt="Original artwork prepared in Aida’s Istanbul studio" />
+                <span className="home-market-action__content"><span className="home-market-action__label"><MapPin size={13} aria-hidden="true" /> Local shop</span><strong>Shop in Türkiye</strong><span>Originals, prints, stickers and Mystery Mail</span></span>
+                <span className="home-market-action__arrow"><ArrowRight aria-hidden="true" /></span>
               </Link>
               <Link
                 href="/shop/international"
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <span className="home-market-action__top"><span className="home-market-action__label"><Globe2 size={13} aria-hidden="true" /> Worldwide</span><ArrowRight aria-hidden="true" /></span>
-                <strong>Shop internationally</strong>
-                <span>Original paintings and worldwide studio products</span>
+                <img src={printsCoverImage} alt="Prints and studio products prepared for collectors worldwide" />
+                <span className="home-market-action__content"><span className="home-market-action__label"><Globe2 size={13} aria-hidden="true" /> Worldwide</span><strong>Shop internationally</strong><span>Original paintings and worldwide studio products</span></span>
+                <span className="home-market-action__arrow"><ArrowRight aria-hidden="true" /></span>
               </Link>
             </div>
           </div>
@@ -248,9 +258,8 @@ export default function Home() {
                 })
               }
             >
-              <span className="home-category-link__number">{item.number}</span>
-              <h3>{item.title}</h3>
-              <ArrowRight aria-hidden="true" />
+              <img src={item.image} alt="" loading="lazy" decoding="async" />
+              <span className="home-category-link__content"><span className="home-category-link__number">{item.number}</span><h3>{item.title}</h3><p>{item.copy}</p><span className="home-category-link__cta">Explore →</span></span>
             </Link>
           ))}
         </div>

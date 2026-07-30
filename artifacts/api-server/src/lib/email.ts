@@ -110,14 +110,14 @@ export function emailShell(
   const handwriting =
     "'Segoe Print','Bradley Hand','Comic Sans MS','Chalkboard SE',cursive";
   const unsubscribe = options.unsubscribeUrl
-    ? `<p style="margin:12px 0 0;font-size:11px;color:#756a70"><a href="${escapeHtml(options.unsubscribeUrl)}" style="color:#756a70;text-decoration:underline">Unsubscribe from the Studio Letter</a></p>`
+    ? `<p style="margin:12px 0 0;font-size:11px;color:#756b70"><a href="${escapeHtml(options.unsubscribeUrl)}" style="color:#756b70;text-decoration:underline">Unsubscribe from the Studio Letter</a></p>`
     : "";
   const signature =
     options.showSignature === false
       ? ""
       : `<img src="${siteUrl}/assets/aida-email-seal.png" width="120" alt="Aida's artist seal" style="display:block;width:120px;max-width:42%;height:auto;margin:0 auto 10px"><p style="margin:0;color:#37332f;font-family:${handwriting};font-size:28px;line-height:1.4;font-style:italic">XOXO, Aida</p>`;
   const footerNote = options.footerNote
-    ? `<p style="margin:12px 0 0;font-size:11px;line-height:1.5;color:#756a70">${escapeHtml(options.footerNote)}</p>`
+    ? `<p style="margin:12px 0 0;font-size:11px;line-height:1.5;color:#756b70">${escapeHtml(options.footerNote)}</p>`
     : "";
-  return `<!doctype html><html><body style="margin:0;background:#f1e7d8;color:#392a34;font-family:${handwriting}"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(options.preheader || "A note from Aida's studio")}</div><div style="max-width:600px;margin:0 auto;padding:24px 12px"><div style="background:#fff9f2;border:1px solid #ddd1c6;box-shadow:0 8px 24px rgba(65,49,31,.12);padding:38px 30px;font-family:${handwriting}"><p style="display:inline-block;margin:0 0 26px;padding:7px 10px;background:#f5d5e2;color:#392a34;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">${escapeHtml(options.headerLabel || "Aida Ramezani · Artist")}</p>${content}<div style="margin-top:38px;padding-top:25px;border-top:1px dashed #beb3a4;text-align:center">${signature}<p style="margin:9px 0 0;font-size:13px"><a href="mailto:${CONTACT_EMAIL}" style="color:#b84775;text-decoration:none">${CONTACT_EMAIL}</a></p>${footerNote}${unsubscribe}</div></div></div></body></html>`;
+  return `<!doctype html><html><body style="margin:0;background:#f3e9dc;color:#3b2935;font-family:${handwriting}"><div style="display:none;max-height:0;overflow:hidden">${escapeHtml(options.preheader || "A note from Aida's studio")}</div><div style="max-width:600px;margin:0 auto;padding:24px 12px"><div style="background:#fff9f2;border:1px solid #ded2c6;box-shadow:0 8px 24px rgba(65,49,31,.12);padding:38px 30px;font-family:${handwriting}"><p style="display:inline-block;margin:0 0 26px;padding:7px 10px;background:#f4cfda;color:#3b2935;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase">${escapeHtml(options.headerLabel || "Aida Ramezani · Artist")}</p>${content}<div style="margin-top:38px;padding-top:25px;border-top:1px dashed #beb3a4;text-align:center">${signature}<p style="margin:9px 0 0;font-size:13px"><a href="mailto:${CONTACT_EMAIL}" style="color:#c15a83;text-decoration:none">${CONTACT_EMAIL}</a></p>${footerNote}${unsubscribe}</div></div></div></body></html>`;
 }

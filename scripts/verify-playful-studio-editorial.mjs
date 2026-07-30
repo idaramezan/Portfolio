@@ -17,6 +17,6 @@ assert.ok(css.includes(".button-primary") && css.includes("clip-path: var(--roug
 assert.ok(css.includes(".managed-product-card") && css.includes("border: 0") && css.includes(".shop-category-tabs"), "catalogue cards and category paper strips need distinct personalities");
 assert.ok(components.includes("StudioWordmark") && components.includes("PaperTag") && components.includes("UtilityMessage"), "reusable design-system primitives must exist");
 assert.ok(shell.includes("<StudioWordmark compact") && admin.includes("<StudioWordmark compact") && admin.includes("<PaperTag"), "public and admin shells must consume shared primitives");
-assert.ok(email.includes("#f5d5e2") && email.includes("#392a34") && newsletter.includes("font-family:Arial Black") && newsletter.includes("@media only screen and (max-width:620px)"), "transactional and Studio Letter email rendering must share the revised system responsively");
+assert.ok(email.includes("#f4cfda") && email.includes("#3b2935") && newsletter.includes("font-family:Arial Black") && newsletter.includes("@media only screen and (max-width:620px)"), "transactional and Studio Letter email rendering must share the revised system responsively");
 assert.ok(!shell.includes("Group 8340.png") && !css.includes("Group 8340.png"), "reference bitmap must not be used as a UI control");
 console.log("Playful Studio Editorial verification passed.");
