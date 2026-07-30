@@ -22,6 +22,14 @@ const regionalShop = readFileSync(
   "utf8",
 );
 const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+const collectorExperience = readFileSync(
+  new URL("../src/components/OriginalCollectorExperience.tsx", import.meta.url),
+  "utf8",
+);
+const originalDetail = readFileSync(
+  new URL("../src/pages/OriginalDetail.tsx", import.meta.url),
+  "utf8",
+);
 
 const headerClose = shell.indexOf("</header>");
 const overlay = shell.indexOf("{isMobileMenuOpen && (");
@@ -131,6 +139,27 @@ assert.ok(
     regionalShop.includes("Another way to collect") &&
     regionalShop.includes("Explore prints"),
   "shops must hide empty filters and offer a useful alternative collection",
+);
+assert.ok(
+  home.indexOf("<OriginalCollectorExperience") >
+    home.indexOf("Recently from the studio") &&
+    home.indexOf("<OriginalCollectorExperience") <
+      home.indexOf('className="home-studio-letter"'),
+  "collector film must sit between recent products and the Featured Studio Letter",
+);
+assert.ok(
+  collectorExperience.includes("IntersectionObserver") &&
+    collectorExperience.includes("video.pause()") &&
+    collectorExperience.includes("prefers-reduced-motion: reduce") &&
+    collectorExperience.includes("playsInline") &&
+    collectorExperience.includes('preload="metadata"') &&
+    collectorExperience.includes("muted"),
+  "collector film must autoplay only in view and respect mobile playback preferences",
+);
+assert.ok(
+  originalDetail.includes("<OriginalCollectorExperience compact") &&
+    !regionalShop.includes("OriginalCollectorExperience"),
+  "the compact collector film must appear only on original detail pages, not product grids",
 );
 
 console.log("Mobile navigation verification passed.");

@@ -26,6 +26,7 @@ import Money from "@/components/Money";
 import TikTokLiveSection from "@/components/TikTokLiveSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
+import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
@@ -378,6 +379,10 @@ export default function Home() {
           View all available pieces →
         </Link>
       </section>
+
+      <OriginalCollectorExperience
+        market={market === "TR" ? "turkiye" : "international"}
+      />
 
       <div className="home-studio-letter">
         <StudioLetterSignup variant="story-preview" context="home" />

@@ -1693,6 +1693,149 @@
   gap: clamp(1rem, 2vw, 2rem);
 }
 
+.collector-experience {
+  border-block: 1px solid rgb(27 26 23 / 0.12);
+  background: #f2eadc;
+}
+
+.collector-experience__layout {
+  display: grid;
+  grid-template-areas:
+    "visual content"
+    "visual details";
+  grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.18fr);
+  align-items: center;
+  gap: 1.5rem clamp(3rem, 7vw, 7rem);
+  max-width: 1240px;
+}
+
+.collector-experience__content {
+  grid-area: content;
+  align-self: end;
+}
+
+.collector-experience__content h2 {
+  max-width: 650px;
+  margin-top: 0.8rem;
+  font-size: clamp(2.8rem, 5vw, 4.7rem);
+  line-height: 0.98;
+}
+
+.collector-experience__lead,
+.collector-experience__body {
+  max-width: 650px;
+  margin-top: 1rem;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: rgb(27 26 23 / 0.68);
+}
+
+.collector-experience__visual {
+  grid-area: visual;
+  display: flex;
+  justify-content: center;
+}
+
+.collector-experience__video-frame {
+  position: relative;
+  width: min(100%, 370px);
+  border: 12px solid #fffdf8;
+  border-bottom-width: 24px;
+  outline: 1px solid rgb(80 67 52 / 0.16);
+  background: #fffdf8;
+  box-shadow: 0 14px 34px rgb(45 37 28 / 0.14);
+  transform: rotate(-0.35deg);
+}
+
+.collector-experience__video-frame video {
+  display: block;
+  width: 100%;
+  max-height: 660px;
+  aspect-ratio: 9 / 16;
+  background: #171713;
+  object-fit: contain;
+}
+
+.collector-experience__play {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgb(255 253 248 / 0.55);
+  border-radius: 999px;
+  background: rgb(23 23 19 / 0.78);
+  color: #fffdf8;
+  backdrop-filter: blur(4px);
+}
+
+.collector-experience__play svg {
+  width: 19px;
+}
+
+.collector-experience__details {
+  grid-area: details;
+  align-self: start;
+}
+
+.collector-experience__details h3 {
+  margin-top: 0.5rem;
+  font-size: 1.45rem;
+}
+
+.collector-experience__details ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.collector-experience__details li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.collector-experience__details li svg {
+  flex: 0 0 auto;
+  color: var(--color-coral);
+}
+
+.collector-experience__note {
+  max-width: 620px;
+  margin-top: 1rem;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: rgb(27 26 23 / 0.52);
+}
+
+.collector-experience__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.collector-experience--compact .collector-experience__layout {
+  padding-block: 4rem;
+}
+
+.collector-experience--compact .collector-experience__content h2 {
+  font-size: clamp(2.3rem, 4vw, 3.5rem);
+}
+
+.collector-experience--compact .collector-experience__video-frame {
+  width: min(100%, 290px);
+}
+
+.collector-experience--compact .collector-experience__video-frame video {
+  max-height: 500px;
+}
+
 .home-studio-letter {
   background: var(--color-blue);
   color: var(--color-paper);
@@ -1883,6 +2026,57 @@
 
   .home-product-tile:nth-child(n + 5) {
     display: none;
+  }
+
+  .collector-experience__layout,
+  .collector-experience--compact .collector-experience__layout {
+    grid-template-areas:
+      "content"
+      "visual"
+      "details";
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+    padding-block: 4rem;
+  }
+
+  .collector-experience__content h2,
+  .collector-experience--compact .collector-experience__content h2 {
+    font-size: clamp(2.45rem, 11vw, 2.85rem);
+    line-height: 1.02;
+  }
+
+  .collector-experience__body {
+    display: none;
+  }
+
+  .collector-experience__video-frame,
+  .collector-experience--compact .collector-experience__video-frame {
+    width: min(100%, 390px);
+    border-width: 9px;
+    border-bottom-width: 17px;
+    transform: none;
+  }
+
+  .collector-experience__video-frame video,
+  .collector-experience--compact .collector-experience__video-frame video {
+    width: auto;
+    max-width: 100%;
+    max-height: 72dvh;
+    margin-inline: auto;
+  }
+
+  .collector-experience__details ul {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .collector-experience__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .collector-experience__actions .button-primary {
+    justify-content: center;
   }
 
   .home-about-teaser {
