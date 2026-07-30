@@ -209,7 +209,6 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <img src={originalsCoverImage} alt="Original artwork prepared in Aida’s Istanbul studio" />
                 <span className="home-market-action__content"><span className="home-market-action__label"><MapPin size={13} aria-hidden="true" /> Local shop</span><strong>Shop in Türkiye</strong><span>Originals, prints, stickers and Mystery Mail</span></span>
                 <span className="home-market-action__arrow"><ArrowRight aria-hidden="true" /></span>
               </Link>
@@ -218,7 +217,6 @@ export default function Home() {
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <img src={printsCoverImage} alt="Prints and studio products prepared for collectors worldwide" />
                 <span className="home-market-action__content"><span className="home-market-action__label"><Globe2 size={13} aria-hidden="true" /> Worldwide</span><strong>Shop internationally</strong><span>Original paintings and worldwide studio products</span></span>
                 <span className="home-market-action__arrow"><ArrowRight aria-hidden="true" /></span>
               </Link>
