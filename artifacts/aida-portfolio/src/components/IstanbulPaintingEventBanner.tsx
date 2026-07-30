@@ -62,7 +62,6 @@ export default function IstanbulPaintingEventBanner({
   >("idle");
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
-  const [mobileFormOpen, setMobileFormOpen] = useState(false);
   const [serverWhatsappUrl, setServerWhatsappUrl] = useState<string | null>(
     null,
   );
@@ -382,19 +381,19 @@ export default function IstanbulPaintingEventBanner({
               />
             </figure>
 
-            <button
-              type="button"
-              className="button-primary mt-5 w-full lg:hidden"
-              aria-expanded={mobileFormOpen}
-              aria-controls="event-registration-form"
-              onClick={() => setMobileFormOpen((open) => !open)}
+            <PaperButton
+              href={`/events/${encodeURIComponent(config.id)}/apply`}
+              variant="pink"
+              size="sm"
+              arrow
+              className="mt-5 w-full justify-center lg:hidden"
             >
               {ui.openForm}
-            </button>
+            </PaperButton>
 
             <div
               id="event-registration-form"
-              className={`${mobileFormOpen ? "block" : "hidden"} mt-4 border-t border-white/15 pt-4 lg:block`}
+              className="mt-4 hidden border-t border-white/15 pt-4 lg:block"
             >
               <h3 className="font-serif text-xl text-[#fffaf1]">
                 {ui.interested}

@@ -9,8 +9,6 @@ import {
   printsCoverImage,
   studioMailCoverImage,
 } from "@/lib/assets";
-import turkiyeFlagImage from "@assets/home-turkiye-flag.jpg";
-import internationalFlagsImage from "@assets/home-international-flags.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
@@ -230,7 +228,7 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <span className="home-market-action__media"><img src={turkiyeFlagImage} alt="Turkish flag" width="420" height="280" /></span>
+                <span className="home-market-action__media"><img src={studioMailCoverImage} alt="A studio parcel prepared in Aida’s Istanbul studio" width="420" height="280" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Local shop</span>
                   <strong>Shop in Türkiye</strong>
@@ -243,7 +241,7 @@ export default function Home() {
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <span className="home-market-action__media"><img src={internationalFlagsImage} alt="International flags" width="420" height="255" /></span>
+                <span className="home-market-action__media"><img src={originalsCoverImage} alt="An original artwork from Aida’s studio" width="420" height="255" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Worldwide</span>
                   <strong>Shop internationally</strong>
@@ -276,12 +274,7 @@ export default function Home() {
           </div>
         </div>
         <div className="shop-region-switcher-wrap">
-          <div className="shop-region-switcher-copy">
-            <strong>{market === "TR" ? (locale === "tr" ? "Türkiye’de alışveriş" : "Shopping in Türkiye") : (locale === "tr" ? "Uluslararası alışveriş" : "Shopping internationally")}</strong>
-            <button type="button" onClick={() => chooseMarket(market === "TR" ? "INTERNATIONAL" : "TR")}>
-              {market === "TR" ? (locale === "tr" ? "Uluslararası mağazaya geç" : "Switch to international") : (locale === "tr" ? "Türkiye mağazasına geç" : "Switch to Türkiye")}
-            </button>
-          </div>
+          <span className="shop-region-switcher-label">{locale === "tr" ? "Göz at:" : "Browsing:"}</span>
           <div className="shop-region-switcher" role="group" aria-label={locale === "tr" ? "Alışveriş bölgenizi seçin" : "Choose your shopping region"}>
             <button type="button" data-active={market === "TR"} aria-pressed={market === "TR"} onClick={() => chooseMarket("TR")}>Türkiye</button>
             <button type="button" data-active={market === "INTERNATIONAL"} aria-pressed={market === "INTERNATIONAL"} onClick={() => chooseMarket("INTERNATIONAL")}>{locale === "tr" ? "Uluslararası" : "International"}</button>
@@ -302,7 +295,6 @@ export default function Home() {
             >
               <span className="home-category-link__media"><img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" /></span>
               <span className="home-category-link__content">
-                <span className="home-category-link__number">{item.number}</span>
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
               </span>
