@@ -297,6 +297,17 @@ export default function Home() {
               <span className="home-category-link__content">
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
+                <span className="home-category-link__cta">
+                  {item.title === "Original Art"
+                    ? "Explore originals"
+                    : item.title === "Studio Letter"
+                      ? "Read the Studio Letter"
+                      : item.title === "Mystery Mail"
+                        ? "Discover Mystery Mail"
+                        : market === "TR"
+                          ? "Shop prints & stickers"
+                          : "Shop prints & goods"}
+                </span>
               </span>
               <ArrowRight className="home-category-link__arrow" aria-hidden="true" />
             </Link>
