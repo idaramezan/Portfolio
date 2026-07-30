@@ -373,9 +373,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <p>{locale === "tr" ? "Ücretsiz kişisel hikâyeler, stüdyo notları ve yeni eserlere ilk bakışlar." : "Free personal stories, studio notes and first looks at new artwork."}</p>
               <Link href="/studio-letter">{locale === "tr" ? "Stüdyo Mektubu’nu oku" : "Read the Studio Letter"} →</Link>
             </section>
-            <nav className="site-footer__nav footer-desktop-links" aria-label="Footer navigation">
+            <nav className="site-footer__nav site-footer__nav--shop footer-desktop-links" aria-label="Shop navigation">
               <p className="footer-eyebrow">Shop</p>
               <div className="site-footer__nav-links"><Link href="/shop/turkiye">Türkiye shop</Link>{TURKIYE_LINKS.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link href="/shop/international">International shop</Link></div>
+            </nav>
+            <nav className="site-footer__nav site-footer__nav--information footer-desktop-links" aria-label="Information navigation">
               <p className="footer-eyebrow mt-5">Information</p>
               <div className="site-footer__nav-links">{INFORMATION_LINKS.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link href="/links">Links</Link><a href="mailto:aida@aedaart.com">Contact</a></div>
             </nav>
