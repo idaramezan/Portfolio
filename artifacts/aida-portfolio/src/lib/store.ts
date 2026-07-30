@@ -558,6 +558,7 @@ export function loadShopSettings(): ShopSettings {
           ? saved.studioMailPackages.map((item: StudioMailPackage) => ({
               ...item,
               status: normalizeProductStatus(item.status, item.inventory > 0),
+              // Keep accepting the legacy product title while presenting it as Mystery Mail.
               title: item.title.replace(/^Studio Mail/i, "Mystery Mail"),
               expiresAt: item.expiresAt || "2026-12-31T20:59:00.000Z",
               timezone: item.timezone || "Europe/Istanbul",

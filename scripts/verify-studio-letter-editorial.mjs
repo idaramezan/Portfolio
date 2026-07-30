@@ -38,4 +38,4 @@ assert.match(media, /8 \* 1024 \* 1024/);
 assert.match(media, /jpeg/);
 assert.match(media, /source_data/);
 assert.doesNotMatch(renderer, /add-to-basket/i);
-console.log("Studio Letter editorial verification passed (22 checks).");
+console.log("Newsletter editorial verification passed (22 checks).");

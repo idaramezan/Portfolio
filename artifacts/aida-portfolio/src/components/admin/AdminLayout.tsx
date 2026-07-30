@@ -55,7 +55,7 @@ const groups = [
       ["/admin/marketing/event-banner", "Event Banner", CalendarDays],
       ["/admin/marketing/collector-experience", "Collector Experience", PackageOpen],
       ["/admin/sticker-drop", "Sticker Drop", Sparkles],
-      ["/admin/subscribers/featured-letter", "Studio Letter", Mails],
+      ["/admin/subscribers/featured-letter", "Newsletter", Mails],
     ],
   ],
   [

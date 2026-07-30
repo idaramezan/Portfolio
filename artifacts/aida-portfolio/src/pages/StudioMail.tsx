@@ -18,7 +18,7 @@ export default function StudioMail() {
           Small packages of art, each built around a different theme.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/70">
-          Choose from limited Studio Mail editions containing an art postcard, a
+          Choose from limited Mystery Mail editions containing an art postcard, a
           handwritten note, stickers, and small objects selected around each
           theme.
         </p>
@@ -40,7 +40,7 @@ export default function StudioMail() {
               >
                 <img
                   src={mysteryMailCoverImage}
-                  alt={`${pkg.title} Studio Mail package`}
+                  alt={`${pkg.title} Mystery Mail package`}
                   className="h-full min-h-72 w-full object-cover"
                 />
                 <div className="flex flex-col p-6">
@@ -110,7 +110,7 @@ export default function StudioMail() {
           <div className="border border-ink/10 p-10 text-center">
             <h2 className="text-3xl">New editions are being prepared.</h2>
             <p className="mt-3 text-ink/65">
-              Join the Studio Letter to hear when they arrive.
+              Join the Newsletter to hear when they arrive.
             </p>
           </div>
         )}
@@ -123,7 +123,7 @@ export default function StudioMail() {
               [
                 "01",
                 "Choose an edition",
-                "Select the Studio Mail theme you want.",
+                "Select the Mystery Mail theme you want.",
               ],
               [
                 "02",

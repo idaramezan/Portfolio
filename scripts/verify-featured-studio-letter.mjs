@@ -21,7 +21,7 @@ for (const value of [
 ]) {
   if (!component.includes(value) && !route.includes(value)) {
     throw new Error(
-      `Missing Featured Studio Letter placement mapping: ${value}`,
+      `Missing Featured Newsletter placement mapping: ${value}`,
     );
   }
 }
@@ -31,13 +31,13 @@ if (
   !component.includes('context === "international"')
 ) {
   throw new Error(
-    "Storefront Studio Letter contexts are not mapped to API placements",
+    "Storefront Newsletter contexts are not mapped to API placements",
   );
 }
 
 if (!route.includes("$12::timestamp AT TIME ZONE $14")) {
   throw new Error(
-    "Featured Studio Letter schedules must apply their configured timezone",
+    "Featured Newsletter schedules must apply their configured timezone",
   );
 }
 
@@ -67,11 +67,11 @@ if (
 
 if (
   !component.includes("studio-letter-preview__blur") ||
-  component.includes("Continue reading this Studio Letter after joining")
+  component.includes("Continue reading this Newsletter after joining")
 ) {
   throw new Error(
     "Featured Letter continuation must be decorative and contain no hidden story text",
   );
 }
 
-console.log("Featured Studio Letter placement verification passed.");
+console.log("Featured Newsletter placement verification passed.");

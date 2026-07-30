@@ -94,7 +94,7 @@ export default function Analytics() {
     >
       <p className="max-w-3xl text-sm text-ink/60">
         See how visitors discover the studio, explore the collection and join
-        the Studio Letter.
+        the Newsletter.
       </p>
       <nav
         className="mt-5 flex gap-1 overflow-x-auto border-b border-ink/10"
@@ -556,7 +556,7 @@ function TrackedLinks() {
     <section className="mt-6 max-w-3xl border border-ink/10 bg-paper p-6">
       <h2 className="font-serif text-3xl">Tracked Links</h2>
       <p className="mt-2 text-sm text-ink/60">
-        Create a campaign URL for social bios, videos and Studio Letter links.
+        Create a campaign URL for social bios, videos and Newsletter links.
         This is not a URL shortener.
       </p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -580,7 +580,7 @@ function TrackedLinks() {
             <option value="instagram">Instagram bio</option>
             <option value="tiktok">TikTok profile</option>
             <option value="youtube">YouTube description</option>
-            <option value="studio_letter">Studio Letter</option>
+            <option value="studio_letter">Newsletter</option>
             <option value="pinterest">Pinterest</option>
             <option value="other">Other</option>
           </select>

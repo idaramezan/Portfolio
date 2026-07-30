@@ -35,40 +35,40 @@ const MYSTERY_NEWSLETTER_COPY = {
     comingEyebrow: "THE NEXT MYSTERY IS FORMING",
     comingHeading: "Be first to know when the next Mystery Mail opens.",
     comingBody:
-      "Aida is preparing a new sealed art parcel with an exclusive mini print and a few unrevealed studio surprises. Join the free Studio Letter and receive first notice when the next edition becomes available.",
+      "Aida is preparing a new sealed art parcel with an exclusive mini print and a few unrevealed studio surprises. Join the free Newsletter and receive first notice when the next edition becomes available.",
     reassurance: "One-time purchase. Never a subscription.",
-    comingSubmit: "Notify me through the Studio Letter",
+    comingSubmit: "Notify me through the Newsletter",
     comingTrust:
       "Free to join. You’ll also receive occasional stories and updates from Aida’s studio.",
     closedEyebrow: "THIS EDITION HAS CLOSED",
     closedHeading: "This Mystery Mail has left the studio.",
     closedBody:
-      "This limited edition is no longer available. Join the free Studio Letter to hear about the next Mystery Mail before it opens.",
+      "This limited edition is no longer available. Join the free Newsletter to hear about the next Mystery Mail before it opens.",
     closedSubmit: "Be first to know",
     secondaryHeading: "Want first notice of the next edition?",
     secondaryBody:
-      "Join the free Studio Letter for early news about future Mystery Mail releases and new work from the studio.",
-    secondarySubmit: "Join the Studio Letter",
+      "Join the free Newsletter for early news about future Mystery Mail releases and new work from the studio.",
+    secondarySubmit: "Join the Newsletter",
   },
   tr: {
     comingEyebrow: "YENİ GİZEM HAZIRLANIYOR",
     comingHeading: "Yeni Mystery Mail açıldığında ilk öğrenenlerden ol.",
     comingBody:
-      "Aida; yalnızca bu edisyona özel bir mini baskı ve henüz açıklanmayan birkaç atölye sürprizi içeren yeni, mühürlü bir sanat paketi hazırlıyor. Yeni edisyon satışa çıktığında ilk haberi almak için ücretsiz Stüdyo Mektubu’na katıl.",
+      "Aida; yalnızca bu edisyona özel bir mini baskı ve henüz açıklanmayan birkaç atölye sürprizi içeren yeni, mühürlü bir sanat paketi hazırlıyor. Yeni edisyon satışa çıktığında ilk haberi almak için ücretsiz Bültene katıl.",
     reassurance: "Tek seferlik satın alma. Abonelik değildir.",
-    comingSubmit: "Stüdyo Mektubu ile haber ver",
+    comingSubmit: "Bülten ile haber ver",
     comingTrust:
       "Katılım ücretsizdir. Ayrıca Aida’nın atölyesinden ara sıra hikâyeler ve güncellemeler alırsın.",
     closedEyebrow: "BU EDİSYON SONA ERDİ",
     closedHeading: "Bu Mystery Mail atölyeden ayrıldı.",
     closedBody:
-      "Bu sınırlı edisyon artık satışta değil. Yeni Mystery Mail açılmadan önce haberdar olmak için ücretsiz Stüdyo Mektubu’na katıl.",
+      "Bu sınırlı edisyon artık satışta değil. Yeni Mystery Mail açılmadan önce haberdar olmak için ücretsiz Bültene katıl.",
     closedSubmit: "İlk öğrenenlerden ol",
     secondaryHeading:
       "Bir sonraki edisyonu ilk öğrenenlerden olmak ister misin?",
     secondaryBody:
-      "Gelecek Mystery Mail edisyonlarından ve atölyedeki yeni çalışmalardan erken haberdar olmak için ücretsiz Stüdyo Mektubu’na katıl.",
-    secondarySubmit: "Stüdyo Mektubu’na katıl",
+      "Gelecek Mystery Mail edisyonlarından ve atölyedeki yeni çalışmalardan erken haberdar olmak için ücretsiz Bültene katıl.",
+    secondarySubmit: "Bültene katıl",
   },
 } as const;
 

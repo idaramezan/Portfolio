@@ -110,7 +110,7 @@ export function emailShell(
   const handwriting =
     "'Segoe Print','Bradley Hand','Comic Sans MS','Chalkboard SE',cursive";
   const unsubscribe = options.unsubscribeUrl
-    ? `<p style="margin:12px 0 0;font-size:11px;color:#756b70"><a href="${escapeHtml(options.unsubscribeUrl)}" style="color:#756b70;text-decoration:underline">Unsubscribe from the Studio Letter</a></p>`
+    ? `<p style="margin:12px 0 0;font-size:11px;color:#756b70"><a href="${escapeHtml(options.unsubscribeUrl)}" style="color:#756b70;text-decoration:underline">Unsubscribe from the Newsletter</a></p>`
     : "";
   const signature =
     options.showSignature === false

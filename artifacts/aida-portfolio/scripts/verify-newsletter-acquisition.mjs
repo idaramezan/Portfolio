@@ -38,9 +38,9 @@ const checks = [
     regional.includes('context={tr ? "turkiye" : "international"}'),
   ],
   [
-    "compact footer links to the Studio Letter without duplicating its form",
+    "compact footer links to the Newsletter without duplicating its form",
     shell.includes('className="site-footer__letter"') &&
-      shell.includes('href="/studio-letter"') &&
+      shell.includes('href="/newsletter"') &&
       !shell.includes("<Newsletter />"),
   ],
   [
@@ -51,8 +51,8 @@ const checks = [
   ],
   [
     "Links page newsletter option",
-    links.includes('href="/studio-letter"') &&
-      links.includes("Join the Studio Letter"),
+    links.includes('href="/newsletter"') &&
+      links.includes("Join the Newsletter"),
   ],
   [
     "valid email normalization",
@@ -90,7 +90,7 @@ const checks = [
   [
     "coming-soon signup state",
     mystery.includes("THE NEXT MYSTERY IS FORMING") &&
-      mystery.includes("Notify me through the Studio Letter"),
+      mystery.includes("Notify me through the Newsletter"),
   ],
   [
     "closed signup state",
@@ -152,12 +152,12 @@ const checks = [
       mystery.includes("Yeni Mystery Mail açıldığında ilk öğrenenlerden ol."),
   ],
   [
-    "regional Mystery Mail prioritizes Studio Letter",
+    "regional Mystery Mail prioritizes Newsletter",
     regional.includes('href="#studio-letter"') &&
       regional.includes(
         "Be the first to hear when the next sealed edition is revealed.",
       ) &&
-      regional.includes("Join the Studio Letter"),
+      regional.includes("Join the Newsletter"),
   ],
   ["unique form IDs", signup.includes("useId()")],
   [
@@ -185,7 +185,7 @@ const checks = [
       backend.includes(
         '"List-Unsubscribe-Post": "List-Unsubscribe=One-Click"',
       ) &&
-      emailBackend.includes("Unsubscribe from the Studio Letter"),
+      emailBackend.includes("Unsubscribe from the Newsletter"),
   ],
   [
     "safe block email formatter",

@@ -215,8 +215,8 @@ function MysteryFeature() {
           <div className="mt-7 flex flex-wrap items-center gap-5">
             <a href="#studio-letter" className="button-primary">
               {locale === "tr"
-                ? "Stüdyo Mektubu’na katıl"
-                : "Join the Studio Letter"}
+                ? "Bültene katıl"
+                : "Join the Newsletter"}
             </a>
             {settings.siteLinks.instagramUrl && (
               <a

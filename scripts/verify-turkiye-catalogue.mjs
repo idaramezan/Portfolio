@@ -13,5 +13,5 @@ assert.ok(landing.includes("activeMystery(settings, now)") && landing.includes("
 assert.ok(landing.includes("<ManagedProductCard") && landing.includes("<TurkeyProductDialog") && landing.includes("Secure checkout"), "catalogue must reuse product and option flows and direct customers to first-party checkout");
 assert.ok(event.includes('compact && placement === "turkiye-shop"') && event.includes("remainingSeats"), "shop event strip must reuse the existing remaining-seat source of truth");
 assert.ok(styles.includes(".turkiye-catalogue__controls") && styles.includes("position: sticky") && styles.includes("font-size: clamp(2.65rem, 12vw, 3rem)"), "mobile category navigation and compact heading must appear quickly");
-assert.ok(landing.indexOf("function TurkiyeCatalogue") < landing.indexOf("<StudioLetterSignup"), "Türkiye catalogue branch must not render the landing-page Studio Letter or promotional tail");
+assert.ok(landing.indexOf("function TurkiyeCatalogue") < landing.indexOf("<StudioLetterSignup"), "Türkiye catalogue branch must not render the landing-page Newsletter or promotional tail");
 console.log("Türkiye catalogue verification passed.");

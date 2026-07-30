@@ -113,7 +113,7 @@ export default function FeaturedStudioLetter() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setMessage(
-        "Featured Studio Letter saved. A locked revision is now used by the storefront and delivery email.",
+        "Featured Newsletter saved. A locked revision is now used by the storefront and delivery email.",
       );
       await load();
     } catch (err) {
@@ -124,7 +124,7 @@ export default function FeaturedStudioLetter() {
   };
 
   return (
-    <AdminLayout title="Featured Studio Letter">
+    <AdminLayout title="Featured Newsletter">
       <form onSubmit={submit} className="max-w-4xl space-y-6">
         <section className="border border-ink/10 bg-paper p-5 md:p-7">
           <label className="flex items-center gap-3 font-semibold">
@@ -136,7 +136,7 @@ export default function FeaturedStudioLetter() {
             Enable featured preview
           </label>
           <label className="mt-5 block text-sm font-semibold">
-            Saved Studio Letter
+            Saved Newsletter
             <select
               className="mt-2 h-12 w-full border border-ink/20 bg-white px-3"
               value={form.templateId}

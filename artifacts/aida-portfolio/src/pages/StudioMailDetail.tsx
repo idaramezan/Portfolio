@@ -13,7 +13,7 @@ export default function StudioMailDetail() {
       <div className="section-shell">
         <h1>Edition not found</h1>
         <Link href="/studio-mail" className="button-link mt-6">
-          Browse Studio Mail
+          Browse Mystery Mail
         </Link>
       </div>
     );
@@ -29,7 +29,7 @@ export default function StudioMailDetail() {
           />
         </div>
         <div>
-          <p className="eyebrow">One-time Studio Mail edition</p>
+          <p className="eyebrow">One-time Mystery Mail edition</p>
           <h1 className="mt-4 text-5xl md:text-6xl">{pkg.title}</h1>
           <p className="mt-3 text-lg text-ink/60">Theme: {pkg.theme}</p>
           <p className="mt-6 text-lg leading-relaxed text-ink/75">

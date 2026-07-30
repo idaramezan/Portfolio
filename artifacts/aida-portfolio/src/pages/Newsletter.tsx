@@ -9,23 +9,23 @@ const copy = {
     eyebrow: "FREE LETTERS FROM AIDA’S ISTANBUL STUDIO",
     heading: "A quiet letter from my studio, sent from time to time.",
     intro: [
-      "The Studio Letter is my free personal journal, where I share the parts of my art that do not always fit on social media.",
+      "The Newsletter is my free personal journal, where I share the parts of my art that do not always fit on social media.",
       "I write about the memories behind my paintings, the moments that inspired them, the colours and feelings I was trying to hold onto, and the small pieces of life that slowly became part of the work.",
       "Subscribers also receive first looks at artworks and studio moments I do not share anywhere else, along with early notice when something new is coming from the studio.",
     ],
-    signupHeading: "Join the Studio Letter",
+    signupHeading: "Join the Newsletter",
     signupText:
       "Start with the current featured story, then receive new letters whenever there is something meaningful to share.",
     reassurance:
       "Completely free · No fixed schedule · Unsubscribe whenever you like",
     consent:
-      "By subscribing, you agree to receive the Studio Letter and occasional studio updates from Aida. You can unsubscribe at any time.",
-    success: "The Studio Letter is on its way to your inbox.",
+      "By subscribing, you agree to receive the Newsletter and occasional studio updates from Aida. You can unsubscribe at any time.",
+    success: "The Newsletter is on its way to your inbox.",
     journalEyebrow: "A PERSONAL STUDIO JOURNAL",
     journalHeading:
       "The parts of a painting that cannot be seen at first glance.",
     journalBody:
-      "A painting may begin with a passing reflection, a childhood memory, a colour noticed on an ordinary walk, or a feeling that stays long after the moment has gone. The Studio Letter is where I can slow down and tell you that part of the story.",
+      "A painting may begin with a passing reflection, a childhood memory, a colour noticed on an ordinary walk, or a feeling that stays long after the moment has gone. The Newsletter is where I can slow down and tell you that part of the story.",
     includes: [
       "Memories and stories behind the paintings",
       "Personal reflections and quiet notes from the studio",
@@ -39,22 +39,22 @@ const copy = {
     eyebrow: "AIDA’NIN İSTANBUL ATÖLYESİNDEN ÜCRETSİZ MEKTUPLAR",
     heading: "Atölyemden, ara sıra gelen sessiz bir mektup.",
     intro: [
-      "Stüdyo Mektubu, sanatımın sosyal medyaya her zaman sığmayan taraflarını paylaştığım ücretsiz kişisel günlüğüm.",
+      "Bülten, sanatımın sosyal medyaya her zaman sığmayan taraflarını paylaştığım ücretsiz kişisel günlüğüm.",
       "Resimlerimin ardındaki anıları, onlara ilham veren anları, korumaya çalıştığım renkleri ve duyguları, ayrıca hayatımdaki küçük bir anın zamanla nasıl bir esere dönüştüğünü yazıyorum.",
       "Aboneler ayrıca başka hiçbir yerde paylaşmadığım eserleri ve atölye anlarını ilk görenlerden olur; stüdyodan yeni bir şey geldiğinde de önceden haber alır.",
     ],
-    signupHeading: "Stüdyo Mektubu’na katıl",
+    signupHeading: "Bültene katıl",
     signupText:
       "Güncel hikâyeyle başla, ardından paylaşmaya değer yeni bir şey olduğunda mektuplarını al.",
     reassurance:
       "Tamamen ücretsiz · Sabit bir gönderim takvimi yok · İstediğin zaman ayrılabilirsin",
     consent:
-      "Abone olarak Aida’dan Stüdyo Mektubu ve ara sıra atölye güncellemeleri almayı kabul edersin. İstediğin zaman abonelikten ayrılabilirsin.",
-    success: "Stüdyo Mektubu e-posta kutuna doğru yola çıktı.",
+      "Abone olarak Aida’dan Bülten ve ara sıra atölye güncellemeleri almayı kabul edersin. İstediğin zaman abonelikten ayrılabilirsin.",
+    success: "Bülten e-posta kutuna doğru yola çıktı.",
     journalEyebrow: "KİŞİSEL BİR ATÖLYE GÜNLÜĞÜ",
     journalHeading: "Bir resmin ilk bakışta görünmeyen tarafları.",
     journalBody:
-      "Bir resim bazen kısa bir yansımayla, çocukluk anısıyla, sıradan bir yürüyüşte fark edilen renkle veya an bittikten sonra kalan bir hisle başlar. Stüdyo Mektubu, yavaşlayıp hikâyenin bu tarafını anlatabildiğim yer.",
+      "Bir resim bazen kısa bir yansımayla, çocukluk anısıyla, sıradan bir yürüyüşte fark edilen renkle veya an bittikten sonra kalan bir hisle başlar. Bülten, yavaşlayıp hikâyenin bu tarafını anlatabildiğim yer.",
     includes: [
       "Resimlerin ardındaki anılar ve hikâyeler",
       "Kişisel düşünceler ve atölyeden sessiz notlar",
@@ -72,17 +72,28 @@ export default function Newsletter() {
   const [toast, setToast] = useState(false);
   usePageMeta(
     locale === "tr"
-      ? "Stüdyo Mektubu | Aida Ramezani"
-      : "Studio Letter | Aida Ramezani",
+      ? "Bülten | Aida Ramezani"
+      : "Newsletter | Aida Ramezani",
     locale === "tr"
-      ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve İstanbul atölyesinden notları paylaştığı ücretsiz Stüdyo Mektubu’na katıl."
-      : "Join Aida Ramezani’s free Studio Letter for stories behind the paintings and personal notes from her Istanbul studio.",
+      ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve İstanbul atölyesinden notları paylaştığı ücretsiz Bültene katıl."
+      : "Join Aida Ramezani’s free Newsletter for stories behind the paintings and personal notes from her Istanbul studio.",
   );
   useEffect(() => {
     const success = () => setToast(true);
     window.addEventListener("studio-letter:subscribed", success);
     return () =>
       window.removeEventListener("studio-letter:subscribed", success);
+  }, []);
+  useEffect(() => {
+    let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    const created = !canonical;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `${window.location.origin}/newsletter`;
+    return () => { if (created) canonical?.remove(); };
   }, []);
 
   return (

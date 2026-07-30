@@ -111,7 +111,7 @@ function Router() {
               <RedirectTo to="/shop/turkiye/prints" />
             </Route>
             <Route path="/studio-mail">
-              <RedirectTo to="/shop/turkiye/mystery-mail" />
+              <RedirectTo to="/newsletter" />
             </Route>
             <Route path="/studio-mail/:slug">
               <RedirectTo to="/shop/turkiye/mystery-mail" />
@@ -131,7 +131,9 @@ function Router() {
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
             <Route path="/newsletter" component={Newsletter} />
-            <Route path="/studio-letter" component={Newsletter} />
+            <Route path="/studio-letter">
+              <RedirectTo to="/newsletter" />
+            </Route>
             <Route path="/event">
               {() => <IstanbulPaintingEventBanner placement="home" />}
             </Route>

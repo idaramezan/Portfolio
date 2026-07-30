@@ -15,7 +15,7 @@ import { StudioWordmark } from "@/components/ui/playful-studio";
 const NAV_LINKS = [
   { href: "/shop/turkiye", en: "Türkiye Shop", tr: "Türkiye Mağaza" },
   { href: "/shop/international", en: "International", tr: "Uluslararası" },
-  { href: "/studio-letter", en: "Studio Letter", tr: "Stüdyo Mektubu" },
+  { href: "/newsletter", en: "Newsletter", tr: "Bülten" },
   { href: "/about", en: "About", tr: "Hakkında" },
 ];
 
@@ -313,8 +313,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             })}
             {[
               [
-                "/studio-letter",
-                locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter",
+                "/newsletter",
+                locale === "tr" ? "Bülten" : "Newsletter",
               ],
               ["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"],
             ].map(([href, label]) => (
@@ -369,9 +369,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </div>
             </section>
             <section className="site-footer__letter">
-              <h2>{locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}</h2>
-              <p>{locale === "tr" ? "Ücretsiz kişisel hikâyeler, stüdyo notları ve yeni eserlere ilk bakışlar." : "Free personal stories, studio notes and first looks at new artwork."}</p>
-              <Link href="/studio-letter">{locale === "tr" ? "Stüdyo Mektubu’nu oku" : "Read the Studio Letter"} →</Link>
+              <h2>{locale === "tr" ? "Bülten" : "Newsletter"}</h2>
+              <p>{locale === "tr" ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar." : "Personal art stories, studio notes and first looks at new work."}</p>
+              <Link href="/newsletter">{locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"} →</Link>
             </section>
             <nav className="site-footer__nav site-footer__nav--shop footer-desktop-links" aria-label="Shop navigation">
               <p className="footer-eyebrow">Shop</p>
@@ -383,7 +383,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </nav>
             <div className="site-footer__nav footer-mobile-links">
               <details className="site-footer__nav-group"><summary className="site-footer__nav-trigger">Shop <ChevronDown aria-hidden="true" /></summary><div className="site-footer__nav-links"><Link href="/shop/turkiye">Türkiye shop</Link><Link href="/shop/turkiye/originals">Original Art</Link><Link href="/shop/turkiye/prints">Prints & Goods</Link><Link href="/shop/international">International shop</Link></div></details>
-              <details className="site-footer__nav-group"><summary className="site-footer__nav-trigger">Information <ChevronDown aria-hidden="true" /></summary><div className="site-footer__nav-links"><Link href="/about">About</Link><Link href="/how-to-collect">How to collect</Link><Link href="/studio-letter">Studio Letter</Link><a href="mailto:aida@aedaart.com">Contact</a></div></details>
+              <details className="site-footer__nav-group"><summary className="site-footer__nav-trigger">Information <ChevronDown aria-hidden="true" /></summary><div className="site-footer__nav-links"><Link href="/about">About</Link><Link href="/how-to-collect">How to collect</Link><Link href="/newsletter">Newsletter</Link><a href="mailto:aida@aedaart.com">Contact</a></div></details>
             </div>
           </div>
           <div className="site-footer__legal"><span>&copy; {new Date().getFullYear()} Aida Ramezani</span><span>Made by hand in Istanbul</span><button type="button" onClick={manageAnalytics}>Manage analytics</button></div>

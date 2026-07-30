@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import {
   getResponsiveImageSrcSet,
@@ -36,6 +36,61 @@ const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
 const SEO_DESCRIPTION =
   "Shop original paintings, Prints & Goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani.";
+
+function NewsletterEnvelopeCard({
+  href,
+  number,
+  locale,
+  onClick,
+}: {
+  href: string;
+  number: string;
+  locale: "en" | "tr";
+  onClick: () => void;
+}) {
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const [arrived, setArrived] = useState(false);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setArrived(true);
+        observer.disconnect();
+      },
+      { threshold: 0.45 },
+    );
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Link
+      ref={cardRef}
+      href={href}
+      onClick={onClick}
+      className="newsletter-envelope-card"
+      data-arrived={arrived || undefined}
+      aria-label={locale === "tr" ? "Bülteni oku ve abone ol" : "Read and subscribe to the Newsletter"}
+    >
+      <span className="newsletter-envelope-card__paper" aria-hidden="true">
+        <span className="newsletter-envelope-card__flap" />
+        <span className="newsletter-envelope-card__sender">AIDA · ISTANBUL</span>
+        <span className="newsletter-envelope-card__stamp">AR</span>
+        <span className="newsletter-envelope-card__postmark" />
+      </span>
+      <span className="newsletter-envelope-card__content">
+        <span className="home-category-link__number home-category-link__number--desktop">{number}</span>
+        <span className="newsletter-envelope-card__eyebrow">{locale === "tr" ? "GELEN KUTUNA, AIDA’DAN" : "FROM AIDA, TO YOUR INBOX"}</span>
+        <h3>{locale === "tr" ? "Bülten" : "Newsletter"}</h3>
+        <p>{locale === "tr" ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar." : "Personal art stories, studio notes and first looks at new work."}</p>
+        <span className="newsletter-envelope-card__cta">{locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"} <ArrowRight aria-hidden="true" /></span>
+      </span>
+    </Link>
+  );
+}
 
 function ProductTile({
   product,
@@ -170,9 +225,9 @@ export default function Home() {
               }]
             : []),
           {
-            href: "/studio-letter",
+            href: "/newsletter",
             image: studioMailCoverImage,
-            title: "Studio Letter",
+            title: "Newsletter",
             copy: "Free personal stories and notes from Aida’s studio.",
             number: mysteryMailAvailable ? "04" : "03",
           },
@@ -193,9 +248,9 @@ export default function Home() {
             number: "02",
           },
           {
-            href: "/studio-letter",
+            href: "/newsletter",
             image: studioMailCoverImage,
-            title: "Studio Letter",
+            title: "Newsletter",
             copy: "Free personal stories and notes from Aida’s studio.",
             number: "03",
           },
@@ -284,11 +339,24 @@ export default function Home() {
         </div>
         <div key={market} className="home-category-grid home-category-grid--region mt-8" aria-live="polite">
           {categoryItems.map((item, index) => (
+            item.title === "Newsletter" ? (
+              <NewsletterEnvelopeCard
+                key={item.href}
+                href={item.href}
+                number={item.number}
+                locale={locale}
+                onClick={() =>
+                  trackAnalytics("homepage_category_clicked", {
+                    metadata: { market, category: item.title },
+                  })
+                }
+              />
+            ) : (
             <Link
               key={item.href}
               href={item.href}
               className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
-              aria-label={`${item.title === "Studio Letter" ? "Read about" : "Explore"} ${item.title}`}
+              aria-label={`${item.title === "Newsletter" ? "Read about" : "Explore"} ${item.title}`}
               onClick={() =>
                 trackAnalytics("homepage_category_clicked", {
                   metadata: { market, category: item.title },
@@ -303,8 +371,8 @@ export default function Home() {
                 <span className="home-category-link__cta">
                   {item.title === "Original Art"
                     ? "Explore originals"
-                    : item.title === "Studio Letter"
-                      ? "Read the Studio Letter"
+                    : item.title === "Newsletter"
+                      ? "Read the Newsletter"
                       : item.title === "Mystery Mail"
                         ? "Discover Mystery Mail"
                         : market === "TR"
@@ -314,6 +382,7 @@ export default function Home() {
               </span>
               <ArrowRight className="home-category-link__arrow" aria-hidden="true" />
             </Link>
+            )
           ))}
         </div>
       </section>

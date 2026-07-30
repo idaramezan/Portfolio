@@ -20,9 +20,9 @@ The visitor cookie is a random UUID with `Secure`, `SameSite=Lax`, a one-year li
 
 ## Attribution
 
-UTM parameters have priority, then a recognised external referrer, then other referral traffic, then direct. Supported normalisation includes Instagram, TikTok, YouTube, Google, Studio Letter and Fourthwall. Only the referrer domain is stored, never its query string.
+UTM parameters have priority, then a recognised external referrer, then other referral traffic, then direct. Supported normalisation includes Instagram, TikTok, YouTube, Google, Newsletter and Fourthwall. Only the referrer domain is stored, never its query string.
 
-Use **Admin → Analytics → Tracked Links** to create UTM-tagged URLs for social bios, videos and Studio Letter campaigns.
+Use **Admin → Analytics → Tracked Links** to create UTM-tagged URLs for social bios, videos and Newsletter campaigns.
 
 ## Geography
 
@@ -53,4 +53,4 @@ No new secrets are required. Existing variables are reused:
 - `ADMIN_PASSWORD`
 - `PUBLIC_SITE_URL` (used for collection origin validation; recommended `https://www.aedaart.com`)
 
-The tables are created automatically. To verify production, accept analytics, visit a UTM URL, open a product, add it to the basket, and submit a new Studio Letter address. Then open `/admin/analytics` and refresh the selected range.
+The tables are created automatically. To verify production, accept analytics, visit a UTM URL, open a product, add it to the basket, and submit a new Newsletter address. Then open `/admin/analytics` and refresh the selected range.

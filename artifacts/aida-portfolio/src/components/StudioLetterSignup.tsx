@@ -17,11 +17,11 @@ export const studioLetterCopy = {
     emailLabel: "Email address",
     emailPlaceholder: "Your email address",
     footerSubmit: "Join free",
-    compactSubmit: "Join the Studio Letter — Free",
+    compactSubmit: "Join the Newsletter — Free",
     storySubmit: "Send me the full story",
-    heroSubmit: "Send me the Studio Letter",
+    heroSubmit: "Send me the Newsletter",
     loading: "Joining…",
-    successTitle: "You’re on the Studio Letter list.",
+    successTitle: "You’re on the Newsletter list.",
     successBody:
       "The next note from Aida’s studio will find its way to your inbox.",
     storySuccessTitle: "The full story is on its way.",
@@ -35,7 +35,7 @@ export const studioLetterCopy = {
     trust:
       "Free to join. Occasional letters only. Unsubscribe whenever you like.",
     storyTrust: "Free to join · Occasional letters · Unsubscribe anytime",
-    footerHeading: "Studio Letter",
+    footerHeading: "Newsletter",
     footerSubheading: "Stories, new artwork and limited studio releases.",
     continue: "The rest of this story can arrive in your inbox.",
     transition:
@@ -46,11 +46,11 @@ export const studioLetterCopy = {
     emailLabel: "E-posta adresi",
     emailPlaceholder: "E-posta adresin",
     footerSubmit: "Ücretsiz katıl",
-    compactSubmit: "Stüdyo Mektubu’na ücretsiz katıl",
+    compactSubmit: "Bültene ücretsiz katıl",
     storySubmit: "Hikâyenin tamamını gönder",
-    heroSubmit: "Stüdyo Mektubu’nu bana gönder",
+    heroSubmit: "Bülteni bana gönder",
     loading: "Katılım tamamlanıyor…",
-    successTitle: "Stüdyo Mektubu listesine katıldın.",
+    successTitle: "Bülten listesine katıldın.",
     successBody:
       "Aida’nın atölyesinden gelecek bir sonraki not e-posta kutuna ulaşacak.",
     storySuccessTitle: "Hikâyenin tamamı yolda.",
@@ -65,7 +65,7 @@ export const studioLetterCopy = {
       "Katılım tamamen ücretsizdir. Yalnızca ara sıra e-posta gönderilir. Dilediğin zaman abonelikten ayrılabilirsin.",
     storyTrust:
       "Katılım ücretsiz · Mektuplar ara sıra gelir · İstediğin zaman ayrılabilirsin",
-    footerHeading: "Stüdyo Mektubu",
+    footerHeading: "Bülten",
     footerSubheading: "Hikâyeler, yeni eserler ve sınırlı atölye edisyonları.",
     continue: "Bu hikâyenin devamı gelen kutuna ulaşabilir.",
     transition:
@@ -442,7 +442,7 @@ export default function StudioLetterSignup({
       <div className="studio-letter-preview__layout">
         <div
           className={`studio-letter-preview__images ${featured.images.length === 1 ? "studio-letter-preview__images--single" : "studio-letter-preview__images--double"}`}
-          aria-label="Images from the featured Studio Letter"
+          aria-label="Images from the featured Newsletter"
         >
           {featured.images.map((image, index) => (
             <button

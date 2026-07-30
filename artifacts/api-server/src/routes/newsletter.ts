@@ -573,14 +573,14 @@ async function renderCampaignBlocks(blocks: CampaignBlock[]) {
 const starterTemplates = [
   {
     id: "starter-blank",
-    name: "Blank Studio Letter",
+    name: "Blank Newsletter",
     subject: "A note from Aida’s studio",
-    preheader: "A new Studio Letter from Aida",
+    preheader: "A new Newsletter from Aida",
     blocks: [
       { type: "text", text: "Hello, art lover!", size: "large" },
       {
         type: "text",
-        text: "Write your Studio Letter here. Add more text, artwork, links or a button using the editor.",
+        text: "Write your Newsletter here. Add more text, artwork, links or a button using the editor.",
         size: "normal",
       },
     ],
@@ -661,7 +661,7 @@ const starterTemplates = [
       },
       {
         type: "text",
-        text: "You’re receiving this first because you’re part of my Studio Letter community.",
+        text: "You’re receiving this first because you’re part of my Newsletter community.",
         size: "normal",
       },
       {
@@ -760,7 +760,7 @@ async function getEventWhatsappUrl() {
     timeStyle: "short",
     timeZone: config.timezone,
   }).format(new Date(config.event_start_at));
-  const message = `Hello Aida, I joined the Studio Letter through the event invitation. I would love to reserve my place for ${config.title_en} on ${date}.`;
+  const message = `Hello Aida, I joined the Newsletter through the event invitation. I would love to reserve my place for ${config.title_en} on ${date}.`;
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
@@ -802,9 +802,9 @@ function buildPaintingEventInterestEmail(input: {
     html: emailShell(content, {
       preheader: config.secondary_details_en || config.description_en,
       unsubscribeUrl: input.unsubscribe,
-      headerLabel: "AIDA RAMEZANI · STUDIO LETTER",
+      headerLabel: "AIDA RAMEZANI · NEWSLETTER",
       footerNote:
-        "You received this email because you joined Aida’s Studio Letter through the Istanbul painting day invitation.",
+        "You received this email because you joined Aida’s Newsletter through the Istanbul painting day invitation.",
       showSignature: false,
     }),
     text,
@@ -840,7 +840,7 @@ async function notifyOwner(email: string, name: string | null) {
     to: OWNER_EMAIL,
     subject: `New subscriber: ${displayName}`,
     html: emailShell(
-      `<h1 style="font-size:28px">A new studio-letter reader</h1><p><strong>${escapeHtml(displayName)}</strong> joined your newsletter.</p><p>Email: <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`,
+      `<h1 style="font-size:28px">A new Newsletter reader</h1><p><strong>${escapeHtml(displayName)}</strong> joined your newsletter.</p><p>Email: <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`,
     ),
   });
 }
@@ -1243,7 +1243,7 @@ router.get("/featured-letter", async (req, res) => {
       [context],
     );
     if (!result.rowCount || !result.rows[0].blocks)
-      return res.status(404).json({ error: "No featured Studio Letter" });
+      return res.status(404).json({ error: "No featured Newsletter" });
     const row = result.rows[0];
     const text = storyText(row.blocks);
     const words = text.split(/\s+/).filter(Boolean);
@@ -1277,10 +1277,10 @@ router.get("/featured-letter", async (req, res) => {
       images: previewImages,
     });
   } catch (err) {
-    req.log.error({ err }, "Failed to load featured Studio Letter");
+    req.log.error({ err }, "Failed to load featured Newsletter");
     return res
       .status(500)
-      .json({ error: "Featured Studio Letter could not be loaded" });
+      .json({ error: "Featured Newsletter could not be loaded" });
   }
 });
 
@@ -1337,7 +1337,7 @@ router.put("/featured-letter/admin", requireAdmin, async (req, res) => {
     if (!templateId && req.body?.enabled)
       return res
         .status(400)
-        .json({ error: "Choose a Studio Letter before enabling the feature" });
+        .json({ error: "Choose a Newsletter before enabling the feature" });
     let revisionId: string | null = null;
     let imageIds: string[] = [];
     await client.query("BEGIN");
@@ -1414,7 +1414,7 @@ router.put("/featured-letter/admin", requireAdmin, async (req, res) => {
       error:
         err instanceof Error
           ? err.message
-          : "Featured Studio Letter could not be saved",
+          : "Featured Newsletter could not be saved",
     });
   } finally {
     client.release();
@@ -1708,7 +1708,7 @@ async function unsubscribe(req: Request, res: Response) {
       .status(200)
       .type("html")
       .send(
-        '<!doctype html><html><body style="margin:0;background:#f3e9dc;color:#3b2935;font-family:Arial,sans-serif"><main style="max-width:560px;margin:80px auto;background:#fff9f2;border:1px solid #ded2c6;padding:40px"><p style="display:inline-block;background:#f4cfda;padding:6px 9px;font-size:11px;font-weight:700;text-transform:uppercase">Studio Letter</p><h1>You have been unsubscribed.</h1><p>You will no longer receive Studio Letter campaigns.</p><p><a href="https://www.aedaart.com" style="color:#c15a83">Return to Aida’s website</a></p></main></body></html>',
+        '<!doctype html><html><body style="margin:0;background:#f3e9dc;color:#3b2935;font-family:Arial,sans-serif"><main style="max-width:560px;margin:80px auto;background:#fff9f2;border:1px solid #ded2c6;padding:40px"><p style="display:inline-block;background:#f4cfda;padding:6px 9px;font-size:11px;font-weight:700;text-transform:uppercase">Newsletter</p><h1>You have been unsubscribed.</h1><p>You will no longer receive Newsletter campaigns.</p><p><a href="https://www.aedaart.com" style="color:#c15a83">Return to Aida’s website</a></p></main></body></html>',
       );
   } catch (err) {
     req.log.error({ err }, "Failed to unsubscribe newsletter reader");
@@ -1918,7 +1918,7 @@ router.post("/", async (req, res) => {
               ? "Failed to send owner notification email"
               : index === 2
                 ? "Failed to send event interest email"
-                : "Failed to send featured Studio Letter",
+                : "Failed to send featured Newsletter",
         );
     });
 

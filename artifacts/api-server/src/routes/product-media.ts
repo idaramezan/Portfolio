@@ -72,7 +72,7 @@ router.post(
       if (newsletterImage && request.file.size > 8 * 1024 * 1024)
         return response
           .status(413)
-          .json({ error: "Studio Letter photographs must be 8 MB or smaller" });
+          .json({ error: "Newsletter photographs must be 8 MB or smaller" });
       const id = crypto.randomUUID();
       const derivative = newsletterImage
         ? await sharp(request.file.buffer)

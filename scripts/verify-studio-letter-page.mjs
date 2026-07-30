@@ -11,20 +11,22 @@ const signup = read(
 const server = read("artifacts/api-server/src/routes/newsletter.ts");
 
 for (const required of [
+  'path="/newsletter"',
   'path="/studio-letter"',
+  'to="/newsletter"',
   "A quiet letter from my studio, sent from time to time.",
   "Atölyemden, ara sıra gelen sessiz bir mektup.",
   'variant="hero"',
   'context="studio-letter"',
 ]) {
   if (!`${app}\n${page}`.includes(required))
-    throw new Error(`Studio Letter page is missing: ${required}`);
+    throw new Error(`Newsletter page is missing: ${required}`);
 }
 if (
-  !shell.includes('href: "/studio-letter"') ||
-  !shell.includes('href="/studio-letter"')
+  !shell.includes('href: "/newsletter"') ||
+  !shell.includes('href="/newsletter"')
 )
-  throw new Error("Studio Letter is missing from public navigation or footer");
+  throw new Error("Newsletter is missing from public navigation or footer");
 if (
   !signup.includes("featuredLetterRevisionId: featured.id") ||
   !signup.includes('"studio-letter:subscribed"')
@@ -37,7 +39,7 @@ if (
   !server.includes("featuredLetterSent")
 )
   throw new Error(
-    "Studio Letter page is not connected to existing subscriber delivery",
+    "Newsletter page is not connected to existing subscriber delivery",
   );
 
-console.log("Studio Letter public page verification passed.");
+console.log("Newsletter public page verification passed.");

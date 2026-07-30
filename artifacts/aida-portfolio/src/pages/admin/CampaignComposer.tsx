@@ -218,7 +218,7 @@ export default function CampaignComposer() {
   ].filter((product) => !["draft", "archived"].includes(product.status));
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [subject, setSubject] = useState("A note from Aida’s studio");
-  const [preheader, setPreheader] = useState("A new Studio Letter from Aida");
+  const [preheader, setPreheader] = useState("A new Newsletter from Aida");
   const [blocks, setBlocks] = useState<Block[]>(defaultBlocks);
   const [testEmail, setTestEmail] = useState("aida@aedaart.com");
   const [confirmation, setConfirmation] = useState("");
@@ -361,9 +361,9 @@ export default function CampaignComposer() {
 
   const newTemplate = () => {
     setSelectedTemplateId(null);
-    setTemplateName("Untitled Studio Letter");
+    setTemplateName("Untitled Newsletter");
     setSubject("A note from Aida’s studio");
-    setPreheader("A new Studio Letter from Aida");
+    setPreheader("A new Newsletter from Aida");
     setBlocks([newText("Hello, art lover!", "large"), newText("")]);
     setMessage("New template ready. Add your content, then save it.");
     setError("");
@@ -470,7 +470,7 @@ export default function CampaignComposer() {
     if (
       !window.confirm(
         recipientMode === "all"
-          ? "Send this email to every active Studio Letter subscriber?"
+          ? "Send this email to every active Newsletter subscriber?"
           : `Send this email to ${selectedRecipients.length} selected subscribers?`,
       )
     )
@@ -564,7 +564,7 @@ export default function CampaignComposer() {
     );
 
   return (
-    <AdminLayout title="Studio Letter composer">
+    <AdminLayout title="Newsletter composer">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(380px,.8fr)]">
         <div className="space-y-6">
           <section className="border border-ink/10 bg-paper p-5 md:p-6">
@@ -603,7 +603,7 @@ export default function CampaignComposer() {
 
           <section className="border border-ink/10 bg-paper p-5 md:p-6">
             <p className="text-sm text-ink/60">
-              Write a branded Studio Letter, send yourself a test, then send one
+              Write a branded Newsletter, send yourself a test, then send one
               private email to every active subscriber.
             </p>
             <label className="mt-5 block text-sm font-semibold">
@@ -1653,7 +1653,7 @@ export default function CampaignComposer() {
                     aida@aedaart.com
                   </p>
                   <p className="mt-3 text-[10px] text-ink/50 underline">
-                    Unsubscribe from the Studio Letter
+                    Unsubscribe from the Newsletter
                   </p>
                 </div>
               </div>

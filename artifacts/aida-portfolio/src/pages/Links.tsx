@@ -196,11 +196,11 @@ export default function Links() {
           : "Go to International Shop"}
       </Link>
       <Link
-        href="/studio-letter"
+        href="/newsletter"
         className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 border border-coral bg-paper px-5 text-center font-semibold text-coral transition-colors hover:bg-coral hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2"
       >
         <Mail size={18} aria-hidden="true" />
-        Join the Studio Letter
+        Join the Newsletter
       </Link>
       {region === "turkiye" ? (
         <section id="turkiye-panel" role="tabpanel" className="mt-4">

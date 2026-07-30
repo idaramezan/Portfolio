@@ -147,7 +147,8 @@ assert.ok(
     eventBanner.includes("Event details") &&
     eventBanner.includes("lg:hidden") &&
     eventBanner.includes("hidden rotate-[.35deg]") &&
-    eventBanner.includes("mobileFormOpen"),
+    eventBanner.includes("/apply`}") &&
+    eventBanner.includes("Apply for the event"),
   "Event Banner must provide a compact homepage announcement and full detail treatment",
 );
 assert.ok(

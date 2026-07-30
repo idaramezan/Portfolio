@@ -41,7 +41,7 @@ type EventConfig = {
   secondary_details_tr: string | null;
 };
 const WHATSAPP_MESSAGE =
-  "Hello Aida, I joined the Studio Letter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
+  "Hello Aida, I joined the Newsletter through the Istanbul painting day invitation. I would love to reserve my place for the event on Wednesday, 5 August 2026 at 4:00 PM.";
 
 export default function IstanbulPaintingEventBanner({
   placement = "home",
@@ -121,7 +121,7 @@ export default function IstanbulPaintingEventBanner({
         remaining: remainingSeats === 1 ? "yer kaldı" : "yer kaldı",
         details: "Etkinlik ayrıntıları",
         interested: "Katılmak ister misin?",
-        join: "Etkinlik ayrıntılarını almak ve Aida ile kaydına devam etmek için Stüdyo Mektubu’na katıl.",
+        join: "Etkinlik ayrıntılarını almak ve Aida ile kaydına devam etmek için Bültene katıl.",
         placeholder: "E-posta adresin",
         submit: "Etkinlik ayrıntılarını al",
         sending: "Gönderiliyor…",
@@ -144,7 +144,7 @@ export default function IstanbulPaintingEventBanner({
           remainingSeats === 1 ? "place remaining" : "places remaining",
         details: "Event details",
         interested: "Interested in joining?",
-        join: "Join the Studio Letter to receive the event details and continue your registration with Aida.",
+        join: "Join the Newsletter to receive the event details and continue your registration with Aida.",
         placeholder: "Your email address",
         submit: "Get event details",
         sending: "Sending…",

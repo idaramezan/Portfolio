@@ -20,7 +20,7 @@ const TR: Record<string, string> = {
   "How to Collect": "Nasıl Koleksiyon Yapılır",
   Links: "Bağlantılar",
   Contact: "İletişim",
-  "Studio Letter": "Stüdyo Mektubu",
+  "Newsletter": "Bülten",
   "Notes from the studio.": "Stüdyodan notlar.",
   "Made by hand in Istanbul.": "İstanbul’da el emeğiyle hazırlandı.",
   "All rights reserved.": "Tüm hakları saklıdır.",

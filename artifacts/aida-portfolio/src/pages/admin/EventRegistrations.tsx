@@ -188,7 +188,7 @@ export default function EventRegistrations() {
                 <tr>
                   <th className="px-4 py-3">Subscriber</th>
                   <th className="px-4 py-3">Submitted</th>
-                  <th className="px-4 py-3">Studio Letter</th>
+                  <th className="px-4 py-3">Newsletter</th>
                   <th className="px-4 py-3">Seats</th>
                   <th className="px-4 py-3">Payment</th>
                   <th className="px-4 py-3">Cost</th>
