@@ -9,6 +9,8 @@ import {
   printsCoverImage,
   studioMailCoverImage,
 } from "@/lib/assets";
+import turkiyeFlagImage from "@assets/home-turkiye-flag.jpg";
+import internationalFlagsImage from "@assets/home-international-flags.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
@@ -228,7 +230,7 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <span className="home-market-action__media"><img src={studioMailCoverImage} alt="A studio parcel prepared in Aida’s Istanbul studio" width="420" height="280" /></span>
+                <span className="home-market-action__media"><img src={turkiyeFlagImage} alt="Turkish flag" width="420" height="280" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Local shop</span>
                   <strong>Shop in Türkiye</strong>
@@ -241,7 +243,7 @@ export default function Home() {
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <span className="home-market-action__media"><img src={originalsCoverImage} alt="An original artwork from Aida’s studio" width="420" height="255" /></span>
+                <span className="home-market-action__media"><img src={internationalFlagsImage} alt="International flags" width="420" height="255" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Worldwide</span>
                   <strong>Shop internationally</strong>
