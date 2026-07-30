@@ -419,25 +419,29 @@
 }
 
 .turkiye-catalogue__mystery {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 1.25rem;
-  padding-block: 1.5rem;
-  border-bottom: 1px solid rgb(27 26 23 / 0.12);
-  background: rgb(218 161 35 / 0.09);
+  display: flex;
+  min-height: 230px;
+  padding-block: clamp(1.5rem, 4vw, 2.625rem);
+  border: 1px solid color-mix(in srgb, var(--raspberry) 30%, transparent);
+  border-left-width: 4px;
+  background: var(--pink-soft);
+  color: var(--ink);
 }
 
-.turkiye-catalogue__mystery img {
-  width: 96px;
-  aspect-ratio: 1;
-  object-fit: cover;
+.turkiye-catalogue__mystery-content {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .turkiye-catalogue__mystery-action {
-  display: grid;
-  justify-items: end;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.25rem;
 }
 
 .turkiye-catalogue__products {
@@ -588,13 +592,8 @@
   }
 
   .turkiye-catalogue__mystery {
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: 0.85rem;
-    padding-block: 1rem;
-  }
-
-  .turkiye-catalogue__mystery img {
-    width: 72px;
+    min-height: 0;
+    padding-block: 1.5rem;
   }
 
   .turkiye-catalogue__mystery h2 {
@@ -602,8 +601,7 @@
   }
 
   .turkiye-catalogue__mystery-action {
-    grid-column: 2;
-    justify-items: start;
+    align-items: flex-start;
   }
 
   .turkiye-catalogue__products {

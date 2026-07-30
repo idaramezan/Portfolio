@@ -370,15 +370,14 @@ function CompactMysteryFeature({ edition }: { edition: NonNullable<ReturnType<ty
   const description = locale === "tr" && edition.shortDescriptionTr ? edition.shortDescriptionTr : edition.shortDescription;
   return (
     <section className="turkiye-catalogue__mystery section-shell" aria-labelledby="turkiye-mystery-heading">
-      <img src={edition.coverImage || mysteryMailCoverImage} alt="Mystery Mail sealed art parcel" />
-      <div>
-        <p className="eyebrow text-coral">{locale === "tr" ? "Sınırlı Mystery Mail" : "Limited Mystery Mail"}</p>
+      <div className="turkiye-catalogue__mystery-content">
+        <p className="eyebrow">{locale === "tr" ? "Sınırlı stüdyo edisyonu" : "Limited studio edition"}</p>
         <h2 id="turkiye-mystery-heading" className="mt-2 text-3xl md:text-4xl">{title}</h2>
-        <p className="mt-3 line-clamp-2 text-sm text-ink/65">{description}</p>
-      </div>
-      <div className="turkiye-catalogue__mystery-action">
-        <Money baseAmountUsdCents={edition.priceUsdCents} canonicalCurrency="TRY" className="font-bold" />
-        <Link href="/shop/turkiye/mystery-mail" className="button-link">{locale === "tr" ? "Edisyonu gör" : "View edition"} →</Link>
+        <p className="mt-3 text-sm text-ink/65">{description}</p>
+        <div className="turkiye-catalogue__mystery-action">
+          <Money baseAmountUsdCents={edition.priceUsdCents} canonicalCurrency="TRY" className="font-bold" />
+          <Link href="/shop/turkiye/mystery-mail" className="button-link">{locale === "tr" ? "Mystery Mail’i keşfet" : "Discover Mystery Mail"} →</Link>
+        </div>
       </div>
     </section>
   );
@@ -688,7 +687,7 @@ export default function RegionalLanding({
         variant="story-preview"
         context={tr ? "turkiye" : "international"}
       />
-      {tr ? (
+      {tr && (
         <section className="section-shell">
           <p className="eyebrow">How collecting works</p>
           <h2 className="mt-3 text-4xl md:text-5xl">
@@ -725,49 +724,19 @@ export default function RegionalLanding({
             with Aida before anything is prepared.
           </p>
         </section>
-      ) : (
-        <section className="section-shell">
-          <p className="eyebrow">Ordering internationally</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">
-            Two ways to collect internationally
-          </h2>
-          <div className="mt-9 grid gap-px bg-ink/10 md:grid-cols-2">
-            <div className="bg-card p-8">
-              <h3 className="text-3xl">Prints & goods</h3>
-              <p className="mt-4 leading-8 text-ink/65">
-                Purchased through Fourthwall · Payment completed on Fourthwall ·
-                Fulfilled and shipped through Fourthwall · Availability and
-                shipping shown there
-              </p>
-            </div>
-            <div className="bg-card p-8">
-              <h3 className="text-3xl">Original paintings</h3>
-              <p className="mt-4 leading-8 text-ink/65">
-                Ordered directly from Aida · Product price excludes
-                international shipping · Shipping quote confirmed after
-                destination is provided · Personally packed in Istanbul ·
-                Availability confirmed before final order
-              </p>
-            </div>
-          </div>
-        </section>
       )}
       <FAQ items={tr ? turkiyeFaq : internationalFaq} international={!tr} />
-      <section className="bg-coral text-paper">
+      {tr && <section className="bg-coral text-paper">
         <div className="section-shell text-center">
           <h2 className="text-4xl text-paper md:text-6xl">
-            {tr
-              ? "Find something made for you."
-              : "Choose how you would like to collect."}
+            Find something made for you.
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               href={`${base}/prints`}
               className="button-primary !bg-paper !text-ink"
             >
-              {tr
-                ? "Browse prints & goods"
-                : "Shop prints & goods internationally"}
+              Browse prints & goods
             </Link>
             <Link
               href={`${base}/originals`}
@@ -777,7 +746,7 @@ export default function RegionalLanding({
             </Link>
           </div>
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

@@ -8,8 +8,9 @@ import {
   originalsCoverImage,
   printsCoverImage,
   studioMailCoverImage,
-  mysteryMailCoverImage,
 } from "@/lib/assets";
+import turkiyeFlagImage from "@assets/home-turkiye-flag.jpg";
+import internationalFlagsImage from "@assets/home-international-flags.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
@@ -27,6 +28,9 @@ import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
 import { PaperButton } from "@/components/ui/playful-studio";
+import { useLocale } from "@/lib/locale";
+
+const SHOP_REGION_SESSION_KEY = "aida-shop-region";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
@@ -91,13 +95,16 @@ export default function Home() {
   usePageMeta(SEO_TITLE, SEO_DESCRIPTION);
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const [market, setMarket] = useState<ShoppingRegion>(() =>
-    getActiveShoppingRegion(),
-  );
+  const { locale } = useLocale();
+  const [market, setMarket] = useState<ShoppingRegion>(() => {
+    const saved = typeof window === "undefined" ? null : window.sessionStorage.getItem(SHOP_REGION_SESSION_KEY);
+    return saved === "TR" || saved === "INTERNATIONAL" ? saved : getActiveShoppingRegion();
+  });
   const links = settings.siteLinks;
 
   const chooseMarket = (next: ShoppingRegion) => {
     setActiveShoppingRegion(next);
+    window.sessionStorage.setItem(SHOP_REGION_SESSION_KEY, next);
     setMarket(next);
     trackAnalytics("homepage_market_selected", {
       metadata: { market: next },
@@ -153,22 +160,22 @@ export default function Home() {
             copy: "Signed prints, stickers and studio pieces.",
             number: "02",
           },
+          ...(mysteryMailAvailable
+            ? [{
+                href: "/shop/turkiye/mystery-mail",
+                image: studioMailCoverImage,
+                title: "Mystery Mail",
+                copy: "A limited surprise parcel packed in Aida’s studio.",
+                number: "03",
+              }]
+            : []),
           {
             href: "/studio-letter",
             image: studioMailCoverImage,
             title: "Studio Letter",
             copy: "Free personal stories and notes from Aida’s studio.",
-            number: "03",
+            number: mysteryMailAvailable ? "04" : "03",
           },
-          ...(mysteryMailAvailable
-            ? [{
-                href: "/shop/turkiye/mystery-mail",
-                image: mysteryMailCoverImage,
-                title: "Mystery Mail",
-                copy: "A limited surprise parcel packed in Aida’s studio.",
-                number: "04",
-              }]
-            : []),
         ]
       : [
           {
@@ -223,7 +230,7 @@ export default function Home() {
                 className="home-market-action home-market-action--primary"
                 onClick={() => chooseMarket("TR")}
               >
-                <span className="home-market-action__media"><img src={originalsCoverImage} alt="Original artwork and packaging from Aida’s Istanbul studio" width="420" height="520" /></span>
+                <span className="home-market-action__media"><img src={turkiyeFlagImage} alt="Turkish flag" width="420" height="280" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Local shop</span>
                   <strong>Shop in Türkiye</strong>
@@ -236,7 +243,7 @@ export default function Home() {
                 className="home-market-action"
                 onClick={() => chooseMarket("INTERNATIONAL")}
               >
-                <span className="home-market-action__media"><img src={printsCoverImage} alt="Aida’s prints prepared for collectors worldwide" width="420" height="520" /></span>
+                <span className="home-market-action__media"><img src={internationalFlagsImage} alt="International flags" width="420" height="255" /></span>
                 <span className="home-market-action__content">
                   <span className="home-market-action__label">Worldwide</span>
                   <strong>Shop internationally</strong>
@@ -268,7 +275,19 @@ export default function Home() {
             </h2>
           </div>
         </div>
-        <div className="home-category-grid mt-8">
+        <div className="shop-region-switcher-wrap">
+          <div className="shop-region-switcher-copy">
+            <strong>{market === "TR" ? (locale === "tr" ? "Türkiye’de alışveriş" : "Shopping in Türkiye") : (locale === "tr" ? "Uluslararası alışveriş" : "Shopping internationally")}</strong>
+            <button type="button" onClick={() => chooseMarket(market === "TR" ? "INTERNATIONAL" : "TR")}>
+              {market === "TR" ? (locale === "tr" ? "Uluslararası mağazaya geç" : "Switch to international") : (locale === "tr" ? "Türkiye mağazasına geç" : "Switch to Türkiye")}
+            </button>
+          </div>
+          <div className="shop-region-switcher" role="group" aria-label={locale === "tr" ? "Alışveriş bölgenizi seçin" : "Choose your shopping region"}>
+            <button type="button" data-active={market === "TR"} aria-pressed={market === "TR"} onClick={() => chooseMarket("TR")}>Türkiye</button>
+            <button type="button" data-active={market === "INTERNATIONAL"} aria-pressed={market === "INTERNATIONAL"} onClick={() => chooseMarket("INTERNATIONAL")}>{locale === "tr" ? "Uluslararası" : "International"}</button>
+          </div>
+        </div>
+        <div key={market} className="home-category-grid home-category-grid--region mt-8" aria-live="polite">
           {categoryItems.map((item, index) => (
             <Link
               key={item.href}

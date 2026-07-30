@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { Link } from "wouter";
 import { heroPortrait, paintingVideo, paintingVideoPoster } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { PaperButton } from "@/components/ui/playful-studio";
 
 const principles = [
   "I paint directly with oil pastel.",
@@ -204,12 +205,13 @@ export default function About() {
             <Link href="/shop/turkiye/originals" className="button-primary">
               View available originals <ArrowRight size={16} />
             </Link>
-            <Link
+            <PaperButton
               href="/how-to-collect"
-              className="button-secondary !border-paper/40 !text-paper hover:!bg-paper hover:!text-ink"
+              variant="blue"
+              arrow
             >
               How to start a collection
-            </Link>
+            </PaperButton>
           </div>
         </div>
       </section>
