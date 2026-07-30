@@ -13,6 +13,10 @@ const styles = readFileSync(
   new URL("../src/index.css", import.meta.url),
   "utf8",
 );
+const editorialStyles = readFileSync(
+  new URL("../src/playful-studio-editorial.css", import.meta.url),
+  "utf8",
+);
 const eventBanner = readFileSync(
   new URL("../src/components/IstanbulPaintingEventBanner.tsx", import.meta.url),
   "utf8",
@@ -50,8 +54,17 @@ assert.ok(
   "open mobile menu must lock background scrolling",
 );
 assert.ok(
-  shell.includes("h-dvh overscroll-contain"),
+  shell.includes('className="mobile-menu md:hidden"') &&
+    editorialStyles.includes("height: 100dvh") &&
+    editorialStyles.includes("overscroll-behavior: contain"),
   "mobile overlay must use the dynamic viewport and contain overscroll",
+);
+assert.ok(
+  shell.includes("mobile-menu__close") &&
+    shell.includes("mobile-menu__chevron") &&
+    shell.includes("mobile-menu__languages") &&
+    shell.includes("Privacy choices"),
+  "mobile overlay must provide a clear close action, expandable groups, language, and privacy controls",
 );
 assert.ok(
   shell.includes("disabled={isMobileMenuOpen}"),

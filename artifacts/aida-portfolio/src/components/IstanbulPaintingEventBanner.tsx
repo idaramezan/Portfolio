@@ -15,7 +15,7 @@ import {
 import eventImage from "@assets/istanbul-summer-painting-day.png";
 import { analyticsContext, trackAnalytics } from "@/lib/analytics";
 import { useLocale } from "@/lib/locale";
-import { Link } from "wouter";
+import { PaperButton } from "@/components/ui/playful-studio";
 
 type EventConfig = {
   id: string;
@@ -256,15 +256,18 @@ export default function IstanbulPaintingEventBanner({
               ? local ? "Tamamen dolu" : "Fully booked"
               : `${remainingSeats} ${ui.remaining}`}
           </strong>
-          <Link
+          <PaperButton
             href="/event"
-            className="editorial-paper-tab home-event-announcement__cta"
+            variant="pink"
+            size="sm"
+            arrow
+            className="home-event-announcement__cta"
             onClick={() => trackAnalytics("homepage_event_clicked")}
           >
             {soldOut
               ? local ? "Etkinliği görüntüle" : "View event"
-              : local ? "Etkinlik ayrıntıları" : "View event details"} →
-          </Link>
+              : local ? "Etkinlik ayrıntıları" : "View event details"}
+          </PaperButton>
         </div>
       </div>
     </section>

@@ -1,9 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, Menu, ShoppingBag, X } from "lucide-react";
+import { ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Newsletter from "./Newsletter";
-import { studioLetterCopy } from "@/components/StudioLetterSignup";
 import CartDrawer from "@/components/CartDrawer";
 import {
   getCartCount,
@@ -48,11 +46,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       : "TR";
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
   const { locale, setLocale } = useLocale();
-  const newsletterCopy = studioLetterCopy[locale];
   const siteLinks = loadShopSettings().siteLinks;
-  const isHome = location === "/";
   const manageAnalytics = () =>
     window.dispatchEvent(new CustomEvent("analytics:manage"));
+  const closeMobileMenu = (restoreFocus = false) => {
+    setIsMobileMenuOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => menuButtonRef.current?.focus());
+  };
 
   useEffect(() => {
     const updateHeader = () => setHeaderScrolled(window.scrollY > 24);
@@ -74,6 +74,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       .then((response) => (response.ok ? response.json() : null))
       .then((result) => setActiveEvent(Boolean(result?.config)))
       .catch(() => setActiveEvent(false));
+  }, []);
+
+  useEffect(() => {
+    const selectors = '[id^="smartlook-feedback"],[class*="smartlook-feedback"],[data-smartlook-feedback],iframe[src*="feedback.smartlook"]';
+    const removeHandle = () => document.querySelectorAll(selectors).forEach((node) => node.remove());
+    removeHandle();
+    const observer = new MutationObserver(removeHandle);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -206,18 +215,22 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       {isMobileMenuOpen && (
-        <nav
-          ref={mobileMenuRef}
-          id="mobile-navigation"
-          aria-label="Mobile navigation"
-          aria-modal="true"
-          role="dialog"
-          className="fixed inset-0 z-40 h-dvh overscroll-contain overflow-y-auto bg-paper px-6 pb-10 pt-24 animate-in fade-in slide-in-from-top-10 duration-300 md:hidden"
-        >
-          <p className="eyebrow mb-5 text-coral">
-            {locale === "tr" ? "Keşfet" : "Explore"}
-          </p>
-          <div className="divide-y divide-ink/10 border-y border-ink/10">
+        <>
+          <div className="mobile-menu-backdrop md:hidden" aria-hidden="true" onClick={() => closeMobileMenu(true)} />
+          <nav
+            ref={mobileMenuRef}
+            id="mobile-navigation"
+            aria-label="Mobile navigation"
+            aria-modal="true"
+            role="dialog"
+            className="mobile-menu md:hidden"
+          >
+            <header className="mobile-menu__header">
+              <Link href="/" className="mobile-menu__brand" onClick={() => closeMobileMenu()}>Aida Ramezani</Link>
+              <button type="button" className="mobile-menu__close" aria-label="Close menu" onClick={() => closeMobileMenu(true)}><X aria-hidden="true" /></button>
+            </header>
+            <p className="mobile-menu__eyebrow">{locale === "tr" ? "Keşfet" : "Explore"}</p>
+            <div className="mobile-menu__primary">
             {[
               {
                 label: locale === "tr" ? "Türkiye Mağaza" : "Türkiye Shop",
@@ -258,20 +271,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             ].map((group) => (
               <details
                 key={group.home}
-                className="group py-2"
+                className="mobile-menu__group group"
                 open={location.startsWith(group.home)}
               >
-                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between font-serif text-2xl font-bold">
+                <summary className="mobile-menu__link">
                   {group.label}
-                  <span className="font-sans text-lg text-coral transition-transform group-open:rotate-45">
-                    +
-                  </span>
+                  <ChevronDown className="mobile-menu__chevron" aria-hidden="true" />
                 </summary>
-                <div className="pb-3 pl-3">
+                <div className="mobile-menu__submenu">
                   <Link
                     href={group.home}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex min-h-11 items-center text-sm font-bold text-coral"
+                    onClick={() => closeMobileMenu()}
                   >
                     {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
                   </Link>
@@ -279,8 +289,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={href}
                       href={href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex min-h-11 items-center text-lg font-semibold"
+                      onClick={() => closeMobileMenu()}
                     >
                       {label}
                     </Link>
@@ -301,184 +310,73 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Link
                 key={href}
                 href={href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex min-h-14 items-center font-serif text-2xl font-bold"
+                onClick={() => closeMobileMenu()}
+                className="mobile-menu__link"
               >
                 {label}
               </Link>
             ))}
-          </div>
-          <div className="mt-8 grid grid-cols-2 gap-2" aria-label="Language">
+            </div>
+            <aside className="mobile-menu__letter-card">
+              <h3>{locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}</h3>
+              <p>{locale === "tr" ? "Aida’nın atölyesinden ücretsiz kişisel hikâyeler ve notlar." : "Free personal stories and notes from Aida’s studio."}</p>
+              <Link href="/studio-letter" onClick={() => closeMobileMenu()}>{locale === "tr" ? "Mektubu oku" : "Read the Studio Letter"} →</Link>
+            </aside>
+            <div className="mobile-menu__languages" aria-label="Language">
             <button
               type="button"
               onClick={() => setLocale("tr")}
-              className={cn(
-                "min-h-11 border px-3 text-sm font-bold",
-                locale === "tr"
-                  ? "border-coral bg-coral text-paper"
-                  : "border-ink/15",
-              )}
+              className="mobile-menu__language"
+              aria-current={locale === "tr"}
             >
               Türkçe
             </button>
             <button
               type="button"
               onClick={() => setLocale("en")}
-              className={cn(
-                "min-h-11 border px-3 text-sm font-bold",
-                locale === "en"
-                  ? "border-coral bg-coral text-paper"
-                  : "border-ink/15",
-              )}
+              className="mobile-menu__language"
+              aria-current={locale === "en"}
             >
               English
             </button>
-          </div>
-          <button
-            type="button"
-            onClick={manageAnalytics}
-            className="mt-4 min-h-11 text-sm font-semibold underline underline-offset-4"
-          >
-            {locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}
-          </button>
-        </nav>
+            </div>
+            <footer className="mobile-menu__footer">
+              <div>{[["Instagram", siteLinks.instagramUrl],["TikTok", siteLinks.tiktokUrl],["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}</a>)}</div>
+              <button type="button" onClick={manageAnalytics}>{locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}</button>
+            </footer>
+          </nav>
+        </>
       )}
 
       <main className="flex-1 w-full">{children}</main>
 
-      <footer className="public-footer">
-        <div className="footer-main">
-          <section className="footer-brand" aria-labelledby="footer-brand-name">
-            <h2 id="footer-brand-name">Aida Ramezani</h2>
-            <p className="footer-brand-copy">
-              Original oil pastel paintings, Prints & Goods and limited Mystery
-              Mail editions, created by Aida Ramezani in Istanbul.
-            </p>
-            <div
-              className="footer-socials"
-              aria-label="Aida Ramezani on social media"
-            >
-              {[
-                ["Instagram", siteLinks.instagramUrl],
-                ["TikTok", siteLinks.tiktokUrl],
-                ["YouTube", siteLinks.youtubeUrl],
-              ].map(([label, href]) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>{label}</span>
-                  <ExternalLink size={12} aria-hidden="true" />
-                  <span className="sr-only">opens in a new tab</span>
-                </a>
-              ))}
-            </div>
-          </section>
-
-          <nav
-            className="footer-shop footer-desktop-links"
-            aria-label="Shop links"
-          >
-            <p className="footer-eyebrow">Shop in Türkiye</p>
-            <div className="footer-links">
-              <Link href="/shop/turkiye">Türkiye shop home</Link>
-              {TURKIYE_LINKS.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-              <p className="footer-eyebrow mt-6">Shop internationally</p>
-              <Link href="/shop/international">International shop home</Link>
-              <Link href="/shop/international/originals">Originals</Link>
-              <Link href="/shop/international/prints">Prints</Link>
-            </div>
-          </nav>
-
-          <nav
-            className="footer-information footer-desktop-links"
-            aria-label="Information links"
-          >
-            <p className="footer-eyebrow">Information</p>
-            <div className="footer-links">
-              {INFORMATION_LINKS.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  {link.label}
-                </Link>
-              ))}
-              <Link href="/links">Links</Link>
-              <Link href="/studio-letter">
-                {locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}
-              </Link>
-              <a href="mailto:aida@aedaart.com">Contact</a>
-            </div>
-          </nav>
-
-          <div className="footer-mobile-links">
-            <details>
-              <summary>Shop</summary>
-              <div className="footer-links">
-                <Link href="/shop/turkiye/prints">Türkiye prints & goods</Link>
-                <Link href="/shop/turkiye/originals">Türkiye originals</Link>
-                <Link href="/shop/international/prints">
-                  International prints
-                </Link>
-                <Link href="/shop/international/originals">
-                  International originals
-                </Link>
+      <footer className="site-footer public-footer">
+        <div className="site-footer__inner">
+          <div className="site-footer__main">
+            <section>
+              <h2 className="site-footer__brand">Aida Ramezani</h2>
+              <p className="site-footer__studio-line">Original art, studio stories and small editions made by Aida in Istanbul.</p>
+              <div className="site-footer__social" aria-label="Aida Ramezani on social media">
+                {[["Instagram", siteLinks.instagramUrl], ["TikTok", siteLinks.tiktokUrl], ["YouTube", siteLinks.youtubeUrl]].map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer">{label}<span className="sr-only"> opens in a new tab</span></a>)}
               </div>
-            </details>
-            <details>
-              <summary>Information</summary>
-              <div className="footer-links">
-                <Link href="/about">About</Link>
-                <Link href="/how-to-collect">How to collect</Link>
-                <Link href="/studio-letter">Studio Letter</Link>
-                <a href="mailto:aida@aedaart.com">Contact</a>
-              </div>
-            </details>
+            </section>
+            <section className="site-footer__letter">
+              <h2>{locale === "tr" ? "Stüdyo Mektubu" : "Studio Letter"}</h2>
+              <p>{locale === "tr" ? "Ücretsiz kişisel hikâyeler, stüdyo notları ve yeni eserlere ilk bakışlar." : "Free personal stories, studio notes and first looks at new artwork."}</p>
+              <Link href="/studio-letter">{locale === "tr" ? "Stüdyo Mektubu’nu oku" : "Read the Studio Letter"} →</Link>
+            </section>
+            <nav className="site-footer__nav footer-desktop-links" aria-label="Footer navigation">
+              <p className="footer-eyebrow">Shop</p>
+              <div className="site-footer__nav-links"><Link href="/shop/turkiye">Türkiye shop</Link>{TURKIYE_LINKS.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link href="/shop/international">International shop</Link></div>
+              <p className="footer-eyebrow mt-5">Information</p>
+              <div className="site-footer__nav-links">{INFORMATION_LINKS.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link href="/links">Links</Link><a href="mailto:aida@aedaart.com">Contact</a></div>
+            </nav>
+            <div className="site-footer__nav footer-mobile-links">
+              <details className="site-footer__nav-group"><summary className="site-footer__nav-trigger">Shop <ChevronDown aria-hidden="true" /></summary><div className="site-footer__nav-links"><Link href="/shop/turkiye">Türkiye shop</Link><Link href="/shop/turkiye/originals">Original Art</Link><Link href="/shop/turkiye/prints">Prints & Goods</Link><Link href="/shop/international">International shop</Link></div></details>
+              <details className="site-footer__nav-group"><summary className="site-footer__nav-trigger">Information <ChevronDown aria-hidden="true" /></summary><div className="site-footer__nav-links"><Link href="/about">About</Link><Link href="/how-to-collect">How to collect</Link><Link href="/studio-letter">Studio Letter</Link><a href="mailto:aida@aedaart.com">Contact</a></div></details>
+            </div>
           </div>
-
-          <section
-            className="footer-newsletter"
-            aria-labelledby="studio-letter-heading"
-            data-no-translate
-          >
-            <p className="footer-eyebrow footer-eyebrow--accent">
-              {newsletterCopy.footerHeading}
-            </p>
-            <h2 id="studio-letter-heading">{newsletterCopy.footerHeading}</h2>
-            <p className="footer-newsletter-copy">
-              {isHome
-                ? locale === "tr"
-                  ? "Ücretsiz sanat hikâyeleri ve stüdyo notları."
-                  : "Free art stories and studio notes."
-                : newsletterCopy.footerSubheading}
-            </p>
-            <Link
-              href="/studio-letter"
-              className="mb-4 inline-flex text-sm font-semibold text-coral underline underline-offset-4"
-            >
-              {locale === "tr" ? "Daha fazla bilgi" : "Learn more"}
-            </Link>
-            {!isHome && <Newsletter />}
-          </section>
-        </div>
-
-        <div className="footer-bottom">
-          <p>
-            &copy; {new Date().getFullYear()} Aida Ramezani. All rights
-            reserved.
-          </p>
-          <p>Made by hand in Istanbul.</p>
-          <button
-            type="button"
-            onClick={manageAnalytics}
-            className="min-h-11 text-left underline underline-offset-4"
-          >
-            Manage analytics
-          </button>
+          <div className="site-footer__legal"><span>&copy; {new Date().getFullYear()} Aida Ramezani</span><span>Made by hand in Istanbul</span><button type="button" onClick={manageAnalytics}>Manage analytics</button></div>
         </div>
       </footer>
 

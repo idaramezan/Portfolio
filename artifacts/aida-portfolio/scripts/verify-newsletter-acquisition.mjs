@@ -11,7 +11,6 @@ const storefrontCss = read("../src/index.css");
 const home = read("../src/pages/Home.tsx");
 const regional = read("../src/pages/RegionalLanding.tsx");
 const mystery = read("../src/pages/MysteryMail.tsx");
-const footer = read("../src/components/layout/Newsletter.tsx");
 const shell = read("../src/components/layout/Shell.tsx");
 const app = read("../src/App.tsx");
 const links = read("../src/pages/Links.tsx");
@@ -39,9 +38,10 @@ const checks = [
     regional.includes('context={tr ? "turkiye" : "international"}'),
   ],
   [
-    "footer form remains",
-    footer.includes('variant="footer" context="footer"') &&
-      shell.includes("<Newsletter />"),
+    "compact footer links to the Studio Letter without duplicating its form",
+    shell.includes('className="site-footer__letter"') &&
+      shell.includes('href="/studio-letter"') &&
+      !shell.includes("<Newsletter />"),
   ],
   [
     "dedicated newsletter page and route",

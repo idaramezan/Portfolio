@@ -26,6 +26,7 @@ import TikTokLiveSection from "@/components/TikTokLiveSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
+import { PaperButton } from "@/components/ui/playful-studio";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
@@ -306,11 +307,6 @@ export default function Home() {
             {latestLocal.map((product) => (
               <ProductTile key={product.id} product={product} market={market} />
             ))}
-            <Link href={base} className="home-product-view-all">
-              <span>Studio shelf</span>
-              <strong>View all available work</strong>
-              <span>Browse the complete collection →</span>
-            </Link>
           </div>
         ) : (
           <div className="home-product-grid mt-8">
@@ -358,13 +354,13 @@ export default function Home() {
                 </a>
               </article>
             ))}
-            <Link href={base} className="home-product-view-all">
-              <span>Studio shelf</span>
-              <strong>View all available work</strong>
-              <span>Browse the complete collection →</span>
-            </Link>
           </div>
         )}
+        <div className="product-section__footer">
+          <PaperButton href={base} variant="pink" size="lg" arrow>
+            View all available work
+          </PaperButton>
+        </div>
       </section>
 
       <OriginalCollectorExperience
