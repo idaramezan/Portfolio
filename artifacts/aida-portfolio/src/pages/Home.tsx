@@ -101,7 +101,7 @@ function ProductTile({
   market: ShoppingRegion;
 }) {
   const original = product.kind === "original";
-  const href = `/shop/${market === "TR" ? "turkiye" : "international"}/${original ? "originals" : "prints"}${original && product.slug ? `/${product.slug}` : `?product=${product.id}`}`;
+  const href = `/shop/${market === "TR" ? "turkiye" : "international"}/${original ? "originals" : "prints"}/${product.slug || product.id}`;
   const canonicalCurrency = product.priceCurrency || (original ? "USD" : "TRY");
   const amount = product.priceMinor ?? product.priceUsdCents;
   return (

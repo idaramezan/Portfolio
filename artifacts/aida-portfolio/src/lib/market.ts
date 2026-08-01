@@ -6,6 +6,7 @@ export const MARKET_CONFIG = {
     currency: "TRY" as const,
     locale: "tr-TR",
     originalsRoute: "/shop/turkiye/originals",
+    printsRoute: "/shop/turkiye/prints",
     basketRegion: "TR" as const,
     shipping: "Free shipping within Türkiye",
   },
@@ -13,6 +14,7 @@ export const MARKET_CONFIG = {
     currency: "USD" as const,
     locale: "en-US",
     originalsRoute: "/shop/international/originals",
+    printsRoute: "/shop/international/prints",
     basketRegion: "INTERNATIONAL" as const,
     shipping: "International shipping calculated separately",
   },
@@ -27,4 +29,8 @@ export function marketFromPath(pathname = window.location.pathname): Market {
 
 export function originalDetailHref(market: Market, slug: string) {
   return `${MARKET_CONFIG[market].originalsRoute}/${slug}`;
+}
+
+export function printDetailHref(market: Market, slug: string) {
+  return `${MARKET_CONFIG[market].printsRoute}/${slug}`;
 }

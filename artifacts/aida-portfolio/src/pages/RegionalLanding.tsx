@@ -24,7 +24,7 @@ import {
   type ShoppingRegion,
 } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
-import { originalDetailHref } from "@/lib/market";
+import { originalDetailHref, printDetailHref } from "@/lib/market";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import { useCurrency } from "@/lib/currency";
@@ -133,7 +133,7 @@ function ProductPreview({
               region={region}
               viewHref={
                 prints
-                  ? `/shop/turkiye/prints?product=${product.id}`
+                  ? printDetailHref("turkiye", product.slug || product.id)
                   : originalDetailHref(
                       region === "TR" ? "turkiye" : "international",
                       product.slug || product.id,
@@ -481,7 +481,7 @@ function TurkiyeCatalogue() {
             <div><p className="eyebrow">{text.results}</p><h2 id="turkiye-products-heading">{products.length} {text.showing}</h2></div>
             <label><span>{text.sort}</span><select value={urlState.sort} onChange={(event) => changeSort(event.target.value as TurkiyeSort)}><option value="newest">{text.newest}</option><option value="price-low">{text.low}</option><option value="price-high">{text.high}</option><option value="name">{text.name}</option></select></label>
           </div>
-          {products.length ? <div className="managed-product-grid">{products.map((product) => <ManagedProductCard key={`${product.kind}-${product.id}`} product={product} region="TR" viewHref={product.kind === "original" ? originalDetailHref("turkiye", product.slug || product.id) : undefined} onView={product.kind === "original" ? undefined : () => setSelected(product)} onChooseOptions={() => setSelected(product)} />)}</div> : <p className="turkiye-catalogue__empty">{text.empty}</p>}
+          {products.length ? <div className="managed-product-grid">{products.map((product) => <ManagedProductCard key={`${product.kind}-${product.id}`} product={product} region="TR" viewHref={product.kind === "original" ? originalDetailHref("turkiye", product.slug || product.id) : printDetailHref("turkiye", product.slug || product.id)} onChooseOptions={() => setSelected(product)} />)}</div> : <p className="turkiye-catalogue__empty">{text.empty}</p>}
         </section>
       )}
       <section className="turkiye-catalogue__ordering"><div className="section-shell"><PackageCheck aria-hidden="true" /><div><p className="eyebrow">Secure checkout</p><h2>{text.orderTitle}</h2><p>{text.orderBody}</p></div></div></section>

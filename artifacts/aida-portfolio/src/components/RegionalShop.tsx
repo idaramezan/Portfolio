@@ -26,7 +26,7 @@ import {
 } from "@/lib/product-status";
 import { formatArtworkSurface } from "@/lib/artwork-surface";
 import ManagedProductCard from "@/components/ManagedProductCard";
-import { originalDetailHref } from "@/lib/market";
+import { originalDetailHref, printDetailHref } from "@/lib/market";
 
 export type ShopCategory = "originals" | "prints" | "mystery-mail";
 
@@ -263,7 +263,7 @@ export default function RegionalShop({
           ) || null,
         );
     }
-  }, [region]);
+  }, [region, category, settings.printProducts, settings.originalProducts]);
 
   const originals = settings.originalProducts.filter(
     (product) =>
@@ -390,8 +390,8 @@ export default function RegionalShop({
                     key={product.id}
                     product={product}
                     region="TR"
+                    viewHref={printDetailHref("turkiye", product.slug || product.id)}
                     onChooseOptions={() => setSelectedTurkeyProduct(product)}
-                    onView={() => setSelectedTurkeyProduct(product)}
                   />
                 ))}
               </div>

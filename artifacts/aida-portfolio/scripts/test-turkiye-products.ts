@@ -534,5 +534,12 @@ const appSource = readFileSync(
 );
 assert.ok(appSource.includes("/shop/turkiye/originals/:slug"));
 assert.ok(appSource.includes("/shop/international/originals/:slug"));
+assert.ok(appSource.includes("/shop/turkiye/prints/:slug"));
+const printDetailSource = readFileSync(
+  new URL("../src/pages/PrintDetail.tsx", import.meta.url),
+  "utf8",
+);
+assert.ok(printDetailSource.includes('(item.slug || item.id) === params?.slug'));
+assert.ok(printDetailSource.includes("<TurkeyProductDialog"));
 
 console.log("Türkiye product pricing and validation tests passed.");

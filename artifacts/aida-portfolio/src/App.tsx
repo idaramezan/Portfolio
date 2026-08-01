@@ -22,6 +22,7 @@ import RegionalShop, { type ShopCategory } from "@/components/RegionalShop";
 import MysteryMail from "@/pages/MysteryMail";
 import RegionalLanding from "@/pages/RegionalLanding";
 import OriginalDetail from "@/pages/OriginalDetail";
+import PrintDetail from "@/pages/PrintDetail";
 import Newsletter from "@/pages/Newsletter";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
@@ -76,6 +77,11 @@ function Router() {
               path="/shop/turkiye/originals"
               component={regional("TR", "originals")}
             />
+            <Route
+              path="/shop/turkiye/prints/:slug"
+            >
+              {() => <PrintDetail market="turkiye" />}
+            </Route>
             <Route
               path="/shop/turkiye/prints"
               component={regional("TR", "prints")}
