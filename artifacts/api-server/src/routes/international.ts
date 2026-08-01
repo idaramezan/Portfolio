@@ -147,21 +147,33 @@ async function refresh() {
   if (!token || process.env.FOURTHWALL_INTEGRATION_ENABLED === "false")
     throw new Error("Integration is not configured");
   const collection = process.env.FOURTHWALL_COLLECTION_HANDLE || "all";
-  const url = new URL(
+  const baseUrl = new URL(
     `/v1/collections/${encodeURIComponent(collection)}/products`,
     API_ORIGIN,
   );
-  url.searchParams.set("storefront_token", token);
-  url.searchParams.set("pageSize", "50");
+  baseUrl.searchParams.set("storefront_token", token);
+  baseUrl.searchParams.set("size", "50");
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok) throw new Error(`Provider returned ${response.status}`);
-    const products = mapProducts(await response.json());
+    const rows: unknown[] = [];
+    for (let page = 0; page < 100; page += 1) {
+      const url = new URL(baseUrl);
+      url.searchParams.set("page", String(page));
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error(`Provider returned ${response.status}`);
+      const payload = (await response.json()) as any;
+      if (!payload || !Array.isArray(payload.results))
+        throw new Error("Malformed provider response");
+      rows.push(...payload.results);
+      if (payload.paging?.hasNextPage !== true) break;
+      if (page === 99) throw new Error("Provider pagination exceeded its safety limit");
+    }
+    const uniqueRows = [...new Map(rows.map((row: any) => [row?.id || row?.slug, row])).values()];
+    const products = mapProducts({ results: uniqueRows });
     const seconds = Math.max(
       60,
       Number(process.env.FOURTHWALL_CACHE_SECONDS || 600),

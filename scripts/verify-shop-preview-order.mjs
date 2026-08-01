@@ -37,5 +37,15 @@ assert.ok(
     international.includes("Date.parse(b.updatedAt"),
   "Fourthwall products must be newest-first when provider dates are available",
 );
+assert.ok(
+  international.includes('baseUrl.searchParams.set("size", "50")') &&
+    international.includes('url.searchParams.set("page", String(page))') &&
+    international.includes("payload.paging?.hasNextPage !== true"),
+  "Fourthwall integration must fetch every provider page instead of caching the default first 10 products",
+);
+assert.ok(
+  !international.includes('searchParams.set("pageSize"'),
+  "unsupported Fourthwall pageSize parameter must not return",
+);
 
 console.log("Regional shop preview ordering verification passed.");
