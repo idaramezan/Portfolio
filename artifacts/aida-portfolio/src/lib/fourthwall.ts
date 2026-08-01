@@ -39,6 +39,15 @@ export async function getInternationalProducts(
     throw new Error("Invalid international product response");
   return data;
 }
+let catalogueRequest: Promise<InternationalResponse> | null = null;
+export function getInternationalProductsCached() {
+  if (!catalogueRequest)
+    catalogueRequest = getInternationalProducts().catch((error) => {
+      catalogueRequest = null;
+      throw error;
+    });
+  return catalogueRequest;
+}
 export function isSafeFourthwallUrl(value: string, shopUrl: string | null) {
   try {
     const url = new URL(value);

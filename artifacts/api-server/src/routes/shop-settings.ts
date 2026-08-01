@@ -52,6 +52,27 @@ function validPublicSocialUrls(settings: Record<string, unknown>) {
   });
 }
 
+function validFourthwallConnections(settings: Record<string, unknown>) {
+  const configured = process.env.FOURTHWALL_SHOP_URL;
+  let expectedHost = "";
+  try { expectedHost = configured ? new URL(configured).hostname : ""; } catch { return false; }
+  const products = [settings.printProducts, settings.originalProducts].flatMap((value) => Array.isArray(value) ? value : []);
+  return products.every((product) => {
+    if (!product || typeof product !== "object") return false;
+    const record = product as Record<string, unknown>;
+    const id = String(record.fourthwallProductId || "").trim();
+    const url = String(record.fourthwallProductUrl || "").trim();
+    const type = String(record.fourthwallLinkType || "").trim();
+    if (type && !["exact", "edition", "related"].includes(type)) return false;
+    if (id && id.length > 200) return false;
+    if (!url) return true;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" && Boolean(expectedHost) && parsed.hostname === expectedHost;
+    } catch { return false; }
+  });
+}
+
 router.get("/shop-settings", async (request, response) => {
   try {
     await ensureTable();
@@ -76,6 +97,8 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
     return response.status(400).json({ error: "Valid shop settings are required" });
   if (!validPublicSocialUrls(request.body.settings))
     return response.status(400).json({ error: "Social links must be valid HTTPS URLs" });
+  if (!validFourthwallConnections(request.body.settings))
+    return response.status(400).json({ error: "Fourthwall connections must use valid products and the configured Fourthwall shop" });
   try {
     await ensureTable();
     const result = await pool.query(

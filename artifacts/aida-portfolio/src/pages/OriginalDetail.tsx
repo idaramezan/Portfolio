@@ -5,6 +5,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible } from "@/lib/product-status";
 import type { Market } from "@/lib/market";
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
+import InternationalProductOption from "@/components/InternationalProductOption";
 
 export default function OriginalDetail({ market }: { market: Market }) {
   const [, params] = useRoute("/shop/:market/originals/:slug");
@@ -55,6 +56,7 @@ export default function OriginalDetail({ market }: { market: Market }) {
               region={market === "turkiye" ? "TR" : "INTERNATIONAL"}
               hideImage
             />
+            {market === "turkiye" && <InternationalProductOption fourthwallProductId={product.fourthwallProductId} fourthwallProductUrl={product.fourthwallProductUrl} relationshipType={product.fourthwallLinkType} sourceProductId={product.id} sourceProductType="original" displayContext="product_page" />}
             <p className="mt-5 text-sm text-ink/60">
               Certificate of authenticity included.{" "}
               {market === "turkiye"

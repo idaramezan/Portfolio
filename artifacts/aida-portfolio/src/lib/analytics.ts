@@ -16,6 +16,7 @@ export type AnalyticsEventName =
   | "event_application_started"
   | "event_application_submitted"
   | "fourthwall_product_clicked"
+  | "fourthwall_product_click"
   | "newsletter_section_viewed"
   | "newsletter_form_started"
   | "newsletter_signup_success"

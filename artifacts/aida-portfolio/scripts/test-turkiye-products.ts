@@ -24,6 +24,7 @@ import {
   normalizeProductStatus,
 } from "../src/lib/product-status.ts";
 import { formatCompactNumber } from "../src/lib/compact-number.ts";
+import { isSafeFourthwallUrl } from "../src/lib/fourthwall.ts";
 import {
   ARTWORK_SURFACE_LABELS,
   formatArtworkSurface,
@@ -37,6 +38,8 @@ assert.equal(normalizeArtworkSurface("wood"), "paper");
 assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, "40"), 400000);
 assert.equal(getTurkiyeCataloguePrice({ kind: "print", category: "sticker", priceUsdCents: 25000 }, "40"), 25000);
 assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, null), Number.POSITIVE_INFINITY);
+assert.equal(isSafeFourthwallUrl("https://shop.example.com/products/print", "https://shop.example.com"), true);
+assert.equal(isSafeFourthwallUrl("https://evil.example/products/print", "https://shop.example.com"), false);
 assert.equal(formatArtworkSurface("paper"), "Oil pastel on paper");
 assert.equal(formatArtworkSurface("canvas"), "Oil pastel on canvas");
 assert.deepEqual(Object.keys(ARTWORK_SURFACE_LABELS), ["paper", "canvas"]);
@@ -541,5 +544,23 @@ const printDetailSource = readFileSync(
 );
 assert.ok(printDetailSource.includes('(item.slug || item.id) === params?.slug'));
 assert.ok(printDetailSource.includes("<TurkeyProductDialog"));
+const internationalOptionSource = readFileSync(
+  new URL("../src/components/InternationalProductOption.tsx", import.meta.url),
+  "utf8",
+);
+const fourthwallConnectionSource = readFileSync(
+  new URL("../src/components/admin/FourthwallProductConnection.tsx", import.meta.url),
+  "utf8",
+);
+assert.ok(internationalOptionSource.includes('trackAnalytics("fourthwall_product_click"'));
+assert.ok(internationalOptionSource.includes('rel="noopener noreferrer"'));
+assert.ok(internationalOptionSource.includes("if (!href) return null"));
+assert.ok(fourthwallConnectionSource.includes("Remove connection"));
+assert.ok(fourthwallConnectionSource.includes("International edition"));
+const originalDetailSource = readFileSync(
+  new URL("../src/pages/OriginalDetail.tsx", import.meta.url),
+  "utf8",
+);
+assert.ok(originalDetailSource.includes("<InternationalProductOption"));
 
 console.log("Türkiye product pricing and validation tests passed.");

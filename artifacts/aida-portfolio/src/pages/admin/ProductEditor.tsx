@@ -38,6 +38,7 @@ import {
   normalizeArtworkSurface,
   type ArtworkSurface,
 } from "@/lib/artwork-surface";
+import FourthwallProductConnection from "@/components/admin/FourthwallProductConnection";
 const field = "mt-2 h-11 w-full border border-ink/15 bg-paper px-3 text-sm";
 const area = "mt-2 min-h-28 w-full border border-ink/15 bg-paper p-3 text-sm";
 const slugify = (x: string) =>
@@ -1578,6 +1579,7 @@ export default function ProductEditor({
               </p>
             </div>
           )}
+          {!isMail && <FourthwallProductConnection product={draft as ManagedProduct} onChange={update} />}
           {isMail && (
             <div className="border border-ink/10 bg-paper p-5 text-sm">
               <strong>Türkiye Shop only</strong>

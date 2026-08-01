@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  getInternationalProducts,
+  getInternationalProductsCached,
   type InternationalProduct,
 } from "@/lib/fourthwall";
 export function useInternationalProducts() {
@@ -9,18 +9,20 @@ export function useInternationalProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   useEffect(() => {
-    const controller = new AbortController();
-    getInternationalProducts(controller.signal)
+    let active = true;
+    getInternationalProductsCached()
       .then((data) => {
+        if (!active) return;
         setProducts(data.products);
         setShopUrl(data.shopUrl);
       })
       .catch((reason: any) => {
+        if (!active) return;
         setError(true);
         setShopUrl(reason?.fallback?.shopUrl || null);
       })
-      .finally(() => setLoading(false));
-    return () => controller.abort();
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
   }, []);
   return { products, shopUrl, loading, error };
 }

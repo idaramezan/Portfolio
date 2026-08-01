@@ -7,6 +7,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible } from "@/lib/product-status";
 import type { Market } from "@/lib/market";
 import type { ManagedProduct } from "@/lib/store";
+import InternationalProductOption from "@/components/InternationalProductOption";
 
 export default function PrintDetail({ market }: { market: Market }) {
   const [, params] = useRoute("/shop/:market/prints/:slug");
@@ -36,6 +37,7 @@ export default function PrintDetail({ market }: { market: Market }) {
         <div>
           <p className="eyebrow">Made from Aida’s original art</p>
           <ManagedProductCard product={product} region={market === "turkiye" ? "TR" : "INTERNATIONAL"} hideImage onChooseOptions={() => setSelected(product)} />
+          {market === "turkiye" && <InternationalProductOption fourthwallProductId={product.fourthwallProductId} fourthwallProductUrl={product.fourthwallProductUrl} relationshipType={product.fourthwallLinkType} sourceProductId={product.id} sourceProductType={product.category || "print"} displayContext="product_page" />}
         </div>
       </div>
       <TurkeyProductDialog product={selected} onClose={() => setSelected(null)} />

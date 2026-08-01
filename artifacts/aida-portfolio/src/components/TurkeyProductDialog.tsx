@@ -13,6 +13,7 @@ import {
   type TshirtColor,
 } from "@/lib/turkiye-products";
 import { isSoldOut } from "@/lib/product-status";
+import InternationalProductOption from "@/components/InternationalProductOption";
 
 export default function TurkeyProductDialog({
   product,
@@ -559,6 +560,7 @@ export default function TurkeyProductDialog({
           <p className="mt-3 text-xs text-ink/50">
             Your selection is confirmed personally with Aida on WhatsApp.
           </p>
+          <InternationalProductOption fourthwallProductId={product.fourthwallProductId} fourthwallProductUrl={product.fourthwallProductUrl} relationshipType={product.fourthwallLinkType} sourceProductId={product.id} sourceProductType={category} displayContext="product_modal" />
           <p
             aria-live="polite"
             className="mt-2 text-sm font-semibold text-coral"

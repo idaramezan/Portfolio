@@ -72,6 +72,9 @@ export interface ManagedProduct {
     approximateDimensions?: string;
   };
   printOptionWarnings?: string[];
+  fourthwallProductId?: string;
+  fourthwallProductUrl?: string;
+  fourthwallLinkType?: "exact" | "edition" | "related";
 }
 
 export type ShoppingRegion = "TR" | "INTERNATIONAL";
