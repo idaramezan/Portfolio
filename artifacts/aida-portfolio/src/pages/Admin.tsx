@@ -12,6 +12,7 @@ import CampaignComposer from "@/pages/admin/CampaignComposer";
 import FeaturedStudioLetter from "@/pages/admin/FeaturedStudioLetter";
 import EventRegistrations from "@/pages/admin/EventRegistrations";
 import EventBanner from "@/pages/admin/EventBanner";
+import EventsAdmin from "@/pages/admin/Events";
 import CollectorExperience from "@/pages/admin/CollectorExperience";
 import Analytics from "@/pages/admin/Analytics";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
@@ -149,6 +150,7 @@ export default function Admin() {
   if (location === "/admin/subscribers/featured-letter")
     return <FeaturedStudioLetter />;
   if (location === "/admin/events/painting-day") return <EventRegistrations />;
+  if (location === "/admin/events") return <EventsAdmin />;
   if (location === "/admin/marketing/event-banner") return <EventBanner />;
   if (location === "/admin/marketing/collector-experience")
     return <CollectorExperience />;

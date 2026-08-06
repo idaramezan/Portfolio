@@ -61,6 +61,11 @@ const EVENTS = new Set([
   "discord_join_click",
   "stream_section_view",
   "discord_section_view",
+  "event_page_view",
+  "event_booking_click",
+  "finished_event_open",
+  "event_gallery_open",
+  "event_newsletter_signup",
 ]);
 const META_KEYS = new Set([
   "productType",
@@ -78,6 +83,8 @@ const META_KEYS = new Set([
   "placement",
   "destinationType",
   "platform",
+  "eventId",
+  "status",
   "location",
   "localProductId",
   "localProductType",

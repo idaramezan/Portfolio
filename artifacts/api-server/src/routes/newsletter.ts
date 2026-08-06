@@ -181,13 +181,13 @@ async function eventConfig() {
 }
 
 async function eventRemainingSeats(capacity: number, client = pool) {
-  const reserved = await client.query(
+  const [reserved, applications] = await Promise.all([client.query(
     `SELECT COALESCE(SUM(seat_count), 0)::int AS count
      FROM newsletter_event_interests
      WHERE campaign_id = $1 AND reservation_status IN ('confirmed', 'attended')`,
     [ISTANBUL_EVENT_CAMPAIGN],
-  );
-  return Math.max(0, capacity - Number(reserved.rows[0]?.count || 0));
+  ), client.query(`SELECT COUNT(*)::int AS count FROM event_applications WHERE event_id=$1 AND status IN ('accepted','attended')`, [ISTANBUL_EVENT_CAMPAIGN])]);
+  return Math.max(0, capacity - Number(reserved.rows[0]?.count || 0) - Number(applications.rows[0]?.count || 0));
 }
 
 type CampaignBlock =
@@ -863,7 +863,7 @@ router.get("/event-banner", async (req, res) => {
     const now = new Date();
     const visible =
       Boolean(config.enabled) &&
-      ["active", "scheduled"].includes(config.status) &&
+      ["active", "scheduled", "booking_open"].includes(config.status) &&
       (!config.display_start_at || now >= new Date(config.display_start_at)) &&
       (!config.display_end_at || now < new Date(config.display_end_at)) &&
       (placement === "home"
@@ -910,6 +910,11 @@ router.put("/event-banner/admin", requireAdmin, async (req, res) => {
       "active",
       "paused",
       "expired",
+      "booking_open",
+      "fully_booked",
+      "booking_closed",
+      "cancelled",
+      "archived",
       "completed",
     ]);
     const audiences = new Set(["girls_only", "boys_only", "everyone"]);
@@ -1022,7 +1027,7 @@ router.get("/event-status", async (req, res) => {
       campaignId: ISTANBUL_EVENT_CAMPAIGN,
       active:
         Boolean(config.enabled) &&
-        ["active", "scheduled"].includes(config.status) &&
+        ["active", "scheduled", "booking_open"].includes(config.status) &&
         (!config.display_start_at ||
           now >= new Date(config.display_start_at)) &&
         (!config.display_end_at || now < new Date(config.display_end_at)),
@@ -1741,7 +1746,7 @@ router.post("/", async (req, res) => {
       const config = await eventConfig();
       if (
         !config.enabled ||
-        !["active", "scheduled"].includes(config.status) ||
+        !["active", "scheduled", "booking_open"].includes(config.status) ||
         (config.display_end_at && new Date() >= new Date(config.display_end_at))
       )
         return res.status(410).json({ error: "This event campaign has ended" });

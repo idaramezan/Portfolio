@@ -48,7 +48,12 @@ export type AnalyticsEventName =
   | "stream_platform_click"
   | "discord_join_click"
   | "stream_section_view"
-  | "discord_section_view";
+  | "discord_section_view"
+  | "event_page_view"
+  | "event_booking_click"
+  | "finished_event_open"
+  | "event_gallery_open"
+  | "event_newsletter_signup";
 
 export const ANALYTICS_CONSENT_KEY = "aida-analytics-consent";
 const VISITOR_COOKIE = "aida_analytics_visitor";

@@ -27,9 +27,11 @@ import Newsletter from "@/pages/Newsletter";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 import StickerDropExperience from "@/components/StickerDropExperience";
-import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
 import Checkout, { CheckoutSuccess } from "@/pages/Checkout";
 import EventApply from "@/pages/EventApply";
+import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
+import EventReview from "@/pages/EventReview";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -77,9 +79,7 @@ function Router() {
               path="/shop/turkiye/originals"
               component={regional("TR", "originals")}
             />
-            <Route
-              path="/shop/turkiye/prints/:slug"
-            >
+            <Route path="/shop/turkiye/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>
             <Route
@@ -141,12 +141,27 @@ function Router() {
               <RedirectTo to="/newsletter" />
             </Route>
             <Route path="/event">
-              {() => <IstanbulPaintingEventBanner placement="home" />}
+              <RedirectTo to="/events" />
             </Route>
-            <Route path="/checkout/turkiye">{() => <Checkout market="turkiye" />}</Route>
-            <Route path="/checkout/international-originals">{() => <Checkout market="international_original" />}</Route>
-            <Route path="/checkout/success/:orderNumber">{(params) => <CheckoutSuccess orderNumber={params.orderNumber} />}</Route>
-            <Route path="/events/:eventId/apply">{(params) => <EventApply eventId={params.eventId} />}</Route>
+            <Route path="/events/:slug/review/:token">
+              {(params) => <EventReview token={params.token} />}
+            </Route>
+            <Route path="/checkout/turkiye">
+              {() => <Checkout market="turkiye" />}
+            </Route>
+            <Route path="/checkout/international-originals">
+              {() => <Checkout market="international_original" />}
+            </Route>
+            <Route path="/checkout/success/:orderNumber">
+              {(params) => <CheckoutSuccess orderNumber={params.orderNumber} />}
+            </Route>
+            <Route path="/events/:eventId/apply">
+              {(params) => <EventApply eventId={params.eventId} />}
+            </Route>
+            <Route path="/events/:slug">
+              {(params) => <EventDetail slug={params.slug} />}
+            </Route>
+            <Route path="/events" component={Events} />
             <Route path="/international">
               <RedirectTo to="/shop/international" />
             </Route>
@@ -161,7 +176,12 @@ function Router() {
 function AnalyticsRouteTracker() {
   const [location] = useLocation();
   useEffect(() => {
-    if (!analyticsConsent() || location.startsWith("/admin")) return;
+    if (
+      !analyticsConsent() ||
+      location.startsWith("/admin") ||
+      /^\/events\/[^/]+\/review\//.test(location)
+    )
+      return;
     trackAnalytics("page_view");
     if (location === "/shop/turkiye") trackAnalytics("turkiye_shop_opened");
     if (location === "/shop/international")
