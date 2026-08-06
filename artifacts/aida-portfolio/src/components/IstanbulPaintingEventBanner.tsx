@@ -19,6 +19,7 @@ import { PaperButton } from "@/components/ui/playful-studio";
 
 type EventConfig = {
   id: string;
+  slug: string;
   timezone: string;
   event_start_at: string;
   total_capacity: number;
@@ -69,7 +70,7 @@ export default function IstanbulPaintingEventBanner({
   useEffect(() => {
     trackAnalytics("painting_event_banner_viewed");
     fetch(
-      `/api/newsletter/event-banner?placement=${encodeURIComponent(placement)}`,
+      `/api/events/feature?placement=${encodeURIComponent(placement)}`,
       {
         cache: "no-store",
       },
@@ -256,7 +257,7 @@ export default function IstanbulPaintingEventBanner({
               : `${remainingSeats} ${ui.remaining}`}
           </strong>
           <PaperButton
-            href="/event"
+            href={`/events/${config.slug}`}
             variant="pink"
             size="sm"
             arrow

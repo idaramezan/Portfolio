@@ -152,6 +152,23 @@ export default function EventDetail({ slug }: { slug: string }) {
           </div>
         </section>
       )}
+      {completed && (
+        <section className="events-empty">
+          <h2>
+            {locale === "tr"
+              ? "Sıradaki buluşmayı kaçırma"
+              : "Don’t miss the next gathering"}
+          </h2>
+          <p>
+            {locale === "tr"
+              ? "Yeni etkinlikleri ilk duyanlardan olmak için ücretsiz Bültene katıl."
+              : "Join the free Newsletter to hear when the next studio event opens."}
+          </p>
+          <Link className="events-button" href="/newsletter">
+            {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"} →
+          </Link>
+        </section>
+      )}
       {lightbox !== null && (
         <div
           role="dialog"

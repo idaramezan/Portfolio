@@ -52,8 +52,12 @@ const siteUrl = () =>
   (process.env.PUBLIC_SITE_URL || "https://www.aedaart.com").replace(/\/$/, "");
 
 async function ensureSchema() {
-  await pool.query(`ALTER TABLE event_banner_config DROP CONSTRAINT IF EXISTS event_banner_config_status_check`);
-  await pool.query(`ALTER TABLE event_banner_config ADD CONSTRAINT event_banner_config_status_check CHECK (status IN ('draft','scheduled','booking_open','fully_booked','booking_closed','active','paused','expired','completed','cancelled','archived'))`);
+  await pool.query(
+    `ALTER TABLE event_banner_config DROP CONSTRAINT IF EXISTS event_banner_config_status_check`,
+  );
+  await pool.query(
+    `ALTER TABLE event_banner_config ADD CONSTRAINT event_banner_config_status_check CHECK (status IN ('draft','scheduled','booking_open','fully_booked','booking_closed','active','paused','expired','completed','cancelled','archived'))`,
+  );
   await pool.query(`ALTER TABLE event_banner_config
     ADD COLUMN IF NOT EXISTS slug TEXT,
     ADD COLUMN IF NOT EXISTS short_description_en TEXT,
@@ -107,6 +111,18 @@ async function ensureSchema() {
     display_name TEXT NOT NULL, rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5), comment TEXT NOT NULL,
     original_display_name TEXT NOT NULL, original_comment TEXT NOT NULL, public_display_consent BOOLEAN NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending', moderation_note TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS homepage_event_feature (
+    id TEXT PRIMARY KEY DEFAULT 'primary', enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    event_id TEXT REFERENCES event_banner_config(id) ON DELETE SET NULL,
+    show_on_homepage BOOLEAN NOT NULL DEFAULT TRUE, show_on_turkiye_shop BOOLEAN NOT NULL DEFAULT FALSE,
+    title_override TEXT, desktop_object_position TEXT, mobile_object_position TEXT,
+    hide_after_event BOOLEAN NOT NULL DEFAULT TRUE, show_remaining_places BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+  await pool.query(`INSERT INTO homepage_event_feature(id,enabled,event_id,show_on_homepage,show_on_turkiye_shop,desktop_object_position,hide_after_event,show_remaining_places)
+    SELECT 'primary',enabled,id,show_on_homepage,show_on_turkiye_shop,image_object_position,TRUE,TRUE FROM event_banner_config
+    WHERE id='istanbul-painting-day-2026-08-04' ON CONFLICT(id) DO NOTHING`);
+  await pool.query(`UPDATE event_banner_config SET status='completed',completed_at=COALESCE(completed_at,event_end_at,event_start_at),slug=COALESCE(NULLIF(slug,''),'istanbul-summer-painting-day')
+    WHERE (id='istanbul-painting-day-2026-08-04' OR internal_name ILIKE '%Istanbul%painting%day%') AND event_start_at<NOW() AND status IN ('active','scheduled','expired','paused','booking_closed','fully_booked')`);
 }
 
 async function reservedSeats(eventId: string) {
@@ -180,14 +196,19 @@ router.get("/", async (_req, res) => {
     await ensureSchema();
     const rows = (
       await pool.query(
-        `SELECT * FROM event_banner_config WHERE enabled=TRUE AND (status IN ('booking_open','active','fully_booked','completed') OR (status='cancelled' AND public_archive=TRUE)) ORDER BY event_start_at ASC`,
+        `SELECT * FROM event_banner_config WHERE enabled=TRUE AND status IN ('scheduled','booking_open','active','fully_booked','booking_closed','completed') ORDER BY event_start_at ASC`,
       )
     ).rows;
     const events = await Promise.all(rows.map((row) => publicEvent(row)));
     return res.json({
       current: events.filter((event) => event.bookable),
       upcoming: events.filter(
-        (event) => !event.bookable && ["fully_booked"].includes(event.status),
+        (event) =>
+          !event.bookable &&
+          ["scheduled", "fully_booked", "booking_closed"].includes(
+            event.status,
+          ) &&
+          Date.parse(event.event_start_at) > Date.now(),
       ),
       finished: events
         .filter((event) => event.status === "completed" && event.public_archive)
@@ -197,6 +218,57 @@ router.get("/", async (_req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ error: "Events could not be loaded" });
+  }
+});
+
+router.get("/feature", async (req, res) => {
+  try {
+    await ensureSchema();
+    const feature = (
+      await pool.query(
+        "SELECT * FROM homepage_event_feature WHERE id='primary'",
+      )
+    ).rows[0];
+    if (!feature?.enabled || !feature.event_id)
+      return res
+        .status(404)
+        .json({ error: "Homepage event feature is disabled" });
+    const placement = String(req.query.placement || "home");
+    if (
+      (placement === "home" && !feature.show_on_homepage) ||
+      (placement === "turkiye-shop" && !feature.show_on_turkiye_shop) ||
+      !["home", "turkiye-shop"].includes(placement)
+    )
+      return res.status(404).json({ error: "Event feature is not shown here" });
+    const row = (
+      await pool.query(
+        "SELECT * FROM event_banner_config WHERE id=$1 AND enabled=TRUE",
+        [feature.event_id],
+      )
+    ).rows[0];
+    if (
+      !row ||
+      ["draft", "archived", "cancelled"].includes(row.status) ||
+      (feature.hide_after_event && Date.parse(row.event_start_at) < Date.now())
+    )
+      return res.status(404).json({ error: "Featured event is unavailable" });
+    return res.json({
+      config: {
+        ...row,
+        banner_short_title_en: feature.title_override,
+        banner_short_title_tr: feature.title_override,
+        image_object_position:
+          feature.desktop_object_position || row.image_object_position,
+        mobile_object_position: feature.mobile_object_position,
+        show_remaining_places: feature.show_remaining_places,
+      },
+      remainingSeats: await reservedSeats(row.id).then((n) =>
+        Math.max(0, Number(row.total_capacity) - n),
+      ),
+      campaignId: row.id,
+    });
+  } catch {
+    return res.status(500).json({ error: "Event feature could not be loaded" });
   }
 });
 
@@ -341,6 +413,50 @@ router.post("/review/:token", async (req, res) => {
 });
 
 router.use("/admin", requireAdmin);
+router.get("/admin/feature/settings", async (_req, res) => {
+  await ensureSchema();
+  const feature = (
+    await pool.query("SELECT * FROM homepage_event_feature WHERE id='primary'")
+  ).rows[0];
+  const rows = (
+    await pool.query(
+      "SELECT * FROM event_banner_config ORDER BY event_start_at DESC",
+    )
+  ).rows;
+  return res.json({
+    feature,
+    events: await Promise.all(rows.map((row) => publicEvent(row, true))),
+  });
+});
+router.put("/admin/feature/settings", async (req, res) => {
+  await ensureSchema();
+  const b = req.body || {};
+  if (b.eventId) {
+    const exists = (
+      await pool.query("SELECT id FROM event_banner_config WHERE id=$1", [
+        b.eventId,
+      ])
+    ).rows[0];
+    if (!exists) return res.status(400).json({ error: "Select a valid event" });
+  }
+  const row = (
+    await pool.query(
+      `INSERT INTO homepage_event_feature(id,enabled,event_id,show_on_homepage,show_on_turkiye_shop,title_override,desktop_object_position,mobile_object_position,hide_after_event,show_remaining_places,updated_at) VALUES('primary',$1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) ON CONFLICT(id) DO UPDATE SET enabled=$1,event_id=$2,show_on_homepage=$3,show_on_turkiye_shop=$4,title_override=$5,desktop_object_position=$6,mobile_object_position=$7,hide_after_event=$8,show_remaining_places=$9,updated_at=NOW() RETURNING *`,
+      [
+        Boolean(b.enabled),
+        b.eventId || null,
+        Boolean(b.showOnHomepage),
+        Boolean(b.showOnTurkiyeShop),
+        clean(b.titleOverride, 200) || null,
+        clean(b.desktopObjectPosition, 80) || null,
+        clean(b.mobileObjectPosition, 80) || null,
+        b.hideAfterEvent !== false,
+        b.showRemainingPlaces !== false,
+      ],
+    )
+  ).rows[0];
+  return res.json({ feature: row });
+});
 router.get("/admin", async (_req, res) => {
   await ensureSchema();
   const rows = (

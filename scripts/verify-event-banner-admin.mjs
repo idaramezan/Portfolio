@@ -1,58 +1,16 @@
 import { readFileSync } from "node:fs";
-
-const route = readFileSync(
-  new URL("../artifacts/api-server/src/routes/newsletter.ts", import.meta.url),
-  "utf8",
-);
-const banner = readFileSync(
-  new URL(
-    "../artifacts/aida-portfolio/src/components/IstanbulPaintingEventBanner.tsx",
-    import.meta.url,
-  ),
-  "utf8",
-);
-const admin = readFileSync(
-  new URL(
-    "../artifacts/aida-portfolio/src/pages/admin/EventBanner.tsx",
-    import.meta.url,
-  ),
-  "utf8",
-);
-const migration = readFileSync(
-  new URL("../lib/db/migrations/0007_event_banner_short_title.sql", import.meta.url),
-  "utf8",
-);
-
-const attendanceSource = "reservation_status IN ('confirmed', 'attended')";
-if (
-  !route.includes(attendanceSource) ||
-  !route.includes("COALESCE(SUM(seat_count), 0)")
-)
-  throw new Error(
-    "Existing confirmed/attended remaining-seat calculation was not preserved",
-  );
-if (
-  !migration.includes("banner_short_title_en") ||
-  !route.includes("banner_short_title_en=$30") ||
-  !admin.includes("bannerShortTitleEn") ||
-  !banner.includes("config.banner_short_title_en || config.title_en")
-)
-  throw new Error("Optional event banner short titles are not wired end-to-end");
-if (!route.includes("pg_advisory_xact_lock(hashtext($1))"))
-  throw new Error("Existing event reservation capacity lock was not preserved");
-if (
-  !banner.includes("/api/newsletter/event-banner?placement=") ||
-  !admin.includes("/api/newsletter/event-banner/admin")
-)
-  throw new Error("Event Banner public/admin configuration is not connected");
-if (admin.includes('set("remainingSeats"'))
-  throw new Error("Admin must not manually override remaining places");
-if (
-  !admin.includes('body.append("image", file)') ||
-  !admin.includes('fetch("/api/admin/product-media"')
-)
-  throw new Error(
-    "Event Banner must upload images through the existing media library",
-  );
-
-console.log("Event Banner admin verification passed.");
+const read=(path)=>readFileSync(new URL(path,import.meta.url),"utf8");
+const eventsRoute=read("../artifacts/api-server/src/routes/events.ts");
+const newsletterRoute=read("../artifacts/api-server/src/routes/newsletter.ts");
+const banner=read("../artifacts/aida-portfolio/src/components/IstanbulPaintingEventBanner.tsx");
+const featureAdmin=read("../artifacts/aida-portfolio/src/pages/admin/EventBanner.tsx");
+const eventsAdmin=read("../artifacts/aida-portfolio/src/pages/admin/Events.tsx");
+const migration=read("../lib/db/migrations/0010_consolidate_event_feature.sql");
+if(!newsletterRoute.includes("reservation_status IN ('confirmed', 'attended')")||!eventsRoute.includes("reservedSeats"))throw new Error("Existing registration capacity source was not preserved");
+if(!migration.includes("homepage_event_feature")||!migration.includes("istanbul-painting-day-2026-08-04")||!migration.includes("status='completed'"))throw new Error("Legacy Istanbul event migration is missing or not idempotent");
+if(featureAdmin.includes("totalCapacity")||featureAdmin.includes("descriptionEn")||featureAdmin.includes("participationPriceTry"))throw new Error("Homepage Event Feature duplicates canonical event content");
+if(!featureAdmin.includes("Select event")||!featureAdmin.includes("Edit selected event")||!eventsRoute.includes('/admin/feature/settings'))throw new Error("Event Feature selector is not wired end-to-end");
+if(!banner.includes('/api/events/feature?placement='))throw new Error("Public banner does not read selected canonical event");
+if(!eventsAdmin.includes("Upload cover image")||!eventsAdmin.includes("Add event photos")||!eventsAdmin.includes("Private review link copied"))throw new Error("Event media or attendee review workflow is incomplete");
+if(featureAdmin.includes('set("remainingSeats"'))throw new Error("Remaining places must not be editable");
+console.log("Consolidated Events administration verification passed.");
