@@ -17,7 +17,7 @@ export const studioLetterCopy = {
     emailLabel: "Email address",
     emailPlaceholder: "Your email address",
     footerSubmit: "Join free",
-    compactSubmit: "Join the Newsletter — Free",
+    compactSubmit: "Join the Newsletter. It’s free",
     storySubmit: "Send me the full story",
     heroSubmit: "Send me the Newsletter",
     loading: "Joining…",

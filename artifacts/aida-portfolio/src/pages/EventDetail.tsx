@@ -146,7 +146,7 @@ export default function EventDetail({ slug }: { slug: string }) {
                   {"★".repeat(r.rating)}
                 </div>
                 <p>“{r.comment}”</p>
-                <cite>— {r.display_name}</cite>
+                <cite>· {r.display_name}</cite>
               </blockquote>
             ))}
           </div>

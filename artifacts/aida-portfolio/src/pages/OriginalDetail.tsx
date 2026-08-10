@@ -20,7 +20,7 @@ export default function OriginalDetail({ market }: { market: Market }) {
   );
   usePageMeta(
     product
-      ? `${product.name} — Original Painting | Aida Ramezani`
+      ? `${product.name} | Original Painting | Aida Ramezani`
       : "Original painting unavailable | Aida Ramezani",
     product?.description || "View original paintings by Aida Ramezani.",
   );
@@ -56,7 +56,16 @@ export default function OriginalDetail({ market }: { market: Market }) {
               region={market === "turkiye" ? "TR" : "INTERNATIONAL"}
               hideImage
             />
-            {market === "turkiye" && <InternationalProductOption fourthwallProductId={product.fourthwallProductId} fourthwallProductUrl={product.fourthwallProductUrl} relationshipType={product.fourthwallLinkType} sourceProductId={product.id} sourceProductType="original" displayContext="product_page" />}
+            {market === "turkiye" && (
+              <InternationalProductOption
+                fourthwallProductId={product.fourthwallProductId}
+                fourthwallProductUrl={product.fourthwallProductUrl}
+                relationshipType={product.fourthwallLinkType}
+                sourceProductId={product.id}
+                sourceProductType="original"
+                displayContext="product_page"
+              />
+            )}
             <p className="mt-5 text-sm text-ink/60">
               Certificate of authenticity included.{" "}
               {market === "turkiye"

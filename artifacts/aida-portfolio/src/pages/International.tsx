@@ -4,7 +4,7 @@ import { useInternationalProducts } from "@/hooks/use-international";
 import { usePageMeta } from "@/hooks/use-page-meta";
 export default function International() {
   usePageMeta(
-    "International Shop — Aida Ramezani",
+    "International Shop | Aida Ramezani",
     "Shop Aida Ramezani products internationally through Fourthwall.",
   );
   const { products, shopUrl, loading, error } = useInternationalProducts();

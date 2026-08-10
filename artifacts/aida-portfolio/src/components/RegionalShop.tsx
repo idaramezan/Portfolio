@@ -78,12 +78,12 @@ export function ShopPageHeader({
           <p>
             <strong>
               {category === "prints"
-                ? "Shipping price will be calculated based on the package size"
+                ? "Türkiye shipping from 200 TL"
                 : "Free shipping within Türkiye"}
             </strong>
             <br />
-            Add your chosen pieces to the Collection Basket, then continue on
-            WhatsApp to confirm availability and details.
+            Add your chosen pieces to the Collection Basket, then review your
+            delivery details and total at checkout.
           </p>
         </div>
       ) : category ? (
@@ -237,8 +237,8 @@ export default function RegionalShop({
   const slug = region === "TR" ? "turkiye" : "international";
   usePageMeta(
     region === "TR"
-      ? "Türkiye Shop — Aida Ramezani"
-      : "International Shop — Aida Ramezani",
+      ? "Türkiye Shop | Aida Ramezani"
+      : "International Shop | Aida Ramezani",
     region === "TR"
       ? category === "prints"
         ? "Shop signed prints and studio goods by Aida Ramezani in Türkiye. Shipping price is calculated based on package size."
@@ -390,7 +390,10 @@ export default function RegionalShop({
                     key={product.id}
                     product={product}
                     region="TR"
-                    viewHref={printDetailHref("turkiye", product.slug || product.id)}
+                    viewHref={printDetailHref(
+                      "turkiye",
+                      product.slug || product.id,
+                    )}
                     onChooseOptions={() => setSelectedTurkeyProduct(product)}
                   />
                 ))}

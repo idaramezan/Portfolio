@@ -129,7 +129,9 @@ export default function ManagedProductCard({
         >
           <img
             src={product.imageUrl}
-            alt={product.altText || `${product.name}, ${categoryLabel(product)}`}
+            alt={
+              product.altText || `${product.name}, ${categoryLabel(product)}`
+            }
             loading="lazy"
             decoding="async"
             sizes="(max-width: 640px) calc(100vw - 36px), (max-width: 1100px) 45vw, 280px"
@@ -172,7 +174,7 @@ export default function ManagedProductCard({
               <PackageCheck size={17} aria-hidden="true" />
               {original
                 ? "Free shipping within Türkiye"
-                : "Shipping price will be calculated based on the package size"}
+                : "Türkiye shipping from 200 TL"}
             </span>
           ) : (
             "International shipping is calculated separately."

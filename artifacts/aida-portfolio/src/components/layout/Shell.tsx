@@ -327,6 +327,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               );
             })}
             {[
+              ["/100-windows", "100 Windows"],
+              ["/events", locale === "tr" ? "Etkinlikler" : "Events"],
               [
                 "/newsletter",
                 locale === "tr" ? "Bülten" : "Newsletter",
@@ -337,7 +339,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               <Link
                 href={href}
                 onClick={() => closeMobileMenu()}
-                className="mobile-menu__link"
+                className={cn("mobile-menu__link", location.startsWith(href) && "is-active")}
+                aria-current={location.startsWith(href) ? "page" : undefined}
               >
                 {label}
               </Link>

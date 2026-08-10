@@ -23,7 +23,7 @@ const copy = {
     watch: "Watch live",
     archive: "THE PROJECT SO FAR",
     archiveTitle: "The windows so far.",
-    archiveHelp: "Newest first — scroll back through the project to Day 01.",
+    archiveHelp: "Newest first. Scroll back through the project to Day 01.",
     easel: "Today’s window is still being prepared.",
     more: "Show more windows",
     empty: "The first window is on its way.",
@@ -32,7 +32,7 @@ const copy = {
     next: "FROM THE PROJECT",
     nextTitle: "Follow the next window.",
     nextBody:
-      "New paintings, little stories and print releases from 100 Windows — sent through Aida’s Newsletter.",
+      "New paintings, little stories and print releases from 100 Windows, sent through Aida’s Newsletter.",
     submit: "Follow the next window",
     remaining: (n: number) => `${n} windows still to come`,
   },
@@ -115,8 +115,8 @@ export default function HundredWindows() {
 
   usePageMeta(
     locale === "tr"
-      ? "100 Pencere, 100 Gün — Aida Ramezani"
-      : "100 Windows, 100 Days — Aida Ramezani",
+      ? "100 Pencere, 100 Gün | Aida Ramezani"
+      : "100 Windows, 100 Days | Aida Ramezani",
     locale === "tr"
       ? "Aida Ramezani’nin 100 günlük resim projesini takip et."
       : "Follow Aida Ramezani’s daily 100 Windows painting project.",

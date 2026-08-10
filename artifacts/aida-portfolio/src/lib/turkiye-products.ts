@@ -2,6 +2,12 @@ export type TurkeyProductCategory = "tshirt" | "mug" | "print" | "sticker";
 export type PrintFraming = "framed" | "unframed";
 export type TshirtColor = "black" | "white";
 
+export function calculateTurkiyePrintShipping(printQuantity: number) {
+  if (!Number.isInteger(printQuantity) || printQuantity < 0)
+    throw new Error("Print quantity must be a non-negative integer.");
+  return printQuantity === 0 ? 0 : 20_000 + (printQuantity - 1) * 2_000;
+}
+
 export interface PrintSizeOption {
   id: string;
   label: string;

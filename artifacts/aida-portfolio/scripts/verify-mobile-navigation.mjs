@@ -143,10 +143,9 @@ assert.ok(
 );
 assert.ok(
   eventBanner.includes("home-event-announcement") &&
-    eventBanner.includes('href="/event"') &&
-    eventBanner.includes("Event details") &&
-    eventBanner.includes("lg:hidden") &&
-    eventBanner.includes("hidden rotate-[.35deg]") &&
+    eventBanner.includes('href={`/events/${config.slug}`}') &&
+    eventBanner.includes("View event details") &&
+    eventBanner.includes("compactAnnouncement") &&
     eventBanner.includes("/apply`}") &&
     eventBanner.includes("Apply for the event"),
   "Event Banner must provide a compact homepage announcement and full detail treatment",
@@ -156,8 +155,8 @@ assert.ok(
   "mobile storefront must not eagerly download the admin application",
 );
 assert.ok(
-  app.includes('<Route path="/event">') &&
-    app.includes('<IstanbulPaintingEventBanner placement="home" />'),
+  app.includes('<Route path="/events/:slug">') &&
+    home.includes('<IstanbulPaintingEventBanner placement="home" compact />'),
   "compact event announcement must lead to the existing full registration component",
 );
 assert.ok(

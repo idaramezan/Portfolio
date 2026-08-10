@@ -5,6 +5,7 @@ import Money from "@/components/Money";
 import { useToast } from "@/hooks/use-toast";
 import { addItemToCart, type ManagedProduct } from "@/lib/store";
 import {
+  calculateTurkiyePrintShipping,
   calculatePrintPrice,
   formatPrintSize,
   getFinishPriceDifference,
@@ -13,7 +14,7 @@ import {
   type TshirtColor,
 } from "@/lib/turkiye-products";
 import { isSoldOut } from "@/lib/product-status";
-import InternationalProductOption from "@/components/InternationalProductOption";
+import { useLocale } from "@/lib/locale";
 
 export default function TurkeyProductDialog({
   product,
@@ -39,6 +40,7 @@ export default function TurkeyProductDialog({
   const [message, setMessage] = useState("");
   const [added, setAdded] = useState(false);
   const { toast } = useToast();
+  const { locale } = useLocale();
 
   useEffect(() => {
     if (!product) return;
@@ -139,6 +141,9 @@ export default function TurkeyProductDialog({
   const selectedColor =
     category === "tshirt" ? color : category === "mug" ? "white" : undefined;
   const formattedSize = size ? formatPrintSize(size) : null;
+  const shipping =
+    category === "print" ? calculateTurkiyePrintShipping(quantity) : 0;
+  const orderTotal = pricing.lineTotalCents + shipping;
 
   const add = () => {
     if (!valid) {
@@ -204,8 +209,11 @@ export default function TurkeyProductDialog({
       setMessage("");
       setAdded(true);
       toast({
-        title: "Added to the basket",
-        description: `${product.name} · Quantity ${quantity}`,
+        title: locale === "tr" ? "Sepetine eklendi" : "Added to your basket",
+        description:
+          locale === "tr"
+            ? "Kargo ücreti sepetinde otomatik olarak güncellenir."
+            : "Shipping is updated automatically in your basket.",
         duration: 3000,
         className: "border-green/30 bg-[#edf6ed] text-ink",
       });
@@ -488,7 +496,10 @@ export default function TurkeyProductDialog({
                 <p className="flex justify-between">
                   <span>Base print</span>
                   <span>
-                    <Money baseAmountUsdCents={product.priceUsdCents} canonicalCurrency="TRY" />
+                    <Money
+                      baseAmountUsdCents={product.priceUsdCents}
+                      canonicalCurrency="TRY"
+                    />
                   </span>
                 </p>
                 {Boolean(size?.additionalPriceUsdCents) && (
@@ -507,25 +518,53 @@ export default function TurkeyProductDialog({
                   <p className="flex justify-between">
                     <span>Framed finish</span>
                     <span>
-                      +<Money baseAmountUsdCents={frameAdditional} canonicalCurrency="TRY" />
+                      +
+                      <Money
+                        baseAmountUsdCents={frameAdditional}
+                        canonicalCurrency="TRY"
+                      />
                     </span>
                   </p>
                 )}
               </div>
             ) : null}
-            <div className="mt-4 flex items-end justify-between border-t border-ink/10 pt-4">
-              <strong>Total</strong>
+            <div className="mt-4 space-y-2 border-t border-ink/10 pt-4 text-sm">
+              <p className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <Money
+                  baseAmountUsdCents={pricing.lineTotalCents}
+                  canonicalCurrency="TRY"
+                  showBase
+                />
+              </p>
+              {category === "print" && (
+                <p className="flex items-center justify-between">
+                  <span>Shipping</span>
+                  <Money
+                    baseAmountUsdCents={shipping}
+                    canonicalCurrency="TRY"
+                    showBase
+                  />
+                </p>
+              )}
+            </div>
+            <div className="mt-3 flex items-end justify-between border-t border-ink/10 pt-3">
+              <strong>TOTAL</strong>
               <Money
-                baseAmountUsdCents={pricing.lineTotalCents}
+                baseAmountUsdCents={orderTotal}
                 canonicalCurrency="TRY"
                 showBase
                 className="font-sans text-2xl font-bold"
               />
             </div>
-            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
-              <PackageCheck size={17} aria-hidden="true" />
-              Shipping price will be calculated based on the package size
-            </p>
+            {category === "print" && (
+              <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
+                <PackageCheck size={17} aria-hidden="true" />
+                {locale === "tr"
+                  ? "Türkiye içi kargo ilk baskı için 200 TL, eklenen her baskı için ise +20 TL'dir."
+                  : "Türkiye delivery is 200 TL for the first print, then 20 TL for each additional print."}
+              </p>
+            )}
           </section>
 
           {!valid && (
@@ -549,18 +588,17 @@ export default function TurkeyProductDialog({
           >
             {added ? (
               <>
-                <Check size={17} /> Added to the basket
+                <Check size={17} />
+                {locale === "tr" ? "Sepetine eklendi" : "Added to your basket"}
               </>
             ) : soldOut ? (
               "Sold out"
+            ) : locale === "tr" ? (
+              "Sepete ekle"
             ) : (
               "Add to basket"
             )}
           </button>
-          <p className="mt-3 text-xs text-ink/50">
-            Your selection is confirmed personally with Aida on WhatsApp.
-          </p>
-          <InternationalProductOption fourthwallProductId={product.fourthwallProductId} fourthwallProductUrl={product.fourthwallProductUrl} relationshipType={product.fourthwallLinkType} sourceProductId={product.id} sourceProductType={category} displayContext="product_modal" />
           <p
             aria-live="polite"
             className="mt-2 text-sm font-semibold text-coral"
@@ -575,10 +613,14 @@ export default function TurkeyProductDialog({
               className={`button-primary w-full disabled:opacity-70 ${added ? "!bg-green !text-paper" : ""}`}
             >
               {added
-                ? "Added to the basket"
+                ? locale === "tr"
+                  ? "Sepetine eklendi"
+                  : "Added to your basket"
                 : soldOut
                   ? "Sold out"
-                  : "Add to basket"}
+                  : locale === "tr"
+                    ? "Sepete ekle"
+                    : "Add to basket"}
             </button>
           </div>
         </div>

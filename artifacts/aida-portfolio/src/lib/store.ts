@@ -242,8 +242,8 @@ const PRINT_PRICING_REPORT_KEY = "aida-print-pricing-migration-report-v4";
 const defaultMail: StudioMailPackage = {
   id: "studio-mail-first-edition",
   slug: "first-edition",
-  title: "Mystery Mail — First Edition",
-  titleTr: "Gizemli Posta — İlk Edisyon",
+  title: "Mystery Mail: First Edition",
+  titleTr: "Gizemli Posta: İlk Edisyon",
   theme: "Studio Notes",
   shortDescription:
     "A limited themed parcel with an art postcard, handwritten note, stickers, and studio keepsakes.",
@@ -270,7 +270,7 @@ const defaultMail: StudioMailPackage = {
   displayOrder: 1,
   shippingCountries: ["TR"],
   shippingNote: "Delivery within Türkiye only",
-  dispatchTime: "Confirmed personally on WhatsApp",
+  dispatchTime: "Confirmed after order review",
   expiresAt: "2026-12-31T20:59:00.000Z",
   timezone: "Europe/Istanbul",
   maximumQuantity: 2,

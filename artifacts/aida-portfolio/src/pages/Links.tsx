@@ -87,7 +87,7 @@ function ImageLinkCard({
 }
 export default function Links() {
   usePageMeta(
-    "Aida Ramezani — Shop & Social Links",
+    "Aida Ramezani | Shop & Social Links",
     "Explore Aida Ramezani’s Türkiye shop, international Fourthwall collection and social channels.",
   );
   const settings = useShopSettings();
@@ -243,9 +243,8 @@ export default function Links() {
           <div className="mt-5 bg-ochre/10 p-5">
             <h2 className="text-2xl">Collect directly from the artist</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink/65">
-              Choose your pieces, add them to your basket, and continue
-              personally with Aida on WhatsApp to confirm availability, payment
-              and delivery.
+              Choose your pieces, add them to your basket, then review your
+              delivery details and total in the secure checkout.
             </p>
           </div>
         </section>

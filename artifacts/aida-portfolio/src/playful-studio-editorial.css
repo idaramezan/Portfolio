@@ -978,10 +978,10 @@ iframe[src*="feedback.smartlook"],
 
 /* Compact artist-studio mobile index. */
 .mobile-menu-overlay { position: fixed; inset: 0; z-index: 1000; background: rgb(64 40 58 / .16); backdrop-filter: blur(3px); }
-.mobile-menu { position: fixed; inset: 0; z-index: 1001; display: flex; width: 100%; height: 100dvh; min-width: 0; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: max(18px, env(safe-area-inset-top)) 22px max(22px, env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); visibility: hidden; pointer-events: none; transform: translateX(100%); transition: transform 220ms ease, visibility 0s linear 220ms; }
+.mobile-menu { position: fixed; inset: 0; z-index: 1001; display: flex; width: 100%; height: 100dvh; max-height: 100dvh; min-width: 0; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: max(18px, env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); visibility: hidden; pointer-events: none; transform: translateX(100%); transition: transform 220ms ease, visibility 0s linear 220ms; }
 .mobile-menu[data-open="true"] { visibility: visible; pointer-events: auto; transform: translateX(0); transition-delay: 0s; }
 .mobile-menu * { min-width: 0; }
-.mobile-menu__header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+.mobile-menu__header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 17px; border-bottom: 1px solid var(--line); background: var(--paper); }
 .mobile-menu__brand { margin: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font-serif); font-size: 27px; font-weight: 700; line-height: 1; letter-spacing: -.02em; text-decoration: none; }
 .mobile-menu__close { display: grid; width: 42px; height: 42px; padding: 0; flex: 0 0 auto; place-items: center; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--pink-soft); color: var(--ink); }
 .mobile-menu__close svg { width: 21px; height: 21px; }
@@ -1010,6 +1010,7 @@ iframe[src*="feedback.smartlook"],
 .mobile-menu__link:focus-visible,
 .mobile-menu__trigger:focus-visible,
 .mobile-menu__close:focus-visible { outline: 3px solid var(--pink-dark); outline-offset: 3px; }
+.mobile-menu__link.is-active { color: var(--pink-dark); text-decoration: underline; text-decoration-color: var(--pink); text-decoration-thickness: 3px; text-underline-offset: 7px; }
 
 @media (max-width: 359px) {
   .mobile-menu { padding-inline: 18px; }

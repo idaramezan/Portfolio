@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { PackageCheck, X } from "lucide-react";
+import { Minus, PackageCheck, Plus, X } from "lucide-react";
 import { Link } from "wouter";
 import {
   getCanonicalCartItemPricing,
   isCartItemAvailable,
   loadCart,
   removeCartItem,
+  updateCartItemQuantity,
 } from "@/lib/store";
 import Money from "@/components/Money";
 import { cn } from "@/lib/utils";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
+import { calculateTurkiyePrintShipping } from "@/lib/turkiye-products";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -41,9 +43,17 @@ export default function CartDrawer({
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
-  const hasSeparatelyConfirmedShipping = cart.some(
-    (item) => item.kind === "print" || item.kind === "product",
+  const totalPrintQuantity = cart.reduce(
+    (total, item) => total + (item.kind === "print" ? item.quantity : 0),
+    0,
   );
+  const shipping =
+    region === "TR"
+      ? calculateTurkiyePrintShipping(totalPrintQuantity)
+      : cart.length
+        ? 10_000
+        : 0;
+  const orderTotal = subtotal + shipping;
   const hasCatalogRecord = (item: (typeof cart)[number]) => {
     const baseId = item.id.split(":")[0];
     if (item.kind === "original")
@@ -134,6 +144,40 @@ export default function CartDrawer({
                     </p>
                   )}
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
+                  {x.kind !== "original" && (
+                    <div
+                      className="mt-2 inline-flex items-center border border-ink/15"
+                      aria-label={`Quantity for ${x.title}`}
+                    >
+                      <button
+                        type="button"
+                        className="grid min-h-11 min-w-11 place-items-center disabled:opacity-35"
+                        onClick={() =>
+                          updateCartItemQuantity(x.id, x.quantity - 1, region)
+                        }
+                        aria-label={`Decrease ${x.title} quantity`}
+                      >
+                        <Minus size={15} aria-hidden="true" />
+                      </button>
+                      <span
+                        className="min-w-10 text-center text-sm font-bold"
+                        aria-live="polite"
+                      >
+                        {x.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        className="grid min-h-11 min-w-11 place-items-center disabled:opacity-35"
+                        onClick={() =>
+                          updateCartItemQuantity(x.id, x.quantity + 1, region)
+                        }
+                        disabled={x.quantity >= (x.maxQuantity || 99)}
+                        aria-label={`Increase ${x.title} quantity`}
+                      >
+                        <Plus size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                   {unavailableItems.some((item) => item.id === x.id) && (
                     <p
                       role="alert"
@@ -163,10 +207,27 @@ export default function CartDrawer({
           )}
         </div>
         <footer className="border-t border-ink/10 p-6">
+          <p className="eyebrow mb-3">Order summary</p>
           <div className="flex justify-between">
-            <span>{region === "TR" ? "Items" : "Artwork"} subtotal</span>
+            <span>Products</span>
             <Money
               baseAmountUsdCents={subtotal}
+              canonicalCurrency={basketCurrency}
+              className="font-bold"
+            />
+          </div>
+          <div className="mt-2 flex justify-between" aria-live="polite">
+            <span>Shipping</span>
+            <Money
+              baseAmountUsdCents={shipping}
+              canonicalCurrency={basketCurrency}
+              className="font-bold"
+            />
+          </div>
+          <div className="mt-3 flex justify-between border-t border-ink/15 pt-3 text-lg">
+            <strong>Total</strong>
+            <Money
+              baseAmountUsdCents={orderTotal}
               canonicalCurrency={basketCurrency}
               className="font-bold"
             />
@@ -174,8 +235,8 @@ export default function CartDrawer({
           {region === "TR" ? (
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
-              {hasSeparatelyConfirmedShipping
-                ? "Print delivery: 200 TL for the first print + 20 TL for each additional print"
+              {totalPrintQuantity > 0
+                ? "Türkiye delivery is 200 TL for the first print, then 20 TL for each additional print."
                 : "Free shipping within Türkiye"}
             </p>
           ) : (
@@ -183,9 +244,15 @@ export default function CartDrawer({
               International original delivery: 100 USD per order
             </p>
           )}
-          {cart.length > 0 && unavailableItems.length === 0 && !cart.some(item => item.kind === "studio-mail") ? (
+          {cart.length > 0 &&
+          unavailableItems.length === 0 &&
+          !cart.some((item) => item.kind === "studio-mail") ? (
             <Link
-              href={region === "TR" ? "/checkout/turkiye" : "/checkout/international-originals"}
+              href={
+                region === "TR"
+                  ? "/checkout/turkiye"
+                  : "/checkout/international-originals"
+              }
               onClick={() => {
                 trackAnalytics("checkout_started", {
                   metadata: {

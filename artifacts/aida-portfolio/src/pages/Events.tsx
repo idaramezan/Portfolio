@@ -16,7 +16,7 @@ const copy = {
     eyebrow: "PAINT, MEET, REMEMBER",
     title: "Events from Aida’s studio",
     intro:
-      "Small creative gatherings in Istanbul—made for slowing down, meeting kind people and leaving with a memory.",
+      "Small creative gatherings in Istanbul, made for slowing down, meeting kind people and leaving with a memory.",
     now: "Current & upcoming",
     past: "Past events",
     empty: "No event is open for booking today.",

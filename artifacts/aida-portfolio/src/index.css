@@ -3744,6 +3744,9 @@
     transform 0.18s ease,
     border-color 0.18s ease,
     background 0.18s ease;
+  color: var(--story-plum);
+  text-align: left;
+  text-decoration: none;
 }
 .print-destination-card:hover {
   transform: translateY(-2px);
@@ -3782,15 +3785,21 @@
 .print-destination-card > strong {
   margin: 0.8rem 0;
 }
-.print-destination-card > button,
-.print-destination-card > a {
+.print-destination-card > small {
+  display: block;
+  margin-top: 0.65rem;
+  color: #392833a5;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.print-destination-card__cta {
   display: inline-flex;
   width: 100%;
   min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  margin-top: auto;
+  margin-top: 1rem;
   padding: 0.65rem 0.7rem;
   border: 1px solid #39283340;
   background: #fffaf2;
@@ -3799,21 +3808,26 @@
   font-weight: 850;
   text-align: center;
 }
-.print-destination-card--turkiye > button:hover {
+.print-destination-card__cta svg {
+  width: 16px;
+  pointer-events: none;
+}
+.print-destination-card:focus-visible {
+  outline: 3px solid var(--story-berry);
+  outline-offset: 3px;
+}
+.print-destination-card:disabled,
+.print-destination-card--disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.print-destination-card--turkiye:hover .print-destination-card__cta {
   color: #762344;
   border-color: #a93564;
 }
-.print-destination-card--international > a:hover {
+.print-destination-card--international:hover .print-destination-card__cta {
   color: #476f83;
   border-color: #678c9f;
-}
-.print-destination-card > button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-.print-destination-card > a svg {
-  width: 16px;
-  pointer-events: none;
 }
 .print-destination__loading {
   display: block;

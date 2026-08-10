@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  calculateTurkiyePrintShipping,
   calculatePrintPrice,
   centsToUsd,
   formatPrintSize,
@@ -12,6 +13,7 @@ import {
   usdToCents,
   validatePrintOptions,
 } from "../src/lib/turkiye-products.ts";
+
 import {
   getMysteryMailCountdown,
   getMysteryMailUrgency,
@@ -31,15 +33,46 @@ import {
   normalizeArtworkSurface,
 } from "../src/lib/artwork-surface.ts";
 
+assert.equal(calculateTurkiyePrintShipping(0), 0);
+assert.equal(calculateTurkiyePrintShipping(1), 20_000);
+assert.equal(calculateTurkiyePrintShipping(2), 22_000);
+assert.equal(calculateTurkiyePrintShipping(3), 24_000);
+assert.equal(calculateTurkiyePrintShipping(5), 28_000);
+assert.throws(() => calculateTurkiyePrintShipping(-1));
+
 assert.equal(normalizeArtworkSurface("paper"), "paper");
 assert.equal(normalizeArtworkSurface("canvas"), "canvas");
 assert.equal(normalizeArtworkSurface(undefined), "paper");
 assert.equal(normalizeArtworkSurface("wood"), "paper");
-assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, "40"), 400000);
-assert.equal(getTurkiyeCataloguePrice({ kind: "print", category: "sticker", priceUsdCents: 25000 }, "40"), 25000);
-assert.equal(getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, null), Number.POSITIVE_INFINITY);
-assert.equal(isSafeFourthwallUrl("https://shop.example.com/products/print", "https://shop.example.com"), true);
-assert.equal(isSafeFourthwallUrl("https://evil.example/products/print", "https://shop.example.com"), false);
+assert.equal(
+  getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, "40"),
+  400000,
+);
+assert.equal(
+  getTurkiyeCataloguePrice(
+    { kind: "print", category: "sticker", priceUsdCents: 25000 },
+    "40",
+  ),
+  25000,
+);
+assert.equal(
+  getTurkiyeCataloguePrice({ kind: "original", priceUsdCents: 10000 }, null),
+  Number.POSITIVE_INFINITY,
+);
+assert.equal(
+  isSafeFourthwallUrl(
+    "https://shop.example.com/products/print",
+    "https://shop.example.com",
+  ),
+  true,
+);
+assert.equal(
+  isSafeFourthwallUrl(
+    "https://evil.example/products/print",
+    "https://shop.example.com",
+  ),
+  false,
+);
 assert.equal(formatArtworkSurface("paper"), "Oil pastel on paper");
 assert.equal(formatArtworkSurface("canvas"), "Oil pastel on canvas");
 assert.deepEqual(Object.keys(ARTWORK_SURFACE_LABELS), ["paper", "canvas"]);
@@ -368,7 +401,9 @@ assert.ok(managedCardSource.includes('"Add to basket"'));
 assert.ok(managedCardSource.includes('"Choose options"'));
 assert.ok(managedCardSource.includes('"View painting"'));
 assert.ok(managedCardSource.includes("managed-product-card__detail-hit-area"));
-assert.ok(managedCardSource.includes("const openDetails = onView || onChooseOptions"));
+assert.ok(
+  managedCardSource.includes("const openDetails = onView || onChooseOptions"),
+);
 assert.ok(managedCardSource.includes("!hideImage &&"));
 assert.ok(managedCardSource.includes("disabled={!purchasable ||"));
 assert.ok(managedCardSource.includes("convertUsdCentsToTry"));
@@ -542,17 +577,26 @@ const printDetailSource = readFileSync(
   new URL("../src/pages/PrintDetail.tsx", import.meta.url),
   "utf8",
 );
-assert.ok(printDetailSource.includes('(item.slug || item.id) === params?.slug'));
+assert.ok(
+  printDetailSource.includes("(item.slug || item.id) === params?.slug"),
+);
 assert.ok(printDetailSource.includes("<TurkeyProductDialog"));
 const internationalOptionSource = readFileSync(
   new URL("../src/components/InternationalProductOption.tsx", import.meta.url),
   "utf8",
 );
 const fourthwallConnectionSource = readFileSync(
-  new URL("../src/components/admin/FourthwallProductConnection.tsx", import.meta.url),
+  new URL(
+    "../src/components/admin/FourthwallProductConnection.tsx",
+    import.meta.url,
+  ),
   "utf8",
 );
-assert.ok(internationalOptionSource.includes('trackAnalytics("fourthwall_product_click"'));
+assert.ok(
+  internationalOptionSource.includes(
+    'trackAnalytics("fourthwall_product_click"',
+  ),
+);
 assert.ok(internationalOptionSource.includes('rel="noopener noreferrer"'));
 assert.ok(internationalOptionSource.includes("if (!href) return null"));
 assert.ok(fourthwallConnectionSource.includes("Remove connection"));

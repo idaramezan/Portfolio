@@ -8,7 +8,6 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { useLocale } from "@/lib/locale";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
-import { getPrintStartingPrice } from "@/lib/turkiye-products";
 import { trackAnalytics } from "@/lib/analytics";
 import type { Market } from "@/lib/market";
 import type { ManagedProduct } from "@/lib/store";
@@ -26,14 +25,16 @@ const detailCopy = {
     buy: "Buy this print",
     chooser: "Where should we send your print?",
     chooserBody:
-      "Choose where you’re ordering from and I’ll send you to the right checkout.",
+      "Choose where you’re ordering from and we’ll take you to the right checkout.",
     trLabel: "TÜRKİYE",
     trTitle: "I’m in Türkiye",
     trBody: "Order directly from Aida’s Istanbul studio.",
+    trNote: "Prices and delivery will be shown in TRY.",
     trCta: "Continue in Türkiye",
     intLabel: "OUTSIDE TÜRKİYE",
     intTitle: "I’m outside Türkiye",
     intBody: "Order the international version through Aida’s Fourthwall shop.",
+    intNote: "International pricing and delivery are shown on Fourthwall.",
     intCta: "Continue internationally",
     coming: "International edition coming soon",
     comingBody: "This print isn’t available internationally yet.",
@@ -51,15 +52,17 @@ const detailCopy = {
     buy: "Bu baskıyı satın al",
     chooser: "Baskını nereye gönderelim?",
     chooserBody:
-      "Sipariş verdiğin yeri seç; seni doğru ödeme sayfasına yönlendireyim.",
+      "Sipariş verdiğin bölgeyi seç, seni doğru ödeme ve teslimat adımına yönlendirelim.",
     trLabel: "TÜRKİYE",
     trTitle: "Türkiye'deyim",
     trBody: "Aida'nın İstanbul'daki atölyesinden doğrudan sipariş ver.",
+    trNote: "Fiyatlar ve teslimat bilgileri TRY olarak gösterilir.",
     trCta: "Türkiye siparişine devam et",
     intLabel: "TÜRKİYE DIŞI",
     intTitle: "Türkiye dışındayım",
     intBody:
       "Uluslararası baskıyı Aida'nın Fourthwall mağazasından sipariş ver.",
+    intNote: "Uluslararası fiyatlandırma ve teslimat Fourthwall'da gösterilir.",
     intCta: "Uluslararası siparişe devam et",
     coming: "Uluslararası baskı yakında",
     comingBody: "Bu baskı henüz uluslararası olarak satışta değil.",
@@ -106,7 +109,7 @@ export default function PrintDetail({ market }: { market: Market }) {
 
   usePageMeta(
     product
-      ? `${product.name} — Art Print | Aida Ramezani`
+      ? `${product.name} | Art Print | Aida Ramezani`
       : "Print unavailable | Aida Ramezani",
     product?.fullDescription ||
       product?.description ||
@@ -139,15 +142,6 @@ export default function PrintDetail({ market }: { market: Market }) {
   const internationalAvailable = Boolean(
     internationalHref && (linked ? linked.available : true),
   );
-  const startingPrice = getPrintStartingPrice(
-    product.priceUsdCents,
-    product.printOptions,
-  );
-  const tryPrice = new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en", {
-    style: "currency",
-    currency: "TRY",
-    maximumFractionDigits: 0,
-  }).format(startingPrice / 100);
   const sold = isSoldOut(product);
 
   return (
@@ -209,59 +203,65 @@ export default function PrintDetail({ market }: { market: Market }) {
                 <p>{c.chooserBody}</p>
               </div>
               <div className="print-destination__cards">
-                <section className="print-destination-card print-destination-card--turkiye">
+                <button
+                  type="button"
+                  className="print-destination-card print-destination-card--turkiye"
+                  disabled={!product.available || sold}
+                  onClick={() => {
+                    setSelected(product);
+                    trackAnalytics("product_options_opened", {
+                      metadata: { productId: product.id, market: "turkiye" },
+                    });
+                  }}
+                >
                   <MapPin aria-hidden="true" />
                   <p className="eyebrow">{c.trLabel}</p>
                   <h3>{c.trTitle}</h3>
                   <p>{c.trBody}</p>
-                  <strong>{tryPrice}</strong>
-                  <button
-                    type="button"
-                    disabled={!product.available || sold}
-                    onClick={() => {
-                      setSelected(product);
-                      trackAnalytics("product_options_opened", {
-                        metadata: { productId: product.id, market: "turkiye" },
-                      });
-                    }}
+                  <small>{c.trNote}</small>
+                  <span className="print-destination-card__cta">{c.trCta}</span>
+                </button>
+                {international.loading ? (
+                  <section
+                    className="print-destination-card print-destination-card--international"
+                    aria-label={
+                      locale === "tr"
+                        ? "Uluslararası seçenek yükleniyor"
+                        : "Loading international option"
+                    }
                   >
-                    {c.trCta}
-                  </button>
-                </section>
-                <section className="print-destination-card print-destination-card--international">
-                  <Globe2 aria-hidden="true" />
-                  <p className="eyebrow">{c.intLabel}</p>
-                  <h3>{c.intTitle}</h3>
-                  <p>{internationalAvailable ? c.intBody : c.comingBody}</p>
-                  {international.loading ? (
+                    <Globe2 aria-hidden="true" />
                     <span className="print-destination__loading">…</span>
-                  ) : internationalAvailable ? (
-                    <>
-                      <strong>
-                        {linked?.price?.formatted || "Fourthwall"}
-                      </strong>
-                      <a
-                        href={internationalHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() =>
-                          trackAnalytics("hundred_windows_fourthwall_click", {
-                            metadata: { productId: product.id },
-                          })
-                        }
-                      >
-                        {c.intCta} <ArrowUpRight aria-hidden="true" />
-                      </a>
-                    </>
-                  ) : (
-                    <>
-                      <strong>{c.coming}</strong>
-                      <button type="button" disabled>
-                        {c.intCta}
-                      </button>
-                    </>
-                  )}
-                </section>
+                  </section>
+                ) : internationalAvailable ? (
+                  <a
+                    className="print-destination-card print-destination-card--international"
+                    href={internationalHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() =>
+                      trackAnalytics("hundred_windows_fourthwall_click", {
+                        metadata: { productId: product.id },
+                      })
+                    }
+                  >
+                    <Globe2 aria-hidden="true" />
+                    <p className="eyebrow">{c.intLabel}</p>
+                    <h3>{c.intTitle}</h3>
+                    <p>{c.intBody}</p>
+                    <small>{c.intNote}</small>
+                    <span className="print-destination-card__cta">
+                      {c.intCta} <ArrowUpRight aria-hidden="true" />
+                    </span>
+                  </a>
+                ) : (
+                  <section className="print-destination-card print-destination-card--international print-destination-card--disabled">
+                    <Globe2 aria-hidden="true" />
+                    <p className="eyebrow">{c.intLabel}</p>
+                    <h3>{c.coming}</h3>
+                    <p>{c.comingBody}</p>
+                  </section>
+                )}
               </div>
             </div>
           )}

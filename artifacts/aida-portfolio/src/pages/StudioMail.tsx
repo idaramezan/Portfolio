@@ -18,8 +18,8 @@ export default function StudioMail() {
           Small packages of art, each built around a different theme.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink/70">
-          Choose from limited Mystery Mail editions containing an art postcard, a
-          handwritten note, stickers, and small objects selected around each
+          Choose from limited Mystery Mail editions containing an art postcard,
+          a handwritten note, stickers, and small objects selected around each
           theme.
         </p>
         <p className="mt-5 font-semibold">
@@ -133,7 +133,7 @@ export default function StudioMail() {
               [
                 "03",
                 "Delivered within Türkiye",
-                "Your package is sent to your chosen Turkish address after details are confirmed on WhatsApp.",
+                "Your package is sent to your chosen Turkish address after your order is reviewed.",
               ],
             ].map((x) => (
               <div key={x[0]} className="border-t border-paper/20 pt-5">

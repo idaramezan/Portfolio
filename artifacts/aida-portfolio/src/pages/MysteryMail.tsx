@@ -400,7 +400,7 @@ export default function MysteryMail() {
       ],
       [
         "Does adding it to the basket reserve it?",
-        "Your selection is confirmed personally with Aida when you continue on WhatsApp.",
+        "Adding it to your basket does not reserve it. Your order is confirmed after checkout review.",
       ],
     ],
     [],
@@ -561,7 +561,8 @@ export default function MysteryMail() {
                   {added ? "Added to the basket" : "Add Mystery Mail to basket"}
                 </button>
                 <p className="mt-3 text-xs text-paper/55">
-                  Your selection is confirmed personally with Aida on WhatsApp.
+                  You can review your total and delivery details before
+                  submitting your order.
                 </p>
                 <p
                   aria-live="polite"
@@ -657,8 +658,8 @@ export default function MysteryMail() {
             ],
             [
               "02",
-              "Continue with Aida",
-              "Review your basket and confirm your order personally on WhatsApp.",
+              "Review your order",
+              "Check your basket, delivery details and final total before submitting.",
             ],
             [
               "03",
