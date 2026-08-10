@@ -69,11 +69,15 @@ router.post(
     try {
       await ensureProductImagesTable();
       const newsletterImage = request.body.productId === "newsletter-campaign";
+      const hundredWindowsHero =
+        request.body.productId === "hundred-windows-hero";
       if (newsletterImage && request.file.size > 8 * 1024 * 1024)
         return response
           .status(413)
           .json({ error: "Newsletter photographs must be 8 MB or smaller" });
-      const id = crypto.randomUUID();
+      const id = hundredWindowsHero
+        ? "10000000-0000-4000-8000-000000000100"
+        : crypto.randomUUID();
       const derivative = newsletterImage
         ? await sharp(request.file.buffer)
             .rotate()
@@ -88,6 +92,16 @@ router.post(
             .toBuffer()
         : await sharp(request.file.buffer)
             .rotate()
+            .resize(
+              hundredWindowsHero
+                ? {
+                    width: 2000,
+                    height: 2000,
+                    fit: "inside",
+                    withoutEnlargement: true,
+                  }
+                : undefined,
+            )
             .webp({
               quality: 92,
               nearLossless: true,
@@ -100,7 +114,8 @@ router.post(
       await pool.query(
         `INSERT INTO product_images
           (id, original_name, mime_type, byte_size, data, source_mime_type, source_byte_size, source_data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT(id) DO UPDATE SET original_name=EXCLUDED.original_name,mime_type=EXCLUDED.mime_type,byte_size=EXCLUDED.byte_size,data=EXCLUDED.data,source_mime_type=EXCLUDED.source_mime_type,source_byte_size=EXCLUDED.source_byte_size,source_data=EXCLUDED.source_data,created_at=NOW()`,
         [
           id,
           storedName,

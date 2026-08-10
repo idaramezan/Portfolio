@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
 import { SiKick, SiTiktok, SiTwitch } from "react-icons/si";
 import { useLocale } from "@/lib/locale";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -15,6 +14,7 @@ import { PaperButton } from "@/components/ui/playful-studio";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
+import { portrait } from "@/lib/assets";
 const copy = {
   en: {
     eyebrow: "A DAILY PAINTING PROJECT",
@@ -29,8 +29,9 @@ const copy = {
     archiveTitle: "The windows so far.",
     archiveHelp: "Newest first — scroll back through the project to Day 01.",
     view: "See the print",
-    international: "View international print",
-    coming: "International print coming soon",
+    international: "Shop this print internationally",
+    archiveInternational: "Shop internationally",
+    coming: "International release coming soon",
     notify: "Tell me when it’s available",
     easel: "Today’s window is still on the easel.",
     next: "THE NEXT WINDOW",
@@ -41,7 +42,7 @@ const copy = {
     empty: "The first window is on its way.",
     emptyBody:
       "Aida is starting a 100-day painting project — one window and one story at a time.",
-    shopping: "Shopping from",
+    shopping: "View prints for",
   },
   tr: {
     eyebrow: "HER GÜN YENİ BİR RESİM",
@@ -57,8 +58,9 @@ const copy = {
     archiveHelp:
       "En yeni çalışmadan başlayarak projenin ilk gününe kadar geri dön.",
     view: "Baskıyı gör",
-    international: "Uluslararası baskıyı gör",
-    coming: "Uluslararası baskısı yakında",
+    international: "Uluslararası baskıyı satın al",
+    archiveInternational: "Uluslararası satın al",
+    coming: "Uluslararası yayını yakında",
     notify: "Hazır olduğunda haber ver",
     easel: "Bugünün penceresi hâlâ şövalede.",
     next: "SIRADAKİ PENCERE",
@@ -69,7 +71,7 @@ const copy = {
     empty: "İlk pencere yolda.",
     emptyBody:
       "Aida, her gün bir pencere ve bir hikâyeyle 100 günlük resim projesine başlıyor.",
-    shopping: "Alışveriş bölgesi",
+    shopping: "Baskıları görüntüle",
   },
 } as const;
 function chronology(products: ManagedProduct[]) {
@@ -146,7 +148,8 @@ export default function HundredWindows() {
       p.isHundredWindowsProduct,
   );
   useEffect(() => {
-    if (!current?.imageUrl) return;
+    const image = settings.hundredWindows?.heroImageUrl || current?.imageUrl;
+    if (!image) return;
     let meta = document.querySelector(
       'meta[property="og:image"]',
     ) as HTMLMetaElement | null;
@@ -157,12 +160,17 @@ export default function HundredWindows() {
       meta.setAttribute("property", "og:image");
       document.head.append(meta);
     }
-    meta.content = new URL(current.imageUrl, location.origin).href;
+    meta.content = new URL(image, location.origin).href;
     return () => {
       if (!existed) meta?.remove();
       else if (meta) meta.content = previous;
     };
-  }, [current?.imageUrl]);
+  }, [current?.imageUrl, settings.hundredWindows?.heroImageUrl]);
+  const heroBase =
+    settings.hundredWindows?.heroImageUrl || current?.imageUrl || portrait;
+  const heroImage = heroBase
+    ? `${heroBase}${heroBase.includes("?") ? "&" : "?"}v=${encodeURIComponent(settings.hundredWindows?.heroImageUrl ? settings.hundredWindows?.heroUpdatedAt || "current" : current?.updatedAt || "current")}`
+    : "";
   const socials = [
     [
       "TikTok",
@@ -211,20 +219,27 @@ export default function HundredWindows() {
             </div>
           </div>
         </div>
-        {current?.imageUrl &&
-          ["published", "sold_out"].includes(String(current.status)) && (
-            <figure>
-              <img
-                src={current.imageUrl}
-                alt={current.altText || current.name}
-              />
-              <figcaption>
-                {c.today} · {current.name}
-              </figcaption>
-            </figure>
-          )}
+        {heroImage && (
+          <figure>
+            <img
+              src={heroImage}
+              alt={
+                settings.hundredWindows?.heroImageUrl
+                  ? locale === "tr"
+                    ? "100 Pencere projesinin bugünkü stüdyo kapağı"
+                    : "Today’s 100 Windows studio project cover"
+                  : current?.altText || current?.name || "100 Windows project"
+              }
+            />
+            <figcaption>
+              {locale === "tr"
+                ? `100 GÜNÜN ${String(day).padStart(2, "0")}. GÜNÜ`
+                : `DAY ${String(day).padStart(2, "0")} OF 100`}
+            </figcaption>
+          </figure>
+        )}
       </section>
-      <div className="windows-region">
+      <div className={`windows-region windows-region--${region.toLowerCase()}`}>
         <span>{c.shopping}</span>
         {(["TR", "INTERNATIONAL"] as const).map((x) => (
           <button
@@ -242,6 +257,7 @@ export default function HundredWindows() {
           day={day}
           region={region}
           intl={intl.products}
+          loading={intl.loading}
           locale={locale}
         />
       ) : (
@@ -296,6 +312,7 @@ export default function HundredWindows() {
                 current={product.id === current?.id}
                 region={region}
                 intl={intl.products}
+                loading={intl.loading}
                 locale={locale}
               />
             ))}
@@ -340,10 +357,14 @@ function resolveInternational(product: ManagedProduct, intl: any[]) {
     ? intl.find((x) => x.id === product.fourthwallProductId)
     : undefined;
 }
-function Featured({ product, day, region, intl, locale }: any) {
+function Featured({ product, day, region, intl, locale, loading }: any) {
   const item = resolveInternational(product, intl),
     international = region === "INTERNATIONAL",
-    available = international ? item?.available : product.available;
+    available = international
+      ? item
+        ? item.available
+        : Boolean(product.fourthwallProductUrl)
+      : product.available;
   const price = international
     ? item?.price?.formatted
     : new Intl.NumberFormat("tr-TR", {
@@ -352,24 +373,44 @@ function Featured({ product, day, region, intl, locale }: any) {
         maximumFractionDigits: 0,
       }).format((product.priceMinor ?? product.priceUsdCents) / 100);
   const href = international
-    ? item?.externalUrl
+    ? item?.externalUrl || product.fourthwallProductUrl
     : `/shop/turkiye/prints/${product.slug}`;
   return (
     <section className="windows-current">
-      <div>
-        <p className="windows-eyebrow">{copy[locale as "en" | "tr"].today}</p>
-        <h2>
-          {locale === "tr"
-            ? `${day}. GÜN`
-            : `DAY ${String(day).padStart(2, "0")}`}
-        </h2>
+      <div className="windows-current-art">
         <img src={product.imageUrl} alt={product.altText || product.name} />
       </div>
-      <div>
+      <div className="windows-current-copy">
+        <p className="windows-eyebrow">
+          {copy[locale as "en" | "tr"].today} ·{" "}
+          {locale === "tr"
+            ? `${String(day).padStart(2, "0")}. GÜN / 100`
+            : `DAY ${String(day).padStart(2, "0")} / 100`}
+        </p>
         <h3>{product.name}</h3>
         <p>{product.description}</p>
-        {available && price ? (
+        {international &&
+        loading &&
+        (product.fourthwallProductId || product.fourthwallProductUrl) ? (
+          <div
+            className="windows-commerce-skeleton"
+            aria-label={
+              locale === "tr"
+                ? "Uluslararası baskı bilgisi yükleniyor"
+                : "Loading international print information"
+            }
+          >
+            <span />
+            <span />
+          </div>
+        ) : available && price ? (
           <strong>{price}</strong>
+        ) : international && href ? (
+          <p className="windows-price-note">
+            {locale === "tr"
+              ? "Güncel fiyat Fourthwall’da gösterilir."
+              : "Current price shown on Fourthwall."}
+          </p>
         ) : (
           <p>
             <strong>
@@ -381,37 +422,55 @@ function Featured({ product, day, region, intl, locale }: any) {
             </strong>
           </p>
         )}
-        {href && available ? (
+        {!loading && href && available && international ? (
+          <a
+            className="paper-button paper-button--pink paper-button--md windows-external-cta"
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => trackAnalytics("hundred_windows_fourthwall_click")}
+          >
+            <span>{copy[locale as "en" | "tr"].international}</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        ) : !international && href && available ? (
           <PaperButton
             href={href}
             arrow
             onClick={() =>
-              trackAnalytics(
-                international
-                  ? "hundred_windows_fourthwall_click"
-                  : "hundred_windows_current_product_click",
-              )
+              trackAnalytics("hundred_windows_current_product_click")
             }
           >
-            {international
-              ? copy[locale as "en" | "tr"].international
-              : copy[locale as "en" | "tr"].view}
+            {locale === "tr" ? "Bu baskıyı gör" : "View this print"}
           </PaperButton>
-        ) : (
-          international && (
-            <PaperButton href="/newsletter" arrow>
-              {copy[locale as "en" | "tr"].notify}
-            </PaperButton>
-          )
+        ) : null}
+        {international && !loading && !href && (
+          <p className="windows-coming-note">
+            {locale === "tr"
+              ? "Bu pencere henüz uluslararası mağazaya ulaşmadı."
+              : "This window has not reached the international shop yet."}
+          </p>
         )}
       </div>
     </section>
   );
 }
-function WindowCard({ product, day, current, region, intl, locale }: any) {
+function WindowCard({
+  product,
+  day,
+  current,
+  region,
+  intl,
+  locale,
+  loading,
+}: any) {
   const item = resolveInternational(product, intl),
     international = region === "INTERNATIONAL",
-    available = international ? item?.available : product.available;
+    available = international
+      ? item
+        ? item.available
+        : Boolean(product.fourthwallProductUrl)
+      : product.available;
   const price = international
     ? item?.price?.formatted
     : new Intl.NumberFormat("tr-TR", {
@@ -420,7 +479,7 @@ function WindowCard({ product, day, current, region, intl, locale }: any) {
         maximumFractionDigits: 0,
       }).format((product.priceMinor ?? product.priceUsdCents) / 100);
   const href = international
-    ? item?.externalUrl
+    ? item?.externalUrl || product.fourthwallProductUrl
     : `/shop/turkiye/prints/${product.slug}`;
   return (
     <article className="window-card">
@@ -437,8 +496,19 @@ function WindowCard({ product, day, current, region, intl, locale }: any) {
       </div>
       <div className="window-card-body">
         <h3>{product.name}</h3>
-        {available && price ? (
+        {international &&
+        loading &&
+        (product.fourthwallProductId || product.fourthwallProductUrl) ? (
+          <div
+            className="windows-card-skeleton"
+            aria-label="Loading international print"
+          />
+        ) : available && price ? (
           <strong>{price}</strong>
+        ) : international && href ? (
+          <span>
+            {locale === "tr" ? "Fiyat Fourthwall’da" : "Price on Fourthwall"}
+          </span>
         ) : (
           <span>
             {international
@@ -449,7 +519,7 @@ function WindowCard({ product, day, current, region, intl, locale }: any) {
           </span>
         )}
         <div>
-          {href && available ? (
+          {!loading && href && available ? (
             <a
               href={href}
               target={international ? "_blank" : undefined}
@@ -463,17 +533,11 @@ function WindowCard({ product, day, current, region, intl, locale }: any) {
               }
             >
               {international
-                ? copy[locale as "en" | "tr"].international
+                ? copy[locale as "en" | "tr"].archiveInternational
                 : copy[locale as "en" | "tr"].view}{" "}
-              →
+              {international ? "↗" : "→"}
             </a>
-          ) : (
-            international && (
-              <Link href="/newsletter">
-                {copy[locale as "en" | "tr"].notify} →
-              </Link>
-            )
-          )}
+          ) : null}
         </div>
       </div>
     </article>

@@ -3345,9 +3345,6 @@
   transform: translate(-50%, -50%);
 }
 .windows-region {
-  position: sticky;
-  top: 70px;
-  z-index: 20;
   display: flex;
   width: max-content;
   max-width: calc(100% - 2rem);
@@ -3368,7 +3365,10 @@
   padding: 0 1rem;
   font-weight: 700;
 }
-.windows-region button[aria-pressed="true"] {
+.windows-region button:first-of-type[aria-pressed="true"] {
+  background: #edb5c9;
+}
+.windows-region button:last-of-type[aria-pressed="true"] {
   background: #c7dbea;
 }
 .windows-current {
@@ -3408,6 +3408,38 @@
   display: block;
   margin: 1.2rem 0;
   font-size: 1.4rem;
+}
+.windows-external-cta {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+.windows-coming-note {
+  max-width: 360px;
+  color: #392833aa;
+  font-size: 0.9rem;
+}
+.windows-commerce-skeleton {
+  display: grid;
+  width: min(100%, 330px);
+  gap: 0.65rem;
+  margin: 1.2rem 0;
+}
+.windows-commerce-skeleton span,
+.windows-card-skeleton {
+  display: block;
+  height: 18px;
+  background: linear-gradient(90deg, #eaded2 25%, #f7efe5 50%, #eaded2 75%);
+  background-size: 200% 100%;
+  animation: windows-shimmer 1.4s linear infinite;
+}
+.windows-commerce-skeleton span:last-child {
+  width: 70%;
+  height: 48px;
+}
+.windows-card-skeleton {
+  width: 45%;
+  margin-top: 0.8rem;
 }
 .windows-easel {
   display: block;
@@ -3460,9 +3492,12 @@
   border: 1px solid #39283333;
   background: #fffaf2;
   font-weight: 750;
+  clip-path: polygon(1% 5%, 99% 1%, 98% 94%, 2% 99%);
 }
 .windows-socials a:hover {
-  border-color: var(--window-pink);
+  border-color: #7d9dad;
+  background: #c7dbea;
+  color: var(--window-plum);
   transform: translateY(-2px);
 }
 .windows-archive > h2,
@@ -3575,6 +3610,53 @@
     transform: scale(0.75);
   }
 }
+@keyframes windows-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (min-width: 1024px) {
+  .windows-hero {
+    padding-block: 96px 112px;
+  }
+  .windows-region {
+    margin-top: -28px;
+    margin-bottom: 0;
+  }
+  .windows-current {
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+    padding-block: 108px;
+    gap: clamp(4rem, 7vw, 7rem);
+  }
+  .windows-current-copy {
+    align-self: center;
+  }
+  .windows-current-copy .windows-eyebrow {
+    margin-bottom: 1rem;
+  }
+  .windows-current h3 {
+    font-size: clamp(3rem, 4.8vw, 4.8rem);
+  }
+  .windows-live {
+    margin-block: 12px;
+    padding-block: 72px;
+  }
+  .windows-archive {
+    width: min(1120px, calc(100% - 2rem));
+    padding-block: 112px;
+  }
+  .windows-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 350px));
+    justify-content: center;
+    gap: 28px;
+  }
+  .windows-newsletter {
+    padding-block: 72px 84px;
+  }
+  .windows-newsletter h2 {
+    font-size: clamp(2.8rem, 4.5vw, 4.5rem);
+  }
+}
 @media (max-width: 800px) {
   .windows-hero,
   .windows-current {
@@ -3592,9 +3674,6 @@
   }
   .windows-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .windows-region {
-    top: 62px;
   }
   .windows-current {
     padding-top: 4rem;
@@ -3633,6 +3712,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .windows-live-mark span {
+    animation: none;
+  }
+  .windows-commerce-skeleton span,
+  .windows-card-skeleton {
     animation: none;
   }
   .window-card,

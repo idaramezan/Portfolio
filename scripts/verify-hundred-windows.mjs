@@ -9,6 +9,7 @@ const admin = read(
   "../artifacts/aida-portfolio/src/pages/admin/HundredWindows.tsx",
 );
 const links = read("../artifacts/aida-portfolio/src/pages/Links.tsx");
+const media = read("../artifacts/api-server/src/routes/product-media.ts");
 if (
   !store.includes("isHundredWindowsProduct?: boolean") ||
   !editor.includes("Part of 100 Windows / 100 Days")
@@ -30,10 +31,25 @@ if (
   );
 if (
   !page.includes("fourthwallProductId") ||
-  !page.includes("International print coming soon")
+  !page.includes("International release coming soon") ||
+  !page.includes("href={href}") ||
+  !page.includes('target="_blank"')
 )
   throw new Error(
     "Existing Fourthwall mapping or missing-link state is not reused",
+  );
+if (
+  !store.includes("heroImageUrl") ||
+  !admin.includes("hundred-windows-hero") ||
+  !page.includes("heroUpdatedAt")
+)
+  throw new Error("Manually managed Hero or cache invalidation is missing");
+if (
+  !media.includes("10000000-0000-4000-8000-000000000100") ||
+  !media.includes("ON CONFLICT(id) DO UPDATE")
+)
+  throw new Error(
+    "Hero replacement must overwrite its dedicated optimized asset",
   );
 if (
   !page.includes("siteLinks.tiktokUrl") ||

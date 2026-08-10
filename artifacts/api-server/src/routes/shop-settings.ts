@@ -130,7 +130,16 @@ router.get("/shop-settings", async (request, response) => {
     const settings = result.rows[0].payload;
     let upgraded = false;
     if (!settings.hundredWindows) {
-      settings.hundredWindows = { currentDay: 1, currentProductId: null };
+      settings.hundredWindows = {
+        currentDay: 1,
+        currentProductId: null,
+        heroImageUrl: null,
+        heroUpdatedAt: null,
+      };
+      upgraded = true;
+    } else if (!("heroImageUrl" in settings.hundredWindows)) {
+      settings.hundredWindows.heroImageUrl = null;
+      settings.hundredWindows.heroUpdatedAt = null;
       upgraded = true;
     }
     settings.printProducts = (settings.printProducts || []).map(

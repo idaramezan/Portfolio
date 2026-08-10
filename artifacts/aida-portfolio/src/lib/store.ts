@@ -146,6 +146,8 @@ export interface ShopSettings {
   hundredWindows: {
     currentDay: number;
     currentProductId: string | null;
+    heroImageUrl: string | null;
+    heroUpdatedAt: string | null;
   };
 }
 
@@ -401,7 +403,12 @@ export function getDefaultSettings(): ShopSettings {
       linkHubDescription:
         "Original oil pastel art, studio prints and collectible mail.",
     },
-    hundredWindows: { currentDay: 1, currentProductId: null },
+    hundredWindows: {
+      currentDay: 1,
+      currentProductId: null,
+      heroImageUrl: null,
+      heroUpdatedAt: null,
+    },
   };
 }
 
@@ -472,6 +479,10 @@ export function loadShopSettings(): ShopSettings {
         siteLinks: {
           ...defaults.siteLinks,
           ...(saved.siteLinks || {}),
+        },
+        hundredWindows: {
+          ...defaults.hundredWindows,
+          ...(saved.hundredWindows || {}),
         },
         printProducts: Array.isArray(saved.printProducts)
           ? saved.printProducts.map(
