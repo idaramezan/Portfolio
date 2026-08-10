@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const page = read("../artifacts/aida-portfolio/src/pages/HundredWindows.tsx");
+const detail = read("../artifacts/aida-portfolio/src/pages/PrintDetail.tsx");
 const store = read("../artifacts/aida-portfolio/src/lib/store.ts");
 const editor = read(
   "../artifacts/aida-portfolio/src/pages/admin/ProductEditor.tsx",
@@ -23,20 +24,37 @@ if (
 )
   throw new Error("Persistent project controls or validation are missing");
 if (
-  !page.includes("Date.parse(a.createdAt") ||
-  !page.includes("[...asc].reverse()")
+  !/Date\.parse\(\s*a\.createdAt/.test(page) ||
+  !/\[\.\.\.asc\]\s*\.reverse\(\)/.test(page)
 )
   throw new Error(
     "Day numbering must derive from createdAt ascending and display newest first",
   );
 if (
-  !page.includes("fourthwallProductId") ||
-  !page.includes("International release coming soon") ||
-  !page.includes("href={href}") ||
-  !page.includes('target="_blank"')
+  !detail.includes("fourthwallProductId") ||
+  !detail.includes("International edition coming soon") ||
+  !detail.includes("internationalHref") ||
+  !detail.includes('target="_blank"')
 )
   throw new Error(
     "Existing Fourthwall mapping or missing-link state is not reused",
+  );
+if (
+  page.includes("windows-region") ||
+  !page.includes("?from=100-windows&section=") ||
+  !detail.includes('query.get("from") === "100-windows"') ||
+  !detail.includes("/100-windows#${projectSection}")
+)
+  throw new Error(
+    "Story-first routing or context-aware Back behavior is missing",
+  );
+if (
+  !detail.includes("product.fullDescription || product.description") ||
+  !detail.includes("Where should we send your print?") ||
+  !detail.includes("setSelected(product)")
+)
+  throw new Error(
+    "Existing story data or destination purchase flow is missing",
   );
 if (
   !store.includes("heroImageUrl") ||

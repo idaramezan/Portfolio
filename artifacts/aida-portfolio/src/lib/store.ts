@@ -41,6 +41,7 @@ export interface ManagedProduct {
   kind: "print" | "original";
   name: string;
   description: string;
+  fullDescription?: string;
   imageUrl: string;
   priceUsdCents: number;
   priceCurrency?: CurrencyCode;
