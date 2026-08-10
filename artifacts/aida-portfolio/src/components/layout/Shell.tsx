@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: "/shop/turkiye", en: "Türkiye Shop", tr: "Türkiye Mağaza" },
   { href: "/shop/international", en: "International", tr: "Uluslararası" },
   { href: "/newsletter", en: "Newsletter", tr: "Bülten" },
+  { href: "/100-windows", en: "100 Windows", tr: "100 Pencere" },
   { href: "/events", en: "Events", tr: "Etkinlikler" },
   { href: "/about", en: "About", tr: "Hakkında" },
 ];

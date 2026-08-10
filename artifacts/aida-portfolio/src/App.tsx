@@ -32,6 +32,7 @@ import EventApply from "@/pages/EventApply";
 import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
 import EventReview from "@/pages/EventReview";
+import HundredWindows from "@/pages/HundredWindows";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -137,6 +138,7 @@ function Router() {
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
             <Route path="/newsletter" component={Newsletter} />
+            <Route path="/100-windows" component={HundredWindows} />
             <Route path="/studio-letter">
               <RedirectTo to="/newsletter" />
             </Route>

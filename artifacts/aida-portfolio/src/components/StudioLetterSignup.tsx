@@ -276,6 +276,10 @@ export default function StudioLetterSignup({
       trackAnalytics("newsletter_signup_success", {
         metadata: { form: context, newSubscriber: !result.alreadySubscribed },
       });
+      if (context === "hundred-windows")
+        trackAnalytics("hundred_windows_newsletter_signup", {
+          metadata: { newSubscriber: !result.alreadySubscribed },
+        });
     } catch {
       setStatus("error");
       setError(story ? copy.storyError : copy.error);

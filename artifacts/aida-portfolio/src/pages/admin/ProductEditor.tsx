@@ -108,6 +108,8 @@ export default function ProductEditor({
         featured: false,
         slug: "",
         updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        isHundredWindowsProduct: false,
         availableInTurkiye: true,
         availableInternationally: kind === "originals",
         category: kind === "prints" ? "print" : undefined,
@@ -324,7 +326,9 @@ export default function ProductEditor({
     }
     const permanentUrl = String(payload.imageUrl).trim();
     if (!isPermanentProductImage(permanentUrl))
-      throw new Error("The upload service did not return a permanent image URL.");
+      throw new Error(
+        "The upload service did not return a permanent image URL.",
+      );
     return permanentUrl;
   };
   const persist = async (publish = false) => {
@@ -399,6 +403,7 @@ export default function ProductEditor({
               )
           : draft.printOptionWarnings,
       updatedAt: now,
+      createdAt: draft.createdAt || now,
       status: targetStatus,
       ...(!isMail
         ? {
@@ -823,10 +828,16 @@ export default function ProductEditor({
             <FormSection title="Product image">
               {String(draft.imageUrl || "").startsWith("/api/uploads/") &&
                 !pendingImage && (
-                  <div role="alert" className="md:col-span-2 border border-coral/30 bg-coral/5 p-4 text-sm text-coral">
-                    <strong>This image exists only in your browser cache.</strong>
+                  <div
+                    role="alert"
+                    className="md:col-span-2 border border-coral/30 bg-coral/5 p-4 text-sm text-coral"
+                  >
+                    <strong>
+                      This image exists only in your browser cache.
+                    </strong>
                     <p className="mt-1 text-ink/65">
-                      Select Replace image below. The replacement will be stored in PostgreSQL and will appear on every device.
+                      Select Replace image below. The replacement will be stored
+                      in PostgreSQL and will appear on every device.
                     </p>
                   </div>
                 )}
@@ -890,7 +901,9 @@ export default function ProductEditor({
                     ? "Starting price in TRY"
                     : "Price in TRY"}
               <div className="relative">
-                <span className="absolute left-3 top-3 text-sm">{kind === "originals" ? "$" : "₺"}</span>
+                <span className="absolute left-3 top-3 text-sm">
+                  {kind === "originals" ? "$" : "₺"}
+                </span>
                 <input
                   inputMode="decimal"
                   type="number"
@@ -912,13 +925,27 @@ export default function ProductEditor({
               </span>
               {errors.price && <ErrorText>{errors.price}</ErrorText>}
             </label>
-            {kind !== "originals" && draft.pricingMigration && !draft.pricingMigrationReviewed && (
-              <div className="md:col-span-2 border border-coral/30 bg-coral/5 p-4 text-sm">
-                <strong className="text-coral">This price was converted from USD. Review it before publishing.</strong>
-                <p className="mt-2 text-ink/60">Rate: {draft.pricingMigration.appliedConversionRate} · {draft.pricingMigration.conversionDate}</p>
-                <button type="button" className="button-secondary mt-3" onClick={() => update({ pricingMigrationReviewed: true })}>Confirm reviewed TRY price</button>
-              </div>
-            )}
+            {kind !== "originals" &&
+              draft.pricingMigration &&
+              !draft.pricingMigrationReviewed && (
+                <div className="md:col-span-2 border border-coral/30 bg-coral/5 p-4 text-sm">
+                  <strong className="text-coral">
+                    This price was converted from USD. Review it before
+                    publishing.
+                  </strong>
+                  <p className="mt-2 text-ink/60">
+                    Rate: {draft.pricingMigration.appliedConversionRate} ·{" "}
+                    {draft.pricingMigration.conversionDate}
+                  </p>
+                  <button
+                    type="button"
+                    className="button-secondary mt-3"
+                    onClick={() => update({ pricingMigrationReviewed: true })}
+                  >
+                    Confirm reviewed TRY price
+                  </button>
+                </div>
+              )}
             {isMail && (
               <>
                 <label>
@@ -1021,10 +1048,12 @@ export default function ProductEditor({
                         Choose the physical surface used for this original work.
                       </p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {(Object.entries(ARTWORK_SURFACE_LABELS) as [
-                          ArtworkSurface,
-                          string,
-                        ][]).map(([value, label]) => (
+                        {(
+                          Object.entries(ARTWORK_SURFACE_LABELS) as [
+                            ArtworkSurface,
+                            string,
+                          ][]
+                        ).map(([value, label]) => (
                           <label
                             key={value}
                             className={`flex min-h-12 cursor-pointer items-center gap-3 border p-4 transition-colors focus-within:ring-2 focus-within:ring-coral ${
@@ -1572,6 +1601,31 @@ export default function ProductEditor({
             </FormSection>
           )}
           {kind === "prints" && !isMail && (
+            <FormSection title="Projects">
+              <label className="flex min-h-11 items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.isHundredWindowsProduct)}
+                  onChange={(e) =>
+                    update({ isHundredWindowsProduct: e.target.checked })
+                  }
+                />
+                <span>
+                  <strong>Part of 100 Windows / 100 Days</strong>
+                  <span className="mt-1 block text-xs font-normal text-ink/55">
+                    Include this print in Aida’s 100-day window painting
+                    project.
+                  </span>
+                  {draft.isHundredWindowsProduct && (
+                    <span className="mt-2 inline-block rounded-full bg-coral/15 px-2 py-1 text-[10px] font-bold tracking-wider text-coral">
+                      100 WINDOWS
+                    </span>
+                  )}
+                </span>
+              </label>
+            </FormSection>
+          )}
+          {kind === "prints" && !isMail && (
             <div className="border border-ink/10 bg-paper p-5 text-sm">
               <strong>Türkiye Shop product</strong>
               <p className="mt-1 text-ink/55">
@@ -1579,7 +1633,12 @@ export default function ProductEditor({
               </p>
             </div>
           )}
-          {!isMail && <FourthwallProductConnection product={draft as ManagedProduct} onChange={update} />}
+          {!isMail && (
+            <FourthwallProductConnection
+              product={draft as ManagedProduct}
+              onChange={update}
+            />
+          )}
           {isMail && (
             <div className="border border-ink/10 bg-paper p-5 text-sm">
               <strong>Türkiye Shop only</strong>

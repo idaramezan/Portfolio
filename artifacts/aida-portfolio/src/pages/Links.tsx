@@ -7,6 +7,7 @@ import printsGoodsImage from "@assets/links-prints-goods.jpg";
 import mysteryMailImage from "@assets/links-mystery-mail.jpg";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { trackAnalytics } from "@/lib/analytics";
 type Region = "turkiye" | "international";
 const KEY = "aida-link-region";
 const localLinks = [
@@ -165,6 +166,36 @@ export default function Links() {
           Collect directly in Türkiye or shop internationally.
         </p>
       </header>
+      <Link
+        href="/100-windows"
+        onClick={() => trackAnalytics("hundred_windows_links_page_click")}
+        className="links-windows-card group mt-7 block overflow-hidden border border-ink/10 bg-blue/15 p-5 focus-visible:ring-2 focus-visible:ring-coral"
+      >
+        <p className="text-xs font-bold tracking-[.18em] text-coral">
+          100 WINDOWS · 100 DAYS
+        </p>
+        <div className="mt-2 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-serif text-2xl">
+              Day {settings.hundredWindows?.currentDay || 1} of 100
+            </h2>
+            <p className="mt-1 text-sm text-ink/65">
+              See every window from Aida’s 100-day painting project.
+            </p>
+          </div>
+          <span className="shrink-0 font-bold text-coral">
+            Explore the project →
+          </span>
+        </div>
+        <div className="mt-4 h-1.5 bg-paper">
+          <span
+            className="block h-full bg-coral"
+            style={{
+              width: `${Math.min(100, Math.max(1, settings.hundredWindows?.currentDay || 1))}%`,
+            }}
+          />
+        </div>
+      </Link>
       <div
         role="tablist"
         aria-label="Shop region"

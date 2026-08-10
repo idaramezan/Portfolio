@@ -66,6 +66,16 @@ const EVENTS = new Set([
   "finished_event_open",
   "event_gallery_open",
   "event_newsletter_signup",
+  "hundred_windows_page_view",
+  "hundred_windows_region_switch",
+  "hundred_windows_current_product_click",
+  "hundred_windows_archive_product_click",
+  "hundred_windows_fourthwall_click",
+  "hundred_windows_tiktok_click",
+  "hundred_windows_twitch_click",
+  "hundred_windows_kick_click",
+  "hundred_windows_newsletter_signup",
+  "hundred_windows_links_page_click",
 ]);
 const META_KEYS = new Set([
   "productType",

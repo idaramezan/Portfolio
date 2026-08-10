@@ -3256,3 +3256,388 @@
     columns: 2 130px;
   }
 }
+/* 100 Windows / 100 Days — evolving project archive */
+.windows-page {
+  --window-plum: #392833;
+  --window-pink: #c34f7c;
+  min-height: 100vh;
+  background: #f8f1e6;
+  color: var(--window-plum);
+}
+.windows-hero,
+.windows-current,
+.windows-live,
+.windows-archive,
+.windows-newsletter {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+  padding-block: clamp(3.5rem, 8vw, 7rem);
+}
+.windows-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.7fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+}
+.windows-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--window-pink);
+}
+.windows-hero h1 {
+  max-width: 720px;
+  margin: 0.6rem 0 1.4rem;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(3.3rem, 7vw, 6.8rem);
+  line-height: 0.88;
+}
+.windows-hero > div > p:not(.windows-eyebrow) {
+  max-width: 630px;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 1.7;
+}
+.windows-hero figure {
+  position: relative;
+  margin: 0;
+  padding: 12px 12px 42px;
+  background: #fffaf2;
+  box-shadow: 12px 14px 0 #c7dbea;
+  transform: rotate(1deg);
+}
+.windows-hero figure img {
+  width: 100%;
+  max-height: 620px;
+  aspect-ratio: 4/5;
+  object-fit: contain;
+}
+.windows-hero figcaption {
+  position: absolute;
+  bottom: 12px;
+  left: 18px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.windows-progress {
+  margin-top: 2rem;
+}
+.windows-progress > div {
+  position: relative;
+  height: 9px;
+  margin-top: 0.65rem;
+  background: #eaded2;
+}
+.windows-progress span {
+  display: block;
+  height: 100%;
+  background: var(--window-pink);
+  clip-path: polygon(0 15%, 100% 0, 99% 90%, 0 100%);
+}
+.windows-progress i {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fffaf2;
+  border-radius: 50%;
+  background: var(--window-plum);
+  transform: translate(-50%, -50%);
+}
+.windows-region {
+  position: sticky;
+  top: 70px;
+  z-index: 20;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  margin: auto;
+  padding: 5px;
+  background: #fffaf2;
+  border: 1px solid #39283322;
+  box-shadow: 0 4px 15px #39283312;
+}
+.windows-region span {
+  align-self: center;
+  padding: 0 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.windows-region button {
+  min-height: 38px;
+  padding: 0 1rem;
+  font-weight: 700;
+}
+.windows-region button[aria-pressed="true"] {
+  background: #c7dbea;
+}
+.windows-current {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.7fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+}
+.windows-current img {
+  width: 100%;
+  max-height: 720px;
+  object-fit: contain;
+  background: #fffaf2;
+  padding: clamp(0.6rem, 2vw, 1.2rem);
+  box-shadow: 10px 10px 0 #edb5c9;
+}
+.windows-current h2,
+.windows-current h3,
+.windows-live h2,
+.windows-archive > h2,
+.windows-newsletter h2 {
+  font-family: var(--font-serif, Georgia, serif);
+  line-height: 1;
+}
+.windows-current h2 {
+  margin: 0.5rem 0 1.5rem;
+  font-size: clamp(2.2rem, 5vw, 4.6rem);
+}
+.windows-current h3 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+}
+.windows-current > div:last-child > p {
+  margin: 1rem 0;
+  line-height: 1.7;
+}
+.windows-current > div:last-child > strong {
+  display: block;
+  margin: 1.2rem 0;
+  font-size: 1.4rem;
+}
+.windows-easel {
+  display: block;
+  text-align: center;
+  background: #efd0a5;
+  width: 100%;
+  max-width: none;
+  padding-inline: max(1rem, calc((100vw - 1180px) / 2));
+}
+.windows-live {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem 2rem;
+  background: #dce9ef;
+  padding-inline: clamp(1.5rem, 5vw, 4rem);
+  box-shadow: 8px 8px 0 #edb5c9;
+}
+.windows-live-mark {
+  font-weight: 900;
+}
+.windows-live-mark span {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--window-pink);
+  animation: windows-pulse 2s ease-in-out infinite;
+}
+.windows-live h2 {
+  max-width: 750px;
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
+}
+.windows-live > div:nth-child(2) > p:last-child {
+  max-width: 750px;
+  line-height: 1.7;
+}
+.windows-socials {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+.windows-socials a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #39283333;
+  background: #fffaf2;
+  font-weight: 750;
+}
+.windows-socials a:hover {
+  border-color: var(--window-pink);
+  transform: translateY(-2px);
+}
+.windows-archive > h2,
+.windows-newsletter h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2.7rem, 6vw, 5.5rem);
+}
+.windows-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.7rem);
+  margin-top: 2.5rem;
+}
+.window-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid #39283320;
+  background: #fffaf2;
+  box-shadow: 5px 6px 0 #e9dace;
+  transition: 0.2s;
+}
+.window-card:hover {
+  transform: translateY(-2px);
+  border-color: #c34f7c66;
+}
+.window-card-day {
+  padding: 0.8rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+.window-card-day em {
+  float: right;
+  background: #edb5c9;
+  padding: 0.15rem 0.4rem;
+  font-style: normal;
+}
+.window-card-art {
+  display: grid;
+  aspect-ratio: 1/1;
+  place-items: center;
+  background: #f4eadf;
+  padding: 0.75rem;
+}
+.window-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.window-card-body {
+  display: flex;
+  min-height: 185px;
+  flex: 1;
+  flex-direction: column;
+  padding: 1rem;
+}
+.window-card h3 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+.window-card-body > strong,
+.window-card-body > span {
+  margin-top: 0.8rem;
+}
+.window-card-body > div {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.window-card-body a {
+  font-weight: 800;
+  color: var(--window-pink);
+}
+.windows-more {
+  display: block;
+  margin: 2.5rem auto 0;
+}
+.windows-empty {
+  margin-top: 2rem;
+  padding: 3rem;
+  background: #edb5c955;
+  text-align: center;
+}
+.windows-empty h3 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 2.5rem;
+}
+.windows-newsletter {
+  max-width: 900px;
+  text-align: center;
+}
+.windows-newsletter > p:not(.windows-eyebrow) {
+  max-width: 620px;
+  margin: 0 auto 1.5rem;
+}
+.windows-newsletter form {
+  margin-inline: auto;
+}
+.links-windows-card {
+  transition: 0.2s;
+}
+.links-windows-card:hover {
+  transform: translateY(-2px);
+  border-color: #c34f7c66;
+}
+@keyframes windows-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+@media (max-width: 800px) {
+  .windows-hero,
+  .windows-current {
+    grid-template-columns: 1fr;
+  }
+  .windows-hero figure {
+    width: min(100%, 480px);
+    margin: auto;
+  }
+  .windows-live {
+    grid-template-columns: 1fr;
+  }
+  .windows-socials {
+    grid-column: 1;
+  }
+  .windows-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .windows-region {
+    top: 62px;
+  }
+  .windows-current {
+    padding-top: 4rem;
+  }
+}
+@media (max-width: 520px) {
+  .windows-hero,
+  .windows-current,
+  .windows-archive,
+  .windows-newsletter {
+    width: min(100% - 1.25rem, 1180px);
+  }
+  .windows-hero h1 {
+    font-size: clamp(2.8rem, 15vw, 4.1rem);
+  }
+  .windows-grid {
+    grid-template-columns: 1fr;
+  }
+  .windows-live {
+    width: 100%;
+    box-shadow: none;
+  }
+  .windows-socials {
+    display: grid;
+  }
+  .window-card-body {
+    min-height: 165px;
+  }
+  .links-windows-card > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .links-windows-card span {
+    white-space: normal;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .windows-live-mark span {
+    animation: none;
+  }
+  .window-card,
+  .windows-socials a,
+  .links-windows-card {
+    transition: none;
+  }
+}

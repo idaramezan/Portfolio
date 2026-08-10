@@ -75,6 +75,8 @@ export interface ManagedProduct {
   fourthwallProductId?: string;
   fourthwallProductUrl?: string;
   fourthwallLinkType?: "exact" | "edition" | "related";
+  isHundredWindowsProduct?: boolean;
+  createdAt?: string;
 }
 
 export type ShoppingRegion = "TR" | "INTERNATIONAL";
@@ -140,6 +142,10 @@ export interface ShopSettings {
     youtubeLabel: string;
     linkHubEnabled: boolean;
     linkHubDescription: string;
+  };
+  hundredWindows: {
+    currentDay: number;
+    currentProductId: string | null;
   };
 }
 
@@ -395,6 +401,7 @@ export function getDefaultSettings(): ShopSettings {
       linkHubDescription:
         "Original oil pastel art, studio prints and collectible mail.",
     },
+    hundredWindows: { currentDay: 1, currentProductId: null },
   };
 }
 
