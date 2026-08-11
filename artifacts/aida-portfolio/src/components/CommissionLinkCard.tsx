@@ -7,8 +7,10 @@ const ETSY_URL =
 
 export default function CommissionLinkCard({
   locale,
+  compactMobile = false,
 }: {
   locale: "en" | "tr";
+  compactMobile?: boolean;
 }) {
   const text =
     locale === "tr"
@@ -41,7 +43,9 @@ export default function CommissionLinkCard({
           note: "made just for you ♡",
         };
   return (
-    <section className="commission-link-card">
+    <section
+      className={`commission-link-card ${compactMobile ? "commission-link-card--links-mobile" : ""}`}
+    >
       <div className="commission-link-card__note" aria-hidden="true">
         <Sparkles /> {text.note}
       </div>
@@ -61,8 +65,20 @@ export default function CommissionLinkCard({
       </div>
       <div className="commission-link-card__content">
         <p className="eyebrow">{text.eyebrow}</p>
-        <h2>{text.title}</h2>
-        <p className="commission-link-card__body">{text.body}</p>
+        <h2>
+          {compactMobile
+            ? locale === "tr"
+              ? "Boyamamı istediğin bir şey var mı?"
+              : "Have something you want me to paint?"
+            : text.title}
+        </h2>
+        <p className="commission-link-card__body">
+          {compactMobile
+            ? locale === "tr"
+              ? "Bir fotoğrafı, karakteri, mekânı veya fikri yağlı pastel bir çalışmaya dönüştüreyim."
+              : "Send me a photo, character, place or idea and I’ll turn it into an oil pastel piece."
+            : text.body}
+        </p>
         <p className="commission-link-card__support">{text.support}</p>
         <p className="commission-link-card__categories">{text.categories}</p>
         <a

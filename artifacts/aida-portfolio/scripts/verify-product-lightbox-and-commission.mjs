@@ -45,8 +45,9 @@ assert.ok(
   "responsive viewer affordance, containment, safe areas and native pinch zoom must be styled",
 );
 assert.ok(
-  links.indexOf("<CommissionLinkCard") > links.indexOf('href="/newsletter"') &&
-    links.indexOf("<CommissionLinkCard") < links.indexOf("tiles.map"),
+  links.lastIndexOf("<CommissionLinkCard") >
+    links.lastIndexOf('href="/newsletter"') &&
+    links.lastIndexOf("<CommissionLinkCard") < links.indexOf("tiles.map"),
   "commission card must sit after Newsletter and before category cards",
 );
 assert.ok(
