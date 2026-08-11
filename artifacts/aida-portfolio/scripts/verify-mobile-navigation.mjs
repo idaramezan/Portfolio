@@ -70,7 +70,8 @@ assert.ok(
 );
 assert.ok(
   shell.includes("Explore the studio") &&
-    shell.includes("Originals, prints, goods and Mystery Mail") &&
+    shell.includes("Originals, prints and studio goods") &&
+    !shell.includes("/shop?category=mystery-mail") &&
     shell.includes("mobile-menu__event-badge") &&
     !shell.includes("mobile-menu__letter-card"),
   "mobile navigation must be a compact studio index without a duplicate Studio Letter card",
@@ -114,8 +115,8 @@ assert.ok(
   "homepage categories must lead to the unified catalog without a duplicated selector",
 );
 assert.ok(
-  home.includes("isPubliclyVisible(product)") &&
-    home.includes("latestLocal") &&
+  home.includes(".filter(isPubliclyVisible)") &&
+    home.includes("recentProducts") &&
     home.includes("Recently from the studio"),
   "homepage products must be status-filtered and limited",
 );

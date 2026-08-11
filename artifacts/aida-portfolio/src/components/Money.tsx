@@ -12,8 +12,15 @@ export default function Money({
   className?: string;
   canonicalCurrency?: CurrencyCode;
 }) {
-  const { currency, rate, loading } = useCurrency();
+  const { currency, rate, loading, destinationLoading } = useCurrency();
   const { locale } = useLocale();
+  if (destinationLoading)
+    return (
+      <span
+        className={`${className} price-skeleton`}
+        aria-label={locale === "tr" ? "Fiyat yükleniyor" : "Price loading"}
+      />
+    );
   const formatted = formatMoney(
     baseAmountUsdCents,
     canonicalCurrency,

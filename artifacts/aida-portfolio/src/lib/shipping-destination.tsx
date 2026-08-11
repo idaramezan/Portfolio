@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Globe2, Search, X } from "lucide-react";
 import { clearCart, loadCart, setActiveShoppingRegion } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -21,8 +21,9 @@ export type ShippingDestination = {
 };
 
 const STORAGE_KEY = "aida-shipping-destination-v1";
+// Complete ISO 3166-1 alpha-2 list. Product eligibility is a separate concern.
 export const COUNTRY_CODES =
-  "AD AE AF AG AI AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY QA RO RS RU SA SB SC SD SE SG SI SK SL SM SN SO SR ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG UY UZ VA VC VE VN VU WS YE ZA ZM ZW".split(
+  "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(
     " ",
   );
 
@@ -37,7 +38,7 @@ type DestinationContextValue = {
 
 const DestinationContext = createContext<DestinationContextValue | null>(null);
 
-function storedDestination(): ShippingDestination | null {
+export function getStoredShippingDestination(): ShippingDestination | null {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     return value?.countryCode && value?.countryName ? value : null;
@@ -54,7 +55,7 @@ export function ShippingDestinationProvider({
   const { locale } = useLocale();
   const { toast } = useToast();
   const [destination, setDestination] = useState<ShippingDestination | null>(
-    storedDestination,
+    getStoredShippingDestination,
   );
   const [loading, setLoading] = useState(!destination);
   const [open, setOpen] = useState(false);
@@ -76,8 +77,12 @@ export function ShippingDestinationProvider({
     })).sort((a, b) => a.name.localeCompare(b.name, locale));
   }, [locale]);
   const selected = countries.find((country) => country.code === selectedCode);
+  const aliases: Record<string, string> = {
+    US: "united states usa america",
+    TR: "türkiye turkey turkiye",
+  };
   const filtered = countries.filter((country) =>
-    `${country.name} ${country.code}`
+    `${country.name} ${country.code} ${aliases[country.code] || ""}`
       .toLocaleLowerCase(locale)
       .includes(search.toLocaleLowerCase(locale)),
   );
@@ -222,8 +227,8 @@ export function ShippingDestinationProvider({
                   </h2>
                   <p>
                     {locale === "tr"
-                      ? "Konumunu seç, sana doğru stok, teslimat ve ödeme seçeneklerini gösterelim."
-                      : "We'll show the right availability, delivery options and checkout for your destination."}
+                      ? "Ülken için doğru fiyatları ve teslimat seçeneklerini göstereceğiz."
+                      : "We'll show the right prices and delivery options for your country."}
                   </p>
                   <label className="destination-modal__search">
                     <span>
@@ -264,8 +269,8 @@ export function ShippingDestinationProvider({
                   >
                     {selected
                       ? locale === "tr"
-                        ? `${selected.name} konumuna gönder`
-                        : `Ship to ${selected.name}`
+                        ? `${selected.name} konumunu kullan`
+                        : `Use ${selected.name}`
                       : locale === "tr"
                         ? "Ülke seç"
                         : "Choose country"}
@@ -326,7 +331,13 @@ export function useShippingDestination() {
   return value;
 }
 
-export function DestinationControl({ compact = false }: { compact?: boolean }) {
+export function DestinationControl({
+  compact = false,
+  utility = false,
+}: {
+  compact?: boolean;
+  utility?: boolean;
+}) {
   const { destination, loading, openDestination } = useShippingDestination();
   const { locale } = useLocale();
   const label = loading
@@ -340,6 +351,28 @@ export function DestinationControl({ compact = false }: { compact?: boolean }) {
       : locale === "tr"
         ? "Gönderim konumu seçilmedi"
         : "Shipping destination not set";
+  if (utility)
+    return (
+      <button
+        type="button"
+        className="destination-utility"
+        onClick={() => openDestination()}
+        aria-label={
+          locale === "tr"
+            ? `Gönderim konumunu değiştir. Şu anda ${destination?.countryName || "seçilmedi"}.`
+            : `Change shipping destination. Currently ${destination?.countryName || "not selected"}.`
+        }
+      >
+        <Globe2 aria-hidden="true" />
+        <span>
+          {loading
+            ? "…"
+            : destination?.countryName ||
+              (locale === "tr" ? "Ülke" : "Country")}
+        </span>
+        <ChevronDown aria-hidden="true" />
+      </button>
+    );
   return (
     <button
       type="button"

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { marketFromPath, type CurrencyCode, type Market } from "@/lib/market";
-import { getActiveShoppingRegion } from "@/lib/store";
+import { useShippingDestination } from "@/lib/shipping-destination";
 
 export interface CurrencyState {
   market: Market;
@@ -9,6 +9,7 @@ export interface CurrencyState {
   rateDate: string | null;
   isFallback: boolean;
   loading: boolean;
+  destinationLoading: boolean;
 }
 
 const Ctx = createContext<CurrencyState | null>(null);
@@ -39,31 +40,16 @@ export function clearManualCurrencyRate() {
 }
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const resolveMarket = (): Market => {
-    const pathMarket = marketFromPath();
-    if (
-      window.location.pathname === "/shop" ||
-      window.location.pathname.startsWith("/shop/")
-    ) {
-      return getActiveShoppingRegion() === "TR" ? "turkiye" : "international";
-    }
-    return pathMarket;
-  };
-  const [market, setMarket] = useState<Market>(resolveMarket);
+  const { destination, loading: destinationLoading } = useShippingDestination();
+  const market: Market = destination
+    ? destination.countryCode === "TR"
+      ? "turkiye"
+      : "international"
+    : marketFromPath();
   const [rate, setRate] = useState<string | null>(null);
   const [rateDate, setRateDate] = useState<string | null>(null);
   const [isFallback, setFallback] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const sync = () => setMarket(resolveMarket());
-    window.addEventListener("popstate", sync);
-    window.addEventListener("shop-region:updated", sync);
-    return () => {
-      window.removeEventListener("popstate", sync);
-      window.removeEventListener("shop-region:updated", sync);
-    };
-  }, []);
 
   useEffect(() => {
     const refresh = () => {
@@ -108,6 +94,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
         rateDate,
         isFallback,
         loading,
+        destinationLoading,
       }}
     >
       {children}

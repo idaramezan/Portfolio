@@ -7,7 +7,6 @@ import printsGoodsImage from "@assets/links-prints-goods.jpg";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
-import { DestinationControl } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
 
 export default function Links() {
@@ -86,9 +85,6 @@ export default function Links() {
         <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink/65">
           {settings.siteLinks.linkHubDescription}
         </p>
-        <div className="mt-5 flex justify-center">
-          <DestinationControl compact />
-        </div>
       </header>
       <Link
         href="/shop"

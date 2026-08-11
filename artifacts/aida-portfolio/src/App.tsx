@@ -7,20 +7,12 @@ import { lazy, Suspense, useEffect } from "react";
 
 import Shell from "@/components/layout/Shell";
 import Home from "@/pages/Home";
-import Prints from "@/pages/Prints";
 import Gallery from "@/pages/Gallery";
-import ShopOriginals from "@/pages/ShopOriginals";
 import About from "@/pages/About";
-import StudioMail from "@/pages/StudioMail";
-import StudioMailDetail from "@/pages/StudioMailDetail";
 import HowToCollect from "@/pages/HowToCollect";
 import { CurrencyProvider } from "@/lib/currency";
 import { LocaleProvider } from "@/lib/locale";
-import International from "@/pages/International";
 import Links from "@/pages/Links";
-import RegionalShop, { type ShopCategory } from "@/components/RegionalShop";
-import MysteryMail from "@/pages/MysteryMail";
-import RegionalLanding from "@/pages/RegionalLanding";
 import OriginalDetail from "@/pages/OriginalDetail";
 import PrintDetail from "@/pages/PrintDetail";
 import Newsletter from "@/pages/Newsletter";
@@ -59,11 +51,6 @@ function RedirectTo({ to }: { to: string }) {
   return null;
 }
 
-const regional =
-  (region: "TR" | "INTERNATIONAL", category: ShopCategory) => () => (
-    <RegionalShop region={region} category={category} />
-  );
-
 function Router() {
   return (
     <Switch>
@@ -88,10 +75,10 @@ function Router() {
               <RedirectTo to="/shop?category=prints" />
             </Route>
             <Route path="/shop/turkiye/mystery-mail">
-              <RedirectTo to="/shop/mystery-mail" />
+              <RedirectTo to="/shop" />
             </Route>
             <Route path="/shop/turkiye/studio-mail">
-              <RedirectTo to="/shop/turkiye/mystery-mail" />
+              <RedirectTo to="/shop" />
             </Route>
             <Route path="/shop/turkiye">
               <RedirectTo to="/shop" />
@@ -114,7 +101,9 @@ function Router() {
             <Route path="/shop/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>
-            <Route path="/shop/mystery-mail" component={MysteryMail} />
+            <Route path="/shop/mystery-mail">
+              <RedirectTo to="/shop" />
+            </Route>
             <Route path="/originals">
               <RedirectTo to="/shop?category=originals" />
             </Route>
@@ -128,7 +117,7 @@ function Router() {
               <RedirectTo to="/newsletter" />
             </Route>
             <Route path="/studio-mail/:slug">
-              <RedirectTo to="/shop/turkiye/mystery-mail" />
+              <RedirectTo to="/shop" />
             </Route>
             <Route path="/basket/turkiye">
               <RedirectTo to="/shop/turkiye" />

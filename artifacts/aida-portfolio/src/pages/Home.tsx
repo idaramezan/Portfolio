@@ -7,7 +7,6 @@ import {
   homeAboutImage,
   originalsCoverImage,
   printsCoverImage,
-  studioMailCoverImage,
 } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -24,11 +23,11 @@ import OriginalCollectorExperience from "@/components/OriginalCollectorExperienc
 import { PaperButton } from "@/components/ui/playful-studio";
 import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
+import { resolveProductPresentation } from "@/lib/product-presentation";
 
-const SEO_TITLE =
-  "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
+const SEO_TITLE = "Original Art, Prints & Goods | Aida Ramezani";
 const SEO_DESCRIPTION =
-  "Shop original paintings, Prints & Goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani.";
+  "Shop original paintings, prints and studio goods by Istanbul artist Aida Ramezani.";
 
 function NewsletterEnvelopeCard({
   href,
@@ -113,25 +112,18 @@ function ProductTile({
     typeof useInternationalProducts
   >["products"];
 }) {
-  const { destination, isTürkiye } = useShippingDestination();
+  const { destination } = useShippingDestination();
   const original = product.kind === "original";
   const href = `/shop/${original ? "originals" : "prints"}/${product.slug || product.id}`;
-  const canonicalCurrency = isTürkiye && !original ? "TRY" : "USD";
-  const amount = product.priceMinor ?? product.priceUsdCents;
   const linked = internationalProducts.find(
     (item) => item.id === product.fourthwallProductId,
   );
-  const fulfillment = isTürkiye
-    ? original
-      ? "Free Türkiye shipping"
-      : "Prepared in Aida's studio"
-    : original
-      ? destination?.countryCode === "US"
-        ? "Unavailable for US delivery"
-        : "Delivery by request"
-      : linked
-        ? "Fulfilled through Fourthwall"
-        : "Not available internationally yet";
+  const presentation = resolveProductPresentation(
+    product,
+    destination,
+    linked,
+    product.fourthwallProductUrl,
+  );
   return (
     <article
       className={`home-product-tile ${original ? "home-product-tile--original" : "home-product-tile--goods"}`}
@@ -161,19 +153,24 @@ function ProductTile({
             {isSoldOut(product) ? "Sold" : "Available"}
           </p>
           <h3 className="mt-2 text-2xl leading-tight">{product.name}</h3>
-          {(isTürkiye || original) && destination?.countryCode !== "US" && (
+          {presentation.amountMinor !== null && presentation.currency && (
             <Money
-              baseAmountUsdCents={amount}
-              canonicalCurrency={canonicalCurrency}
+              baseAmountUsdCents={presentation.amountMinor}
+              canonicalCurrency={presentation.currency}
               className="mt-2 block text-sm font-bold"
             />
           )}
-          {!isTürkiye && !original && linked?.price?.formatted && (
+          {presentation.externalPrice && (
             <strong className="mt-2 block text-sm">
-              {linked.price.formatted}
+              {presentation.externalPrice}
             </strong>
           )}
-          <p className="mt-2 text-xs text-ink/55">{fulfillment}</p>
+          {presentation.availability === "loading" && (
+            <span className="price-skeleton mt-2" aria-label="Price loading" />
+          )}
+          <p className="mt-2 text-xs text-ink/55">
+            {presentation.shippingMessage}
+          </p>
           <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-ink underline decoration-ink/25 underline-offset-4">
             {original ? "View artwork" : "See options"} →
           </span>
@@ -191,33 +188,22 @@ export default function Home() {
   const { isTürkiye } = useShippingDestination();
   const links = settings.siteLinks;
   const originals = settings.originalProducts
-    .filter(
-      (product) =>
-        isPubliclyVisible(product) && product.availableInTurkiye !== false,
-    )
+    .filter(isPubliclyVisible)
     .sort(
       (a, b) =>
-        new Date(b.updatedAt || 0).getTime() -
-        new Date(a.updatedAt || 0).getTime(),
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
     );
   const localPrints = settings.printProducts
-    .filter(
-      (product) =>
-        isPubliclyVisible(product) && product.availableInTurkiye !== false,
-    )
+    .filter(isPubliclyVisible)
     .sort(
       (a, b) =>
-        new Date(b.updatedAt || 0).getTime() -
-        new Date(a.updatedAt || 0).getTime(),
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime(),
     );
-  const latestLocal = [
-    ...originals.slice(0, 1),
-    ...localPrints.slice(0, 2),
-  ].slice(0, 3);
-
-  const mysteryMailAvailable = settings.studioMailPackages.some((item) =>
-    isPubliclyVisible(item),
-  );
+  const recentProducts = originals.length
+    ? [...originals.slice(0, 1), ...localPrints.slice(0, 2)]
+    : localPrints.slice(0, 3);
   const categoryItems = [
     {
       href: "/shop?category=originals",
@@ -233,23 +219,12 @@ export default function Home() {
       copy: "Signed prints, stickers and studio pieces.",
       number: "02",
     },
-    ...(mysteryMailAvailable
-      ? [
-          {
-            href: "/shop?category=mystery-mail",
-            image: studioMailCoverImage,
-            title: "Mystery Mail",
-            copy: "A limited surprise parcel packed in Aida’s studio.",
-            number: "03",
-          },
-        ]
-      : []),
     {
       href: "/100-windows",
       image: settings.hundredWindows?.heroImageUrl || printsCoverImage,
       title: "100 Windows",
       copy: "One new window, one new story, every day.",
-      number: mysteryMailAvailable ? "04" : "03",
+      number: "03",
     },
   ];
 
@@ -362,11 +337,9 @@ export default function Home() {
                       ? "Explore originals"
                       : item.title === "Newsletter"
                         ? "Read the Newsletter"
-                        : item.title === "Mystery Mail"
-                          ? "Discover Mystery Mail"
-                          : item.title === "100 Windows"
-                            ? "Follow the project"
-                            : "Browse prints & goods"}
+                        : item.title === "100 Windows"
+                          ? "Follow the project"
+                          : "Browse prints & goods"}
                   </span>
                 </span>
                 <ArrowRight
@@ -389,7 +362,7 @@ export default function Home() {
           </div>
         </div>
         <div className="home-product-grid mt-8">
-          {latestLocal.map((product) => (
+          {recentProducts.map((product) => (
             <ProductTile
               key={product.id}
               product={product}

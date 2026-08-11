@@ -7,7 +7,10 @@ import { getCartCount, loadShopSettings } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { StudioWordmark } from "@/components/ui/playful-studio";
 import { trackAnalytics } from "@/lib/analytics";
-import { DestinationControl } from "@/lib/shipping-destination";
+import {
+  DestinationControl,
+  useShippingDestination,
+} from "@/lib/shipping-destination";
 
 const NAV_LINKS = [
   { href: "/shop", en: "Shop", tr: "Mağaza" },
@@ -32,7 +35,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [activeEvent, setActiveEvent] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
-  const activeRegion = "TR" as const;
+  const { isTürkiye } = useShippingDestination();
+  const activeRegion = isTürkiye ? "TR" : "INTERNATIONAL";
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
   const { locale, setLocale } = useLocale();
   const siteLinks = loadShopSettings().siteLinks;
@@ -151,7 +155,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         data-scrolled={headerScrolled || undefined}
         className="site-header sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-ink/5"
       >
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-2 px-4 py-0 md:h-auto md:px-8 md:py-5">
+        <div className="site-header__grid mx-auto h-20 max-w-7xl px-4 md:h-auto md:px-8">
           <Link
             href="/"
             className="z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
@@ -161,7 +165,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
           <nav
             aria-label="Primary navigation"
-            className="hidden md:flex items-center gap-5 lg:gap-7"
+            className="site-header__nav hidden md:flex"
           >
             {NAV_LINKS.map((link) => (
               <Link
@@ -170,7 +174,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "font-medium text-sm lg:text-base link-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-4 focus-visible:ring-offset-paper",
                   location.startsWith(link.href)
-                    ? "text-coral"
+                    ? "site-header__nav-link--active text-ink"
                     : "text-ink hover:text-coral",
                 )}
               >
@@ -179,39 +183,50 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <div className="site-header__utilities flex shrink-0 items-center">
             <div className="hidden lg:block">
-              <DestinationControl compact />
+              <DestinationControl utility />
             </div>
-            <label className="sr-only" htmlFor="language-select">
-              Language
-            </label>
-            <select
-              id="language-select"
-              disabled={isMobileMenuOpen}
-              value={locale}
-              onChange={(event) => setLocale(event.target.value as "en" | "tr")}
-              className="hidden min-h-11 border-0 bg-transparent text-xs font-bold focus-visible:ring-2 focus-visible:ring-coral md:block"
-              aria-label="Language"
-            >
-              <option value="tr">TR</option>
-              <option value="en">EN</option>
-            </select>
+            <details className="header-language hidden md:block">
+              <summary
+                aria-label={
+                  locale === "tr" ? "Dili değiştir" : "Change language"
+                }
+              >
+                {locale.toUpperCase()} <ChevronDown aria-hidden="true" />
+              </summary>
+              <div className="header-language__menu">
+                <button
+                  type="button"
+                  aria-current={locale === "en"}
+                  onClick={() => setLocale("en")}
+                >
+                  English
+                </button>
+                <button
+                  type="button"
+                  aria-current={locale === "tr"}
+                  onClick={() => setLocale("tr")}
+                >
+                  Türkçe
+                </button>
+              </div>
+            </details>
             <button
               onClick={() => setCartOpen(true)}
               disabled={isMobileMenuOpen}
-              className="relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3 md:border md:border-ink/15"
+              className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
               aria-label={`Open collection basket, ${cartCount} items`}
             >
               <ShoppingBag size={20} />
               <span className="hidden lg:inline text-sm font-semibold">
-                Basket ({cartCount})
+                Basket
               </span>
-              {cartCount > 0 && (
-                <span className="absolute right-0 top-0 grid min-h-5 min-w-5 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-paper lg:hidden">
-                  {cartCount}
-                </span>
-              )}
+              <span
+                className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
+              >
+                {cartCount}
+              </span>
             </button>
             <button
               ref={menuButtonRef}
@@ -272,8 +287,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               home: "/shop",
               description:
                 locale === "tr"
-                  ? "Orijinaller, baskılar, ürünler ve Gizemli Posta"
-                  : "Originals, prints, goods and Mystery Mail",
+                  ? "Orijinaller, baskılar ve atölye ürünleri"
+                  : "Originals, prints and studio goods",
               links: [
                 ["/shop", locale === "tr" ? "Tümü" : "All"],
                 [
@@ -283,10 +298,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 [
                   "/shop?category=prints",
                   locale === "tr" ? "Baskılar ve Ürünler" : "Prints & Goods",
-                ],
-                [
-                  "/shop?category=mystery-mail",
-                  locale === "tr" ? "Gizemli Posta" : "Mystery Mail",
                 ],
               ],
             },
@@ -469,7 +480,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Link href="/shop">Shop all</Link>
                 <Link href="/shop?category=originals">Original Art</Link>
                 <Link href="/shop?category=prints">Prints &amp; Goods</Link>
-                <Link href="/shop?category=mystery-mail">Mystery Mail</Link>
                 <Link href="/100-windows">100 Windows</Link>
               </div>
             </nav>
@@ -498,7 +508,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   <Link href="/shop">Shop all</Link>
                   <Link href="/shop?category=originals">Original Art</Link>
                   <Link href="/shop?category=prints">Prints & Goods</Link>
-                  <Link href="/shop?category=mystery-mail">Mystery Mail</Link>
                   <Link href="/100-windows">100 Windows</Link>
                 </div>
               </details>

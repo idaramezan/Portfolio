@@ -39,7 +39,7 @@ const detailCopy = {
     intTitle: "I’m outside Türkiye",
     intBody: "Order the international version through Aida’s Fourthwall shop.",
     intNote: "International pricing and delivery are shown on Fourthwall.",
-    intCta: "Continue internationally",
+    intCta: "Get this print",
     coming: "International edition coming soon",
     comingBody: "This print isn’t available internationally yet.",
     unavailable: "Currently unavailable",
@@ -245,9 +245,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                     })
                   }
                 >
-                  {locale === "tr"
-                    ? "Uluslararası baskıyı satın al"
-                    : "Shop this print internationally"}{" "}
+                  {locale === "tr" ? "Bu baskıyı edin" : "Get this print"}{" "}
                   <ArrowUpRight aria-hidden="true" />
                 </a>
               </>

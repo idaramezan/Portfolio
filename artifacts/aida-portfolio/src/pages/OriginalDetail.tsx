@@ -97,6 +97,13 @@ export default function OriginalDetail({
               {product.description}
             </p>
             <DestinationControl compact />
+            {!sold && destination && !isTürkiye && (
+              <Money
+                baseAmountUsdCents={product.priceUsdCents}
+                canonicalCurrency="USD"
+                className="mt-5 block text-2xl font-bold"
+              />
+            )}
             {sold ? (
               <div className="original-fulfillment-state">
                 <strong>SOLD</strong>
@@ -113,7 +120,9 @@ export default function OriginalDetail({
                       rel="noopener noreferrer"
                       className="button-link"
                     >
-                      {locale === "tr" ? "Baskıyı keşfet" : "Shop the print"}{" "}
+                      {locale === "tr"
+                        ? "Baskıyı edin"
+                        : "Get the print instead"}{" "}
                       <ArrowUpRight aria-hidden="true" />
                     </a>
                   </>
@@ -161,7 +170,7 @@ export default function OriginalDetail({
                     rel="noopener noreferrer"
                     className="paper-button paper-button--pink paper-button--md"
                   >
-                    {locale === "tr" ? "Baskıyı keşfet" : "Shop the print"}{" "}
+                    {locale === "tr" ? "Baskıyı edin" : "Get the print instead"}{" "}
                     <ArrowUpRight aria-hidden="true" />
                   </a>
                 ) : (
@@ -173,20 +182,13 @@ export default function OriginalDetail({
               </div>
             ) : (
               <div className="original-fulfillment-state">
-                <Money
-                  baseAmountUsdCents={product.priceUsdCents}
-                  canonicalCurrency="USD"
-                  className="text-2xl font-bold"
-                />
                 <h2>
-                  {locale === "tr"
-                    ? "Uluslararası teslimat"
-                    : "International delivery"}
+                  {locale === "tr" ? "Teslimat talebi" : "Request delivery"}
                 </h2>
                 <p>
                   {locale === "tr"
                     ? "Seçili ülkelere teslimat mümkündür. Aida, herhangi bir ödeme yapılmadan önce uygunluk ve kargoyu onaylayacak."
-                    : "International delivery is available to selected countries. Aida will confirm availability and shipping before any payment is made."}
+                    : "Delivery is available to selected countries. Aida will confirm availability and shipping before any payment is made."}
                 </p>
                 <button
                   type="button"
@@ -194,8 +196,8 @@ export default function OriginalDetail({
                   onClick={() => setRequesting(true)}
                 >
                   {locale === "tr"
-                    ? "Uluslararası teslimat talebi gönder"
-                    : "Request international delivery"}
+                    ? "Teslimat talebi gönder"
+                    : "Request delivery"}
                 </button>
               </div>
             )}

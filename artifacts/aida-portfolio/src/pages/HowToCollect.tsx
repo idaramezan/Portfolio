@@ -6,7 +6,7 @@ const paths = [
     label: "Türkiye",
     heading: "Collect directly within Türkiye",
     steps: [
-      "Choose Originals, Prints & Goods or Mystery Mail.",
+      "Choose Original Art or Prints & Goods.",
       "Add items to the Türkiye Basket.",
       "Continue to checkout and enter delivery details.",
       "Availability is confirmed personally.",

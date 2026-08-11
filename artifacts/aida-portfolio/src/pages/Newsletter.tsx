@@ -30,7 +30,7 @@ const copy = {
       "Memories and stories behind the paintings",
       "Personal reflections and quiet notes from the studio",
       "Artworks and studio moments not shared anywhere else",
-      "Early notice of originals, prints, Mystery Mail, gatherings and special releases",
+      "Early notice of originals, prints, gatherings and special releases",
     ],
     sampleEyebrow: "BEGIN WITH THE CURRENT LETTER",
     sampleHeading: "A story from the studio, waiting for you.",
@@ -59,7 +59,7 @@ const copy = {
       "Resimlerin ardındaki anılar ve hikâyeler",
       "Kişisel düşünceler ve atölyeden sessiz notlar",
       "Başka hiçbir yerde paylaşılmayan eserler ve atölye anları",
-      "Orijinaller, baskılar, Mystery Mail, buluşmalar ve özel edisyonlar için erken haber",
+      "Orijinaller, baskılar, buluşmalar ve özel edisyonlar için erken haber",
     ],
     sampleEyebrow: "GÜNCEL MEKTUPLA BAŞLA",
     sampleHeading: "Atölyeden bir hikâye seni bekliyor.",
@@ -71,9 +71,7 @@ export default function Newsletter() {
   const text = copy[locale];
   const [toast, setToast] = useState(false);
   usePageMeta(
-    locale === "tr"
-      ? "Bülten | Aida Ramezani"
-      : "Newsletter | Aida Ramezani",
+    locale === "tr" ? "Bülten | Aida Ramezani" : "Newsletter | Aida Ramezani",
     locale === "tr"
       ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve İstanbul atölyesinden notları paylaştığı ücretsiz Bültene katıl."
       : "Join Aida Ramezani’s free Newsletter for stories behind the paintings and personal notes from her Istanbul studio.",
@@ -85,7 +83,9 @@ export default function Newsletter() {
       window.removeEventListener("studio-letter:subscribed", success);
   }, []);
   useEffect(() => {
-    let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    let canonical = document.head.querySelector(
+      'link[rel="canonical"]',
+    ) as HTMLLinkElement | null;
     const created = !canonical;
     if (!canonical) {
       canonical = document.createElement("link");
@@ -93,7 +93,9 @@ export default function Newsletter() {
       document.head.appendChild(canonical);
     }
     canonical.href = `${window.location.origin}/newsletter`;
-    return () => { if (created) canonical?.remove(); };
+    return () => {
+      if (created) canonical?.remove();
+    };
   }, []);
 
   return (

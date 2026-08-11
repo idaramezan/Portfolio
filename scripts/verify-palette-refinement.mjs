@@ -74,7 +74,7 @@ assert.ok(
     home.includes("home-category-link__content") &&
     home.includes("originalsCoverImage") &&
     home.includes("printsCoverImage") &&
-    home.includes("studioMailCoverImage") &&
+    !home.includes("studioMailCoverImage") &&
     !home.includes("hasActiveShoppingRegionPreference"),
   "homepage must provide one shop path and image-led category navigation once",
 );
