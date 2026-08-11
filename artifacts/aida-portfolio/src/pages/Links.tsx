@@ -8,6 +8,7 @@ import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
 import { useLocale } from "@/lib/locale";
+import CommissionLinkCard from "@/components/CommissionLinkCard";
 
 export default function Links() {
   usePageMeta(
@@ -114,6 +115,7 @@ export default function Links() {
         <Mail size={18} aria-hidden="true" />
         {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}
       </Link>
+      <CommissionLinkCard locale={locale} />
       <section className="mt-5 grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
           <Link

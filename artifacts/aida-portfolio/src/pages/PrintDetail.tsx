@@ -15,6 +15,7 @@ import {
   DestinationControl,
   useShippingDestination,
 } from "@/lib/shipping-destination";
+import ProductImageLightbox from "@/components/ProductImageLightbox";
 
 const detailCopy = {
   en: {
@@ -145,6 +146,13 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
     internationalHref && (linked ? linked.available : true),
   );
   const sold = isSoldOut(product);
+  const productImages = [product.imageUrl, ...(product.galleryImages || [])]
+    .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
+    .map((src) => ({
+      src,
+      highResolutionSrc: src,
+      alt: product.altText || product.name,
+    }));
 
   return (
     <section
@@ -155,7 +163,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
       </Link>
       <div className="print-story-detail__layout">
         <div className="print-story-detail__media">
-          <img src={product.imageUrl} alt={product.altText || product.name} />
+          <ProductImageLightbox images={productImages} />
         </div>
         <article className="print-story-detail__story">
           <p className="eyebrow">

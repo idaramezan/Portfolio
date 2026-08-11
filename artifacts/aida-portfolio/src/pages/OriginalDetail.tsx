@@ -17,6 +17,7 @@ import { useLocale } from "@/lib/locale";
 import Money from "@/components/Money";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { trackAnalytics } from "@/lib/analytics";
+import ProductImageLightbox from "@/components/ProductImageLightbox";
 
 export default function OriginalDetail({
   market: _market,
@@ -73,6 +74,13 @@ export default function OriginalDetail({
         </Link>
       </section>
     );
+  const artworkImages = [product.imageUrl, ...(product.galleryImages || [])]
+    .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
+    .map((src) => ({
+      src,
+      highResolutionSrc: src,
+      alt: product.altText || product.name,
+    }));
   return (
     <>
       <section className="section-shell original-unified-detail">
@@ -80,13 +88,9 @@ export default function OriginalDetail({
           ← {locale === "tr" ? "Orijinal eserlere dön" : "Back to originals"}
         </Link>
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_.8fr]">
-          <img
-            src={product.imageUrl}
-            alt={product.altText || product.name}
-            className="w-full bg-ink/5 object-contain"
-            onError={(event) => {
-              event.currentTarget.hidden = true;
-            }}
+          <ProductImageLightbox
+            images={artworkImages}
+            imageClassName="w-full bg-ink/5 object-contain"
           />
           <div>
             <p className="eyebrow">

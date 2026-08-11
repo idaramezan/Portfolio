@@ -72,7 +72,8 @@ export type AnalyticsEventName =
   | "original_delivery_request_started"
   | "original_delivery_request_submitted"
   | "us_original_unavailable_view"
-  | "100_windows_product_view";
+  | "100_windows_product_view"
+  | "commission_etsy_click";
 
 export const ANALYTICS_CONSENT_KEY = "aida-analytics-consent";
 const VISITOR_COOKIE = "aida_analytics_visitor";
