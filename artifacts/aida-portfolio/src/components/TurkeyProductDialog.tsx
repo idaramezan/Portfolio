@@ -5,7 +5,7 @@ import Money from "@/components/Money";
 import { useToast } from "@/hooks/use-toast";
 import { addItemToCart, type ManagedProduct } from "@/lib/store";
 import {
-  calculateTurkiyePrintShipping,
+  calculateTurkiyeProductShipping,
   calculatePrintPrice,
   formatPrintSize,
   getFinishPriceDifference,
@@ -141,8 +141,9 @@ export default function TurkeyProductDialog({
   const selectedColor =
     category === "tshirt" ? color : category === "mug" ? "white" : undefined;
   const formattedSize = size ? formatPrintSize(size) : null;
-  const shipping =
-    category === "print" ? calculateTurkiyePrintShipping(quantity) : 0;
+  // This dialog only handles non-original Türkiye products. Checkout applies
+  // the same 200 TL first-item rule to prints, stickers, mugs and shirts.
+  const shipping = calculateTurkiyeProductShipping(quantity);
   const orderTotal = pricing.lineTotalCents + shipping;
 
   const add = () => {
@@ -537,16 +538,14 @@ export default function TurkeyProductDialog({
                   showBase
                 />
               </p>
-              {category === "print" && (
-                <p className="flex items-center justify-between">
-                  <span>Shipping</span>
-                  <Money
-                    baseAmountUsdCents={shipping}
-                    canonicalCurrency="TRY"
-                    showBase
-                  />
-                </p>
-              )}
+              <p className="flex items-center justify-between">
+                <span>{locale === "tr" ? "Kargo" : "Shipping"}</span>
+                <Money
+                  baseAmountUsdCents={shipping}
+                  canonicalCurrency="TRY"
+                  showBase
+                />
+              </p>
             </div>
             <div className="mt-3 flex items-end justify-between border-t border-ink/10 pt-3">
               <strong>TOTAL</strong>
@@ -557,14 +556,12 @@ export default function TurkeyProductDialog({
                 className="font-sans text-2xl font-bold"
               />
             </div>
-            {category === "print" && (
-              <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
-                <PackageCheck size={17} aria-hidden="true" />
-                {locale === "tr"
-                  ? "Türkiye içi kargo ilk baskı için 200 TL, eklenen her baskı için ise +20 TL'dir."
-                  : "Türkiye delivery is 200 TL for the first print, then 20 TL for each additional print."}
-              </p>
-            )}
+            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
+              <PackageCheck size={17} aria-hidden="true" />
+              {locale === "tr"
+                ? "Türkiye içi kargo ilk ürün için 200 TL, eklenen her ürün için ise +20 TL'dir. Orijinal eserlerde kargo ücretsizdir."
+                : "Türkiye delivery is 200 TL for the first product, then 20 TL for each additional product. Originals ship free."}
+            </p>
           </section>
 
           {!valid && (

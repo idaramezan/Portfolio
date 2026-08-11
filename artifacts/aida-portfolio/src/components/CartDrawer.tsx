@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
-import { calculateTurkiyePrintShipping } from "@/lib/turkiye-products";
+import { calculateTurkiyeProductShipping } from "@/lib/turkiye-products";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -43,13 +43,14 @@ export default function CartDrawer({
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
-  const totalPrintQuantity = cart.reduce(
-    (total, item) => total + (item.kind === "print" ? item.quantity : 0),
+  const totalProductQuantity = cart.reduce(
+    (total, item) =>
+      total + (["print", "product"].includes(item.kind) ? item.quantity : 0),
     0,
   );
   const shipping =
     region === "TR"
-      ? calculateTurkiyePrintShipping(totalPrintQuantity)
+      ? calculateTurkiyeProductShipping(totalProductQuantity)
       : cart.length
         ? 10_000
         : 0;
@@ -235,8 +236,8 @@ export default function CartDrawer({
           {region === "TR" ? (
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
-              {totalPrintQuantity > 0
-                ? "Türkiye delivery is 200 TL for the first print, then 20 TL for each additional print."
+              {totalProductQuantity > 0
+                ? "Türkiye delivery is 200 TL for the first product, then 20 TL for each additional product. Originals ship free."
                 : "Free shipping within Türkiye"}
             </p>
           ) : (

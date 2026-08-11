@@ -2,10 +2,15 @@ export type TurkeyProductCategory = "tshirt" | "mug" | "print" | "sticker";
 export type PrintFraming = "framed" | "unframed";
 export type TshirtColor = "black" | "white";
 
+export function calculateTurkiyeProductShipping(productQuantity: number) {
+  if (!Number.isInteger(productQuantity) || productQuantity < 0)
+    throw new Error("Product quantity must be a non-negative integer.");
+  return productQuantity === 0 ? 0 : 20_000 + (productQuantity - 1) * 2_000;
+}
+
+/** @deprecated Use calculateTurkiyeProductShipping for all non-original goods. */
 export function calculateTurkiyePrintShipping(printQuantity: number) {
-  if (!Number.isInteger(printQuantity) || printQuantity < 0)
-    throw new Error("Print quantity must be a non-negative integer.");
-  return printQuantity === 0 ? 0 : 20_000 + (printQuantity - 1) * 2_000;
+  return calculateTurkiyeProductShipping(printQuantity);
 }
 
 export interface PrintSizeOption {

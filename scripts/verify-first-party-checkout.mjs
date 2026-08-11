@@ -10,7 +10,7 @@ assert.ok(server.includes('countryCode === "US"')&&checkout.includes('COUNTRY_CO
 assert.ok(server.includes("idempotency_key TEXT UNIQUE")&&server.includes("signatureOkay(file)")&&server.includes("PRIVATE_RECEIPTS_DIR"));
 assert.ok(!server.includes("$27,$28,'checkout-v1'"), "order insert values must match its target columns");
 assert.ok(/href=\{\s*region === "TR"\s*\? "\/checkout\/turkiye"\s*: "\/checkout\/international-originals"\s*\}/.test(cart)&&!cart.includes("wa.me/"));
-assert.ok(cart.includes("calculateTurkiyePrintShipping")&&cart.includes('item.kind === "print"'));
+assert.ok(cart.includes("calculateTurkiyeProductShipping")&&cart.includes('["print", "product"].includes(item.kind)'));
 assert.ok(checkout.includes("Upload your completed bank-transfer receipt")&&checkout.includes("Submit order for payment review"));
 assert.ok(checkout.includes("useToast")&&checkout.includes('variant:"destructive"'), "checkout errors must appear in a visible toast");
 console.log("First-party checkout verification passed.");
