@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { Instagram, Mail, Music2, Youtube } from "lucide-react";
+import { SiKick, SiTwitch } from "react-icons/si";
 import { portrait } from "@/lib/assets";
 import originalPaintingsImage from "@assets/links-original-paintings.jpg";
 import printsGoodsImage from "@assets/links-prints-goods.jpg";
@@ -134,6 +135,8 @@ export default function Links() {
       settings.siteLinks.youtubeLabel,
       Youtube,
     ],
+    [settings.siteLinks.twitchUrl, "Twitch", "Watch Aida live", SiTwitch],
+    [settings.siteLinks.kickUrl, "Kick", "Watch Aida live", SiKick],
   ].filter((x) => {
     try {
       return (
