@@ -17,15 +17,19 @@ import {
   getMysteryMailCountdown,
   getMysteryMailUrgency,
 } from "@/lib/mystery-mail";
-import { addItemToCart, setActiveShoppingRegion } from "@/lib/store";
+import { addItemToCart } from "@/lib/store";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useLocale } from "@/lib/locale";
+import {
+  DestinationControl,
+  useShippingDestination,
+} from "@/lib/shipping-destination";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 
 const TITLE = "Mystery Mail Art Package in Türkiye | Aida Ramezani";
 const DESCRIPTION =
   "Order Aida Ramezani’s limited Mystery Mail in Türkiye, featuring an exclusive art postcard, studio stickers and surprise art objects with free shipping.";
-const CANONICAL_PATH = "/shop/turkiye/mystery-mail";
+const CANONICAL_PATH = "/shop/mystery-mail";
 const EMPTY_TITLE = "Mystery Mail Art Editions | Aida Ramezani";
 const EMPTY_DESCRIPTION =
   "Discover Aida Ramezani’s limited Mystery Mail art editions, released for a short time with exclusive art postcards, stickers and studio surprises in Türkiye.";
@@ -143,6 +147,7 @@ export function CompactCountdown({ remaining }: { remaining: number }) {
 export default function MysteryMail() {
   const settings = useShopSettings();
   const { locale } = useLocale();
+  const { destination, isTürkiye } = useShippingDestination();
   const explicitlyBetweenEditions =
     settings.mysteryMail.storefrontMode === "not-available-yet";
   const selectedEdition = settings.mysteryMail.activeEditionId
@@ -163,7 +168,6 @@ export default function MysteryMail() {
     betweenEditions ? EMPTY_TITLE : TITLE,
     betweenEditions ? EMPTY_DESCRIPTION : DESCRIPTION,
   );
-  useEffect(() => setActiveShoppingRegion("TR"), []);
   const now = useServerNow();
   const expiresAt = current?.expiresAt ? Date.parse(current.expiresAt) : 0;
   const remaining = expiresAt - now;
@@ -267,8 +271,8 @@ export default function MysteryMail() {
         {
           "@type": "ListItem",
           position: 2,
-          name: "Türkiye Shop",
-          item: `${origin}/shop/turkiye`,
+          name: "Shop",
+          item: `${origin}/shop`,
         },
         {
           "@type": "ListItem",
@@ -406,6 +410,29 @@ export default function MysteryMail() {
     [],
   );
 
+  if (destination && !isTürkiye)
+    return (
+      <main className="section-shell">
+        <p className="eyebrow">MYSTERY MAIL</p>
+        <h1 className="mt-4 text-5xl">
+          {locale === "tr"
+            ? "Şu anda yalnızca Türkiye'de sunuluyor."
+            : "Currently available in Türkiye only"}
+        </h1>
+        <p className="mt-5 max-w-2xl text-ink/65">
+          {locale === "tr"
+            ? "Gizemli Posta kavramını keşfedebilirsin; bu edisyonun gönderimi şu anda Türkiye ile sınırlı."
+            : "You can still discover the Mystery Mail concept. Delivery for this edition is currently limited to Türkiye."}
+        </p>
+        <DestinationControl compact />
+        <Link
+          href="/newsletter"
+          className="paper-button paper-button--pink paper-button--md mt-6"
+        >
+          {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}
+        </Link>
+      </main>
+    );
   if (betweenEditions) {
     const copy = MYSTERY_NEWSLETTER_COPY[locale];
     return (

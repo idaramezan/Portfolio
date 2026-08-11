@@ -1,22 +1,38 @@
+import { useEffect, useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import ManagedProductCard from "@/components/ManagedProductCard";
+import OriginalRequestDialog from "@/components/OriginalRequestDialog";
 import { useShopSettings } from "@/hooks/use-shop-settings";
+import { useInternationalProducts } from "@/hooks/use-international";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { isPubliclyVisible } from "@/lib/product-status";
+import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import type { Market } from "@/lib/market";
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
-import InternationalProductOption from "@/components/InternationalProductOption";
+import {
+  DestinationControl,
+  useShippingDestination,
+} from "@/lib/shipping-destination";
+import { useLocale } from "@/lib/locale";
+import Money from "@/components/Money";
+import { isSafeFourthwallUrl } from "@/lib/fourthwall";
+import { trackAnalytics } from "@/lib/analytics";
 
-export default function OriginalDetail({ market }: { market: Market }) {
+export default function OriginalDetail({
+  market: _market,
+}: {
+  market: Market;
+}) {
   const [, params] = useRoute("/shop/:market/originals/:slug");
+  const canonicalMatch = useRoute("/shop/originals/:slug")[1];
   const settings = useShopSettings();
+  const international = useInternationalProducts();
+  const { destination, isTürkiye, openDestination } = useShippingDestination();
+  const { locale } = useLocale();
+  const [requesting, setRequesting] = useState(false);
+  const slug = canonicalMatch?.slug || params?.slug;
   const product = settings.originalProducts.find(
-    (item) =>
-      (item.slug || item.id) === params?.slug &&
-      isPubliclyVisible(item) &&
-      (market === "turkiye"
-        ? item.availableInTurkiye !== false
-        : item.availableInternationally !== false),
+    (item) => (item.slug || item.id) === slug && isPubliclyVisible(item),
   );
   usePageMeta(
     product
@@ -24,58 +40,176 @@ export default function OriginalDetail({ market }: { market: Market }) {
       : "Original painting unavailable | Aida Ramezani",
     product?.description || "View original paintings by Aida Ramezani.",
   );
-  const base = `/shop/${market}/originals`;
+  const linked = product?.fourthwallProductId
+    ? international.products.find(
+        (item) => item.id === product.fourthwallProductId,
+      )
+    : undefined;
+  const fallback =
+    product?.fourthwallProductUrl &&
+    isSafeFourthwallUrl(product.fourthwallProductUrl, international.shopUrl)
+      ? product.fourthwallProductUrl
+      : "";
+  const printHref = linked?.externalUrl || fallback;
+  const sold = product ? isSoldOut(product) : false;
+  const unavailableUS = destination?.countryCode === "US";
+  useEffect(() => {
+    if (product && unavailableUS && !sold)
+      trackAnalytics("us_original_unavailable_view", {
+        metadata: { productId: product.id },
+      });
+  }, [product?.id, unavailableUS, sold]);
   if (!product)
     return (
       <section className="section-shell">
         <p className="eyebrow">Original painting</p>
         <h1 className="mt-4 text-5xl">
-          This work is not available in this market.
+          {locale === "tr"
+            ? "Bu eser şu anda mevcut değil."
+            : "This work is not currently available."}
         </h1>
-        <Link href={base} className="button-primary mt-7">
-          Browse available originals
+        <Link href="/shop?category=originals" className="button-primary mt-7">
+          {locale === "tr" ? "Orijinal eserlere dön" : "Browse originals"}
         </Link>
       </section>
     );
   return (
     <>
-      <section className="section-shell">
-        <Link href={base} className="button-link">
-          ← Back to originals
+      <section className="section-shell original-unified-detail">
+        <Link href="/shop?category=originals" className="button-link">
+          ← {locale === "tr" ? "Orijinal eserlere dön" : "Back to originals"}
         </Link>
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_.8fr]">
           <img
             src={product.imageUrl}
             alt={product.altText || product.name}
             className="w-full bg-ink/5 object-contain"
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
           />
           <div>
-            <p className="eyebrow">One-of-one original</p>
-            <ManagedProductCard
-              product={product}
-              region={market === "turkiye" ? "TR" : "INTERNATIONAL"}
-              hideImage
-            />
-            {market === "turkiye" && (
-              <InternationalProductOption
-                fourthwallProductId={product.fourthwallProductId}
-                fourthwallProductUrl={product.fourthwallProductUrl}
-                relationshipType={product.fourthwallLinkType}
-                sourceProductId={product.id}
-                sourceProductType="original"
-                displayContext="product_page"
-              />
-            )}
-            <p className="mt-5 text-sm text-ink/60">
-              Certificate of authenticity included.{" "}
-              {market === "turkiye"
-                ? "Free delivery within Türkiye."
-                : "International shipping is quoted separately after your destination is confirmed."}
+            <p className="eyebrow">
+              {locale === "tr" ? "TEK VE ORİJİNAL" : "ONE-OF-ONE ORIGINAL"}
             </p>
+            <h1 className="mt-3 text-5xl">{product.name}</h1>
+            <p className="mt-4 leading-relaxed text-ink/65">
+              {product.description}
+            </p>
+            <DestinationControl compact />
+            {sold ? (
+              <div className="original-fulfillment-state">
+                <strong>SOLD</strong>
+                {printHref && (
+                  <>
+                    <h2>
+                      {locale === "tr"
+                        ? "Bu eseri sevdin mi?"
+                        : "Love this piece?"}
+                    </h2>
+                    <a
+                      href={printHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="button-link"
+                    >
+                      {locale === "tr" ? "Baskıyı keşfet" : "Shop the print"}{" "}
+                      <ArrowUpRight aria-hidden="true" />
+                    </a>
+                  </>
+                )}
+              </div>
+            ) : !destination ? (
+              <button
+                type="button"
+                className="paper-button paper-button--pink paper-button--md mt-5"
+                onClick={() =>
+                  openDestination((next) =>
+                    next.countryCode !== "TR" && next.countryCode !== "US"
+                      ? setRequesting(true)
+                      : undefined,
+                  )
+                }
+              >
+                {locale === "tr" ? "Bu eseri edin" : "Collect this piece"}
+              </button>
+            ) : isTürkiye ? (
+              <>
+                <ManagedProductCard product={product} region="TR" hideImage />
+                <p className="mt-4 text-sm font-semibold text-green">
+                  {locale === "tr"
+                    ? "Türkiye içinde ücretsiz kargo"
+                    : "Free shipping within Türkiye"}
+                </p>
+              </>
+            ) : unavailableUS ? (
+              <div className="original-fulfillment-state">
+                <h2>
+                  {locale === "tr"
+                    ? "Orijinal eser ABD'ye gönderilemiyor"
+                    : "Original unavailable for US delivery"}
+                </h2>
+                <p>
+                  {locale === "tr"
+                    ? "Bu orijinal eser şu anda Amerika Birleşik Devletleri'ne gönderilemiyor."
+                    : "This original can't currently be shipped to the United States."}
+                </p>
+                {printHref ? (
+                  <a
+                    href={printHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="paper-button paper-button--pink paper-button--md"
+                  >
+                    {locale === "tr" ? "Baskıyı keşfet" : "Shop the print"}{" "}
+                    <ArrowUpRight aria-hidden="true" />
+                  </a>
+                ) : (
+                  <Link href="/newsletter" className="button-link">
+                    {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}{" "}
+                    →
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="original-fulfillment-state">
+                <Money
+                  baseAmountUsdCents={product.priceUsdCents}
+                  canonicalCurrency="USD"
+                  className="text-2xl font-bold"
+                />
+                <h2>
+                  {locale === "tr"
+                    ? "Uluslararası teslimat"
+                    : "International delivery"}
+                </h2>
+                <p>
+                  {locale === "tr"
+                    ? "Seçili ülkelere teslimat mümkündür. Aida, herhangi bir ödeme yapılmadan önce uygunluk ve kargoyu onaylayacak."
+                    : "International delivery is available to selected countries. Aida will confirm availability and shipping before any payment is made."}
+                </p>
+                <button
+                  type="button"
+                  className="paper-button paper-button--pink paper-button--md"
+                  onClick={() => setRequesting(true)}
+                >
+                  {locale === "tr"
+                    ? "Uluslararası teslimat talebi gönder"
+                    : "Request international delivery"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
-      <OriginalCollectorExperience compact market={market} />
+      <OriginalCollectorExperience
+        compact
+        market={isTürkiye ? "turkiye" : "international"}
+      />
+      <OriginalRequestDialog
+        product={requesting ? product : null}
+        onClose={() => setRequesting(false)}
+      />
     </>
   );
 }

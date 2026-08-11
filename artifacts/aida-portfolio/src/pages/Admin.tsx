@@ -14,6 +14,7 @@ import EventRegistrations from "@/pages/admin/EventRegistrations";
 import EventBanner from "@/pages/admin/EventBanner";
 import EventsAdmin, { EventReviewsAdmin } from "@/pages/admin/Events";
 import HundredWindowsAdmin from "@/pages/admin/HundredWindows";
+import OriginalRequests from "@/pages/admin/OriginalRequests";
 import CollectorExperience from "@/pages/admin/CollectorExperience";
 import Analytics from "@/pages/admin/Analytics";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
@@ -147,6 +148,7 @@ export default function Admin() {
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
+  if (location === "/admin/original-requests") return <OriginalRequests />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
   if (location === "/admin/subscribers/featured-letter")
     return <FeaturedStudioLetter />;
@@ -156,7 +158,8 @@ export default function Admin() {
   if (eventEditor) return <EventsAdmin eventId={eventEditor[1]} />;
   if (location === "/admin/events") return <EventsAdmin />;
   if (location === "/admin/marketing/event-banner") return <EventBanner />;
-  if (location === "/admin/marketing/100-windows") return <HundredWindowsAdmin />;
+  if (location === "/admin/marketing/100-windows")
+    return <HundredWindowsAdmin />;
   if (location === "/admin/marketing/collector-experience")
     return <CollectorExperience />;
   if (location === "/admin/sticker-drop") return <StickerDropList />;

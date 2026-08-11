@@ -9,17 +9,10 @@ import {
   printsCoverImage,
   studioMailCoverImage,
 } from "@/lib/assets";
-import turkiyeFlagImage from "@assets/home-turkiye-flag.jpg";
-import internationalFlagsImage from "@assets/home-international-flags.jpg";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
-import {
-  getActiveShoppingRegion,
-  setActiveShoppingRegion,
-  type ManagedProduct,
-  type ShoppingRegion,
-} from "@/lib/store";
+import type { ManagedProduct } from "@/lib/store";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { trackAnalytics } from "@/lib/analytics";
 import Money from "@/components/Money";
@@ -30,8 +23,7 @@ import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanne
 import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
 import { PaperButton } from "@/components/ui/playful-studio";
 import { useLocale } from "@/lib/locale";
-
-const SHOP_REGION_SESSION_KEY = "aida-shop-region";
+import { useShippingDestination } from "@/lib/shipping-destination";
 
 const SEO_TITLE =
   "Original Art, Prints & Goods and Mystery Mail | Aida Ramezani";
@@ -74,20 +66,39 @@ function NewsletterEnvelopeCard({
       onClick={onClick}
       className="newsletter-envelope-card"
       data-arrived={arrived || undefined}
-      aria-label={locale === "tr" ? "Bülteni oku ve abone ol" : "Read and subscribe to the Newsletter"}
+      aria-label={
+        locale === "tr"
+          ? "Bülteni oku ve abone ol"
+          : "Read and subscribe to the Newsletter"
+      }
     >
       <span className="newsletter-envelope-card__paper" aria-hidden="true">
         <span className="newsletter-envelope-card__flap" />
-        <span className="newsletter-envelope-card__sender">AIDA · ISTANBUL</span>
+        <span className="newsletter-envelope-card__sender">
+          AIDA · ISTANBUL
+        </span>
         <span className="newsletter-envelope-card__stamp">AR</span>
         <span className="newsletter-envelope-card__postmark" />
       </span>
       <span className="newsletter-envelope-card__content">
-        <span className="home-category-link__number home-category-link__number--desktop">{number}</span>
-        <span className="newsletter-envelope-card__eyebrow">{locale === "tr" ? "GELEN KUTUNA, AIDA’DAN" : "FROM AIDA, TO YOUR INBOX"}</span>
+        <span className="home-category-link__number home-category-link__number--desktop">
+          {number}
+        </span>
+        <span className="newsletter-envelope-card__eyebrow">
+          {locale === "tr"
+            ? "GELEN KUTUNA, AIDA’DAN"
+            : "FROM AIDA, TO YOUR INBOX"}
+        </span>
         <h3>{locale === "tr" ? "Bülten" : "Newsletter"}</h3>
-        <p>{locale === "tr" ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar." : "Personal art stories, studio notes and first looks at new work."}</p>
-        <span className="newsletter-envelope-card__cta">{locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"} <ArrowRight aria-hidden="true" /></span>
+        <p>
+          {locale === "tr"
+            ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar."
+            : "Personal art stories, studio notes and first looks at new work."}
+        </p>
+        <span className="newsletter-envelope-card__cta">
+          {locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"}{" "}
+          <ArrowRight aria-hidden="true" />
+        </span>
       </span>
     </Link>
   );
@@ -95,15 +106,32 @@ function NewsletterEnvelopeCard({
 
 function ProductTile({
   product,
-  market,
+  internationalProducts,
 }: {
   product: ManagedProduct;
-  market: ShoppingRegion;
+  internationalProducts: ReturnType<
+    typeof useInternationalProducts
+  >["products"];
 }) {
+  const { destination, isTürkiye } = useShippingDestination();
   const original = product.kind === "original";
-  const href = `/shop/${market === "TR" ? "turkiye" : "international"}/${original ? "originals" : "prints"}/${product.slug || product.id}`;
-  const canonicalCurrency = product.priceCurrency || (original ? "USD" : "TRY");
+  const href = `/shop/${original ? "originals" : "prints"}/${product.slug || product.id}`;
+  const canonicalCurrency = isTürkiye && !original ? "TRY" : "USD";
   const amount = product.priceMinor ?? product.priceUsdCents;
+  const linked = internationalProducts.find(
+    (item) => item.id === product.fourthwallProductId,
+  );
+  const fulfillment = isTürkiye
+    ? original
+      ? "Free Türkiye shipping"
+      : "Prepared in Aida's studio"
+    : original
+      ? destination?.countryCode === "US"
+        ? "Unavailable for US delivery"
+        : "Delivery by request"
+      : linked
+        ? "Fulfilled through Fourthwall"
+        : "Not available internationally yet";
   return (
     <article
       className={`home-product-tile ${original ? "home-product-tile--original" : "home-product-tile--goods"}`}
@@ -116,7 +144,7 @@ function ProductTile({
             entityType: original ? "original" : "product",
             entityId: product.id,
             entityName: product.name,
-            metadata: { market },
+            metadata: { countryCode: destination?.countryCode || "unknown" },
           })
         }
       >
@@ -133,11 +161,19 @@ function ProductTile({
             {isSoldOut(product) ? "Sold" : "Available"}
           </p>
           <h3 className="mt-2 text-2xl leading-tight">{product.name}</h3>
-          <Money
-            baseAmountUsdCents={amount}
-            canonicalCurrency={canonicalCurrency}
-            className="mt-2 block text-sm font-bold"
-          />
+          {(isTürkiye || original) && destination?.countryCode !== "US" && (
+            <Money
+              baseAmountUsdCents={amount}
+              canonicalCurrency={canonicalCurrency}
+              className="mt-2 block text-sm font-bold"
+            />
+          )}
+          {!isTürkiye && !original && linked?.price?.formatted && (
+            <strong className="mt-2 block text-sm">
+              {linked.price.formatted}
+            </strong>
+          )}
+          <p className="mt-2 text-xs text-ink/55">{fulfillment}</p>
           <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-ink underline decoration-ink/25 underline-offset-4">
             {original ? "View artwork" : "See options"} →
           </span>
@@ -152,29 +188,12 @@ export default function Home() {
   const settings = useShopSettings();
   const international = useInternationalProducts();
   const { locale } = useLocale();
-  const [market, setMarket] = useState<ShoppingRegion>(() => {
-    const saved = typeof window === "undefined" ? null : window.sessionStorage.getItem(SHOP_REGION_SESSION_KEY);
-    return saved === "TR" || saved === "INTERNATIONAL" ? saved : getActiveShoppingRegion();
-  });
+  const { isTürkiye } = useShippingDestination();
   const links = settings.siteLinks;
-
-  const chooseMarket = (next: ShoppingRegion) => {
-    setActiveShoppingRegion(next);
-    window.sessionStorage.setItem(SHOP_REGION_SESSION_KEY, next);
-    setMarket(next);
-    trackAnalytics("homepage_market_selected", {
-      metadata: { market: next },
-    });
-  };
-
-  const base = market === "TR" ? "/shop/turkiye" : "/shop/international";
   const originals = settings.originalProducts
     .filter(
       (product) =>
-        isPubliclyVisible(product) &&
-        (market === "TR"
-          ? product.availableInTurkiye !== false
-          : product.availableInternationally !== false),
+        isPubliclyVisible(product) && product.availableInTurkiye !== false,
     )
     .sort(
       (a, b) =>
@@ -199,63 +218,40 @@ export default function Home() {
   const mysteryMailAvailable = settings.studioMailPackages.some((item) =>
     isPubliclyVisible(item),
   );
-  const categoryItems =
-    market === "TR"
+  const categoryItems = [
+    {
+      href: "/shop?category=originals",
+      image: originalsCoverImage,
+      title: "Original Art",
+      copy: "One-of-a-kind oil pastel paintings.",
+      number: "01",
+    },
+    {
+      href: "/shop?category=prints",
+      image: printsCoverImage,
+      title: "Prints & Stickers",
+      copy: "Signed prints, stickers and studio pieces.",
+      number: "02",
+    },
+    ...(mysteryMailAvailable
       ? [
           {
-            href: "/shop/turkiye/originals",
-            image: originalsCoverImage,
-            title: "Original Art",
-            copy: "One-of-a-kind oil pastel paintings.",
-            number: "01",
-          },
-          {
-            href: "/shop/turkiye/prints",
-            image: printsCoverImage,
-            title: "Prints & Stickers",
-            copy: "Signed prints, stickers and studio pieces.",
-            number: "02",
-          },
-          ...(mysteryMailAvailable
-            ? [{
-                href: "/shop/turkiye/mystery-mail",
-                image: studioMailCoverImage,
-                title: "Mystery Mail",
-                copy: "A limited surprise parcel packed in Aida’s studio.",
-                number: "03",
-              }]
-            : []),
-          {
-            href: "/newsletter",
+            href: "/shop?category=mystery-mail",
             image: studioMailCoverImage,
-            title: "Newsletter",
-            copy: "Free personal stories and notes from Aida’s studio.",
-            number: mysteryMailAvailable ? "04" : "03",
-          },
-        ]
-      : [
-          {
-            href: "/shop/international/originals",
-            image: originalsCoverImage,
-            title: "Original Art",
-            copy: "One-of-a-kind paintings available worldwide.",
-            number: "01",
-          },
-          {
-            href: "/shop/international/prints",
-            image: printsCoverImage,
-            title: "Prints & Goods",
-            copy: "Worldwide editions and practical studio products.",
-            number: "02",
-          },
-          {
-            href: "/newsletter",
-            image: studioMailCoverImage,
-            title: "Newsletter",
-            copy: "Free personal stories and notes from Aida’s studio.",
+            title: "Mystery Mail",
+            copy: "A limited surprise parcel packed in Aida’s studio.",
             number: "03",
           },
-        ];
+        ]
+      : []),
+    {
+      href: "/100-windows",
+      image: settings.hundredWindows?.heroImageUrl || printsCoverImage,
+      title: "100 Windows",
+      copy: "One new window, one new story, every day.",
+      number: mysteryMailAvailable ? "04" : "03",
+    },
+  ];
 
   return (
     <div className="home-editorial flex flex-col overflow-hidden">
@@ -280,32 +276,20 @@ export default function Home() {
               fetchPriority="high"
               className="home-market-hero__image home-market-hero__image--mobile"
             />
-            <div className="home-market-actions" aria-label="Choose your shop">
-              <Link
-                href="/shop/turkiye"
-                className="home-market-action home-market-action--primary"
-                onClick={() => chooseMarket("TR")}
-              >
-                <span className="home-market-action__media"><img src={turkiyeFlagImage} alt="Turkish flag" width="420" height="280" /></span>
-                <span className="home-market-action__content">
-                  <span className="home-market-action__label">Local shop</span>
-                  <strong>Shop in Türkiye</strong>
-                  <span>Originals, prints, stickers and Mystery Mail</span>
-                </span>
-                <span className="home-market-action__arrow" aria-hidden="true"><ArrowRight /></span>
-              </Link>
-              <Link
-                href="/shop/international"
-                className="home-market-action"
-                onClick={() => chooseMarket("INTERNATIONAL")}
-              >
-                <span className="home-market-action__media"><img src={internationalFlagsImage} alt="International flags" width="420" height="255" /></span>
-                <span className="home-market-action__content">
-                  <span className="home-market-action__label">Worldwide</span>
-                  <strong>Shop internationally</strong>
-                  <span>Original paintings and worldwide studio products</span>
-                </span>
-                <span className="home-market-action__arrow" aria-hidden="true"><ArrowRight /></span>
+            <div
+              className="home-market-actions home-market-actions--unified"
+              aria-label={
+                locale === "tr" ? "Stüdyoyu keşfet" : "Explore the studio"
+              }
+            >
+              <PaperButton href="/shop" variant="pink" size="lg" arrow>
+                {locale === "tr" ? "Mağazayı keşfet" : "Explore the shop"}
+              </PaperButton>
+              <Link href="/100-windows" className="button-link">
+                {locale === "tr"
+                  ? "100 Windows'ı takip et"
+                  : "Follow 100 Windows"}{" "}
+                →
               </Link>
             </div>
           </div>
@@ -331,15 +315,8 @@ export default function Home() {
             </h2>
           </div>
         </div>
-        <div className="shop-region-switcher-wrap">
-          <span className="shop-region-switcher-label">{locale === "tr" ? "Göz at:" : "Browsing:"}</span>
-          <div className="shop-region-switcher" role="group" aria-label={locale === "tr" ? "Alışveriş bölgenizi seçin" : "Choose your shopping region"}>
-            <button type="button" data-active={market === "TR"} aria-pressed={market === "TR"} onClick={() => chooseMarket("TR")}>Türkiye</button>
-            <button type="button" data-active={market === "INTERNATIONAL"} aria-pressed={market === "INTERNATIONAL"} onClick={() => chooseMarket("INTERNATIONAL")}>{locale === "tr" ? "Uluslararası" : "International"}</button>
-          </div>
-        </div>
-        <div key={market} className="home-category-grid home-category-grid--region mt-8" aria-live="polite">
-          {categoryItems.map((item, index) => (
+        <div className="home-category-grid home-category-grid--region mt-8">
+          {categoryItems.map((item, index) =>
             item.title === "Newsletter" ? (
               <NewsletterEnvelopeCard
                 key={item.href}
@@ -348,43 +325,57 @@ export default function Home() {
                 locale={locale}
                 onClick={() =>
                   trackAnalytics("homepage_category_clicked", {
-                    metadata: { market, category: item.title },
+                    metadata: { category: item.title },
                   })
                 }
               />
             ) : (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
-              aria-label={`${item.title === "Newsletter" ? "Read about" : "Explore"} ${item.title}`}
-              onClick={() =>
-                trackAnalytics("homepage_category_clicked", {
-                  metadata: { market, category: item.title },
-                })
-              }
-            >
-              <span className="home-category-link__media"><img src={item.image} alt="" width="480" height="600" loading="lazy" decoding="async" /></span>
-              <span className="home-category-link__content">
-                <span className="home-category-link__number home-category-link__number--desktop">{item.number}</span>
-                <h3>{item.title}</h3>
-                <p>{item.copy}</p>
-                <span className="home-category-link__cta">
-                  {item.title === "Original Art"
-                    ? "Explore originals"
-                    : item.title === "Newsletter"
-                      ? "Read the Newsletter"
-                      : item.title === "Mystery Mail"
-                        ? "Discover Mystery Mail"
-                        : market === "TR"
-                          ? "Shop prints & stickers"
-                          : "Shop prints & goods"}
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
+                aria-label={`${item.title === "Newsletter" ? "Read about" : "Explore"} ${item.title}`}
+                onClick={() =>
+                  trackAnalytics("homepage_category_clicked", {
+                    metadata: { category: item.title },
+                  })
+                }
+              >
+                <span className="home-category-link__media">
+                  <img
+                    src={item.image}
+                    alt=""
+                    width="480"
+                    height="600"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </span>
-              </span>
-              <ArrowRight className="home-category-link__arrow" aria-hidden="true" />
-            </Link>
-            )
-          ))}
+                <span className="home-category-link__content">
+                  <span className="home-category-link__number home-category-link__number--desktop">
+                    {item.number}
+                  </span>
+                  <h3>{item.title}</h3>
+                  <p>{item.copy}</p>
+                  <span className="home-category-link__cta">
+                    {item.title === "Original Art"
+                      ? "Explore originals"
+                      : item.title === "Newsletter"
+                        ? "Read the Newsletter"
+                        : item.title === "Mystery Mail"
+                          ? "Discover Mystery Mail"
+                          : item.title === "100 Windows"
+                            ? "Follow the project"
+                            : "Browse prints & goods"}
+                  </span>
+                </span>
+                <ArrowRight
+                  className="home-category-link__arrow"
+                  aria-hidden="true"
+                />
+              </Link>
+            ),
+          )}
         </div>
       </section>
 
@@ -397,69 +388,24 @@ export default function Home() {
             </h2>
           </div>
         </div>
-        {market === "TR" ? (
-          <div className="home-product-grid mt-8">
-            {latestLocal.map((product) => (
-              <ProductTile key={product.id} product={product} market={market} />
-            ))}
-          </div>
-        ) : (
-          <div className="home-product-grid mt-8">
-            {originals.slice(0, 1).map((product) => (
-              <ProductTile key={product.id} product={product} market={market} />
-            ))}
-            {international.products.slice(0, 2).map((product) => (
-              <article key={product.id} className="home-product-tile">
-                <a
-                  href={product.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() =>
-                    trackAnalytics("homepage_product_clicked", {
-                      entityType: "fourthwall",
-                      entityId: product.id,
-                      entityName: product.name,
-                      metadata: { market },
-                    })
-                  }
-                >
-                  {product.primaryImage && (
-                    <img
-                      src={product.primaryImage.url}
-                      width={product.primaryImage.width || 800}
-                      height={product.primaryImage.height || 800}
-                      alt={product.primaryImage.alt}
-                      loading="lazy"
-                      className="aspect-[4/5] w-full bg-white object-contain"
-                    />
-                  )}
-                  <div className="pt-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[.1em] text-ink/45">
-                      International print ·{" "}
-                      {product.soldOut ? "Sold out" : "Available"}
-                    </p>
-                    <h3 className="mt-2 text-2xl">{product.name}</h3>
-                    <p className="mt-2 text-sm font-bold">
-                      {product.price.formatted}
-                    </p>
-                    <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold underline decoration-ink/25 underline-offset-4">
-                      View product →
-                    </span>
-                  </div>
-                </a>
-              </article>
-            ))}
-          </div>
-        )}
+        <div className="home-product-grid mt-8">
+          {latestLocal.map((product) => (
+            <ProductTile
+              key={product.id}
+              product={product}
+              internationalProducts={international.products}
+            />
+          ))}
+        </div>
         <div className="product-section__footer">
-          <PaperButton href={base} variant="pink" size="lg" arrow>
+          <PaperButton href="/shop" variant="pink" size="lg" arrow>
             View all available work
           </PaperButton>
         </div>
       </section>
 
       <OriginalCollectorExperience
-        market={market === "TR" ? "turkiye" : "international"}
+        market={isTürkiye ? "turkiye" : "international"}
       />
 
       <div className="home-studio-letter">
@@ -495,7 +441,13 @@ export default function Home() {
         </div>
       </section>
 
-      <TikTokLiveSection links={{ tiktokUrl: links.tiktokUrl, twitchUrl: links.twitchUrl, kickUrl: links.kickUrl }} />
+      <TikTokLiveSection
+        links={{
+          tiktokUrl: links.tiktokUrl,
+          twitchUrl: links.twitchUrl,
+          kickUrl: links.kickUrl,
+        }}
+      />
       <StudioDiscordSection discordUrl={links.discordUrl} />
     </div>
   );

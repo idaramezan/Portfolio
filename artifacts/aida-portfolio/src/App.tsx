@@ -33,6 +33,8 @@ import Events from "@/pages/Events";
 import EventDetail from "@/pages/EventDetail";
 import EventReview from "@/pages/EventReview";
 import HundredWindows from "@/pages/HundredWindows";
+import { ShippingDestinationProvider } from "@/lib/shipping-destination";
+import UnifiedShop from "@/pages/UnifiedShop";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -76,46 +78,51 @@ function Router() {
             <Route path="/shop/turkiye/originals/:slug">
               {() => <OriginalDetail market="turkiye" />}
             </Route>
-            <Route
-              path="/shop/turkiye/originals"
-              component={regional("TR", "originals")}
-            />
+            <Route path="/shop/turkiye/originals">
+              <RedirectTo to="/shop?category=originals" />
+            </Route>
             <Route path="/shop/turkiye/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>
-            <Route
-              path="/shop/turkiye/prints"
-              component={regional("TR", "prints")}
-            />
-            <Route path="/shop/turkiye/mystery-mail" component={MysteryMail} />
+            <Route path="/shop/turkiye/prints">
+              <RedirectTo to="/shop?category=prints" />
+            </Route>
+            <Route path="/shop/turkiye/mystery-mail">
+              <RedirectTo to="/shop/mystery-mail" />
+            </Route>
             <Route path="/shop/turkiye/studio-mail">
               <RedirectTo to="/shop/turkiye/mystery-mail" />
             </Route>
             <Route path="/shop/turkiye">
-              {() => <RegionalLanding region="TR" />}
+              <RedirectTo to="/shop" />
             </Route>
             <Route path="/shop/international/originals/:slug">
               {() => <OriginalDetail market="international" />}
             </Route>
-            <Route
-              path="/shop/international/originals"
-              component={regional("INTERNATIONAL", "originals")}
-            />
-            <Route
-              path="/shop/international/prints"
-              component={regional("INTERNATIONAL", "prints")}
-            />
-            <Route path="/shop/international">
-              {() => <RegionalLanding region="INTERNATIONAL" />}
+            <Route path="/shop/international/originals">
+              <RedirectTo to="/shop?category=originals" />
             </Route>
+            <Route path="/shop/international/prints">
+              <RedirectTo to="/shop?category=prints" />
+            </Route>
+            <Route path="/shop/international">
+              <RedirectTo to="/shop" />
+            </Route>
+            <Route path="/shop/originals/:slug">
+              {() => <OriginalDetail market="turkiye" />}
+            </Route>
+            <Route path="/shop/prints/:slug">
+              {() => <PrintDetail market="turkiye" />}
+            </Route>
+            <Route path="/shop/mystery-mail" component={MysteryMail} />
             <Route path="/originals">
-              <RedirectTo to="/shop/turkiye/originals" />
+              <RedirectTo to="/shop?category=originals" />
             </Route>
             <Route path="/shop">
-              <RedirectTo to="/shop/turkiye/originals" />
+              <UnifiedShop />
             </Route>
             <Route path="/prints">
-              <RedirectTo to="/shop/turkiye/prints" />
+              <RedirectTo to="/shop?category=prints" />
             </Route>
             <Route path="/studio-mail">
               <RedirectTo to="/newsletter" />
@@ -213,17 +220,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LocaleProvider>
-        <CurrencyProvider>
-          <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <AnalyticsRouteTracker />
-              <StickerDropExperience />
-              <Router />
-            </WouterRouter>
-            <Toaster />
-            <AnalyticsConsent />
-          </TooltipProvider>
-        </CurrencyProvider>
+        <ShippingDestinationProvider>
+          <CurrencyProvider>
+            <TooltipProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <AnalyticsRouteTracker />
+                <StickerDropExperience />
+                <Router />
+              </WouterRouter>
+              <Toaster />
+              <AnalyticsConsent />
+            </TooltipProvider>
+          </CurrencyProvider>
+        </ShippingDestinationProvider>
       </LocaleProvider>
     </QueryClientProvider>
   );

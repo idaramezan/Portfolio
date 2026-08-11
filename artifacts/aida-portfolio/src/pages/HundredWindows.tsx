@@ -8,6 +8,7 @@ import StudioLetterSignup from "@/components/StudioLetterSignup";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
 import { portrait } from "@/lib/assets";
+import { DestinationControl } from "@/lib/shipping-destination";
 
 const copy = {
   en: {
@@ -201,6 +202,9 @@ export default function HundredWindows() {
           </figcaption>
         </figure>
       </section>
+      <div className="windows-destination">
+        <DestinationControl compact />
+      </div>
 
       {current && ["published", "sold_out"].includes(String(current.status)) ? (
         <section className="windows-current" id="todays-window">

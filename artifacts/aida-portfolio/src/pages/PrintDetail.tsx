@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, Globe2, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import TurkeyProductDialog from "@/components/TurkeyProductDialog";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -11,6 +11,10 @@ import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { trackAnalytics } from "@/lib/analytics";
 import type { Market } from "@/lib/market";
 import type { ManagedProduct } from "@/lib/store";
+import {
+  DestinationControl,
+  useShippingDestination,
+} from "@/lib/shipping-destination";
 
 const detailCopy = {
   en: {
@@ -82,27 +86,25 @@ function projectDay(products: ManagedProduct[], id: string) {
   return index < 0 ? null : index + 1;
 }
 
-export default function PrintDetail({ market }: { market: Market }) {
-  const [, params] = useRoute("/shop/:market/prints/:slug");
+export default function PrintDetail({ market: _market }: { market: Market }) {
+  const [, canonicalParams] = useRoute("/shop/prints/:slug");
+  const [, legacyParams] = useRoute("/shop/:market/prints/:slug");
+  const params = canonicalParams || legacyParams;
   const settings = useShopSettings();
   const international = useInternationalProducts();
   const { locale } = useLocale();
   const c = detailCopy[locale];
   const [selected, setSelected] = useState<ManagedProduct | null>(null);
-  const [choosing, setChoosing] = useState(false);
+  const { destination, isTürkiye, openDestination } = useShippingDestination();
   const product = settings.printProducts.find(
     (item) =>
-      (item.slug || item.id) === params?.slug &&
-      isPubliclyVisible(item) &&
-      (market === "turkiye"
-        ? item.availableInTurkiye !== false
-        : item.availableInternationally !== false),
+      (item.slug || item.id) === params?.slug && isPubliclyVisible(item),
   );
   const query = new URLSearchParams(window.location.search);
   const fromProject = query.get("from") === "100-windows";
   const projectSection =
     query.get("section") === "archive" ? "project-so-far" : "todays-window";
-  const defaultBack = `/shop/${market}/prints`;
+  const defaultBack = "/shop?category=prints";
   const backHref = fromProject ? `/100-windows#${projectSection}` : defaultBack;
   const backLabel = fromProject ? c.backProject : c.backPrints;
   const day = product ? projectDay(settings.printProducts, product.id) : null;
@@ -173,98 +175,92 @@ export default function PrintDetail({ market }: { market: Market }) {
           )}
           <div className="print-story-detail__purchase-intro">
             <p className="eyebrow">{c.printInfo}</p>
-            <p>{c.available}</p>
-            {!choosing && (
+            <DestinationControl compact />
+            {sold ? (
+              <p>
+                <strong>{c.unavailable}</strong>
+              </p>
+            ) : !destination ? (
               <button
                 type="button"
                 className="paper-button paper-button--pink paper-button--md"
-                disabled={sold}
-                onClick={() => {
-                  setChoosing(true);
-                  trackAnalytics("product_options_opened", {
-                    metadata: {
-                      productId: product.id,
-                      source: fromProject ? "100-windows" : "print-detail",
-                    },
-                  });
-                }}
+                onClick={() =>
+                  openDestination((next) => {
+                    if (next.countryCode === "TR") setSelected(product);
+                    else if (internationalHref)
+                      window.location.assign(internationalHref);
+                  })
+                }
               >
-                {sold ? c.unavailable : c.buy}
+                {c.buy}
               </button>
-            )}
-          </div>
-          {choosing && (
-            <div
-              className="print-destination"
-              aria-labelledby="print-destination-title"
-            >
-              <div className="print-destination__heading">
-                <h2 id="print-destination-title">{c.chooser}</h2>
-                <p>{c.chooserBody}</p>
-              </div>
-              <div className="print-destination__cards">
+            ) : isTürkiye ? (
+              <>
+                <p>
+                  {locale === "tr"
+                    ? "Yerel TRY fiyatı, seçenekler ve Türkiye kargosu bir sonraki adımda gösterilir."
+                    : "Local TRY price, options and Türkiye delivery are shown in the next step."}
+                </p>
                 <button
                   type="button"
-                  className="print-destination-card print-destination-card--turkiye"
-                  disabled={!product.available || sold}
+                  className="paper-button paper-button--pink paper-button--md"
+                  disabled={!product.available}
                   onClick={() => {
                     setSelected(product);
-                    trackAnalytics("product_options_opened", {
-                      metadata: { productId: product.id, market: "turkiye" },
+                    trackAnalytics("local_purchase_selected", {
+                      metadata: { productId: product.id },
                     });
                   }}
                 >
-                  <MapPin aria-hidden="true" />
-                  <p className="eyebrow">{c.trLabel}</p>
-                  <h3>{c.trTitle}</h3>
-                  <p>{c.trBody}</p>
-                  <small>{c.trNote}</small>
-                  <span className="print-destination-card__cta">{c.trCta}</span>
+                  {locale === "tr" ? "Seçenekleri gör" : "See print options"}
                 </button>
-                {international.loading ? (
-                  <section
-                    className="print-destination-card print-destination-card--international"
-                    aria-label={
-                      locale === "tr"
-                        ? "Uluslararası seçenek yükleniyor"
-                        : "Loading international option"
-                    }
-                  >
-                    <Globe2 aria-hidden="true" />
-                    <span className="print-destination__loading">…</span>
-                  </section>
-                ) : internationalAvailable ? (
-                  <a
-                    className="print-destination-card print-destination-card--international"
-                    href={internationalHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      trackAnalytics("hundred_windows_fourthwall_click", {
-                        metadata: { productId: product.id },
-                      })
-                    }
-                  >
-                    <Globe2 aria-hidden="true" />
-                    <p className="eyebrow">{c.intLabel}</p>
-                    <h3>{c.intTitle}</h3>
-                    <p>{c.intBody}</p>
-                    <small>{c.intNote}</small>
-                    <span className="print-destination-card__cta">
-                      {c.intCta} <ArrowUpRight aria-hidden="true" />
-                    </span>
-                  </a>
-                ) : (
-                  <section className="print-destination-card print-destination-card--international print-destination-card--disabled">
-                    <Globe2 aria-hidden="true" />
-                    <p className="eyebrow">{c.intLabel}</p>
-                    <h3>{c.coming}</h3>
-                    <p>{c.comingBody}</p>
-                  </section>
+              </>
+            ) : international.loading ? (
+              <p>
+                {locale === "tr"
+                  ? "Uluslararası mağaza yükleniyor…"
+                  : "Loading international shop…"}
+              </p>
+            ) : internationalAvailable ? (
+              <>
+                <p>
+                  {locale === "tr"
+                    ? "Bu baskının uluslararası siparişleri Aida'nın Fourthwall mağazası üzerinden hazırlanır."
+                    : "International orders for this print are fulfilled through Aida's Fourthwall shop."}
+                </p>
+                {linked?.price?.formatted && (
+                  <strong>{linked.price.formatted}</strong>
                 )}
-              </div>
-            </div>
-          )}
+                <a
+                  className="paper-button paper-button--pink paper-button--md"
+                  href={internationalHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() =>
+                    trackAnalytics("fourthwall_redirect", {
+                      metadata: {
+                        productId: product.id,
+                        countryCode: destination.countryCode,
+                      },
+                    })
+                  }
+                >
+                  {locale === "tr"
+                    ? "Uluslararası baskıyı satın al"
+                    : "Shop this print internationally"}{" "}
+                  <ArrowUpRight aria-hidden="true" />
+                </a>
+              </>
+            ) : (
+              <>
+                <h2>{c.coming}</h2>
+                <p>{c.comingBody}</p>
+                <Link href="/newsletter" className="button-link">
+                  {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"} →
+                </Link>
+              </>
+            )}
+          </div>
         </article>
       </div>
       <TurkeyProductDialog

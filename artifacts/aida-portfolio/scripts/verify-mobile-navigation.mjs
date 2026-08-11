@@ -71,14 +71,12 @@ assert.ok(
 assert.ok(
   shell.includes("Explore the studio") &&
     shell.includes("Originals, prints, goods and Mystery Mail") &&
-    shell.includes("Originals and worldwide studio products") &&
-    shell.includes("About Aida") &&
     shell.includes("mobile-menu__event-badge") &&
     !shell.includes("mobile-menu__letter-card"),
   "mobile navigation must be a compact studio index without a duplicate Studio Letter card",
 );
 assert.ok(
-  editorialStyles.includes('transform: translateX(100%)') &&
+  editorialStyles.includes("transform: translateX(100%)") &&
     editorialStyles.includes('.mobile-menu[data-open="true"]') &&
     editorialStyles.includes("max-width: 359px") &&
     editorialStyles.includes("border-radius: 999px"),
@@ -98,29 +96,28 @@ assert.ok(
 );
 assert.ok(
   shell.includes("setActiveEvent(Boolean(result?.config))") &&
-    shell.includes('activeEvent && <div className="mobile-menu__row"><Link href="/event"'),
+    shell.includes("{activeEvent && (") &&
+    shell.includes("mobile-menu__event-badge"),
   "mobile navigation must expose Event only while an active config exists",
 );
 assert.ok(
-  home.includes("Shop in Türkiye") &&
-    home.includes("Shop internationally") &&
-    home.includes("home-market-action__label") &&
-    home.includes("homepage_market_selected"),
-  "homepage hero must offer both market paths as postcard navigation",
+  home.includes('href="/shop"') &&
+    home.includes('href="/100-windows"') &&
+    !home.includes("homepage_market_selected"),
+  "homepage hero must offer one shop and a 100 Windows project path",
 );
 assert.ok(
   home.includes("What are you looking for?") &&
-    home.includes("/shop/international/prints") &&
+    home.includes("/shop?category=prints") &&
     home.includes("home-category-link--paper") &&
     !home.includes("hasActiveShoppingRegionPreference"),
-  "homepage categories must adapt to each market without a duplicated selector",
+  "homepage categories must lead to the unified catalog without a duplicated selector",
 );
 assert.ok(
   home.includes("isPubliclyVisible(product)") &&
-    home.includes("international.products.slice(0, 2)") &&
     home.includes("latestLocal") &&
     home.includes("Recently from the studio"),
-  "homepage products must be status-filtered, market-aware, and limited",
+  "homepage products must be status-filtered and limited",
 );
 assert.ok(
   !home.includes("Choose where we deliver") &&
@@ -143,7 +140,7 @@ assert.ok(
 );
 assert.ok(
   eventBanner.includes("home-event-announcement") &&
-    eventBanner.includes('href={`/events/${config.slug}`}') &&
+    eventBanner.includes("href={`/events/${config.slug}`}") &&
     eventBanner.includes("View event details") &&
     eventBanner.includes("compactAnnouncement") &&
     eventBanner.includes("/apply`}") &&
@@ -199,7 +196,7 @@ assert.ok(
   "collector film must use a stable portrait frame that cannot capture mobile scrolling",
 );
 assert.ok(
-  originalDetail.includes("<OriginalCollectorExperience compact") &&
+  originalDetail.includes("<OriginalCollectorExperience") &&
     !regionalShop.includes("OriginalCollectorExperience"),
   "the compact collector film must appear only on original detail pages, not product grids",
 );

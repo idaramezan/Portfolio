@@ -605,6 +605,6 @@ const originalDetailSource = readFileSync(
   new URL("../src/pages/OriginalDetail.tsx", import.meta.url),
   "utf8",
 );
-assert.ok(originalDetailSource.includes("<InternationalProductOption"));
+assert.ok(originalDetailSource.includes("<OriginalRequestDialog"));
 
 console.log("Türkiye product pricing and validation tests passed.");
