@@ -1,5 +1,6 @@
 import { ExternalLink, Sparkles } from "lucide-react";
 import { trackAnalytics } from "@/lib/analytics";
+import commissionImage from "@assets/oil-pastel-commission-card.jpg";
 
 const ETSY_URL =
   "https://www.etsy.com/listing/4546787742/custom-oil-pastel-portrait-from-photo";
@@ -44,8 +45,19 @@ export default function CommissionLinkCard({
       <div className="commission-link-card__note" aria-hidden="true">
         <Sparkles /> {text.note}
       </div>
-      <div className="commission-link-card__mark" aria-hidden="true">
-        AR
+      <div className="commission-link-card__visual">
+        <img
+          src={commissionImage}
+          alt={
+            locale === "tr"
+              ? "Aida'nın özel yağlı pastel çalışma örneklerinden oluşan kolaj"
+              : "A collage of Aida's custom oil pastel artwork examples"
+          }
+          width="1090"
+          height="1600"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       <div className="commission-link-card__content">
         <p className="eyebrow">{text.eyebrow}</p>

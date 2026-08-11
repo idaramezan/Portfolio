@@ -863,19 +863,19 @@
   background: #fffaf2;
   box-shadow: 5px 6px 0 #f1e2b8;
 }
-.commission-link-card__mark {
-  display: grid;
-  aspect-ratio: 1;
-  place-items: center;
+.commission-link-card__visual {
   align-self: center;
+  width: 100%;
   border: 8px solid #fff;
-  background: #dcebf3;
+  background: #fff;
   box-shadow: 2px 3px 0 #39283316;
-  color: #8e3d60;
-  font-family: var(--font-serif, Georgia, serif);
-  font-size: 2rem;
-  font-weight: 800;
   transform: rotate(-1.5deg);
+}
+.commission-link-card__visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 .commission-link-card__note {
   position: absolute;
@@ -968,9 +968,8 @@
     gap: 0.9rem;
     padding: 1.35rem 1.15rem;
   }
-  .commission-link-card__mark {
+  .commission-link-card__visual {
     border-width: 5px;
-    font-size: 1.3rem;
   }
   .commission-link-card h2 {
     font-size: 2rem;
@@ -988,7 +987,7 @@
     display: block;
     padding-top: 1.6rem;
   }
-  .commission-link-card__mark {
+  .commission-link-card__visual {
     float: left;
     width: 54px;
     margin: 0 0.75rem 0.5rem 0;

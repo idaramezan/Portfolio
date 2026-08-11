@@ -70,5 +70,12 @@ assert.ok(
   !commission.includes("iframe") && !commission.includes("etsy.com/api"),
   "Etsy must not be embedded or scraped",
 );
+assert.ok(
+  commission.includes("oil-pastel-commission-card.jpg") &&
+    commission.includes('width="1090"') &&
+    styles.includes(".commission-link-card__visual img") &&
+    styles.includes("object-fit: contain"),
+  "commission card must use the supplied uncropped local artwork image",
+);
 
 console.log("Product lightbox and Etsy commission verification passed.");
