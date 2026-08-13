@@ -305,9 +305,21 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/currency")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data) => {
-        if (data.country === "TR") setValue("tr");
+        if (data.country === "TR") {
+          localStorage.setItem(STORAGE_KEY, "tr");
+          setValue("tr");
+        }
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const syncStoredLocale = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return;
+      setValue(event.newValue === "tr" ? "tr" : "en");
+    };
+    window.addEventListener("storage", syncStoredLocale);
+    return () => window.removeEventListener("storage", syncStoredLocale);
   }, []);
 
   useEffect(() => {

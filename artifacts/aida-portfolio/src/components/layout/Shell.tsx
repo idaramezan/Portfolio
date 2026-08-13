@@ -187,7 +187,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div className="hidden lg:block">
               <DestinationControl utility />
             </div>
-            <details className="header-language hidden md:block">
+            <details
+              key={locale}
+              className="header-language hidden md:block"
+              data-active-locale={locale}
+              data-no-translate
+            >
               <summary
                 aria-label={
                   locale === "tr" ? "Dili değiştir" : "Change language"
@@ -394,6 +399,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div
             className="mobile-menu__languages"
             aria-label={locale === "tr" ? "Dil" : "Language"}
+            data-active-locale={locale}
+            data-no-translate
           >
             <button
               type="button"

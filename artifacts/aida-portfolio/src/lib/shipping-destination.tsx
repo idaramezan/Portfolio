@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Globe2, Search, X } from "lucide-react";
+import { ChevronDown, Globe2, X } from "lucide-react";
 import { clearCart, loadCart, setActiveShoppingRegion } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -62,7 +62,6 @@ export function ShippingDestinationProvider({
   const [selectedCode, setSelectedCode] = useState(
     destination?.countryCode || "",
   );
-  const [search, setSearch] = useState("");
   const [warnBasket, setWarnBasket] = useState(false);
   const pending = useRef<((destination: ShippingDestination) => void) | null>(
     null,
@@ -77,15 +76,6 @@ export function ShippingDestinationProvider({
     })).sort((a, b) => a.name.localeCompare(b.name, locale));
   }, [locale]);
   const selected = countries.find((country) => country.code === selectedCode);
-  const aliases: Record<string, string> = {
-    US: "united states usa america",
-    TR: "türkiye turkey turkiye",
-  };
-  const filtered = countries.filter((country) =>
-    `${country.name} ${country.code} ${aliases[country.code] || ""}`
-      .toLocaleLowerCase(locale)
-      .includes(search.toLocaleLowerCase(locale)),
-  );
 
   useEffect(() => {
     if (destination) {
@@ -137,7 +127,6 @@ export function ShippingDestinationProvider({
     trigger.current = document.activeElement as HTMLElement;
     pending.current = afterConfirm || null;
     setSelectedCode(destination?.countryCode || "");
-    setSearch("");
     setWarnBasket(false);
     setOpen(true);
   };
@@ -230,31 +219,19 @@ export function ShippingDestinationProvider({
                       ? "Ülken için doğru fiyatları ve teslimat seçeneklerini göstereceğiz."
                       : "We'll show the right prices and delivery options for your country."}
                   </p>
-                  <label className="destination-modal__search">
-                    <span>
-                      {locale === "tr" ? "Ülke ara" : "Search countries"}
-                    </span>
-                    <span>
-                      <Search aria-hidden="true" />
-                      <input
-                        autoFocus
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                      />
-                    </span>
-                  </label>
                   <label className="destination-modal__select">
                     <span>
                       {locale === "tr" ? "Gönderim ülkesi" : "Shipping country"}
                     </span>
                     <select
+                      autoFocus
                       value={selectedCode}
                       onChange={(event) => setSelectedCode(event.target.value)}
                     >
                       <option value="">
                         {locale === "tr" ? "Ülke seç" : "Choose a country"}
                       </option>
-                      {filtered.map((country) => (
+                      {countries.map((country) => (
                         <option key={country.code} value={country.code}>
                           {country.name}
                         </option>

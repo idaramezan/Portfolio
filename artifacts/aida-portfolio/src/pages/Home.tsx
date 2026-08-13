@@ -19,7 +19,6 @@ import TikTokLiveSection from "@/components/TikTokLiveSection";
 import StudioDiscordSection from "@/components/StudioDiscordSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
-import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
 import { PaperButton } from "@/components/ui/playful-studio";
 import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
@@ -185,7 +184,6 @@ export default function Home() {
   const settings = useShopSettings();
   const international = useInternationalProducts();
   const { locale } = useLocale();
-  const { isTürkiye } = useShippingDestination();
   const links = settings.siteLinks;
   const originals = settings.originalProducts
     .filter(isPubliclyVisible)
@@ -376,10 +374,6 @@ export default function Home() {
           </PaperButton>
         </div>
       </section>
-
-      <OriginalCollectorExperience
-        market={isTürkiye ? "turkiye" : "international"}
-      />
 
       <div className="home-studio-letter">
         <StudioLetterSignup

@@ -171,13 +171,6 @@ assert.ok(
   "shops must hide empty filters and offer a useful alternative collection",
 );
 assert.ok(
-  home.indexOf("<OriginalCollectorExperience") >
-    home.indexOf("Recently from the studio") &&
-    home.indexOf("<OriginalCollectorExperience") <
-      home.indexOf('className="home-studio-letter"'),
-  "collector film must sit between recent products and the Featured Studio Letter",
-);
-assert.ok(
   collectorExperience.includes("IntersectionObserver") &&
     collectorExperience.includes("prefers-reduced-motion: reduce") &&
     collectorExperience.includes("youtube-nocookie.com/embed") &&
@@ -197,9 +190,10 @@ assert.ok(
   "collector film must use a stable portrait frame that cannot capture mobile scrolling",
 );
 assert.ok(
-  originalDetail.includes("<OriginalCollectorExperience") &&
+  !home.includes("<OriginalCollectorExperience") &&
+    !originalDetail.includes("<OriginalCollectorExperience") &&
     !regionalShop.includes("OriginalCollectorExperience"),
-  "the compact collector film must appear only on original detail pages, not product grids",
+  "the retired Collector Experience must not render on public storefront pages",
 );
 
 console.log("Mobile navigation verification passed.");

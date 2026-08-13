@@ -16,6 +16,7 @@ import {
   useShippingDestination,
 } from "@/lib/shipping-destination";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
+import RelatedProducts from "@/components/RelatedProducts";
 
 const detailCopy = {
   en: {
@@ -155,124 +156,128 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
     }));
 
   return (
-    <section
-      className={`section-shell print-story-detail ${fromProject ? "print-story-detail--project" : ""}`}
-    >
-      <Link href={backHref} className="button-link print-story-detail__back">
-        {backLabel}
-      </Link>
-      <div className="print-story-detail__layout">
-        <div className="print-story-detail__media">
-          <ProductImageLightbox images={productImages} />
-        </div>
-        <article className="print-story-detail__story">
-          <p className="eyebrow">
-            {day && product.isHundredWindowsProduct
-              ? `${c.day} ${String(day).padStart(2, "0")} / 100`
-              : c.eyebrow}
-          </p>
-          <h1>{product.name}</h1>
-          {shortDescription && (
-            <p className="print-story-detail__intro">{shortDescription}</p>
-          )}
-          {fullDescription && fullDescription !== shortDescription && (
-            <div className="print-story-detail__full">
-              <h2>{c.short}</h2>
-              <p>{fullDescription}</p>
-            </div>
-          )}
-          <div className="print-story-detail__purchase-intro">
-            <p className="eyebrow">{c.printInfo}</p>
-            <DestinationControl compact />
-            {sold ? (
-              <p>
-                <strong>{c.unavailable}</strong>
-              </p>
-            ) : !destination ? (
-              <button
-                type="button"
-                className="paper-button paper-button--pink paper-button--md"
-                onClick={() =>
-                  openDestination((next) => {
-                    if (next.countryCode === "TR") setSelected(product);
-                    else if (internationalHref)
-                      window.location.assign(internationalHref);
-                  })
-                }
-              >
-                {c.buy}
-              </button>
-            ) : isTürkiye ? (
-              <>
+    <>
+      <section
+        className={`section-shell print-story-detail ${fromProject ? "print-story-detail--project" : ""}`}
+      >
+        <Link href={backHref} className="button-link print-story-detail__back">
+          {backLabel}
+        </Link>
+        <div className="print-story-detail__layout">
+          <div className="print-story-detail__media">
+            <ProductImageLightbox images={productImages} />
+          </div>
+          <article className="print-story-detail__story">
+            <p className="eyebrow">
+              {day && product.isHundredWindowsProduct
+                ? `${c.day} ${String(day).padStart(2, "0")} / 100`
+                : c.eyebrow}
+            </p>
+            <h1>{product.name}</h1>
+            {shortDescription && (
+              <p className="print-story-detail__intro">{shortDescription}</p>
+            )}
+            {fullDescription && fullDescription !== shortDescription && (
+              <div className="print-story-detail__full">
+                <h2>{c.short}</h2>
+                <p>{fullDescription}</p>
+              </div>
+            )}
+            <div className="print-story-detail__purchase-intro">
+              <p className="eyebrow">{c.printInfo}</p>
+              <DestinationControl compact />
+              {sold ? (
                 <p>
-                  {locale === "tr"
-                    ? "Yerel TRY fiyatı, seçenekler ve Türkiye kargosu bir sonraki adımda gösterilir."
-                    : "Local TRY price, options and Türkiye delivery are shown in the next step."}
+                  <strong>{c.unavailable}</strong>
                 </p>
+              ) : !destination ? (
                 <button
                   type="button"
                   className="paper-button paper-button--pink paper-button--md"
-                  disabled={!product.available}
-                  onClick={() => {
-                    setSelected(product);
-                    trackAnalytics("local_purchase_selected", {
-                      metadata: { productId: product.id },
-                    });
-                  }}
-                >
-                  {locale === "tr" ? "Seçenekleri gör" : "See print options"}
-                </button>
-              </>
-            ) : international.loading ? (
-              <p>
-                {locale === "tr"
-                  ? "Uluslararası mağaza yükleniyor…"
-                  : "Loading international shop…"}
-              </p>
-            ) : internationalAvailable ? (
-              <>
-                <p>
-                  {locale === "tr"
-                    ? "Bu baskının uluslararası siparişleri Aida'nın Fourthwall mağazası üzerinden hazırlanır."
-                    : "International orders for this print are fulfilled through Aida's Fourthwall shop."}
-                </p>
-                {linked?.price?.formatted && (
-                  <strong>{linked.price.formatted}</strong>
-                )}
-                <a
-                  className="paper-button paper-button--pink paper-button--md"
-                  href={internationalHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   onClick={() =>
-                    trackAnalytics("fourthwall_redirect", {
-                      metadata: {
-                        productId: product.id,
-                        countryCode: destination.countryCode,
-                      },
+                    openDestination((next) => {
+                      if (next.countryCode === "TR") setSelected(product);
+                      else if (internationalHref)
+                        window.location.assign(internationalHref);
                     })
                   }
                 >
-                  {locale === "tr" ? "Bu baskıyı edin" : "Get this print"}{" "}
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
-              </>
-            ) : (
-              <>
-                <h2>{c.coming}</h2>
-                <p>{c.comingBody}</p>
-                <Link href="/newsletter" className="button-link">
-                  {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"} →
-                </Link>
-              </>
-            )}
-          </div>
-        </article>
-      </div>
+                  {c.buy}
+                </button>
+              ) : isTürkiye ? (
+                <>
+                  <p>
+                    {locale === "tr"
+                      ? "Yerel TRY fiyatı, seçenekler ve Türkiye kargosu bir sonraki adımda gösterilir."
+                      : "Local TRY price, options and Türkiye delivery are shown in the next step."}
+                  </p>
+                  <button
+                    type="button"
+                    className="paper-button paper-button--pink paper-button--md"
+                    disabled={!product.available}
+                    onClick={() => {
+                      setSelected(product);
+                      trackAnalytics("local_purchase_selected", {
+                        metadata: { productId: product.id },
+                      });
+                    }}
+                  >
+                    {locale === "tr" ? "Seçenekleri gör" : "See print options"}
+                  </button>
+                </>
+              ) : international.loading ? (
+                <p>
+                  {locale === "tr"
+                    ? "Uluslararası mağaza yükleniyor…"
+                    : "Loading international shop…"}
+                </p>
+              ) : internationalAvailable ? (
+                <>
+                  <p>
+                    {locale === "tr"
+                      ? "Bu baskının uluslararası siparişleri Aida'nın Fourthwall mağazası üzerinden hazırlanır."
+                      : "International orders for this print are fulfilled through Aida's Fourthwall shop."}
+                  </p>
+                  {linked?.price?.formatted && (
+                    <strong>{linked.price.formatted}</strong>
+                  )}
+                  <a
+                    className="paper-button paper-button--pink paper-button--md"
+                    href={internationalHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() =>
+                      trackAnalytics("fourthwall_redirect", {
+                        metadata: {
+                          productId: product.id,
+                          countryCode: destination.countryCode,
+                        },
+                      })
+                    }
+                  >
+                    {locale === "tr" ? "Bu baskıyı edin" : "Get this print"}{" "}
+                    <ArrowUpRight aria-hidden="true" />
+                  </a>
+                </>
+              ) : (
+                <>
+                  <h2>{c.coming}</h2>
+                  <p>{c.comingBody}</p>
+                  <Link href="/newsletter" className="button-link">
+                    {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}{" "}
+                    →
+                  </Link>
+                </>
+              )}
+            </div>
+          </article>
+        </div>
+      </section>
+      <RelatedProducts currentProduct={product} />
       <TurkeyProductDialog
         product={selected}
         onClose={() => setSelected(null)}
       />
-    </section>
+    </>
   );
 }

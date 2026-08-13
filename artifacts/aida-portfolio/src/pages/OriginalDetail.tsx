@@ -8,7 +8,7 @@ import { useInternationalProducts } from "@/hooks/use-international";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import type { Market } from "@/lib/market";
-import OriginalCollectorExperience from "@/components/OriginalCollectorExperience";
+import RelatedProducts from "@/components/RelatedProducts";
 import {
   DestinationControl,
   useShippingDestination,
@@ -208,10 +208,7 @@ export default function OriginalDetail({
           </div>
         </div>
       </section>
-      <OriginalCollectorExperience
-        compact
-        market={isTürkiye ? "turkiye" : "international"}
-      />
+      <RelatedProducts currentProduct={product} />
       <OriginalRequestDialog
         product={requesting ? product : null}
         onClose={() => setRequesting(false)}
