@@ -43,10 +43,12 @@ assert.ok(
   "cards must share the centralized product presentation resolver",
 );
 assert.ok(
-  shop.includes("const [location, navigate] = useLocation()") &&
+  shop.includes("const [, navigate] = useLocation()") &&
+    shop.includes("const search = useSearch()") &&
+    shop.includes("new URLSearchParams(search)") &&
     shop.includes("<button") &&
     shop.includes("navigate(value ==="),
-  "shop filters must be semantic and router-reactive",
+  "shop filters must be semantic and react to query-string navigation",
 );
 assert.ok(
   !shop.includes('"mystery-mail"') &&

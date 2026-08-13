@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Image as ImageIcon } from "lucide-react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
@@ -88,8 +88,9 @@ export default function UnifiedShop() {
   const settings = useShopSettings();
   const international = useInternationalProducts();
   const { destination } = useShippingDestination();
-  const [location, navigate] = useLocation();
-  const requested = new URLSearchParams(location.split("?", 2)[1] || "").get(
+  const [, navigate] = useLocation();
+  const search = useSearch();
+  const requested = new URLSearchParams(search).get(
     "category",
   ) as Filter | null;
   const filter: Filter = ["originals", "prints", "100-windows"].includes(
