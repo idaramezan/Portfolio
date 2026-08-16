@@ -14,6 +14,8 @@ import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
 import { calculateTurkiyeProductShipping } from "@/lib/turkiye-products";
+import { useShippingDestination } from "@/lib/shipping-destination";
+import { useLocale } from "@/lib/locale";
 export default function CartDrawer({
   open,
   onOpenChange,
@@ -25,6 +27,8 @@ export default function CartDrawer({
 }) {
   const [cart, setCart] = useState(loadCart(region));
   const settings = useShopSettings();
+  const { destination, openDestination } = useShippingDestination();
+  const { locale } = useLocale();
   const now = useServerNow();
   useEffect(() => {
     const sync = () => setCart(loadCart(region));
@@ -39,7 +43,11 @@ export default function CartDrawer({
     getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
     item.priceUsdCents;
   const subtotal = cart.reduce(
-    (total, item) => total + canonicalUnitPrice(item) * item.quantity,
+    (total, item) =>
+      total +
+      (region === "INTERNATIONAL" && item.kind === "aceo"
+        ? 0
+        : canonicalUnitPrice(item) * item.quantity),
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
@@ -60,6 +68,12 @@ export default function CartDrawer({
     if (item.kind === "original")
       return settings.originalProducts.some(
         (product) => product.id === baseId.replace(/^original-/, ""),
+      );
+    if (item.kind === "aceo")
+      return settings.printProducts.some(
+        (product) =>
+          product.category === "aceo" &&
+          product.id === baseId.replace(/^aceo-/, ""),
       );
     if (item.kind === "studio-mail")
       return settings.studioMailPackages.some(
@@ -145,7 +159,7 @@ export default function CartDrawer({
                     </p>
                   )}
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
-                  {x.kind !== "original" && (
+                  {x.kind !== "original" && x.kind !== "aceo" && (
                     <div
                       className="mt-2 inline-flex items-center border border-ink/15"
                       aria-label={`Quantity for ${x.title}`}
@@ -180,22 +194,39 @@ export default function CartDrawer({
                     </div>
                   )}
                   {unavailableItems.some((item) => item.id === x.id) && (
-                    <p
-                      role="alert"
-                      className="mt-2 text-sm font-semibold text-coral"
-                    >
-                      This item is no longer available. Remove it before
-                      continuing.
+                    <div role="alert" className="mt-2 text-sm font-semibold">
+                      <p className="text-coral">
+                        {x.kind === "aceo" && region === "INTERNATIONAL"
+                          ? locale === "tr"
+                            ? `Bu ACEO şu anda yalnızca Türkiye içindeki adreslere gönderilebilir. ${destination?.countryName || "Bu ülke"} için teslimata kapalıdır.`
+                            : `This ACEO is currently available for delivery within Türkiye only. It is unavailable for delivery to ${destination?.countryName || "this country"}.`
+                          : "This item is no longer available. Remove it before continuing."}
+                      </p>
+                      {x.kind === "aceo" && region === "INTERNATIONAL" && (
+                        <button
+                          type="button"
+                          className="button-link mt-2"
+                          onClick={() => openDestination()}
+                        >
+                          {locale === "tr"
+                            ? "Gönderim ülkesini değiştir"
+                            : "Change shipping country"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {!(x.kind === "aceo" && region === "INTERNATIONAL") && (
+                    <p className="mt-2 text-sm">
+                      <span className="text-ink/55">Line total: </span>
+                      <Money
+                        baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
+                        canonicalCurrency={
+                          x.canonicalCurrency || basketCurrency
+                        }
+                        className="font-bold"
+                      />
                     </p>
                   )}
-                  <p className="mt-2 text-sm">
-                    <span className="text-ink/55">Line total: </span>
-                    <Money
-                      baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
-                      canonicalCurrency={basketCurrency}
-                      className="font-bold"
-                    />
-                  </p>
                 </div>
                 <button
                   onClick={() => removeCartItem(x.id, region)}

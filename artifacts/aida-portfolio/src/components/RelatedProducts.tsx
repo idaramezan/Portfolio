@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/locale";
 import { isPurchasable } from "@/lib/product-status";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import type { ManagedProduct } from "@/lib/store";
-import { getPrintStartingPrice } from "@/lib/turkiye-products";
+import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
 
 function productType(product: ManagedProduct) {
   if (product.kind === "original") return "original";
@@ -19,6 +19,7 @@ function typeLabel(product: ManagedProduct, locale: "en" | "tr") {
   if (product.kind === "original")
     return locale === "tr" ? "ORİJİNAL ESER" : "ORIGINAL ART";
   const labels = {
+    aceo: locale === "tr" ? "ACEO ORİJİNAL" : "ACEO ORIGINAL",
     sticker: locale === "tr" ? "STICKER" : "STICKER",
     tshirt: locale === "tr" ? "TİŞÖRT" : "T-SHIRT",
     mug: locale === "tr" ? "KUPA" : "MUG",
@@ -44,6 +45,7 @@ export default function RelatedProducts({
   const international = useInternationalProducts();
   const { destination, isTürkiye } = useShippingDestination();
   const { locale } = useLocale();
+  const aceo = isAceoProduct(currentProduct);
   const source =
     currentProduct.kind === "original"
       ? settings.originalProducts
@@ -69,14 +71,22 @@ export default function RelatedProducts({
       <div className="section-shell related-products__inner">
         <header className="related-products__header">
           <p className="eyebrow">
-            {locale === "tr"
-              ? "ATÖLYEDEN DAHA FAZLASI"
-              : "MORE FROM THE STUDIO"}
+            {aceo
+              ? locale === "tr"
+                ? "ATÖLYEDEN DAHA FAZLA MİNİK ORİJİNAL"
+                : "MORE TINY ORIGINALS"
+              : locale === "tr"
+                ? "ATÖLYEDEN DAHA FAZLASI"
+                : "MORE FROM THE STUDIO"}
           </p>
           <h2 id="related-products-title">
-            {locale === "tr"
-              ? "Bunlar da ilgini çekebilir"
-              : "You might also like"}
+            {aceo
+              ? locale === "tr"
+                ? "Diğer ACEO'lar"
+                : "More ACEOs from the studio"
+              : locale === "tr"
+                ? "Bunlar da ilgini çekebilir"
+                : "You might also like"}
           </h2>
         </header>
         <div className="related-products__grid">
@@ -110,7 +120,9 @@ export default function RelatedProducts({
                 href={
                   product.kind === "original"
                     ? `/shop/originals/${product.slug || product.id}`
-                    : `/shop/prints/${product.slug || product.id}`
+                    : isAceoProduct(product)
+                      ? `/shop/aceos/${product.slug || product.id}`
+                      : `/shop/prints/${product.slug || product.id}`
                 }
                 className="related-product-card"
               >
@@ -148,6 +160,12 @@ export default function RelatedProducts({
                           product.kind === "original" ? "USD" : "TRY"
                         }
                       />
+                    ) : isAceoProduct(product) ? (
+                      locale === "tr" ? (
+                        "Yalnızca Türkiye"
+                      ) : (
+                        "Türkiye only"
+                      )
                     ) : product.kind === "original" ? (
                       <Money baseAmountUsdCents={product.priceUsdCents} />
                     ) : hasInternationalEdition && linked?.price?.formatted ? (

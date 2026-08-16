@@ -10,6 +10,7 @@ import {
   normalizeProductStatus,
 } from "@/lib/product-status";
 import { normalizeArtworkSurface } from "@/lib/artwork-surface";
+import { ACEO_DIMENSION, isAceoProduct } from "@/lib/turkiye-products";
 export type CatalogKind = "originals" | "prints" | "studio-mail";
 const canonicalize = <T extends ManagedProduct | StudioMailPackage>(
   product: T,
@@ -26,7 +27,7 @@ const canonicalize = <T extends ManagedProduct | StudioMailPackage>(
         product.status,
         "available" in product ? product.available : product.inventory > 0,
       );
-  return {
+  const normalized = {
     ...product,
     ...(isOriginal
       ? {
@@ -49,6 +50,30 @@ const canonicalize = <T extends ManagedProduct | StudioMailPackage>(
         }
       : {}),
   } as T;
+  if ("category" in normalized && isAceoProduct(normalized as ManagedProduct)) {
+    return {
+      ...normalized,
+      dimension: ACEO_DIMENSION,
+      inventory: Math.min(
+        1,
+        Math.max(0, (normalized as ManagedProduct).inventory ?? 1),
+      ),
+      maxPerUser: 1,
+      availableInTurkiye: true,
+      availableInternationally: false,
+      freeShippingInTurkiye: true,
+      paintedLive: true,
+      ...((normalized as ManagedProduct).inventory === 0 &&
+      normalized.status === "published"
+        ? { status: "sold_out" as const, available: false }
+        : {}),
+      printOptions: undefined,
+      fourthwallProductId: undefined,
+      fourthwallProductUrl: undefined,
+      fourthwallLinkType: undefined,
+    } as T;
+  }
+  return normalized;
 };
 export const mergeProductRecord = <
   T extends ManagedProduct | StudioMailPackage,

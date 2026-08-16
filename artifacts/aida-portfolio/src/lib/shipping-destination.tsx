@@ -8,7 +8,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Globe2, X } from "lucide-react";
-import { clearCart, loadCart, setActiveShoppingRegion } from "@/lib/store";
+import {
+  clearCart,
+  loadCart,
+  saveCart,
+  setActiveShoppingRegion,
+} from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { useToast } from "@/hooks/use-toast";
 import { trackAnalytics } from "@/lib/analytics";
@@ -141,7 +146,28 @@ export function ShippingDestinationProvider({
       setWarnBasket(true);
       return;
     }
-    if (force && selected.code !== "TR") clearCart("TR");
+    if (force && selected.code !== "TR") {
+      const aceos = loadCart("TR").filter((item) => item.kind === "aceo");
+      clearCart("TR");
+      if (aceos.length) {
+        const international = loadCart("INTERNATIONAL").filter(
+          (item) => item.kind !== "aceo",
+        );
+        saveCart([...international, ...aceos], "INTERNATIONAL");
+      }
+    }
+    if (selected.code === "TR") {
+      const international = loadCart("INTERNATIONAL");
+      const aceos = international.filter((item) => item.kind === "aceo");
+      if (aceos.length) {
+        saveCart(
+          international.filter((item) => item.kind !== "aceo"),
+          "INTERNATIONAL",
+        );
+        const local = loadCart("TR").filter((item) => item.kind !== "aceo");
+        saveCart([...local, ...aceos], "TR");
+      }
+    }
     const next: ShippingDestination = {
       countryCode: selected.code,
       countryName: selected.name,

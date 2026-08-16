@@ -7,6 +7,7 @@ import {
 import { pool } from "@workspace/db";
 
 const router = Router();
+const ACEO_DIMENSION = "6.4 × 8.9 cm · 2.5 × 3.5 in";
 
 async function ensureTable() {
   await pool.query(`
@@ -119,6 +120,44 @@ function validFourthwallConnections(settings: Record<string, unknown>) {
   });
 }
 
+function normalizeAceos(settings: Record<string, any>) {
+  const products = Array.isArray(settings.printProducts)
+    ? settings.printProducts
+    : [];
+  for (const product of products) {
+    if (product?.category !== "aceo") continue;
+    const price = Number(product.priceMinor ?? product.priceUsdCents);
+    const inventory = Number(product.inventory);
+    if (!Number.isInteger(price) || price <= 0)
+      return "ACEO price must be greater than zero.";
+    if (!Number.isInteger(inventory) || inventory < 0 || inventory > 1)
+      return "ACEO inventory must be zero or one.";
+    Object.assign(product, {
+      kind: "print",
+      priceCurrency: "TRY",
+      priceMinor: price,
+      priceUsdCents: price,
+      dimension: ACEO_DIMENSION,
+      maxPerUser: 1,
+      availableInTurkiye: true,
+      availableInternationally: false,
+      freeShippingInTurkiye: true,
+      paintedLive: true,
+      ...(inventory === 0 && product.status === "published"
+        ? { status: "sold_out", available: false }
+        : {}),
+    });
+    delete product.printOptions;
+    delete product.tshirtOptions;
+    delete product.mugOptions;
+    delete product.stickerOptions;
+    delete product.fourthwallProductId;
+    delete product.fourthwallProductUrl;
+    delete product.fourthwallLinkType;
+  }
+  return null;
+}
+
 router.get("/shop-settings", async (request, response) => {
   try {
     await ensureTable();
@@ -158,6 +197,10 @@ router.get("/shop-settings", async (request, response) => {
         return next;
       },
     );
+    const beforeAceoUpgrade = JSON.stringify(settings.printProducts);
+    normalizeAceos(settings);
+    if (JSON.stringify(settings.printProducts) !== beforeAceoUpgrade)
+      upgraded = true;
     if (upgraded)
       await pool.query(
         "UPDATE shop_settings SET payload=$1::jsonb,updated_at=NOW() WHERE id='primary'",
@@ -185,6 +228,8 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
     return response
       .status(400)
       .json({ error: "Social links must be valid HTTPS URLs" });
+  const aceoError = normalizeAceos(request.body.settings);
+  if (aceoError) return response.status(400).json({ error: aceoError });
   if (!validFourthwallConnections(request.body.settings))
     return response.status(400).json({
       error:

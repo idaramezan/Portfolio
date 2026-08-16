@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { MoreHorizontal, Search } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { EmptyState, StatusBadge } from "@/components/admin/AdminUI";
-import { formatPrice } from "@/lib/utils";
+import { formatCurrencyMinor } from "@/lib/currency";
 import { type ManagedProduct } from "@/lib/store";
 import { productRepository } from "@/lib/productRepository";
 export default function Catalog({
@@ -125,6 +125,7 @@ export default function Catalog({
               <option value="mug">Mugs</option>
               <option value="print">Prints</option>
               <option value="sticker">Stickers</option>
+              <option value="aceo">ACEOs</option>
             </select>
           </label>
         )}
@@ -193,7 +194,7 @@ export default function Catalog({
             <span>Image</span>
             <span>Product</span>
             <span>Status</span>
-            <span>USD price</span>
+            <span>{kind === "originals" ? "USD price" : "TRY price"}</span>
             <span>{isMail ? "Inventory" : "Availability"}</span>
             <span>Actions</span>
           </div>
@@ -232,7 +233,9 @@ export default function Catalog({
                     {isMail
                       ? x.theme
                       : kind === "prints"
-                        ? `${x.category === "tshirt" ? "T-shirt" : x.category === "mug" ? "Mug" : x.category === "sticker" ? "Sticker" : "Print"} · ${x.category === "tshirt" ? (x.tshirtOptions?.availableColors || []).map((color: string) => color[0].toUpperCase() + color.slice(1)).join(", ") : x.category === "mug" ? "White" : x.category === "sticker" ? x.stickerOptions?.formatDescription || "Single configuration" : `${x.printOptions?.sizes?.length || 0} sizes · ${x.printOptions?.framing?.framedAvailable && x.printOptions?.framing?.unframedAvailable ? "Framed or unframed" : x.printOptions?.framing?.framedAvailable ? "Framed" : "Unframed"}`}`
+                        ? x.category === "aceo"
+                          ? `ACEO · ${x.inventory > 0 ? "1 available" : "SOLD"}`
+                          : `${x.category === "tshirt" ? "T-shirt" : x.category === "mug" ? "Mug" : x.category === "sticker" ? "Sticker" : "Print"} · ${x.category === "tshirt" ? (x.tshirtOptions?.availableColors || []).map((color: string) => color[0].toUpperCase() + color.slice(1)).join(", ") : x.category === "mug" ? "White" : x.category === "sticker" ? x.stickerOptions?.formatDescription || "Single configuration" : `${x.printOptions?.sizes?.length || 0} sizes · ${x.printOptions?.framing?.framedAvailable && x.printOptions?.framing?.unframedAvailable ? "Framed or unframed" : x.printOptions?.framing?.framedAvailable ? "Framed" : "Unframed"}`}`
                         : x.dimension}
                   </p>
                 </div>
@@ -240,7 +243,10 @@ export default function Catalog({
                   <StatusBadge status={state} />
                 </div>
                 <span className="font-semibold">
-                  {formatPrice(x.priceUsdCents)}
+                  {formatCurrencyMinor(
+                    x.priceUsdCents,
+                    kind === "originals" ? "USD" : "TRY",
+                  )}
                 </span>
                 <span className="text-sm">
                   {isMail
@@ -269,7 +275,9 @@ export default function Catalog({
                           isMail
                             ? "/shop/turkiye/mystery-mail"
                             : kind === "prints"
-                              ? "/shop/turkiye/prints"
+                              ? x.category === "aceo"
+                                ? `/shop/aceos/${x.slug || x.id}`
+                                : "/shop?category=prints"
                               : "/shop/turkiye/originals"
                         }
                         className="block px-3 py-2 text-sm"

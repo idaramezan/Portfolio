@@ -127,6 +127,7 @@ async function calculate(body: any) {
   const currency = market === "turkiye" ? "TRY" : "USD";
   const fx = market === "turkiye" ? await getUsdTryRate() : null;
   const items: any[] = [];
+  const seenAceos = new Set<string>();
   let printQuantity = 0,
     originalQuantity = 0;
   for (const input of requested) {
@@ -136,9 +137,15 @@ async function calculate(body: any) {
     const kind =
       input.kind === "original"
         ? "original"
-        : input.kind === "print"
-          ? "print"
-          : "";
+        : input.kind === "aceo"
+          ? "aceo"
+          : input.kind === "print"
+            ? "print"
+            : "";
+    if (kind === "aceo" && market !== "turkiye")
+      throw new Error(
+        "ACEO originals are currently available for delivery within Türkiye only.",
+      );
     if (!kind || (market === "international_original" && kind !== "original"))
       throw new Error("This item is not eligible for internal checkout.");
     const catalog =
@@ -151,6 +158,11 @@ async function calculate(body: any) {
     )
       throw new Error("A selected item is no longer available.");
     if (
+      (product.category === "aceo" && kind !== "aceo") ||
+      (kind === "aceo" && product.category !== "aceo")
+    )
+      throw new Error("This product type is invalid for checkout.");
+    if (
       kind === "original" &&
       (quantity !== 1 ||
         (market === "turkiye"
@@ -158,6 +170,25 @@ async function calculate(body: any) {
           : product.availableInternationally === false))
     )
       throw new Error("An original is not available for this order.");
+    if (
+      kind === "aceo" &&
+      (market !== "turkiye" ||
+        product.category !== "aceo" ||
+        quantity !== 1 ||
+        Number(product.inventory) !== 1 ||
+        product.availableInTurkiye === false ||
+        product.availableInternationally === true)
+    )
+      throw new Error(
+        market !== "turkiye"
+          ? "ACEO originals are currently available for delivery within Türkiye only."
+          : "This piece was just collected.",
+      );
+    if (kind === "aceo") {
+      if (seenAceos.has(product.id))
+        throw new Error("Only one of each ACEO may be ordered.");
+      seenAceos.add(product.id);
+    }
     if (kind === "print" && product.availableInTurkiye === false)
       throw new Error("A print is not available in Türkiye.");
     let unit = Number(product.priceMinor ?? product.priceUsdCents);
@@ -222,14 +253,12 @@ publicRouter.post("/quote", limited, async (req, res) => {
     await ensureSchema();
     return res.json(await calculate(req.body));
   } catch (error) {
-    return res
-      .status(400)
-      .json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Checkout could not be calculated.",
-      });
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Checkout could not be calculated.",
+    });
   }
 });
 publicRouter.get("/bank/:currency", limited, async (req, res) => {
@@ -263,11 +292,9 @@ publicRouter.post(
       const body = JSON.parse(clean(req.body.payload, 50_000));
       const file = req.file;
       if (!file || !accepted.has(file.mimetype) || !signatureOkay(file))
-        return res
-          .status(400)
-          .json({
-            error: "Upload a valid JPG, PNG, WebP or PDF receipt under 10 MB.",
-          });
+        return res.status(400).json({
+          error: "Upload a valid JPG, PNG, WebP or PDF receipt under 10 MB.",
+        });
       const fullName = clean(body.fullName, 120),
         email = clean(body.email, 254).toLowerCase(),
         phone = clean(body.phone, 20),
@@ -278,11 +305,9 @@ publicRouter.post(
         !phoneValid(phone) ||
         !body.consent
       )
-        return res
-          .status(400)
-          .json({
-            error: "Complete all required contact details and consent.",
-          });
+        return res.status(400).json({
+          error: "Complete all required contact details and consent.",
+        });
       if (
         body.market === "turkiye" &&
         (countryCode !== "TR" ||
@@ -290,19 +315,15 @@ publicRouter.post(
           !clean(body.province, 80) ||
           !clean(body.district, 80))
       )
-        return res
-          .status(400)
-          .json({
-            error:
-              "Choose a Turkish province and enter a valid district and five-digit postal code.",
-          });
+        return res.status(400).json({
+          error:
+            "Choose a Turkish province and enter a valid district and five-digit postal code.",
+        });
       if (body.market === "international_original" && countryCode === "US")
-        return res
-          .status(400)
-          .json({
-            error:
-              "Original paintings are currently not available for delivery to the United States.",
-          });
+        return res.status(400).json({
+          error:
+            "Original paintings are currently not available for delivery to the United States.",
+        });
       if (!clean(body.address, 1000) || !clean(body.city, 100))
         return res
           .status(400)
@@ -310,11 +331,9 @@ publicRouter.post(
       const quote = await calculate(body);
       const idempotency = clean(body.idempotencyKey, 100);
       if (!/^[a-zA-Z0-9-]{16,100}$/.test(idempotency))
-        return res
-          .status(400)
-          .json({
-            error: "Checkout session is invalid. Refresh and try again.",
-          });
+        return res.status(400).json({
+          error: "Checkout session is invalid. Refresh and try again.",
+        });
       const duplicate = await pool.query(
         "SELECT order_number FROM checkout_orders WHERE idempotency_key=$1",
         [idempotency],
@@ -330,6 +349,25 @@ publicRouter.post(
         mode: 0o600,
       });
       await client.query("BEGIN");
+      const lockedSettingsResult = await client.query(
+        "SELECT payload FROM shop_settings WHERE id='primary' FOR UPDATE",
+      );
+      const lockedSettings = lockedSettingsResult.rows[0]?.payload;
+      for (const item of quote.items.filter((entry) => entry.kind === "aceo")) {
+        const product = lockedSettings?.printProducts?.find(
+          (entry: any) => entry.id === item.productId,
+        );
+        if (
+          !product ||
+          product.category !== "aceo" ||
+          Number(product.inventory) !== 1 ||
+          product.available === false ||
+          ["sold", "sold_out", "archived", "draft"].includes(product.status)
+        )
+          throw new Error(
+            "This piece was just collected. Someone completed their order before you.",
+          );
+      }
       const seq = await client.query(
         "SELECT nextval('checkout_order_number_seq') AS value",
       );
@@ -392,28 +430,40 @@ publicRouter.post(
         [randomUUID(), orderId],
       );
       if (quote.originalQuantity) {
-        const settingsResult = await client.query(
-          "SELECT payload FROM shop_settings WHERE id='primary' FOR UPDATE",
-        );
-        const settings = settingsResult.rows[0].payload;
-        const ids = new Set(
+        const originalIds = new Set(
           quote.items
             .filter((x) => x.kind === "original")
             .map((x) => x.productId),
         );
-        settings.originalProducts = settings.originalProducts.map((p: any) =>
-          ids.has(p.id)
-            ? {
-                ...p,
-                status: "sold_out",
-                available: false,
-                updatedAt: new Date().toISOString(),
-              }
-            : p,
+        const aceoIds = new Set(
+          quote.items.filter((x) => x.kind === "aceo").map((x) => x.productId),
+        );
+        lockedSettings.originalProducts = lockedSettings.originalProducts.map(
+          (p: any) =>
+            originalIds.has(p.id)
+              ? {
+                  ...p,
+                  status: "sold_out",
+                  available: false,
+                  updatedAt: new Date().toISOString(),
+                }
+              : p,
+        );
+        lockedSettings.printProducts = lockedSettings.printProducts.map(
+          (p: any) =>
+            aceoIds.has(p.id)
+              ? {
+                  ...p,
+                  inventory: 0,
+                  status: "sold_out",
+                  available: false,
+                  updatedAt: new Date().toISOString(),
+                }
+              : p,
         );
         await client.query(
           "UPDATE shop_settings SET payload=$1::jsonb,updated_at=NOW() WHERE id='primary'",
-          [JSON.stringify(settings)],
+          [JSON.stringify(lockedSettings)],
         );
       }
       await client.query("COMMIT");
@@ -444,15 +494,13 @@ publicRouter.post(
       const isDatabaseError = Boolean(
         error && typeof error === "object" && "code" in error,
       );
-      return res
-        .status(isDatabaseError ? 500 : 400)
-        .json({
-          error: isDatabaseError
-            ? "We could not submit your order just now. Please try again."
-            : error instanceof Error
-              ? error.message
-              : "Order could not be submitted.",
-        });
+      return res.status(isDatabaseError ? 500 : 400).json({
+        error: isDatabaseError
+          ? "We could not submit your order just now. Please try again."
+          : error instanceof Error
+            ? error.message
+            : "Order could not be submitted.",
+      });
     } finally {
       client.release();
     }
@@ -501,12 +549,10 @@ publicRouter.post("/original-requests", limited, async (req, res) => {
         .status(400)
         .json({ error: "Complete all required delivery request fields." });
     if (countryCode === "TR" || countryCode === "US")
-      return res
-        .status(400)
-        .json({
-          error:
-            "International delivery requests are not available for this destination.",
-        });
+      return res.status(400).json({
+        error:
+          "International delivery requests are not available for this destination.",
+      });
     const settings = (
       await pool.query("SELECT payload FROM shop_settings WHERE id='primary'")
     ).rows[0]?.payload;
@@ -559,14 +605,12 @@ publicRouter.post("/original-requests", limited, async (req, res) => {
     }).catch(() => {});
     return res.status(201).json({ requestNumber: number });
   } catch (error) {
-    return res
-      .status(400)
-      .json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Delivery request could not be sent.",
-      });
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Delivery request could not be sent.",
+    });
   }
 });
 
@@ -622,12 +666,10 @@ publicRouter.post("/events/:id/applications", limited, async (req, res) => {
       event.audience === "girls_only" &&
       b.eligibilityResponse !== "women_only"
     )
-      return res
-        .status(400)
-        .json({
-          error:
-            "Please confirm that you meet this event’s stated eligibility requirement.",
-        });
+      return res.status(400).json({
+        error:
+          "Please confirm that you meet this event’s stated eligibility requirement.",
+      });
     const seq = await pool.query(
         "SELECT nextval('event_application_number_seq') value",
       ),
@@ -665,14 +707,12 @@ publicRouter.post("/events/:id/applications", limited, async (req, res) => {
       .status(201)
       .json({ applicationNumber: number, status: "pending" });
   } catch (error) {
-    return res
-      .status(400)
-      .json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Application could not be submitted.",
-      });
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Application could not be submitted.",
+    });
   }
 });
 
@@ -841,12 +881,10 @@ adminCheckoutRouter.patch(
         accepted + legacy >= current.total_capacity &&
         !req.body?.overrideCapacity
       )
-        return res
-          .status(409)
-          .json({
-            error:
-              "Event capacity is full. Confirm an authorised override to continue.",
-          });
+        return res.status(409).json({
+          error:
+            "Event capacity is full. Confirm an authorised override to continue.",
+        });
     }
     const result = await pool.query(
       `UPDATE event_applications SET status=$1,registration_status=CASE WHEN $1 IN ('accepted','attended') THEN 'approved' ELSE $1 END,attendance_status=CASE WHEN $1='attended' THEN 'attended' ELSE attendance_status END,attended_at=CASE WHEN $1='attended' THEN NOW() ELSE attended_at END,admin_note=$2,updated_at=NOW(),accepted_at=CASE WHEN $1='accepted' THEN NOW() ELSE accepted_at END,rejected_at=CASE WHEN $1='rejected' THEN NOW() ELSE rejected_at END,cancelled_at=CASE WHEN $1='cancelled' THEN NOW() ELSE cancelled_at END WHERE id=$3 RETURNING *`,

@@ -1,10 +1,12 @@
 import { assetImages, mysteryMailCoverImage } from "@/lib/assets";
 import { trackAnalytics } from "@/lib/analytics";
 import {
+  ACEO_DIMENSION,
   calculatePrintPrice,
   formatPrintSize,
   getFinishPriceDifference,
   normalizePrintOptions,
+  isAceoProduct,
 } from "@/lib/turkiye-products";
 import type {
   PrintFraming,
@@ -34,7 +36,8 @@ export interface PricingMigrationAudit {
 }
 
 export type ProductCategory = "Prints" | "T-shirts" | "Mugs" | "Stickers";
-export type ProductKind = "original" | "print" | "studio-mail" | "product";
+export type ProductKind =
+  "original" | "aceo" | "print" | "studio-mail" | "product";
 
 export interface ManagedProduct {
   id: string;
@@ -77,6 +80,7 @@ export interface ManagedProduct {
   fourthwallProductUrl?: string;
   fourthwallLinkType?: "exact" | "edition" | "related";
   isHundredWindowsProduct?: boolean;
+  paintedLive?: boolean;
   createdAt?: string;
 }
 
@@ -230,7 +234,7 @@ const CART_STORAGE_KEYS: Record<ShoppingRegion, string> = {
   INTERNATIONAL: "basket:international",
 };
 const ACTIVE_REGION_KEY = "aida-active-shop-region";
-const ADMIN_DATA_SCHEMA_VERSION = 5;
+const ADMIN_DATA_SCHEMA_VERSION = 6;
 const SCHEMA_VERSION_KEY = "aida-admin-data-schema-version";
 const LEGACY_BACKUP_KEY = "aida-shop-settings-backup-v1";
 const STATUS_MIGRATION_BACKUP_KEY =
@@ -549,7 +553,7 @@ export function loadShopSettings(): ShopSettings {
                     (size) =>
                       `${size.label}: centimetre and inch measurements do not match. Review this size in admin.`,
                   );
-                return {
+                const normalized = {
                   category: "print" as const,
                   slug: product.slug || product.id,
                   galleryImages: product.galleryImages || [],
@@ -568,6 +572,29 @@ export function loadShopSettings(): ShopSettings {
                   printOptions: normalizedOptions,
                   printOptionWarnings,
                 };
+                return isAceoProduct(normalized)
+                  ? {
+                      ...normalized,
+                      dimension: ACEO_DIMENSION,
+                      inventory: Math.min(
+                        1,
+                        Math.max(0, normalized.inventory ?? 1),
+                      ),
+                      maxPerUser: 1,
+                      availableInTurkiye: true,
+                      availableInternationally: false,
+                      freeShippingInTurkiye: true,
+                      paintedLive: true,
+                      ...(normalized.inventory === 0 &&
+                      normalized.status === "published"
+                        ? { status: "sold_out" as const, available: false }
+                        : {}),
+                      printOptions: undefined,
+                      fourthwallProductId: undefined,
+                      fourthwallProductUrl: undefined,
+                      fourthwallLinkType: undefined,
+                    }
+                  : normalized;
               },
             )
           : defaults.printProducts,
@@ -684,11 +711,32 @@ function saveShopSettingsLocally(settings: ShopSettings) {
         available: status === "available",
       };
     }),
-    printProducts: settings.printProducts.map((product) => ({
-      ...normalizeManaged(product),
-      priceCurrency: "TRY",
-      priceMinor: product.priceMinor ?? product.priceUsdCents,
-    })),
+    printProducts: settings.printProducts.map((product) => {
+      const normalized = {
+        ...normalizeManaged(product),
+        priceCurrency: "TRY" as const,
+        priceMinor: product.priceMinor ?? product.priceUsdCents,
+      };
+      return isAceoProduct(product)
+        ? {
+            ...normalized,
+            dimension: ACEO_DIMENSION,
+            inventory: Math.min(1, Math.max(0, product.inventory ?? 1)),
+            maxPerUser: 1,
+            availableInTurkiye: true,
+            availableInternationally: false,
+            freeShippingInTurkiye: true,
+            paintedLive: true,
+            ...(product.inventory === 0 && normalized.status === "published"
+              ? { status: "sold_out" as const, available: false }
+              : {}),
+            printOptions: undefined,
+            fourthwallProductId: undefined,
+            fourthwallProductUrl: undefined,
+            fourthwallLinkType: undefined,
+          }
+        : normalized;
+    }),
     studioMailPackages: settings.studioMailPackages.map((product) => ({
       ...product,
       priceCurrency: "TRY",
@@ -889,10 +937,15 @@ export function loadCart(
         : baseItemId.startsWith("product-")
           ? baseItemId.slice("product-".length)
           : null;
+      const aceoId = baseItemId.startsWith("aceo-")
+        ? baseItemId.slice("aceo-".length)
+        : null;
       const product = originalId
         ? settings.originalProducts.find((entry) => entry.id === originalId)
-        : printId
-          ? settings.printProducts.find((entry) => entry.id === printId)
+        : printId || aceoId
+          ? settings.printProducts.find(
+              (entry) => entry.id === (printId || aceoId),
+            )
           : settings.studioMailPackages.find((entry) => entry.id === item.id);
       if (!product) return item;
       const refreshed = {
@@ -981,7 +1034,10 @@ export function addItemToCart(
   const normalizedItem = { ...item, id: lineId };
   const existing = cart.find((x) => x.id === lineId);
   const next = (existing?.quantity || 0) + item.quantity;
-  const max = Math.max(1, item.kind === "original" ? 1 : maxPerUser);
+  const max = Math.max(
+    1,
+    item.kind === "original" || item.kind === "aceo" ? 1 : maxPerUser,
+  );
   if (next > max)
     return { ok: false, reason: `You can add up to ${max} of this piece.` };
   if (existing) existing.quantity = next;
@@ -1051,6 +1107,18 @@ export function isCartItemAvailable(
       (region === "TR"
         ? product.availableInTurkiye !== false
         : product.availableInternationally !== false),
+    );
+  }
+
+  if (item.kind === "aceo") {
+    const id = baseItemId.replace(/^aceo-/, "");
+    const product = settings.printProducts.find((entry) => entry.id === id);
+    return Boolean(
+      region === "TR" &&
+      product &&
+      isAceoProduct(product) &&
+      product.inventory === 1 &&
+      isPurchasable(product),
     );
   }
 

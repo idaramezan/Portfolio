@@ -25,6 +25,8 @@ import {
   type OriginalStatus,
 } from "@/lib/product-status";
 import {
+  ACEO_DEFAULT_PRICE_MINOR,
+  ACEO_DIMENSION,
   calculatePrintPrice,
   centsToUsd,
   formatPrintSize,
@@ -32,6 +34,7 @@ import {
   normalizePrintOptions,
   usdToCents,
   validatePrintOptions,
+  isAceoProduct,
 } from "@/lib/turkiye-products";
 import {
   ARTWORK_SURFACE_LABELS,
@@ -270,6 +273,12 @@ export default function ProductEditor({
       (!Number.isInteger(draft.inventory) || draft.inventory < 0)
     )
       next.inventory = "Enter a valid available quantity.";
+    if (isAceoProduct(draft)) {
+      if (draft.inventory !== 0 && draft.inventory !== 1)
+        next.inventory = "ACEO inventory must be zero or one.";
+      if (draft.priceUsdCents <= 0)
+        next.price = "ACEO price must be greater than zero.";
+    }
     if (
       publishing &&
       kind === "prints" &&
@@ -383,12 +392,32 @@ export default function ProductEditor({
       return;
     }
     const now = new Date().toISOString();
-    const normalizedPrintOptions =
-      kind === "prints" && draft.category === "print"
+    const normalizedPrintOptions = isAceoProduct(draft)
+      ? undefined
+      : kind === "prints" && draft.category === "print"
         ? normalizePrintOptions(draft.printOptions)
         : draft.printOptions;
+    const aceoFields = isAceoProduct(draft)
+      ? {
+          dimension: ACEO_DIMENSION,
+          inventory: Math.min(1, Math.max(0, draft.inventory ?? 1)),
+          maxPerUser: 1,
+          availableInTurkiye: true,
+          availableInternationally: false,
+          freeShippingInTurkiye: true,
+          paintedLive: true,
+          printOptions: undefined,
+          tshirtOptions: undefined,
+          mugOptions: undefined,
+          stickerOptions: undefined,
+          fourthwallProductId: undefined,
+          fourthwallProductUrl: undefined,
+          fourthwallLinkType: undefined,
+        }
+      : {};
     const final = {
       ...draft,
+      ...aceoFields,
       priceCurrency: kind === "originals" ? "USD" : "TRY",
       priceMinor: draft.priceUsdCents,
       ...(!isMail ? { imageUrl: uploadedImageUrl } : {}),
@@ -677,6 +706,26 @@ export default function ProductEditor({
                     }
                     update({
                       category: next,
+                      ...(next === "aceo"
+                        ? {
+                            priceUsdCents:
+                              draft.category === "aceo" &&
+                              draft.priceUsdCents > 0
+                                ? draft.priceUsdCents
+                                : ACEO_DEFAULT_PRICE_MINOR,
+                            inventory: 1,
+                            maxPerUser: 1,
+                            dimension: ACEO_DIMENSION,
+                            availableInTurkiye: true,
+                            availableInternationally: false,
+                            freeShippingInTurkiye: true,
+                            paintedLive: true,
+                            isHundredWindowsProduct: false,
+                            fourthwallProductId: undefined,
+                            fourthwallProductUrl: undefined,
+                            fourthwallLinkType: undefined,
+                          }
+                        : {}),
                       printOptions:
                         next === "print"
                           ? draft.printOptions || {
@@ -713,6 +762,7 @@ export default function ProductEditor({
                   <option value="mug">Mug</option>
                   <option value="print">Print</option>
                   <option value="sticker">Sticker</option>
+                  <option value="aceo">ACEO</option>
                 </select>
               </label>
             )}
@@ -1089,20 +1139,26 @@ export default function ProductEditor({
                 )}
                 {kind === "prints" && (
                   <label>
-                    Available quantity
+                    {isAceoProduct(draft)
+                      ? "Edition inventory"
+                      : "Available quantity"}
                     <input
                       type="number"
                       min="0"
+                      max={isAceoProduct(draft) ? 1 : undefined}
+                      readOnly={isAceoProduct(draft)}
                       value={draft.inventory ?? 0}
                       onChange={(e) =>
                         update({
                           inventory: Math.max(0, Number(e.target.value)),
                         })
                       }
-                      className={field}
+                      className={`${field} ${isAceoProduct(draft) ? "bg-ink/5" : ""}`}
                     />
                     <span className="mt-1 block text-xs text-ink/45">
-                      How many can currently be ordered?
+                      {isAceoProduct(draft)
+                        ? "One of one. Inventory becomes zero when collected."
+                        : "How many can currently be ordered?"}
                     </span>
                     {errors.inventory && (
                       <ErrorText>{errors.inventory}</ErrorText>
@@ -1112,6 +1168,28 @@ export default function ProductEditor({
               </>
             )}
           </FormSection>
+          {kind === "prints" && isAceoProduct(draft) && (
+            <FormSection title="ACEO format">
+              <label>
+                ACEO size
+                <input
+                  readOnly
+                  value={ACEO_DIMENSION}
+                  className={`${field} bg-ink/5`}
+                />
+                <span className="mt-1 block text-xs text-ink/45">
+                  ACEOs use the standard collectible art-card format.
+                </span>
+              </label>
+              <div className="border border-ink/10 bg-sky/10 p-4 text-sm">
+                <strong>Original artwork · Painted live · Türkiye only</strong>
+                <p className="mt-1 text-ink/55">
+                  Free Türkiye delivery. ACEOs do not use print variants or
+                  Fourthwall.
+                </p>
+              </div>
+            </FormSection>
+          )}
           {kind === "prints" && draft.category === "print" && (
             <FormSection title="Options and pricing">
               {draft.printOptionWarnings?.length > 0 && (
@@ -1600,7 +1678,7 @@ export default function ProductEditor({
               </label>
             </FormSection>
           )}
-          {kind === "prints" && !isMail && (
+          {kind === "prints" && !isMail && !isAceoProduct(draft) && (
             <FormSection title="Projects">
               <label className="flex min-h-11 items-start gap-3">
                 <input
@@ -1627,13 +1705,19 @@ export default function ProductEditor({
           )}
           {kind === "prints" && !isMail && (
             <div className="border border-ink/10 bg-paper p-5 text-sm">
-              <strong>Türkiye Shop product</strong>
+              <strong>
+                {isAceoProduct(draft)
+                  ? "ACEO original"
+                  : "Türkiye Shop product"}
+              </strong>
               <p className="mt-1 text-ink/55">
-                Local signed prints are available only through the Türkiye shop.
+                {isAceoProduct(draft)
+                  ? "One-of-one ACEO originals are sold directly in Türkiye with free shipping."
+                  : "Local signed prints are available only through the Türkiye shop."}
               </p>
             </div>
           )}
-          {!isMail && (
+          {!isMail && !isAceoProduct(draft) && (
             <FourthwallProductConnection
               product={draft as ManagedProduct}
               onChange={update}

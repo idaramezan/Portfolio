@@ -15,8 +15,9 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
 import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
+import { isAceoProduct } from "@/lib/turkiye-products";
 
-type Filter = "all" | "originals" | "prints" | "100-windows";
+type Filter = "all" | "originals" | "aceos" | "prints" | "100-windows";
 const copy = {
   en: {
     eyebrow: "FROM AIDA'S ISTANBUL STUDIO",
@@ -25,6 +26,7 @@ const copy = {
     all: "All",
     originals: "Original Art",
     prints: "Prints & Goods",
+    aceos: "ACEOs",
     windows: "100 Windows",
     sold: "Sold",
     view: "View piece",
@@ -34,6 +36,22 @@ const copy = {
     us: "Unavailable for US delivery",
     noImage: "Image coming soon",
     empty: "No pieces are available in this category right now.",
+    aceoEyebrow: "TINY ORIGINALS · PAINTED LIVE",
+    aceoTitle: "Little artworks. Only one of each.",
+    aceoBody:
+      "Each ACEO is a tiny original painting created live in Aida's studio. At just 2.5 × 3.5 inches, they're made for collectors who want a one-of-one piece in a smaller format and at a more accessible starting price.",
+    aceoMeta:
+      "One original · Painted live · 6.4 × 8.9 cm · Free delivery in Türkiye",
+    aceoOnlyTitle: "ACEOs are currently available in Türkiye only.",
+    aceoOnlyBody:
+      "You can still explore the collection from anywhere. Checkout for these one-of-one originals is currently limited to delivery addresses in Türkiye.",
+    collectedTitle: "All current ACEOs have been collected.",
+    collectedBody:
+      "New tiny originals are painted live. Follow the studio to see the next ones first.",
+    emptyEyebrow: "THE TINY COLLECTION IS FORMING",
+    emptyAceo: "No ACEOs are available right now.",
+    emptyAceoBody:
+      "Aida paints these one-of-one miniatures live. Follow the streams or join the Newsletter to catch the next drop.",
   },
   tr: {
     eyebrow: "AIDA'NIN İSTANBUL ATÖLYESİNDEN",
@@ -42,6 +60,7 @@ const copy = {
     all: "Tümü",
     originals: "Orijinal Eserler",
     prints: "Baskılar ve Ürünler",
+    aceos: "ACEO'lar",
     windows: "100 Windows",
     sold: "Satıldı",
     view: "Eseri görüntüle",
@@ -51,6 +70,22 @@ const copy = {
     us: "ABD'ye gönderilemiyor",
     noImage: "Görsel yakında",
     empty: "Bu kategoride şu anda erişilebilir eser yok.",
+    aceoEyebrow: "MİNİK ORİJİNALLER · CANLI YAYINDA BOYANDI",
+    aceoTitle: "Küçücük eserler. Her birinden yalnızca bir tane.",
+    aceoBody:
+      "Her ACEO, Aida'nın atölyesinde canlı yayında boyadığı minik ve tamamen orijinal bir eserdir. Yalnızca 6,4 × 8,9 cm boyutundaki bu çalışmalar, koleksiyonuna daha küçük bir format ve daha ulaşılabilir bir başlangıç fiyatıyla özgün bir eser eklemek isteyenler için.",
+    aceoMeta:
+      "Tek ve özgün · Canlı yayında boyandı · 6,4 × 8,9 cm · Türkiye'de ücretsiz teslimat",
+    aceoOnlyTitle: "ACEO'lar şu anda yalnızca Türkiye'de satışta.",
+    aceoOnlyBody:
+      "Koleksiyonu dünyanın her yerinden inceleyebilirsin. Bu tek ve özgün eserler için satın alma şu anda yalnızca Türkiye teslimat adreslerinde kullanılabilir.",
+    collectedTitle: "Mevcut ACEO'ların tamamı koleksiyonlara katıldı.",
+    collectedBody:
+      "Yeni minik orijinaller canlı yayında boyanıyor. Sıradakileri ilk görmek için atölyeyi takip edebilirsin.",
+    emptyEyebrow: "MİNİK KOLEKSİYON HAZIRLANIYOR",
+    emptyAceo: "Şu anda satışta ACEO bulunmuyor.",
+    emptyAceoBody:
+      "Aida bu tek ve özgün minyatürleri canlı yayında boyuyor. Sıradaki eser için yayınları takip edebilir veya Newsletter'a katılabilirsin.",
   },
 } as const;
 
@@ -87,15 +122,18 @@ export default function UnifiedShop() {
   const c = copy[locale];
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const { destination } = useShippingDestination();
+  const { destination, openDestination } = useShippingDestination();
   const [, navigate] = useLocation();
   const search = useSearch();
   const requested = new URLSearchParams(search).get(
     "category",
   ) as Filter | null;
-  const filter: Filter = ["originals", "prints", "100-windows"].includes(
-    requested || "",
-  )
+  const filter: Filter = [
+    "originals",
+    "aceos",
+    "prints",
+    "100-windows",
+  ].includes(requested || "")
     ? requested!
     : "all";
   usePageMeta(
@@ -114,7 +152,15 @@ export default function UnifiedShop() {
     const originals = settings.originalProducts.filter(isPubliclyVisible);
     const prints = settings.printProducts.filter(isPubliclyVisible);
     if (filter === "originals") return originals;
-    if (filter === "prints") return prints;
+    if (filter === "aceos")
+      return prints
+        .filter(isAceoProduct)
+        .sort(
+          (a, b) =>
+            Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""),
+        );
+    if (filter === "prints")
+      return prints.filter((product) => !isAceoProduct(product));
     if (filter === "100-windows")
       return prints.filter((product) => product.isHundredWindowsProduct);
     return [...originals, ...prints].sort(
@@ -125,6 +171,7 @@ export default function UnifiedShop() {
   const filters: Array<[Filter, string]> = [
     ["all", c.all],
     ["originals", c.originals],
+    ["aceos", c.aceos],
     ["prints", c.prints],
     ["100-windows", c.windows],
   ];
@@ -153,11 +200,41 @@ export default function UnifiedShop() {
           </button>
         ))}
       </nav>
+      {filter === "aceos" && (
+        <section className="section-shell aceo-intro">
+          <p className="eyebrow">{c.aceoEyebrow}</p>
+          <h2>{c.aceoTitle}</h2>
+          <p>{c.aceoBody}</p>
+          <strong>{c.aceoMeta}</strong>
+          {destination && destination.countryCode !== "TR" && (
+            <div className="aceo-availability-note">
+              <h3>{c.aceoOnlyTitle}</h3>
+              <p>{c.aceoOnlyBody}</p>
+              <button
+                type="button"
+                className="button-link"
+                onClick={() => openDestination()}
+              >
+                {locale === "tr"
+                  ? "Gönderim ülkesini değiştir"
+                  : "Change shipping country"}
+              </button>
+            </div>
+          )}
+          {products.length > 0 && products.every(isSoldOut) && (
+            <div className="aceo-collected-note">
+              <h3>{c.collectedTitle}</h3>
+              <p>{c.collectedBody}</p>
+            </div>
+          )}
+        </section>
+      )}
       <section className="section-shell unified-shop__catalog">
         {products.length ? (
           <div className="unified-product-grid">
             {products.map((product) => {
               const original = product.kind === "original";
+              const aceo = isAceoProduct(product);
               const linked = international.products.find(
                 (item) => item.id === product.fourthwallProductId,
               );
@@ -175,9 +252,12 @@ export default function UnifiedShop() {
                 linked,
                 fallback,
               );
-              const href = `/shop/${original ? "originals" : "prints"}/${product.slug || product.id}`;
+              const href = `/shop/${original ? "originals" : aceo ? "aceos" : "prints"}/${product.slug || product.id}`;
               return (
-                <article className="unified-product-card" key={product.id}>
+                <article
+                  className={`unified-product-card ${aceo ? "unified-product-card--aceo" : ""}`}
+                  key={product.id}
+                >
                   <Link
                     href={href}
                     onClick={() =>
@@ -190,26 +270,58 @@ export default function UnifiedShop() {
                     <ProductImage product={product} noImage={c.noImage} />
                     <div className="unified-product-card__body">
                       <p className="eyebrow">
-                        {original ? c.originals : product.category || c.prints}
+                        {original
+                          ? c.originals
+                          : aceo
+                            ? "ACEO ORIGINAL"
+                            : product.category || c.prints}
                       </p>
                       <h2>{product.name}</h2>
+                      {aceo && (
+                        <p className="aceo-card__metadata">
+                          {locale === "tr"
+                            ? "Canlı yayında boyandı · Tek ve özgün"
+                            : "Painted live · One of one"}
+                          <br />
+                          6.4 × 8.9 cm
+                        </p>
+                      )}
                       <p className="unified-product-card__fulfillment">
-                        {presentation.shippingMessage}
+                        {aceo
+                          ? destination?.countryCode === "TR"
+                            ? locale === "tr"
+                              ? "Türkiye'de ücretsiz teslimat"
+                              : "Free shipping in Türkiye"
+                            : locale === "tr"
+                              ? "Yalnızca Türkiye"
+                              : "Türkiye only"
+                          : presentation.shippingMessage}
                       </p>
-                      {presentation.amountMinor !== null &&
+                      {aceo && destination?.countryCode === "TR" ? (
+                        <Money
+                          baseAmountUsdCents={
+                            product.priceMinor ?? product.priceUsdCents
+                          }
+                          canonicalCurrency="TRY"
+                          className="unified-product-card__price"
+                        />
+                      ) : (
+                        !aceo &&
+                        presentation.amountMinor !== null &&
                         presentation.currency && (
                           <Money
                             baseAmountUsdCents={presentation.amountMinor}
                             canonicalCurrency={presentation.currency}
                             className="unified-product-card__price"
                           />
-                        )}
-                      {presentation.externalPrice && (
+                        )
+                      )}
+                      {!aceo && presentation.externalPrice && (
                         <strong className="unified-product-card__price">
                           {presentation.externalPrice}
                         </strong>
                       )}
-                      {presentation.availability === "loading" && (
+                      {!aceo && presentation.availability === "loading" && (
                         <span
                           className="price-skeleton unified-product-card__price"
                           aria-label={
@@ -219,12 +331,53 @@ export default function UnifiedShop() {
                           }
                         />
                       )}
-                      <span>{c.view} →</span>
+                      <span>
+                        {aceo
+                          ? locale === "tr"
+                            ? "Detayları gör"
+                            : "View details"
+                          : c.view}{" "}
+                        →
+                      </span>
                     </div>
                   </Link>
                 </article>
               );
             })}
+          </div>
+        ) : filter === "aceos" ? (
+          <div className="unified-shop__empty aceo-empty-state">
+            <p className="eyebrow">{c.emptyEyebrow}</p>
+            <h2>{c.emptyAceo}</h2>
+            <p>{c.emptyAceoBody}</p>
+            <div>
+              {[
+                settings.siteLinks.twitchUrl,
+                settings.siteLinks.tiktokUrl,
+                settings.siteLinks.kickUrl,
+              ].find(Boolean) && (
+                <a
+                  className="button-secondary"
+                  href={[
+                    settings.siteLinks.twitchUrl,
+                    settings.siteLinks.tiktokUrl,
+                    settings.siteLinks.kickUrl,
+                  ].find(Boolean)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {locale === "tr"
+                    ? "Aida'yı canlı izle"
+                    : "Watch Aida paint live"}
+                </a>
+              )}
+              <Link
+                href="/newsletter"
+                className="paper-button paper-button--pink paper-button--md"
+              >
+                {locale === "tr" ? "Newsletter'a katıl" : "Join the Newsletter"}
+              </Link>
+            </div>
           </div>
         ) : (
           <p className="unified-shop__empty">{c.empty}</p>

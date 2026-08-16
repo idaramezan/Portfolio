@@ -2,6 +2,7 @@ import type { ManagedProduct } from "@/lib/store";
 import type { ShippingDestination } from "@/lib/shipping-destination";
 import type { CurrencyCode } from "@/lib/market";
 import { isSoldOut } from "@/lib/product-status";
+import { isAceoProduct } from "@/lib/turkiye-products";
 
 export type FulfillmentType =
   "local" | "fourthwall" | "original_request" | "unavailable";
@@ -31,6 +32,7 @@ export function resolveProductPresentation(
   fallbackUrl?: string,
 ): ProductPresentation {
   const original = product.kind === "original";
+  const aceo = isAceoProduct(product);
   const sold = isSoldOut(product);
   const country = destination?.countryCode || null;
   const externalUrl = linked?.externalUrl || fallbackUrl || null;
@@ -58,6 +60,30 @@ export function resolveProductPresentation(
       primaryCTA: "View piece",
       externalUrl,
     };
+  if (aceo)
+    return country === "TR"
+      ? {
+          destinationCountry: country,
+          currency: "TRY",
+          amountMinor: product.priceMinor ?? product.priceUsdCents,
+          externalPrice: null,
+          fulfillmentType: "local",
+          availability: "available",
+          shippingMessage: "Free delivery within Türkiye",
+          primaryCTA: "View details",
+          externalUrl: null,
+        }
+      : {
+          destinationCountry: country,
+          currency: null,
+          amountMinor: null,
+          externalPrice: null,
+          fulfillmentType: "unavailable",
+          availability: "unavailable",
+          shippingMessage: "Türkiye only",
+          primaryCTA: "View details",
+          externalUrl: null,
+        };
   if (country === "TR")
     return {
       destinationCountry: country,

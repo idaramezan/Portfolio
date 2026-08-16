@@ -1,4 +1,12 @@
-export type TurkeyProductCategory = "tshirt" | "mug" | "print" | "sticker";
+export type TurkeyProductCategory =
+  "tshirt" | "mug" | "print" | "sticker" | "aceo";
+
+export const ACEO_DEFAULT_PRICE_MINOR = 48_500;
+export const ACEO_DIMENSION = "6.4 × 8.9 cm · 2.5 × 3.5 in";
+
+export function isAceoProduct(product: { category?: string | null }) {
+  return product.category === "aceo";
+}
 export type PrintFraming = "framed" | "unframed";
 export type TshirtColor = "black" | "white";
 

@@ -17,6 +17,7 @@ import {
 } from "@/lib/shipping-destination";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
 import RelatedProducts from "@/components/RelatedProducts";
+import { isAceoProduct } from "@/lib/turkiye-products";
 
 const detailCopy = {
   en: {
@@ -100,7 +101,9 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
   const { destination, isTürkiye, openDestination } = useShippingDestination();
   const product = settings.printProducts.find(
     (item) =>
-      (item.slug || item.id) === params?.slug && isPubliclyVisible(item),
+      (item.slug || item.id) === params?.slug &&
+      isPubliclyVisible(item) &&
+      !isAceoProduct(item),
   );
   const query = new URLSearchParams(window.location.search);
   const fromProject = query.get("from") === "100-windows";

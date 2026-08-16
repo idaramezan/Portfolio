@@ -27,6 +27,7 @@ import EventReview from "@/pages/EventReview";
 import HundredWindows from "@/pages/HundredWindows";
 import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
+import AceoDetail from "@/pages/AceoDetail";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -98,6 +99,7 @@ function Router() {
             <Route path="/shop/originals/:slug">
               {() => <OriginalDetail market="turkiye" />}
             </Route>
+            <Route path="/shop/aceos/:slug" component={AceoDetail} />
             <Route path="/shop/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>

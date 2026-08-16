@@ -23,6 +23,7 @@ import { PaperButton } from "@/components/ui/playful-studio";
 import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import { resolveProductPresentation } from "@/lib/product-presentation";
+import { isAceoProduct } from "@/lib/turkiye-products";
 
 const SEO_TITLE = "Original Art, Prints & Goods | Aida Ramezani";
 const SEO_DESCRIPTION =
@@ -113,7 +114,8 @@ function ProductTile({
 }) {
   const { destination } = useShippingDestination();
   const original = product.kind === "original";
-  const href = `/shop/${original ? "originals" : "prints"}/${product.slug || product.id}`;
+  const aceo = isAceoProduct(product);
+  const href = `/shop/${original ? "originals" : aceo ? "aceos" : "prints"}/${product.slug || product.id}`;
   const linked = internationalProducts.find(
     (item) => item.id === product.fourthwallProductId,
   );
@@ -148,8 +150,17 @@ function ProductTile({
         />
         <div className="pt-4">
           <p className="text-[11px] font-bold uppercase tracking-[.1em] text-ink/45">
-            {original ? "Original oil pastel" : product.category || "Print"} ·{" "}
-            {isSoldOut(product) ? "Sold" : "Available"}
+            {original
+              ? "Original oil pastel"
+              : aceo
+                ? "ACEO ORIGINAL"
+                : product.category || "Print"}{" "}
+            ·{" "}
+            {isSoldOut(product)
+              ? "Sold"
+              : aceo && destination?.countryCode !== "TR"
+                ? "TÜRKİYE ONLY"
+                : "Available"}
           </p>
           <h3 className="mt-2 text-2xl leading-tight">{product.name}</h3>
           {presentation.amountMinor !== null && presentation.currency && (
@@ -171,7 +182,8 @@ function ProductTile({
             {presentation.shippingMessage}
           </p>
           <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-ink underline decoration-ink/25 underline-offset-4">
-            {original ? "View artwork" : "See options"} →
+            {original ? "View artwork" : aceo ? "View details" : "See options"}{" "}
+            →
           </span>
         </div>
       </Link>
