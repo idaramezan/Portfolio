@@ -71,9 +71,25 @@ assert.ok(
     checkout.includes("Submit order for payment review"),
 );
 assert.ok(
-  checkout.includes("useToast") && checkout.includes('variant:"destructive"'),
+  checkout.includes("useToast") && /variant:\s*"destructive"/.test(checkout),
   "checkout errors must appear in a visible toast",
 );
+for (const translatedCheckoutCopy of [
+  "Siparişinizi tamamlayın",
+  "İletişim bilgileri",
+  "Teslimat adresi",
+  "Ödeme dekontu",
+  "Sipariş özeti",
+  "Siparişiniz alındı",
+]) {
+  assert.ok(
+    checkout.includes(translatedCheckoutCopy),
+    `checkout must include Turkish copy: ${translatedCheckoutCopy}`,
+  );
+}
+assert.ok(checkout.includes('CHECKOUT_COPY[locale === "tr" ? "tr" : "en"]'));
+assert.ok(checkout.includes("document.title = copyText.documentTitle"));
+assert.ok(checkout.includes("document.title = copyText.successDocumentTitle"));
 for (const field of [
   "customer_full_name",
   "customer_email",
