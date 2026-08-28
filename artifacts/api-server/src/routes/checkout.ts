@@ -12,6 +12,11 @@ import { pool } from "@workspace/db";
 import { emailShell, escapeHtml, OWNER_EMAIL, sendEmail } from "../lib/email";
 import { getUsdTryRate } from "./currency";
 import { calculateCheckoutShipping } from "../lib/checkout-pricing";
+import {
+  calculatePercentageDiscount,
+  isDiscountCodeFormatValid,
+  normalizeDiscountCode,
+} from "../lib/discounts";
 
 const publicRouter = Router();
 export const adminCheckoutRouter = Router();
@@ -76,6 +81,74 @@ const formatMoney = (minor: number, currency: string) =>
     currency,
   }).format(minor / 100);
 
+class DiscountCodeError extends Error {
+  constructor(
+    public reason:
+      "not_found" | "inactive" | "expired" | "limit_reached" | "not_turkiye",
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+const discountMessages = {
+  not_found: "That discount code isn't available.",
+  inactive: "That discount code is no longer active.",
+  expired: "That discount code has expired.",
+  limit_reached: "That discount code has reached its usage limit.",
+  not_turkiye:
+    "Discount codes are currently available for Türkiye orders only.",
+} as const;
+
+async function getValidDiscount(
+  codeInput: unknown,
+  market: string,
+  queryable: Pick<typeof pool, "query"> = pool,
+) {
+  if (market !== "turkiye")
+    throw new DiscountCodeError("not_turkiye", discountMessages.not_turkiye);
+  const code = normalizeDiscountCode(codeInput);
+  if (!code || !isDiscountCodeFormatValid(code))
+    throw new DiscountCodeError("not_found", discountMessages.not_found);
+  const row = (
+    await queryable.query(
+      "SELECT * FROM discount_codes WHERE UPPER(code)=UPPER($1) AND archived_at IS NULL",
+      [code],
+    )
+  ).rows[0];
+  if (!row)
+    throw new DiscountCodeError("not_found", discountMessages.not_found);
+  if (!row.is_active)
+    throw new DiscountCodeError("inactive", discountMessages.inactive);
+  if (row.expires_at && new Date(row.expires_at) <= new Date())
+    throw new DiscountCodeError("expired", discountMessages.expired);
+  if (row.max_uses !== null && row.usage_count >= row.max_uses)
+    throw new DiscountCodeError(
+      "limit_reached",
+      discountMessages.limit_reached,
+    );
+  return row;
+}
+
+function applyDiscount(
+  quote: Awaited<ReturnType<typeof calculate>>,
+  discount: any | null,
+) {
+  const totalBeforeDiscountMinor = quote.subtotalMinor + quote.shippingMinor;
+  const discountPercent = discount ? Number(discount.discount_percent) : 0;
+  const calculated = discount
+    ? calculatePercentageDiscount(totalBeforeDiscountMinor, discountPercent)
+    : { discountAmountMinor: 0, finalTotalMinor: totalBeforeDiscountMinor };
+  return {
+    ...quote,
+    totalBeforeDiscountMinor,
+    discountCode: discount?.code || null,
+    discountPercent,
+    discountAmountMinor: calculated.discountAmountMinor,
+    grandTotalMinor: calculated.finalTotalMinor,
+  };
+}
+
 async function ensureSchema() {
   await pool.query(`CREATE SEQUENCE IF NOT EXISTS checkout_order_number_seq`);
   await pool.query(
@@ -86,6 +159,21 @@ async function ensureSchema() {
   );
   await pool.query(
     `CREATE TABLE IF NOT EXISTS checkout_orders (id UUID PRIMARY KEY, order_number TEXT UNIQUE NOT NULL, payment_reference TEXT UNIQUE NOT NULL, idempotency_key TEXT UNIQUE NOT NULL, market TEXT NOT NULL, currency TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', customer_full_name TEXT NOT NULL, customer_email TEXT NOT NULL, customer_phone TEXT NOT NULL, country_code TEXT NOT NULL, country_name TEXT NOT NULL, province_or_region TEXT, district TEXT, city TEXT, postal_code TEXT NOT NULL, address_line TEXT NOT NULL, delivery_notes TEXT, subtotal_minor INTEGER NOT NULL, shipping_minor INTEGER NOT NULL, grand_total_minor INTEGER NOT NULL, print_quantity INTEGER NOT NULL DEFAULT 0, original_quantity INTEGER NOT NULL DEFAULT 0, receipt_storage_key TEXT NOT NULL, receipt_original_name TEXT NOT NULL, receipt_mime_type TEXT NOT NULL, receipt_size INTEGER NOT NULL, customer_language TEXT NOT NULL DEFAULT 'en', consent_version TEXT NOT NULL, consent_at TIMESTAMPTZ NOT NULL, tracking_carrier TEXT, tracking_number TEXT, tracking_url TEXT, internal_note TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), packaging_at TIMESTAMPTZ, shipped_at TIMESTAMPTZ, completed_at TIMESTAMPTZ, cancelled_at TIMESTAMPTZ)`,
+  );
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS discount_codes (id UUID PRIMARY KEY, code TEXT NOT NULL, discount_percent INTEGER NOT NULL CHECK(discount_percent BETWEEN 1 AND 100), is_active BOOLEAN NOT NULL DEFAULT TRUE, max_uses INTEGER CHECK(max_uses IS NULL OR max_uses > 0), usage_count INTEGER NOT NULL DEFAULT 0 CHECK(usage_count >= 0), expires_at TIMESTAMPTZ, archived_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), CHECK(max_uses IS NULL OR max_uses >= usage_count))`,
+  );
+  await pool.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS discount_codes_code_upper_unique ON discount_codes(UPPER(code))`,
+  );
+  await pool.query(
+    `ALTER TABLE checkout_orders ADD COLUMN IF NOT EXISTS discount_code_id UUID REFERENCES discount_codes(id) ON DELETE SET NULL, ADD COLUMN IF NOT EXISTS discount_code TEXT, ADD COLUMN IF NOT EXISTS discount_percent INTEGER, ADD COLUMN IF NOT EXISTS discount_amount_minor INTEGER NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS total_before_discount_minor INTEGER`,
+  );
+  await pool.query(
+    `UPDATE checkout_orders SET total_before_discount_minor=subtotal_minor+shipping_minor WHERE total_before_discount_minor IS NULL`,
+  );
+  await pool.query(
+    `ALTER TABLE checkout_orders ALTER COLUMN total_before_discount_minor SET NOT NULL, ALTER COLUMN receipt_storage_key DROP NOT NULL, ALTER COLUMN receipt_original_name DROP NOT NULL, ALTER COLUMN receipt_mime_type DROP NOT NULL, ALTER COLUMN receipt_size DROP NOT NULL`,
   );
   await pool.query(
     `CREATE TABLE IF NOT EXISTS checkout_order_items (id UUID PRIMARY KEY, order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE, product_id TEXT NOT NULL, product_type TEXT NOT NULL, product_name TEXT NOT NULL, selected_options JSONB NOT NULL DEFAULT '{}'::jsonb, quantity INTEGER NOT NULL, unit_price_minor INTEGER NOT NULL, line_total_minor INTEGER NOT NULL, currency TEXT NOT NULL, image_snapshot TEXT, sku TEXT)`,
@@ -251,13 +339,41 @@ async function calculate(body: any) {
 publicRouter.post("/quote", limited, async (req, res) => {
   try {
     await ensureSchema();
-    return res.json(await calculate(req.body));
+    const quote = await calculate(req.body);
+    const discount = req.body?.discountCode
+      ? await getValidDiscount(req.body.discountCode, quote.market)
+      : null;
+    return res.json(applyDiscount(quote, discount));
   } catch (error) {
-    return res.status(400).json({
+    return res.status(error instanceof DiscountCodeError ? 422 : 400).json({
       error:
         error instanceof Error
           ? error.message
           : "Checkout could not be calculated.",
+      reason: error instanceof DiscountCodeError ? error.reason : undefined,
+    });
+  }
+});
+publicRouter.post("/discount/validate", limited, async (req, res) => {
+  try {
+    await ensureSchema();
+    if (!normalizeDiscountCode(req.body?.code))
+      return res.status(400).json({
+        error: "Enter a discount code first.",
+        reason: "blank",
+      });
+    const quote = await calculate(req.body);
+    const discount = await getValidDiscount(req.body.code, quote.market);
+    return res.json({ valid: true, ...applyDiscount(quote, discount) });
+  } catch (error) {
+    if (error instanceof DiscountCodeError)
+      return res
+        .status(422)
+        .json({ error: error.message, reason: error.reason });
+    req.log.error({ error }, "Discount validation failed");
+    return res.status(500).json({
+      error: "We couldn't check that code right now. Please try again.",
+      reason: "network",
     });
   }
 });
@@ -291,10 +407,6 @@ publicRouter.post(
       await ensureSchema();
       const body = JSON.parse(clean(req.body.payload, 50_000));
       const file = req.file;
-      if (!file || !accepted.has(file.mimetype) || !signatureOkay(file))
-        return res.status(400).json({
-          error: "Upload a valid JPG, PNG, WebP or PDF receipt under 10 MB.",
-        });
       const fullName = clean(body.fullName, 120),
         email = clean(body.email, 254).toLowerCase(),
         phone = clean(body.phone, 20),
@@ -328,7 +440,22 @@ publicRouter.post(
         return res
           .status(400)
           .json({ error: "A complete delivery address is required." });
-      const quote = await calculate(body);
+      const baseQuote = await calculate(body);
+      const previewDiscount = body.discountCode
+        ? await getValidDiscount(body.discountCode, baseQuote.market)
+        : null;
+      const previewQuote = applyDiscount(baseQuote, previewDiscount);
+      if (
+        previewQuote.grandTotalMinor > 0 &&
+        (!file || !accepted.has(file.mimetype) || !signatureOkay(file))
+      )
+        return res.status(400).json({
+          error: "Upload a valid JPG, PNG, WebP or PDF receipt under 10 MB.",
+        });
+      if (file && (!accepted.has(file.mimetype) || !signatureOkay(file)))
+        return res.status(400).json({
+          error: "Upload a valid JPG, PNG, WebP or PDF receipt under 10 MB.",
+        });
       const idempotency = clean(body.idempotencyKey, 100);
       if (!/^[a-zA-Z0-9-]{16,100}$/.test(idempotency))
         return res.status(400).json({
@@ -343,12 +470,41 @@ publicRouter.post(
           orderNumber: duplicate.rows[0].order_number,
           duplicate: true,
         });
-      await mkdir(receiptDir, { recursive: true });
-      storageKey = `${randomUUID()}.bin`;
-      await writeFile(path.join(receiptDir, storageKey), file.buffer, {
-        mode: 0o600,
-      });
+      if (file) {
+        await mkdir(receiptDir, { recursive: true });
+        storageKey = `${randomUUID()}.bin`;
+        await writeFile(path.join(receiptDir, storageKey), file.buffer, {
+          mode: 0o600,
+        });
+      }
       await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+        idempotency,
+      ]);
+      const transactionDuplicate = await client.query(
+        "SELECT order_number FROM checkout_orders WHERE idempotency_key=$1",
+        [idempotency],
+      );
+      if (transactionDuplicate.rows[0]) {
+        await client.query("ROLLBACK");
+        return res.json({
+          orderNumber: transactionDuplicate.rows[0].order_number,
+          duplicate: true,
+        });
+      }
+      let discount: any = null;
+      if (body.discountCode) {
+        const normalizedCode = normalizeDiscountCode(body.discountCode);
+        discount = (
+          await client.query(
+            `UPDATE discount_codes SET usage_count=usage_count+1,updated_at=NOW() WHERE UPPER(code)=UPPER($1) AND archived_at IS NULL AND is_active=TRUE AND (expires_at IS NULL OR expires_at>NOW()) AND (max_uses IS NULL OR usage_count<max_uses) RETURNING *`,
+            [normalizedCode],
+          )
+        ).rows[0];
+        if (!discount)
+          await getValidDiscount(normalizedCode, baseQuote.market, client);
+      }
+      const quote = applyDiscount(baseQuote, discount);
       const lockedSettingsResult = await client.query(
         "SELECT payload FROM shop_settings WHERE id='primary' FOR UPDATE",
       );
@@ -375,38 +531,45 @@ publicRouter.post(
       const number = `AR-${year}-${String(seq.rows[0].value).padStart(6, "0")}`;
       const reference = `PAY-${idempotency.slice(0, 8).toUpperCase()}`;
       const orderId = randomUUID();
-      await client.query(
-        `INSERT INTO checkout_orders(id,order_number,payment_reference,idempotency_key,market,currency,status,customer_full_name,customer_email,customer_phone,country_code,country_name,province_or_region,district,city,postal_code,address_line,delivery_notes,subtotal_minor,shipping_minor,grand_total_minor,print_quantity,original_quantity,receipt_storage_key,receipt_original_name,receipt_mime_type,receipt_size,customer_language,consent_version,consent_at) VALUES($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,'checkout-v1',NOW())`,
-        [
-          orderId,
-          number,
-          reference,
-          idempotency,
-          quote.market,
-          quote.currency,
-          fullName,
-          email,
-          phone,
-          countryCode,
-          clean(body.countryName, 100),
-          clean(body.province, 100) || null,
-          clean(body.district, 100) || null,
-          clean(body.city, 100),
-          clean(body.postalCode, 20),
-          clean(body.address, 1000),
-          clean(body.deliveryNotes, 500) || null,
-          quote.subtotalMinor,
-          quote.shippingMinor,
-          quote.grandTotalMinor,
-          quote.printQuantity,
-          quote.originalQuantity,
-          storageKey,
-          file.originalname.slice(0, 255),
-          file.mimetype,
-          file.size,
-          body.language === "tr" ? "tr" : "en",
-        ],
-      );
+      const savedOrder = (
+        await client.query(
+          `INSERT INTO checkout_orders(id,order_number,payment_reference,idempotency_key,market,currency,status,customer_full_name,customer_email,customer_phone,country_code,country_name,province_or_region,district,city,postal_code,address_line,delivery_notes,subtotal_minor,shipping_minor,total_before_discount_minor,discount_code_id,discount_code,discount_percent,discount_amount_minor,grand_total_minor,print_quantity,original_quantity,receipt_storage_key,receipt_original_name,receipt_mime_type,receipt_size,customer_language,consent_version,consent_at) VALUES($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,'checkout-v1',NOW()) RETURNING subtotal_minor,shipping_minor,discount_code,discount_percent,discount_amount_minor,grand_total_minor,currency`,
+          [
+            orderId,
+            number,
+            reference,
+            idempotency,
+            quote.market,
+            quote.currency,
+            fullName,
+            email,
+            phone,
+            countryCode,
+            clean(body.countryName, 100),
+            clean(body.province, 100) || null,
+            clean(body.district, 100) || null,
+            clean(body.city, 100),
+            clean(body.postalCode, 20),
+            clean(body.address, 1000),
+            clean(body.deliveryNotes, 500) || null,
+            quote.subtotalMinor,
+            quote.shippingMinor,
+            quote.totalBeforeDiscountMinor,
+            discount?.id || null,
+            quote.discountCode,
+            quote.discountPercent || null,
+            quote.discountAmountMinor,
+            quote.grandTotalMinor,
+            quote.printQuantity,
+            quote.originalQuantity,
+            storageKey || null,
+            file?.originalname.slice(0, 255) || null,
+            file?.mimetype || null,
+            file?.size || null,
+            body.language === "tr" ? "tr" : "en",
+          ],
+        )
+      ).rows[0];
       for (const item of quote.items)
         await client.query(
           `INSERT INTO checkout_order_items(id,order_id,product_id,product_type,product_name,selected_options,quantity,unit_price_minor,line_total_minor,currency,image_snapshot,sku) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,
@@ -470,19 +633,41 @@ publicRouter.post(
       const rows = quote.items
         .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}</li>`)
         .join("");
-      const total = formatMoney(quote.grandTotalMinor, quote.currency);
+      const total = formatMoney(
+        savedOrder.grand_total_minor,
+        savedOrder.currency,
+      );
+      const subtotal = formatMoney(
+        savedOrder.subtotal_minor,
+        savedOrder.currency,
+      );
+      const shipping = formatMoney(
+        savedOrder.shipping_minor,
+        savedOrder.currency,
+      );
+      const discountAmount = formatMoney(
+        savedOrder.discount_amount_minor,
+        savedOrder.currency,
+      );
+      const discountSummary = savedOrder.discount_code
+        ? `<p>Discount (${escapeHtml(savedOrder.discount_code)}, ${savedOrder.discount_percent}%): <strong>−${escapeHtml(discountAmount)}</strong></p>`
+        : "";
+      const paymentBreakdown = `<p>Order subtotal: ${escapeHtml(subtotal)}</p><p>Shipping: ${escapeHtml(shipping)}</p>${discountSummary}<p><strong>Order total: ${escapeHtml(total)}</strong></p>`;
       void sendEmail({
         to: email,
         subject: `We received your Aida Ramezani order — ${number}`,
         html: emailShell(
-          `<h1>Your order has been received</h1><p><strong>${number}</strong> is awaiting payment verification.</p><ul>${rows}</ul><p><strong>Total: ${escapeHtml(total)}</strong></p><p>Aida will review your transfer receipt before preparing the order.</p>`,
+          `<h1>Your order has been received</h1><p><strong>${number}</strong> ${savedOrder.grand_total_minor === 0 ? "is fully discounted. No payment is required." : "is awaiting payment verification."}</p><ul>${rows}</ul>${paymentBreakdown}<p>${savedOrder.grand_total_minor === 0 ? "Aida can begin preparing your order." : "Aida will review your transfer receipt before preparing the order."}</p>`,
         ),
       }).catch((err) => req.log.error({ err, number }, "Order email failed"));
       void sendEmail({
         to: process.env.ORDER_NOTIFICATION_EMAIL || OWNER_EMAIL,
-        subject: `New order awaiting review — ${number}`,
+        subject:
+          savedOrder.grand_total_minor === 0
+            ? `New zero-total order — ${number}`
+            : `New order awaiting review — ${number}`,
         html: emailShell(
-          `<h1>New order awaiting review</h1><p>${escapeHtml(fullName)} · ${escapeHtml(email)} · ${escapeHtml(phone)}</p><p>${escapeHtml(clean(body.address, 1000))}</p><ul>${rows}</ul><p><strong>${escapeHtml(total)}</strong></p><p><a href="${escapeHtml((process.env.PUBLIC_SITE_URL || "https://www.aedaart.com") + `/admin/orders`)}">Open secure admin orders</a></p>`,
+          `<h1>${savedOrder.grand_total_minor === 0 ? "New zero-total order" : "New order awaiting review"}</h1><p>${escapeHtml(fullName)} · ${escapeHtml(email)} · ${escapeHtml(phone)}</p><p>${escapeHtml(clean(body.address, 1000))}</p><ul>${rows}</ul>${paymentBreakdown}<p><a href="${escapeHtml((process.env.PUBLIC_SITE_URL || "https://www.aedaart.com") + `/admin/orders`)}">Open secure admin orders</a></p>`,
         ),
       }).catch((err) =>
         req.log.error({ err, number }, "Owner order email failed"),
@@ -491,6 +676,12 @@ publicRouter.post(
     } catch (error) {
       await client.query("ROLLBACK").catch(() => {});
       req.log.error({ error }, "Checkout order failed");
+      if (error instanceof DiscountCodeError)
+        return res.status(409).json({
+          error: error.message,
+          reason: error.reason,
+          discountInvalid: true,
+        });
       const isDatabaseError = Boolean(
         error && typeof error === "object" && "code" in error,
       );
@@ -717,6 +908,124 @@ publicRouter.post("/events/:id/applications", limited, async (req, res) => {
 });
 
 adminCheckoutRouter.use(requireAdmin);
+adminCheckoutRouter.get("/discount-codes", async (_req, res) => {
+  await ensureSchema();
+  const result = await pool.query(
+    "SELECT * FROM discount_codes WHERE archived_at IS NULL ORDER BY created_at DESC",
+  );
+  return res.json({ discountCodes: result.rows });
+});
+adminCheckoutRouter.post("/discount-codes", async (req, res) => {
+  await ensureSchema();
+  const code = normalizeDiscountCode(req.body?.code);
+  const discountPercent = Number(req.body?.discountPercent);
+  const maxUses =
+    req.body?.maxUses === null || req.body?.maxUses === ""
+      ? null
+      : Number(req.body?.maxUses);
+  if (!code || !isDiscountCodeFormatValid(code))
+    return res.status(400).json({
+      error: "Use only letters, numbers and hyphens in the discount code.",
+    });
+  if (
+    !Number.isInteger(discountPercent) ||
+    discountPercent < 1 ||
+    discountPercent > 100
+  )
+    return res
+      .status(400)
+      .json({ error: "Discount percentage must be between 1 and 100." });
+  if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1))
+    return res
+      .status(400)
+      .json({ error: "Maximum uses must be a positive whole number." });
+  const expiresAt = req.body?.expiresAt
+    ? `${clean(req.body.expiresAt, 10)}T23:59:59+03:00`
+    : null;
+  try {
+    const result = await pool.query(
+      `INSERT INTO discount_codes(id,code,discount_percent,is_active,max_uses,expires_at) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [
+        randomUUID(),
+        code,
+        discountPercent,
+        req.body?.isActive !== false,
+        maxUses,
+        expiresAt,
+      ],
+    );
+    return res.status(201).json({ discountCode: result.rows[0] });
+  } catch (error: any) {
+    if (error?.code === "23505")
+      return res
+        .status(409)
+        .json({ error: "That discount code already exists." });
+    throw error;
+  }
+});
+adminCheckoutRouter.put("/discount-codes/:id", async (req, res) => {
+  await ensureSchema();
+  const current = (
+    await pool.query("SELECT * FROM discount_codes WHERE id=$1", [
+      req.params.id,
+    ])
+  ).rows[0];
+  if (!current || current.archived_at)
+    return res.status(404).json({ error: "Discount code not found." });
+  const discountPercent = Number(req.body?.discountPercent);
+  const maxUses =
+    req.body?.maxUses === null || req.body?.maxUses === ""
+      ? null
+      : Number(req.body?.maxUses);
+  if (
+    !Number.isInteger(discountPercent) ||
+    discountPercent < 1 ||
+    discountPercent > 100
+  )
+    return res
+      .status(400)
+      .json({ error: "Discount percentage must be between 1 and 100." });
+  if (
+    maxUses !== null &&
+    (!Number.isInteger(maxUses) || maxUses < Number(current.usage_count))
+  )
+    return res.status(400).json({
+      error: `This code has already been used ${current.usage_count} times. The usage limit cannot be lower than ${current.usage_count}.`,
+    });
+  const expiresAt = req.body?.expiresAt
+    ? `${clean(req.body.expiresAt, 10)}T23:59:59+03:00`
+    : null;
+  const result = await pool.query(
+    `UPDATE discount_codes SET discount_percent=$1,is_active=$2,max_uses=$3,expires_at=$4,updated_at=NOW() WHERE id=$5 RETURNING *`,
+    [
+      discountPercent,
+      Boolean(req.body?.isActive),
+      maxUses,
+      expiresAt,
+      req.params.id,
+    ],
+  );
+  return res.json({ discountCode: result.rows[0] });
+});
+adminCheckoutRouter.delete("/discount-codes/:id", async (req, res) => {
+  await ensureSchema();
+  const current = (
+    await pool.query("SELECT * FROM discount_codes WHERE id=$1", [
+      req.params.id,
+    ])
+  ).rows[0];
+  if (!current || current.archived_at)
+    return res.status(404).json({ error: "Discount code not found." });
+  if (Number(current.usage_count) > 0) {
+    const result = await pool.query(
+      "UPDATE discount_codes SET is_active=FALSE,archived_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING *",
+      [req.params.id],
+    );
+    return res.json({ archived: true, discountCode: result.rows[0] });
+  }
+  await pool.query("DELETE FROM discount_codes WHERE id=$1", [req.params.id]);
+  return res.json({ deleted: true });
+});
 adminCheckoutRouter.get("/orders", async (_req, res) => {
   await ensureSchema();
   const result = await pool.query(
@@ -756,6 +1065,7 @@ adminCheckoutRouter.get("/orders/:id/receipt", async (req, res) => {
   );
   if (!result.rows[0]) return res.status(404).end();
   const row = result.rows[0];
+  if (!row.receipt_storage_key) return res.status(404).end();
   res
     .type(row.receipt_mime_type)
     .setHeader(

@@ -17,6 +17,7 @@ import HundredWindowsAdmin from "@/pages/admin/HundredWindows";
 import OriginalRequests from "@/pages/admin/OriginalRequests";
 import CollectorExperience from "@/pages/admin/CollectorExperience";
 import Analytics from "@/pages/admin/Analytics";
+import DiscountCodes from "@/pages/admin/DiscountCodes";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 
@@ -148,6 +149,7 @@ export default function Admin() {
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
   if (location === "/admin/orders") return <Orders />;
+  if (location === "/admin/discount-codes") return <DiscountCodes />;
   if (location === "/admin/original-requests") return <OriginalRequests />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
   if (location === "/admin/subscribers/featured-letter")

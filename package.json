@@ -21,6 +21,7 @@
     "test:first-party-checkout": "node scripts/verify-first-party-checkout.mjs",
     "test:hundred-windows": "node scripts/verify-hundred-windows.mjs",
     "test:homepage-localization": "node scripts/verify-homepage-localization.mjs",
+    "test:discount-codes": "node scripts/verify-discount-codes.mjs && pnpm --filter @workspace/api-server run test:discounts",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

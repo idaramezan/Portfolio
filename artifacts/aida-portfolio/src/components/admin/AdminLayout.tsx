@@ -19,6 +19,7 @@ import {
   Settings,
   ShoppingBag,
   Sparkles,
+  Ticket,
   Users,
   X,
 } from "lucide-react";
@@ -48,6 +49,7 @@ const groups = [
       ["/admin/orders", "Orders", ShoppingBag],
       ["/admin/original-requests", "Original Requests", Mails],
       ["/admin/inventory", "Inventory", Boxes],
+      ["/admin/discount-codes", "Discount Codes", Ticket],
     ],
   ],
   [

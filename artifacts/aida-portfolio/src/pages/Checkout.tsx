@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Check, Copy, Upload } from "lucide-react";
-import {
-  clearCart,
-  loadCart,
-  type CartItem,
-  type ShoppingRegion,
-} from "@/lib/store";
+import { clearCart, loadCart, type ShoppingRegion } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { trackAnalytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
+import {
+  checkoutItems,
+  loadAppliedDiscountCode,
+  saveAppliedDiscountCode,
+} from "@/lib/checkout-cart";
 
 const PROVINCES =
   "Adana,Adıyaman,Afyonkarahisar,Ağrı,Aksaray,Amasya,Ankara,Antalya,Ardahan,Artvin,Aydın,Balıkesir,Bartın,Batman,Bayburt,Bilecik,Bingöl,Bitlis,Bolu,Burdur,Bursa,Çanakkale,Çankırı,Çorum,Denizli,Diyarbakır,Düzce,Edirne,Elazığ,Erzincan,Erzurum,Eskişehir,Gaziantep,Giresun,Gümüşhane,Hakkâri,Hatay,Iğdır,Isparta,İstanbul,İzmir,Kahramanmaraş,Karabük,Karaman,Kars,Kastamonu,Kayseri,Kilis,Kırıkkale,Kırklareli,Kırşehir,Kocaeli,Konya,Kütahya,Malatya,Manisa,Mardin,Mersin,Muğla,Muş,Nevşehir,Niğde,Ordu,Osmaniye,Rize,Sakarya,Samsun,Şanlıurfa,Siirt,Sinop,Sivas,Şırnak,Tekirdağ,Tokat,Trabzon,Tunceli,Uşak,Van,Yalova,Yozgat,Zonguldak".split(
@@ -25,6 +25,10 @@ type Quote = {
   items: Array<{ name: string; quantity: number; lineTotalMinor: number }>;
   subtotalMinor: number;
   shippingMinor: number;
+  totalBeforeDiscountMinor: number;
+  discountCode: string | null;
+  discountPercent: number;
+  discountAmountMinor: number;
   grandTotalMinor: number;
   printQuantity: number;
   originalQuantity: number;
@@ -52,35 +56,6 @@ const initial = {
   consent: false,
   honey: "",
 };
-function productId(item: CartItem) {
-  const base = item.id.split(":")[0];
-  return (
-    item.productId ||
-    base
-      .replace(/^original-/, "")
-      .replace(/^print-product-/, "")
-      .replace(/^product-/, "")
-  );
-}
-function itemsFor(cart: CartItem[]) {
-  return cart.map((item) => ({
-    productId: productId(item),
-    kind:
-      item.kind === "original"
-        ? "original"
-        : item.kind === "print" || item.kind === "product"
-          ? "print"
-          : item.kind,
-    quantity: item.quantity,
-    selectedOptions: item.printConfiguration
-      ? {
-          sizeId: item.printConfiguration.sizeId,
-          framing: item.printConfiguration.framing,
-          color: item.selectedColor,
-        }
-      : { color: item.selectedColor },
-  }));
-}
 const money = (minor: number, currency: string) =>
   new Intl.NumberFormat(currency === "TRY" ? "tr-TR" : "en-US", {
     style: "currency",
@@ -142,6 +117,10 @@ const CHECKOUT_COPY = {
     products: "Products",
     shipping: "Shipping",
     total: "Total",
+    discount: "Discount",
+    nothingToPay: "Nothing to pay",
+    nothingToPayDescription:
+      "Your discount covers the full order. No bank transfer or payment receipt is required.",
     calculating: "Calculating authoritative prices…",
     printShipping: (quantity: number) =>
       `Delivery calculation: 200 TL for the first print${quantity > 1 ? ` + 20 TL for ${quantity - 1} additional print${quantity > 2 ? "s" : ""}` : ""}. Originals ship free.`,
@@ -154,10 +133,13 @@ const CHECKOUT_COPY = {
       "Upload your completed bank-transfer receipt before submitting.",
     submitError: "Order could not be submitted.",
     toastError: "Order could not be submitted",
+    discountChanged:
+      "This discount code is no longer available. Your order total has been updated.",
     copied: (label: string) => `${label} copied`,
     copyLabel: (label: string) => `Copy ${label}`,
     successDocumentTitle: "Order received | Aida Ramezani",
     pending: "Pending payment review",
+    confirmed: "Order confirmed",
     received: "Your order has been received",
     awaiting: (number: string) => (
       <>
@@ -169,6 +151,8 @@ const CHECKOUT_COPY = {
     ),
     reviewTransfer:
       "Aida will review the transfer receipt and begin preparing your order after the payment is confirmed.",
+    zeroOrder:
+      "Your order is fully discounted and no payment verification is needed. Aida can begin preparing it.",
     returnStudio: "Return to the studio",
   },
   tr: {
@@ -225,6 +209,10 @@ const CHECKOUT_COPY = {
     products: "Ürünler",
     shipping: "Kargo",
     total: "Toplam",
+    discount: "İndirim",
+    nothingToPay: "Ödenecek tutar yok",
+    nothingToPayDescription:
+      "İndirimin sipariş tutarının tamamını karşılıyor. Banka havalesi veya ödeme dekontu gerekmiyor.",
     calculating: "Fiyatlar hesaplanıyor…",
     printShipping: (quantity: number) =>
       `Teslimat hesaplaması: İlk baskı için 200 TL${quantity > 1 ? ` + ${quantity - 1} ek baskı için ${20 * (quantity - 1)} TL` : ""}. Orijinal eserlerde kargo ücretsizdir.`,
@@ -237,10 +225,13 @@ const CHECKOUT_COPY = {
       "Siparişi göndermeden önce banka havalesi dekontunuzu yükleyin.",
     submitError: "Sipariş gönderilemedi.",
     toastError: "Sipariş gönderilemedi",
+    discountChanged:
+      "Bu indirim kodu artık kullanılamıyor. Sipariş toplamın güncellendi.",
     copied: (label: string) => `${label} kopyalandı`,
     copyLabel: (label: string) => `${label} bilgisini kopyala`,
     successDocumentTitle: "Sipariş alındı | Aida Ramezani",
     pending: "Ödeme kontrolü bekleniyor",
+    confirmed: "Sipariş onaylandı",
     received: "Siparişiniz alındı",
     awaiting: (number: string) => (
       <>
@@ -252,6 +243,8 @@ const CHECKOUT_COPY = {
     ),
     reviewTransfer:
       "Aida havale dekontunu kontrol edecek ve ödeme onaylandıktan sonra siparişinizi hazırlamaya başlayacaktır.",
+    zeroOrder:
+      "Sipariş tutarının tamamı indirimle karşılandı; ödeme kontrolü gerekmiyor. Aida siparişini hazırlamaya başlayabilir.",
     returnStudio: "Stüdyoya dön",
   },
 };
@@ -286,6 +279,9 @@ export default function Checkout({
   });
   const [quote, setQuote] = useState<Quote | null>(null),
     [bank, setBank] = useState<Bank | null>(null),
+    [discountCode, setDiscountCode] = useState(() =>
+      market === "turkiye" ? loadAppliedDiscountCode() : "",
+    ),
     [receipt, setReceipt] = useState<File | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -328,22 +324,36 @@ export default function Checkout({
     fetch("/api/checkout/quote", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ market, items: itemsFor(cart) }),
+      body: JSON.stringify({
+        market,
+        items: checkoutItems(cart),
+        discountCode: discountCode || undefined,
+      }),
     })
       .then(async (r) => {
         const p = await r.json();
-        if (!r.ok) throw new Error(p.error);
+        if (!r.ok) {
+          if (discountCode && p.reason) {
+            saveAppliedDiscountCode(null);
+            setDiscountCode("");
+            throw new Error(copyText.discountChanged);
+          }
+          throw new Error(p.error);
+        }
         setQuote(p);
+        setError("");
+        if (p.grandTotalMinor === 0) return null;
         return fetch(`/api/checkout/bank/${p.currency}`);
       })
       .then(async (r) => {
+        if (!r) return;
         const p = await r.json();
         if (!r.ok) throw new Error(p.error);
         setBank(p);
         trackAnalytics("bank_instructions_viewed", { metadata: { market } });
       })
       .catch((e) => setError(e.message));
-  }, [market]);
+  }, [market, discountCode]);
   const set = (name: string, value: any) =>
     setForm((current) => ({ ...current, [name]: value }));
   const copy = async (label: string, value: string) => {
@@ -353,7 +363,8 @@ export default function Checkout({
   };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!receipt || !quote || !bank) return setError(copyText.uploadRequired);
+    if (!quote || (quote.grandTotalMinor > 0 && (!receipt || !bank)))
+      return setError(copyText.uploadRequired);
     setBusy(true);
     setError("");
     try {
@@ -362,7 +373,8 @@ export default function Checkout({
         market,
         language: locale,
         idempotencyKey: idempotency,
-        items: itemsFor(cart),
+        items: checkoutItems(cart),
+        discountCode: discountCode || undefined,
         phone:
           market === "turkiye"
             ? `+90${form.phone.replace(/\D/g, "").replace(/^0/, "")}`
@@ -371,14 +383,23 @@ export default function Checkout({
       };
       const data = new FormData();
       data.append("payload", JSON.stringify(payload));
-      data.append("receipt", receipt);
-      trackAnalytics("receipt_upload_started", { metadata: { market } });
+      if (receipt) {
+        data.append("receipt", receipt);
+        trackAnalytics("receipt_upload_started", { metadata: { market } });
+      }
       const response = await fetch("/api/checkout/orders", {
         method: "POST",
         body: data,
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      if (!response.ok) {
+        if (result.discountInvalid) {
+          saveAppliedDiscountCode(null);
+          setDiscountCode("");
+          throw new Error(copyText.discountChanged);
+        }
+        throw new Error(result.error);
+      }
       trackAnalytics("order_submitted", {
         metadata: {
           market,
@@ -389,6 +410,7 @@ export default function Checkout({
       clearCart(region);
       sessionStorage.removeItem(key);
       sessionStorage.removeItem(`checkout-idempotency:${market}`);
+      saveAppliedDiscountCode(null);
       navigate(`/checkout/success/${result.orderNumber}`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : copyText.submitError);
@@ -585,7 +607,7 @@ export default function Checkout({
               </div>
             </div>
           </section>
-          {quote && bank && (
+          {quote && bank && quote.grandTotalMinor > 0 && (
             <section className="checkout-panel checkout-bank">
               <p className="eyebrow">{copyText.payment}</p>
               <h2>{copyText.bankTitle}</h2>
@@ -622,36 +644,45 @@ export default function Checkout({
             </section>
           )}
           <section className="checkout-panel">
-            <h2>{copyText.receipt}</h2>
-            <p>{copyText.receiptIntro}</p>
-            <label className="receipt-upload">
-              <Upload aria-hidden="true" />
-              <span>
-                {receipt
-                  ? `${receipt.name} · ${(receipt.size / 1024 / 1024).toFixed(2)} MB`
-                  : copyText.chooseReceipt}
-              </span>
-              <input
-                required
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                capture="environment"
-                onChange={(e) => {
-                  setReceipt(e.target.files?.[0] || null);
-                  trackAnalytics("receipt_upload_completed", {
-                    metadata: { market },
-                  });
-                }}
-              />
-            </label>
-            {receipt && (
-              <button
-                type="button"
-                className="button-link"
-                onClick={() => setReceipt(null)}
-              >
-                {copyText.removeFile}
-              </button>
+            {quote?.grandTotalMinor === 0 ? (
+              <div role="status" className="border border-ink/10 bg-sky/15 p-4">
+                <h2>{copyText.nothingToPay}</h2>
+                <p>{copyText.nothingToPayDescription}</p>
+              </div>
+            ) : (
+              <>
+                <h2>{copyText.receipt}</h2>
+                <p>{copyText.receiptIntro}</p>
+                <label className="receipt-upload">
+                  <Upload aria-hidden="true" />
+                  <span>
+                    {receipt
+                      ? `${receipt.name} · ${(receipt.size / 1024 / 1024).toFixed(2)} MB`
+                      : copyText.chooseReceipt}
+                  </span>
+                  <input
+                    required
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    capture="environment"
+                    onChange={(e) => {
+                      setReceipt(e.target.files?.[0] || null);
+                      trackAnalytics("receipt_upload_completed", {
+                        metadata: { market },
+                      });
+                    }}
+                  />
+                </label>
+                {receipt && (
+                  <button
+                    type="button"
+                    className="button-link"
+                    onClick={() => setReceipt(null)}
+                  >
+                    {copyText.removeFile}
+                  </button>
+                )}
+              </>
             )}
             <label className="checkout-consent">
               <input
@@ -673,7 +704,7 @@ export default function Checkout({
               onChange={(e) => set("honey", e.target.value)}
             />
             <button
-              disabled={busy || !quote || !bank}
+              disabled={busy || !quote || (quote.grandTotalMinor > 0 && !bank)}
               className="button-primary checkout-submit"
             >
               {busy
@@ -710,6 +741,15 @@ export default function Checkout({
                   <dt>{copyText.shipping}</dt>
                   <dd>{money(quote.shippingMinor, quote.currency)}</dd>
                 </div>
+                {quote.discountCode && quote.discountAmountMinor > 0 && (
+                  <div className="text-coral">
+                    <dt>
+                      {copyText.discount} · {quote.discountCode} ·{" "}
+                      {quote.discountPercent}%
+                    </dt>
+                    <dd>−{money(quote.discountAmountMinor, quote.currency)}</dd>
+                  </div>
+                )}
                 <div className="checkout-total">
                   <dt>{copyText.total}</dt>
                   <dd>{money(quote.grandTotalMinor, quote.currency)}</dd>
@@ -796,9 +836,15 @@ export function CheckoutSuccess({ orderNumber }: { orderNumber: string }) {
         <span className="checkout-success__icon">
           <Check />
         </span>
-        <p className="eyebrow">{copyText.pending}</p>
+        <p className="eyebrow">
+          {order?.grand_total_minor === 0
+            ? copyText.confirmed
+            : copyText.pending}
+        </p>
         <h1>{copyText.received}</h1>
-        <p>{copyText.awaiting(orderNumber)}</p>
+        {order?.grand_total_minor !== 0 && (
+          <p>{copyText.awaiting(orderNumber)}</p>
+        )}
         {order && (
           <>
             <p>{copyText.confirmation(order.customer_email)}</p>
@@ -807,7 +853,11 @@ export function CheckoutSuccess({ orderNumber }: { orderNumber: string }) {
             </p>
           </>
         )}
-        <p>{copyText.reviewTransfer}</p>
+        <p>
+          {order?.grand_total_minor === 0
+            ? copyText.zeroOrder
+            : copyText.reviewTransfer}
+        </p>
         <Link href="/" className="button-primary">
           {copyText.returnStudio}
         </Link>

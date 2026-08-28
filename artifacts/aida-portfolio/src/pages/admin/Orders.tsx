@@ -35,11 +35,15 @@ type Order = {
   currency: string;
   subtotal_minor: number;
   shipping_minor: number;
+  total_before_discount_minor: number;
+  discount_code?: string | null;
+  discount_percent?: number | null;
+  discount_amount_minor: number;
   grand_total_minor: number;
   status: string;
-  receipt_original_name: string;
-  receipt_mime_type: string;
-  receipt_size: number;
+  receipt_original_name?: string | null;
+  receipt_mime_type?: string | null;
+  receipt_size?: number | null;
   consent_version: string;
   consent_at: string;
   tracking_carrier?: string | null;
@@ -134,7 +138,7 @@ export default function Orders() {
       orders.filter(
         (order) =>
           (!filter || order.status === filter) &&
-          `${order.order_number} ${order.customer_full_name} ${order.customer_email} ${order.customer_phone} ${order.address_line} ${order.city} ${order.country_name}`
+          `${order.order_number} ${order.customer_full_name} ${order.customer_email} ${order.customer_phone} ${order.address_line} ${order.city} ${order.country_name} ${order.discount_code || ""}`
             .toLowerCase()
             .includes(query.toLowerCase()),
       ),
@@ -326,6 +330,11 @@ export default function Orders() {
                       {order.city}, {order.country_name} ·{" "}
                       {dateTime(order.created_at)}
                     </p>
+                    {order.discount_code && (
+                      <span className="mt-2 inline-block border border-coral/25 bg-coral/5 px-2 py-1 text-xs font-bold text-coral">
+                        {order.discount_code} · −{order.discount_percent}%
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
                     <strong>
@@ -451,7 +460,26 @@ export default function Orders() {
                         <DetailField label="Shipping">
                           {money(order.shipping_minor, order.currency)}
                         </DetailField>
-                        <DetailField label="Grand total">
+                        <DetailField label="Before discount">
+                          {money(
+                            order.total_before_discount_minor,
+                            order.currency,
+                          )}
+                        </DetailField>
+                        <DetailField label="Discount code">
+                          {order.discount_code}
+                        </DetailField>
+                        <DetailField label="Discount">
+                          {order.discount_percent
+                            ? `${order.discount_percent}%`
+                            : null}
+                        </DetailField>
+                        <DetailField label="Savings">
+                          {order.discount_amount_minor
+                            ? `−${money(order.discount_amount_minor, order.currency)}`
+                            : null}
+                        </DetailField>
+                        <DetailField label="Total due">
                           {money(order.grand_total_minor, order.currency)}
                         </DetailField>
                         <DetailField label="Tracking number">
@@ -509,13 +537,19 @@ export default function Orders() {
                   </div>
                 </details>
 
-                <button
-                  type="button"
-                  className="button-secondary mt-4"
-                  onClick={() => void openReceipt(order)}
-                >
-                  View private receipt · {order.receipt_original_name}
-                </button>
+                {order.receipt_original_name ? (
+                  <button
+                    type="button"
+                    className="button-secondary mt-4"
+                    onClick={() => void openReceipt(order)}
+                  >
+                    View private receipt · {order.receipt_original_name}
+                  </button>
+                ) : (
+                  <p className="mt-4 text-sm font-semibold text-ink/55">
+                    No payment receipt required · zero-total order
+                  </p>
+                )}
               </article>
             ))}
           </div>
