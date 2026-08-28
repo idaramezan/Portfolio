@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale";
 import { eventText, type PublicEvent } from "./Events";
 import { trackAnalytics } from "@/lib/analytics";
+import { ArrowLeft, Banknote, CalendarDays, MapPin, Users } from "lucide-react";
 export default function EventDetail({ slug }: { slug: string }) {
   const { locale } = useLocale();
   const [event, setEvent] = useState<PublicEvent | null>();
@@ -57,54 +58,161 @@ export default function EventDetail({ slug }: { slug: string }) {
       </main>
     );
   const completed = event.status === "completed";
+  const date = new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-GB", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: event.timezone || "Europe/Istanbul",
+  }).format(new Date(event.event_start_at));
+  const bookingOpens = event.booking_open_at
+    ? new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-GB", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: event.timezone || "Europe/Istanbul",
+      }).format(new Date(event.booking_open_at))
+    : null;
+  const audience = {
+    en: {
+      girls_only: "Women only",
+      boys_only: "Men only",
+      everyone: "Everyone welcome",
+    },
+    tr: {
+      girls_only: "Yalnızca kadınlar",
+      boys_only: "Yalnızca erkekler",
+      everyone: "Herkes katılabilir",
+    },
+  }[locale][event.audience as "girls_only" | "boys_only" | "everyone"];
+  const bookingMessage =
+    event.bookingState === "fully_booked"
+      ? locale === "tr"
+        ? "Bu etkinliğin kontenjanı doldu."
+        : "This event is fully booked."
+      : event.bookingState === "not_open"
+        ? locale === "tr"
+          ? `Başvurular ${bookingOpens} tarihinde açılacak.`
+          : `Applications open ${bookingOpens}.`
+        : locale === "tr"
+          ? "Bu etkinlik için başvurular kapandı."
+          : "Applications for this event are closed.";
   return (
     <main className="event-detail">
-      <Link href="/events">
-        ← {locale === "tr" ? "Tüm etkinlikler" : "All events"}
+      <Link href="/events" className="event-detail__back">
+        <ArrowLeft size={17} aria-hidden="true" />
+        {locale === "tr" ? "Tüm etkinlikler" : "All events"}
       </Link>
-      <header>
-        {event.image_url && (
-          <img src={event.image_url} alt={event.image_alt_text} />
-        )}
-        <div>
-          <p className="events-date">
-            {new Date(event.event_start_at).toLocaleString(locale)}
+      <header className="event-detail__hero">
+        <figure className="event-detail__image">
+          {event.image_url ? (
+            <img src={event.image_url} alt={event.image_alt_text} />
+          ) : (
+            <div aria-hidden="true" />
+          )}
+        </figure>
+        <div className="event-detail__content">
+          <p className="eyebrow">
+            {eventText(event, "eyebrow", locale) ||
+              (locale === "tr" ? "AIDA İLE BULUŞ" : "MEET WITH AIDA")}
           </p>
           <h1>{eventText(event, "title", locale)}</h1>
-          <p>
-            {eventText(event, "full_description", locale) ||
+          <p className="event-detail__intro">
+            {eventText(event, "short_description", locale) ||
               eventText(event, "description", locale)}
           </p>
-          <p>
-            {eventText(event, "location_text", locale)} ·{" "}
-            {event.audience?.replaceAll("_", " ")}
-          </p>
+          <dl className="event-detail__facts">
+            <div>
+              <dt>
+                <CalendarDays aria-hidden="true" />
+              </dt>
+              <dd>
+                <small>
+                  {locale === "tr" ? "Tarih ve saat" : "Date & time"}
+                </small>
+                <strong>{date}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>
+                <MapPin aria-hidden="true" />
+              </dt>
+              <dd>
+                <small>{locale === "tr" ? "Konum" : "Location"}</small>
+                <strong>{eventText(event, "location_text", locale)}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>
+                <Users aria-hidden="true" />
+              </dt>
+              <dd>
+                <small>{locale === "tr" ? "Katılım" : "Who can join"}</small>
+                <strong>{audience}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>
+                <Banknote aria-hidden="true" />
+              </dt>
+              <dd>
+                <small>
+                  {locale === "tr" ? "Katılım ücreti" : "Participation"}
+                </small>
+                <strong>
+                  {Number(event.participation_price_try) > 0
+                    ? `${event.participation_price_try} ${event.currency || "TRY"}`
+                    : locale === "tr"
+                      ? "Ücretsiz"
+                      : "Free"}
+                </strong>
+              </dd>
+            </div>
+          </dl>
           {event.bookable ? (
-            <Link
-              className="events-button"
-              href={`/events/${event.id}/apply`}
-              onClick={() =>
-                trackAnalytics("event_booking_click", {
-                  metadata: { eventId: event.id },
-                })
-              }
-            >
-              {locale === "tr"
-                ? "Katılmak istiyorum"
-                : "I’m interested in joining"}{" "}
-              →
-            </Link>
+            <div className="event-detail__booking">
+              <p>
+                <strong>{event.remainingSeats}</strong>{" "}
+                {locale === "tr"
+                  ? "yer kaldı"
+                  : event.remainingSeats === 1
+                    ? "place remaining"
+                    : "places remaining"}
+              </p>
+              <Link
+                className="events-button"
+                href={`/events/${event.id}/apply`}
+                onClick={() =>
+                  trackAnalytics("event_booking_click", {
+                    metadata: { eventId: event.id },
+                  })
+                }
+              >
+                {locale === "tr" ? "Katılmak için başvur" : "Apply to join"} →
+              </Link>
+              <small>
+                {locale === "tr"
+                  ? "Başvurun Aida tarafından incelendikten sonra yerin e-posta ile onaylanır."
+                  : "Aida reviews each application and confirms your place by email."}
+              </small>
+            </div>
           ) : (
             !completed && (
-              <strong>
-                {locale === "tr"
-                  ? "Kontenjan dolu veya rezervasyon kapalı"
-                  : "Fully booked or booking closed"}
-              </strong>
+              <p className="event-detail__unavailable" role="status">
+                {bookingMessage}
+              </p>
             )
           )}
         </div>
       </header>
+      {!completed && eventText(event, "full_description", locale) && (
+        <section className="event-detail__story">
+          <p className="eyebrow">
+            {locale === "tr" ? "BİLMEN GEREKENLER" : "WHAT TO EXPECT"}
+          </p>
+          <h2>
+            {locale === "tr" ? "Günün ayrıntıları" : "A little about the day"}
+          </h2>
+          <p>{eventText(event, "full_description", locale)}</p>
+        </section>
+      )}
       {completed && eventText(event, "recap_text", locale) && (
         <section>
           <h2>{locale === "tr" ? "O günden" : "From the day"}</h2>

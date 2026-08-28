@@ -845,6 +845,7 @@ publicRouter.post("/events/:id/applications", limited, async (req, res) => {
       !event ||
       !event.enabled ||
       !["active", "scheduled", "booking_open"].includes(event.status) ||
+      (event.booking_open_at && new Date(event.booking_open_at) > new Date()) ||
       new Date(
         event.booking_close_at || event.display_end_at || event.event_start_at,
       ) <= new Date() ||

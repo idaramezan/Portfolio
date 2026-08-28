@@ -146,19 +146,33 @@ async function publicEvent(row: any, includePrivate = false) {
   const remainingSeats = Math.max(0, Number(row.total_capacity) - reserved);
   const now = Date.now(),
     start = Date.parse(row.event_start_at),
+    open = row.booking_open_at ? Date.parse(row.booking_open_at) : -Infinity,
     close = Date.parse(
       row.booking_close_at || row.display_end_at || row.event_start_at,
     );
   const status =
-    remainingSeats <= 0 && ["booking_open", "active"].includes(row.status)
+    remainingSeats <= 0 &&
+    ["scheduled", "booking_open", "active"].includes(row.status)
       ? "fully_booked"
-      : row.status;
+      : row.status === "scheduled" && now >= open && now < close && now < start
+        ? "booking_open"
+        : row.status;
   const bookable =
     Boolean(row.enabled) &&
-    ["booking_open", "active"].includes(row.status) &&
+    ["scheduled", "booking_open", "active"].includes(row.status) &&
+    now >= open &&
     now < start &&
     now < close &&
     remainingSeats > 0;
+  const bookingState = bookable
+    ? "open"
+    : remainingSeats <= 0
+      ? "fully_booked"
+      : now < open
+        ? "not_open"
+        : now >= close || now >= start
+          ? "closed"
+          : "unavailable";
   const gallery = (
     await pool.query(
       `SELECT id,image_url,alt_text,caption,orientation,display_order,is_cover${includePrivate ? ",is_private" : ""} FROM event_gallery_images WHERE event_id=$1 ${includePrivate ? "" : "AND is_private=FALSE"} ORDER BY display_order`,
@@ -178,6 +192,7 @@ async function publicEvent(row: any, includePrivate = false) {
     remainingSeats,
     reservedSeats: reserved,
     bookable,
+    bookingState,
     gallery,
     reviews,
     ratingSummary: reviews.length

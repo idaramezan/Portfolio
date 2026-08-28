@@ -9,6 +9,50 @@ const camel = (x: any) =>
       v,
     ]),
   );
+function zonedDateTimeInput(
+  value: string | null,
+  timeZone = "Europe/Istanbul",
+) {
+  if (!value) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value || "";
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
+function zonedInputToIso(value: string, timeZone = "Europe/Istanbul") {
+  if (!value) return "";
+  const [date, time] = value.split("T");
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  const wallClockUtc = Date.UTC(year, month - 1, day, hour, minute);
+  const shown = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(wallClockUtc));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(shown.find((item) => item.type === type)?.value || 0);
+  const displayedAsUtc = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour"),
+    get("minute"),
+  );
+  return new Date(wallClockUtc - (displayedAsUtc - wallClockUtc)).toISOString();
+}
 const statuses = [
   "draft",
   "scheduled",
@@ -170,9 +214,14 @@ export default function EventsAdmin({ eventId }: { eventId?: string }) {
                 </span>
               </div>
               <p>
-                {new Date(e.event_start_at).toLocaleString()} ·{" "}
-                {e.reservedSeats} registrations / {e.total_capacity} capacity ·{" "}
-                {e.remainingSeats} remaining · {e.reviews?.length || 0} reviews
+                {new Intl.DateTimeFormat("en-GB", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: e.timezone || "Europe/Istanbul",
+                }).format(new Date(e.event_start_at))}{" "}
+                · {e.reservedSeats} registrations / {e.total_capacity} capacity
+                · {e.remainingSeats} remaining · {e.reviews?.length || 0}{" "}
+                reviews
               </p>
             </div>
             <Link className="button-secondary" href={`/admin/events/${e.id}`}>
@@ -628,26 +677,32 @@ function Schedule({ form, set, attendees }: any) {
         <Input
           label="Event starts"
           type="datetime-local"
-          value={(form.eventStartAt || "").slice(0, 16)}
-          onChange={(v) => set("eventStartAt", v)}
+          value={zonedDateTimeInput(form.eventStartAt, form.timezone)}
+          onChange={(v) =>
+            set("eventStartAt", zonedInputToIso(v, form.timezone))
+          }
         />
         <Input
           label="Event ends"
           type="datetime-local"
-          value={(form.eventEndAt || "").slice(0, 16)}
-          onChange={(v) => set("eventEndAt", v)}
+          value={zonedDateTimeInput(form.eventEndAt, form.timezone)}
+          onChange={(v) => set("eventEndAt", zonedInputToIso(v, form.timezone))}
         />
         <Input
           label="Booking opens"
           type="datetime-local"
-          value={(form.bookingOpenAt || "").slice(0, 16)}
-          onChange={(v) => set("bookingOpenAt", v)}
+          value={zonedDateTimeInput(form.bookingOpenAt, form.timezone)}
+          onChange={(v) =>
+            set("bookingOpenAt", zonedInputToIso(v, form.timezone))
+          }
         />
         <Input
           label="Booking closes"
           type="datetime-local"
-          value={(form.bookingCloseAt || "").slice(0, 16)}
-          onChange={(v) => set("bookingCloseAt", v)}
+          value={zonedDateTimeInput(form.bookingCloseAt, form.timezone)}
+          onChange={(v) =>
+            set("bookingCloseAt", zonedInputToIso(v, form.timezone))
+          }
         />
         <Input
           label="Timezone"

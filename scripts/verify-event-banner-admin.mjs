@@ -13,6 +13,9 @@ const featureAdmin = read(
 const eventsAdmin = read(
   "../artifacts/aida-portfolio/src/pages/admin/Events.tsx",
 );
+const eventDetail = read(
+  "../artifacts/aida-portfolio/src/pages/EventDetail.tsx",
+);
 const migration = read(
   "../lib/db/migrations/0010_consolidate_event_feature.sql",
 );
@@ -66,4 +69,28 @@ if (
   !featureAdmin.includes("eventPublished")
 )
   throw new Error("Admin must explain when featuring publishes a draft event");
+if (
+  !eventsRoute.includes(
+    '["scheduled", "booking_open", "active"].includes(row.status)',
+  ) ||
+  !eventsRoute.includes("now >= open")
+)
+  throw new Error(
+    "Scheduled events must open automatically at their booking time",
+  );
+if (
+  !eventsAdmin.includes("zonedInputToIso") ||
+  !eventsAdmin.includes("zonedDateTimeInput")
+)
+  throw new Error(
+    "Event admin must preserve the configured timezone for datetime-local values",
+  );
+if (
+  eventDetail.includes("Fully booked or booking closed") ||
+  !eventDetail.includes("Apply to join") ||
+  !eventDetail.includes("event.bookingState")
+)
+  throw new Error(
+    "Event details must expose registration and distinct booking states",
+  );
 console.log("Consolidated Events administration verification passed.");
