@@ -431,31 +431,72 @@ router.get("/admin/feature/settings", async (_req, res) => {
 router.put("/admin/feature/settings", async (req, res) => {
   await ensureSchema();
   const b = req.body || {};
+  let selectedEvent: any = null;
   if (b.eventId) {
-    const exists = (
-      await pool.query("SELECT id FROM event_banner_config WHERE id=$1", [
+    selectedEvent = (
+      await pool.query("SELECT * FROM event_banner_config WHERE id=$1", [
         b.eventId,
       ])
     ).rows[0];
-    if (!exists) return res.status(400).json({ error: "Select a valid event" });
+    if (!selectedEvent)
+      return res.status(400).json({ error: "Select a valid event" });
   }
-  const row = (
-    await pool.query(
-      `INSERT INTO homepage_event_feature(id,enabled,event_id,show_on_homepage,show_on_turkiye_shop,title_override,desktop_object_position,mobile_object_position,hide_after_event,show_remaining_places,updated_at) VALUES('primary',$1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) ON CONFLICT(id) DO UPDATE SET enabled=$1,event_id=$2,show_on_homepage=$3,show_on_turkiye_shop=$4,title_override=$5,desktop_object_position=$6,mobile_object_position=$7,hide_after_event=$8,show_remaining_places=$9,updated_at=NOW() RETURNING *`,
-      [
-        Boolean(b.enabled),
-        b.eventId || null,
-        Boolean(b.showOnHomepage),
-        Boolean(b.showOnTurkiyeShop),
-        clean(b.titleOverride, 200) || null,
-        clean(b.desktopObjectPosition, 80) || null,
-        clean(b.mobileObjectPosition, 80) || null,
-        b.hideAfterEvent !== false,
-        b.showRemainingPlaces !== false,
-      ],
+  if (b.enabled && selectedEvent) {
+    if (["archived", "cancelled"].includes(selectedEvent.status))
+      return res.status(409).json({
+        error:
+          "Archived or cancelled events cannot be featured. Restore the event first.",
+      });
+    if (
+      b.hideAfterEvent !== false &&
+      Date.parse(selectedEvent.event_start_at) <= Date.now()
     )
-  ).rows[0];
-  return res.json({ feature: row });
+      return res.status(409).json({
+        error:
+          "This event has already started. Turn off ‘Hide automatically after event date’ to feature its archive.",
+      });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    if (b.enabled && selectedEvent)
+      await client.query(
+        `UPDATE event_banner_config SET enabled=TRUE,status=CASE WHEN status='draft' THEN 'scheduled' ELSE status END,show_on_homepage=$2,show_on_turkiye_shop=$3,updated_at=NOW() WHERE id=$1`,
+        [
+          selectedEvent.id,
+          Boolean(b.showOnHomepage),
+          Boolean(b.showOnTurkiyeShop),
+        ],
+      );
+    const row = (
+      await client.query(
+        `INSERT INTO homepage_event_feature(id,enabled,event_id,show_on_homepage,show_on_turkiye_shop,title_override,desktop_object_position,mobile_object_position,hide_after_event,show_remaining_places,updated_at) VALUES('primary',$1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) ON CONFLICT(id) DO UPDATE SET enabled=$1,event_id=$2,show_on_homepage=$3,show_on_turkiye_shop=$4,title_override=$5,desktop_object_position=$6,mobile_object_position=$7,hide_after_event=$8,show_remaining_places=$9,updated_at=NOW() RETURNING *`,
+        [
+          Boolean(b.enabled),
+          b.eventId || null,
+          Boolean(b.showOnHomepage),
+          Boolean(b.showOnTurkiyeShop),
+          clean(b.titleOverride, 200) || null,
+          clean(b.desktopObjectPosition, 80) || null,
+          clean(b.mobileObjectPosition, 80) || null,
+          b.hideAfterEvent !== false,
+          b.showRemainingPlaces !== false,
+        ],
+      )
+    ).rows[0];
+    await client.query("COMMIT");
+    return res.json({
+      feature: row,
+      eventPublished:
+        Boolean(b.enabled && selectedEvent) &&
+        (!selectedEvent.enabled || selectedEvent.status === "draft"),
+    });
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
 });
 router.get("/admin", async (_req, res) => {
   await ensureSchema();

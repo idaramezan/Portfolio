@@ -52,7 +52,21 @@ export default function EventBanner() {
       body: JSON.stringify(form),
     });
     const x = await r.json();
-    setMessage(r.ok ? "Homepage Event Feature saved." : x.error);
+    if (r.ok) {
+      setMessage(
+        x.eventPublished
+          ? "Homepage Event Feature saved. The selected draft was published as a scheduled event."
+          : "Homepage Event Feature saved.",
+      );
+      if (x.eventPublished)
+        setEvents((current) =>
+          current.map((event) =>
+            event.id === form.eventId
+              ? { ...event, enabled: true, status: "scheduled" }
+              : event,
+          ),
+        );
+    } else setMessage(x.error);
   }
   return (
     <AdminLayout title="Homepage Event Feature">
@@ -117,6 +131,18 @@ export default function EventBanner() {
               >
                 Edit selected event
               </Link>
+            </div>
+          )}
+          {selected && (!selected.enabled || selected.status === "draft") && (
+            <div
+              role="status"
+              className="border border-yellow-500/30 bg-yellow-100 p-4 text-sm"
+            >
+              <strong>This event is currently a disabled draft.</strong>
+              <p className="mt-1">
+                Saving with the homepage feature enabled will publish it as a
+                scheduled event so the banner can be displayed.
+              </p>
             </div>
           )}
           <fieldset>
