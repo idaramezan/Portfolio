@@ -18,6 +18,11 @@ import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { isAceoProduct } from "@/lib/turkiye-products";
 
 type Filter = "all" | "originals" | "aceos" | "prints" | "100-windows";
+
+const newestFirst = (a: ManagedProduct, b: ManagedProduct) =>
+  (Date.parse(b.createdAt || "") || 0) -
+  (Date.parse(a.createdAt || "") || 0);
+
 const copy = {
   en: {
     eyebrow: "FROM AIDA'S ISTANBUL STUDIO",
@@ -149,23 +154,20 @@ export default function UnifiedShop() {
   }, []);
 
   const products = useMemo(() => {
-    const originals = settings.originalProducts.filter(isPubliclyVisible);
-    const prints = settings.printProducts.filter(isPubliclyVisible);
+    const originals = settings.originalProducts
+      .filter(isPubliclyVisible)
+      .sort(newestFirst);
+    const prints = settings.printProducts
+      .filter(isPubliclyVisible)
+      .sort(newestFirst);
     if (filter === "originals") return originals;
     if (filter === "aceos")
-      return prints
-        .filter(isAceoProduct)
-        .sort(
-          (a, b) =>
-            Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""),
-        );
+      return prints.filter(isAceoProduct);
     if (filter === "prints")
       return prints.filter((product) => !isAceoProduct(product));
     if (filter === "100-windows")
       return prints.filter((product) => product.isHundredWindowsProduct);
-    return [...originals, ...prints].sort(
-      (a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""),
-    );
+    return [...originals, ...prints].sort(newestFirst);
   }, [settings.originalProducts, settings.printProducts, filter]);
 
   const filters: Array<[Filter, string]> = [
