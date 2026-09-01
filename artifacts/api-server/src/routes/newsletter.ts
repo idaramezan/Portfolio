@@ -632,7 +632,7 @@ const starterTemplates = [
   {
     id: "starter-story",
     name: "Story from the studio",
-    subject: "A small story from my Istanbul studio",
+    subject: "A small story from my studio",
     preheader: "The memory and process behind a painting",
     blocks: [
       { type: "text", text: "A story from the studio", size: "heading" },
@@ -1274,7 +1274,7 @@ router.get("/featured-letter", async (req, res) => {
       title: row.public_title_override || row.subject,
       metadata:
         row.public_metadata_override ||
-        `From Aida’s Istanbul Studio · ${Math.max(1, Math.ceil(words.length / 200))} min read`,
+        `From the Studio · ${Math.max(1, Math.ceil(words.length / 200))} min read`,
       excerpt: desktopWords.join(" "),
       desktopExcerpt: desktopWords.join(" "),
       mobileExcerpt: mobileWords.join(" "),

@@ -22,12 +22,12 @@ const TR: Record<string, string> = {
   Contact: "İletişim",
   Newsletter: "Bülten",
   "Notes from the studio.": "Stüdyodan notlar.",
-  "Made by hand in Istanbul.": "İstanbul’da el emeğiyle hazırlandı.",
+  "Made by Aida": "Aida tarafından yapıldı",
   "All rights reserved.": "Tüm hakları saklıdır.",
   "The Türkiye shop": "Türkiye mağazası",
   "International shop": "Uluslararası mağaza",
-  "Art from Aida’s Istanbul studio, delivered across Türkiye.":
-    "Aida’nın İstanbul stüdyosundan sanat eserleri, Türkiye’nin her yerine teslim.",
+  "Art from Aida’s studio, delivered across Türkiye.":
+    "Aida’nın atölyesinden sanat eserleri, Türkiye’nin her yerine teslim.",
   "Collect Aida’s work wherever you are.":
     "Nerede olursanız olun Aida’nın eserlerini koleksiyonunuza katın.",
   "Discover one-of-a-kind original paintings, signed prints, art goods and limited Mystery Mail editions. Every order is prepared personally by Aida, with free shipping within Türkiye.":
@@ -113,8 +113,8 @@ const TR: Record<string, string> = {
     "Orijinal resimler • Baskılar ve ürünler • Gizemli Posta",
   "Original Art, Prints & Goods and Mystery Mail":
     "Orijinal Sanat, Baskılar, Ürünler ve Gizemli Posta",
-  "Discover one of a kind paintings, signed art prints and small themed art packages created by Istanbul artist Aida Ramezani.":
-    "İstanbullu sanatçı Aida Ramezani’nin benzersiz resimlerini, imzalı sanat baskılarını ve temalı küçük sanat paketlerini keşfedin.",
+  "Discover one of a kind paintings, signed art prints and small themed art packages created by Aida Ramezani.":
+    "Aida Ramezani’nin benzersiz resimlerini, imzalı sanat baskılarını ve temalı küçük sanat paketlerini keşfedin.",
   "Shop in Türkiye": "Türkiye’den alışveriş yap",
   "Get this print": "Bu baskıyı edin",
   "Choose your shopping region": "Alışveriş bölgenizi seçin",
@@ -128,8 +128,7 @@ const TR: Record<string, string> = {
   "Enter the Türkiye Shop": "Türkiye mağazasına gir",
   "Enter the International Shop": "Uluslararası mağazaya gir",
   "About the artist": "Sanatçı hakkında",
-  "Made by Aida Ramezani in Istanbul":
-    "Aida Ramezani tarafından İstanbul’da üretildi",
+  "Made by Aida Ramezani": "Aida Ramezani tarafından üretildi",
   "Every original painting, studio good and Mystery Mail package is created, selected or prepared personally in the studio.":
     "Her orijinal resim, stüdyo ürünü ve Gizemli Posta paketi stüdyoda kişisel olarak üretilir, seçilir veya hazırlanır.",
   "The goal is to make collecting art feel personal, approachable and connected to the artist who created it.":
@@ -229,8 +228,8 @@ const TR: Record<string, string> = {
   "Does adding it to the basket reserve it?": "Sepete eklemek ürünü ayırır mı?",
   "Your selection is confirmed personally with Aida when you continue on WhatsApp.":
     "WhatsApp’a devam ettiğinizde seçiminiz Aida ile kişisel olarak onaylanır.",
-  "Aida Ramezani is a self-taught oil pastel artist based in Istanbul. Her work is rooted in texture, instinct and the physical act of making.":
-    "Aida Ramezani, İstanbul’da yaşayan ve kendi kendini yetiştirmiş bir yağlı pastel sanatçısıdır. Eserleri dokuya, içgüdüye ve üretmenin fiziksel sürecine dayanır.",
+  "Aida Ramezani is a self-taught oil pastel artist. Her work is rooted in texture, instinct and the physical act of making.":
+    "Aida Ramezani kendi kendini yetiştirmiş bir yağlı pastel sanatçısıdır. Eserleri dokuya, içgüdüye ve üretmenin fiziksel sürecine dayanır.",
   "She works directly on paper, allowing fingerprints, smudges and unexpected marks to remain visible. Each original carries the trace of the hand that made it.":
     "Kağıt üzerinde doğrudan çalışır; parmak izlerinin, lekelerin ve beklenmedik izlerin görünür kalmasına izin verir. Her orijinal, onu yapan elin izini taşır.",
   "Aida began painting without formal training, drawn to the immediacy and sensitivity of oil pastel.":

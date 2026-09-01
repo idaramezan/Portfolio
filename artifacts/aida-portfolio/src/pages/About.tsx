@@ -71,8 +71,8 @@ function PaintingProcessVideo() {
 
 export default function About() {
   usePageMeta(
-    "About Aida Ramezani | Oil Pastel Artist in Istanbul",
-    "Meet Aida Ramezani, a self-taught oil pastel artist based in Istanbul. Discover her materials, creative process, studio practice and approach to handmade original art.",
+    "About Aida Ramezani | Oil Pastel Artist",
+    "Meet Aida Ramezani, a self-taught oil pastel artist. Discover her materials, creative process, studio practice and approach to handmade original art.",
   );
 
   return (
@@ -82,9 +82,8 @@ export default function About() {
           <p className="eyebrow">About Aida Ramezani</p>
           <h1>Art made directly, honestly and by hand.</h1>
           <p>
-            Aida Ramezani is a self-taught oil pastel artist based in Istanbul.
-            Her work is rooted in texture, instinct and the physical act of
-            making.
+            Aida Ramezani is a self-taught oil pastel artist. Her work is
+            rooted in texture, instinct and the physical act of making.
           </p>
           <p>
             She works directly on paper, allowing fingerprints, smudges and
@@ -95,7 +94,7 @@ export default function About() {
         <div className="about-hero__media">
           <img
             src={heroPortrait}
-            alt="Oil pastel artist Aida Ramezani in her Istanbul studio"
+            alt="Oil pastel artist Aida Ramezani holding one of her artworks"
             fetchPriority="high"
           />
         </div>

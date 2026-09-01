@@ -392,8 +392,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
         <p className="mobile-menu__note">
           {locale === "tr"
-            ? "Aida’nın İstanbul stüdyosundan kişisel sanat hikâyeleri ve ilk bakışlar."
-            : "Personal art stories and first looks from Aida’s Istanbul studio."}
+            ? "Aida’dan kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar."
+            : "Personal art stories, studio notes and first looks at new work."}
         </p>
         <footer className="mobile-menu__footer">
           <div
@@ -446,8 +446,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <section>
               <h2 className="site-footer__brand">Aida Ramezani</h2>
               <p className="site-footer__studio-line">
-                Original art, studio stories and small editions made by Aida in
-                Istanbul.
+                Original art, studio stories and small editions made by Aida.
               </p>
               <div
                 className="site-footer__social"
@@ -533,7 +532,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Aida Ramezani</span>
-            <span>Made by hand in Istanbul</span>
+            <span>Made by Aida</span>
             <button type="button" onClick={manageAnalytics}>
               Manage analytics
             </button>

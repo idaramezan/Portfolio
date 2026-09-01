@@ -78,8 +78,8 @@ function LinksMobile({
         <h1>Aida Ramezani</h1>
         <p>
           {locale === "tr"
-            ? "Aida'nın İstanbul atölyesinden yağlı pastel resimler, stüdyo baskıları ve günlük hikâyeler."
-            : "Oil pastel paintings, studio prints and daily stories from Aida’s Istanbul studio."}
+            ? "Aida'dan yağlı pastel resimler, stüdyo baskıları ve günlük hikâyeler."
+            : "Oil pastel paintings, studio prints and daily stories by Aida."}
         </p>
       </header>
       <Link

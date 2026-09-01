@@ -33,7 +33,7 @@ export type ShopCategory = "originals" | "prints" | "mystery-mail";
 const copy = {
   TR: {
     eyebrow: "Türkiye Shop",
-    heading: "Art collected directly from Aida’s Istanbul studio.",
+    heading: "Art collected directly from Aida’s studio.",
     description:
       "Browse original paintings, Prints & Goods and the current Mystery Mail. Every selection is confirmed personally with Aida.",
   },

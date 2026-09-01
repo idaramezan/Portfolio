@@ -26,7 +26,7 @@ export const tiktokLiveSection = {
   eyebrow: "PAINTED LIVE ON TIKTOK",
   heading: "Painted live. Watched by thousands.",
   description:
-    "Aida paints in real time from her Istanbul studio. These works were created during recent TikTok LIVE sessions.",
+    "Aida paints in real time from her studio. These works were created during recent TikTok LIVE sessions.",
   primaryCtaLabel: "Watch and follow on TikTok",
   secondaryCtaLabel: "Follow Aida on TikTok",
   statsLabel: "Recent TikTok LIVE performance",

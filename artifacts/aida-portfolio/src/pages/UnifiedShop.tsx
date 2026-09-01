@@ -25,9 +25,9 @@ const newestFirst = (a: ManagedProduct, b: ManagedProduct) =>
 
 const copy = {
   en: {
-    eyebrow: "FROM AIDA'S ISTANBUL STUDIO",
+    eyebrow: "FROM AIDA'S STUDIO",
     title: "Shop the studio.",
-    body: "Original paintings, prints and small studio editions made by Aida in Istanbul.",
+    body: "Original paintings, prints and small studio editions made by Aida.",
     all: "All",
     originals: "Original Art",
     prints: "Prints & Goods",
@@ -59,9 +59,9 @@ const copy = {
       "Aida paints these one-of-one miniatures live. Follow the streams or join the Newsletter to catch the next drop.",
   },
   tr: {
-    eyebrow: "AIDA'NIN İSTANBUL ATÖLYESİNDEN",
+    eyebrow: "AIDA'NIN ATÖLYESİNDEN",
     title: "Atölyeyi keşfet.",
-    body: "Aida'nın İstanbul'da ürettiği orijinal resimler, baskılar ve küçük atölye edisyonları.",
+    body: "Aida'nın ürettiği orijinal resimler, baskılar ve küçük atölye edisyonları.",
     all: "Tümü",
     originals: "Orijinal Eserler",
     prints: "Baskılar ve Ürünler",

@@ -6,7 +6,7 @@ import { useLocale } from "@/lib/locale";
 
 const copy = {
   en: {
-    eyebrow: "FREE LETTERS FROM AIDA’S ISTANBUL STUDIO",
+    eyebrow: "FREE LETTERS FROM AIDA’S STUDIO",
     heading: "A quiet letter from my studio, sent from time to time.",
     intro: [
       "The Newsletter is my free personal journal, where I share the parts of my art that do not always fit on social media.",
@@ -36,7 +36,7 @@ const copy = {
     sampleHeading: "A story from the studio, waiting for you.",
   },
   tr: {
-    eyebrow: "AIDA’NIN İSTANBUL ATÖLYESİNDEN ÜCRETSİZ MEKTUPLAR",
+    eyebrow: "AIDA’NIN ATÖLYESİNDEN ÜCRETSİZ MEKTUPLAR",
     heading: "Atölyemden, ara sıra gelen sessiz bir mektup.",
     intro: [
       "Bülten, sanatımın sosyal medyaya her zaman sığmayan taraflarını paylaştığım ücretsiz kişisel günlüğüm.",
@@ -73,8 +73,8 @@ export default function Newsletter() {
   usePageMeta(
     locale === "tr" ? "Bülten | Aida Ramezani" : "Newsletter | Aida Ramezani",
     locale === "tr"
-      ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve İstanbul atölyesinden notları paylaştığı ücretsiz Bültene katıl."
-      : "Join Aida Ramezani’s free Newsletter for stories behind the paintings and personal notes from her Istanbul studio.",
+      ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve atölye notlarını paylaştığı ücretsiz Bültene katıl."
+      : "Join Aida Ramezani’s free Newsletter for stories behind the paintings, studio notes and first looks at new work.",
   );
   useEffect(() => {
     const success = () => setToast(true);

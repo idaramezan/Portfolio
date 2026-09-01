@@ -505,7 +505,7 @@ export default function RegionalLanding({
       ? "Aida Ramezani Türkiye Shop | Original Art, Prints & Mystery Mail"
       : "Aida Ramezani International Shop | Original Art & Prints",
     tr
-      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Istanbul artist Aida Ramezani."
+      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Aida Ramezani."
       : "Collect original oil pastel paintings by Aida Ramezani internationally, or shop prints and art goods through her Fourthwall store.",
   );
   const originals = sortedPreview(settings.originalProducts, region);
@@ -527,7 +527,7 @@ export default function RegionalLanding({
             </p>
             <h1 className="regional-shop-hero__title">
               {tr
-                ? "Art from Aida’s Istanbul studio, delivered across Türkiye."
+                ? "Art from Aida’s studio, delivered across Türkiye."
                 : "Collect Aida’s work wherever you are."}
             </h1>
             <p className="regional-shop-hero__description">
@@ -563,13 +563,13 @@ export default function RegionalLanding({
               src={tr ? originalsCoverImage : heroPortrait}
               alt={
                 tr
-                  ? "An original artwork and certificate of authenticity packed in Aida Ramezani’s Istanbul studio"
-                  : "Aida Ramezani holding an artwork in her Istanbul studio"
+                  ? "An original artwork and certificate of authenticity packed by Aida Ramezani"
+                  : "Aida Ramezani holding one of her artworks"
               }
               caption={
                 tr
-                  ? "Prepared personally in Aida’s Istanbul studio"
-                  : "Aida in her Istanbul studio"
+                  ? "Prepared personally by Aida"
+                  : "Aida holding one of her artworks"
               }
               className="regional-shop-hero__main-photo"
             />
@@ -681,7 +681,7 @@ export default function RegionalLanding({
         <p className="mt-4 max-w-2xl text-ink/65">
           {tr
             ? "One-of-a-kind oil pastel works, signed by Aida and available only once."
-            : "One-of-a-kind works sent from Aida’s Istanbul studio. International shipping is calculated separately after your location is confirmed."}
+            : "One-of-a-kind works sent directly by Aida. International shipping is calculated separately after your location is confirmed."}
         </p>
         <ProductPreview products={originals} region={region} />
         {originals.length > 6 && (

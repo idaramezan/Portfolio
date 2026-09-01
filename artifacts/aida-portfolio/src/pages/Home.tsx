@@ -29,12 +29,12 @@ const HOME_COPY = {
   en: {
     seoTitle: "Original Art, Prints & Goods | Aida Ramezani",
     seoDescription:
-      "Shop original paintings, prints and studio goods by Istanbul artist Aida Ramezani.",
-    heroEyebrow: "Art from Aida’s Istanbul studio",
+      "Shop original paintings, prints and studio goods by Aida Ramezani.",
+    heroEyebrow: "From Aida’s studio",
     heroTitle: "Pieces made to hold a memory.",
     heroIntro:
       "Original paintings, signed prints and small studio editions, available in Türkiye and internationally.",
-    heroAlt: "Aida Ramezani in her Istanbul studio",
+    heroAlt: "Aida Ramezani holding one of her artworks",
     browseEyebrow: "Browse the studio",
     browseTitle: "What are you looking for?",
     categories: {
@@ -58,9 +58,9 @@ const HOME_COPY = {
     availableEyebrow: "Available now",
     recentTitle: "Recently from the studio",
     viewAll: "View all available work",
-    aboutAlt: "Aida preparing artwork in her Istanbul studio",
+    aboutAlt: "Aida preparing artwork at her work table",
     aboutEyebrow: "About the artist",
-    aboutTitle: "Made by Aida in Istanbul.",
+    aboutTitle: "Made by Aida.",
     aboutBody:
       "Original art, prints and studio packages created and prepared personally by Aida Ramezani.",
     meetAida: "Meet Aida",
@@ -77,12 +77,12 @@ const HOME_COPY = {
   tr: {
     seoTitle: "Orijinal Sanat, Baskılar ve Ürünler | Aida Ramezani",
     seoDescription:
-      "İstanbul sanatçısı Aida Ramezani'nin orijinal resimlerini, baskılarını ve atölye ürünlerini keşfedin.",
-    heroEyebrow: "Aida’nın İstanbul’daki atölyesinden sanat",
+      "Aida Ramezani'nin orijinal resimlerini, baskılarını ve atölye ürünlerini keşfedin.",
+    heroEyebrow: "Aida’nın atölyesinden",
     heroTitle: "Bir anıyı saklamak için üretilen parçalar.",
     heroIntro:
       "Türkiye'de ve uluslararası olarak sunulan orijinal resimler, imzalı baskılar ve küçük atölye edisyonları.",
-    heroAlt: "Aida Ramezani İstanbul'daki atölyesinde",
+    heroAlt: "Aida Ramezani eserlerinden birini tutarken",
     browseEyebrow: "Atölyeyi keşfet",
     browseTitle: "Ne arıyorsunuz?",
     categories: {
@@ -106,9 +106,9 @@ const HOME_COPY = {
     availableEyebrow: "Şimdi mevcut",
     recentTitle: "Atölyeden en yeniler",
     viewAll: "Mevcut tüm çalışmaları gör",
-    aboutAlt: "Aida İstanbul'daki atölyesinde bir eseri hazırlarken",
+    aboutAlt: "Aida çalışma masasında bir eseri hazırlarken",
     aboutEyebrow: "Sanatçı hakkında",
-    aboutTitle: "Aida tarafından İstanbul'da üretildi.",
+    aboutTitle: "Aida tarafından üretildi.",
     aboutBody:
       "Aida Ramezani tarafından bizzat üretilen ve hazırlanan orijinal eserler, baskılar ve atölye paketleri.",
     meetAida: "Aida ile tanış",
@@ -194,7 +194,7 @@ function NewsletterEnvelopeCard({
       <span className="newsletter-envelope-card__paper" aria-hidden="true">
         <span className="newsletter-envelope-card__flap" />
         <span className="newsletter-envelope-card__sender">
-          AIDA · ISTANBUL
+          AIDA · STUDIO LETTER
         </span>
         <span className="newsletter-envelope-card__stamp">AR</span>
         <span className="newsletter-envelope-card__postmark" />

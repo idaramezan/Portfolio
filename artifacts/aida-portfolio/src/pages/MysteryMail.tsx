@@ -538,7 +538,7 @@ export default function MysteryMail() {
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-paper/75">
               {localizedTeaser ||
-                "A sealed art parcel from Aida’s Istanbul studio."}
+                "A sealed art parcel prepared by Aida."}
             </p>
             <p className="mt-3 max-w-xl leading-relaxed text-paper/75">
               Inside is one exclusive art postcard created only for this
@@ -554,7 +554,7 @@ export default function MysteryMail() {
           <div className="min-w-0">
             <img
               src={displayedCover}
-              alt="A sealed Mystery Mail art parcel prepared in Aida Ramezani’s Istanbul studio."
+              alt="A sealed Mystery Mail art parcel prepared by Aida Ramezani."
               className="aspect-[4/3] w-full border border-paper/15 object-cover shadow-2xl"
             />
             {current && (

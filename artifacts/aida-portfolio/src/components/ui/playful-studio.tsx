@@ -7,7 +7,7 @@ export function StudioWordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className={cn("studio-wordmark", compact && "studio-wordmark--compact")}>
       <span>Aida Ramezani</span>
-      {!compact && <small>artist · Istanbul</small>}
+      {!compact && <small>oil pastel artist</small>}
     </span>
   );
 }

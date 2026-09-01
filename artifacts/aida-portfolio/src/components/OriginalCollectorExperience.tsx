@@ -26,7 +26,7 @@ const copy = {
     eyebrow: "From the studio to your home",
     heading: "More than a painting arrives.",
     first:
-      "Every original is signed, framed and prepared personally in Aida’s Istanbul studio.",
+      "Every original is signed, framed and prepared personally by Aida.",
     second:
       "Along with the artwork, collectors receive a certificate of authenticity, a handmade thank-you card and a small pack of studio stickers. Each part is prepared with care, so opening the package feels like receiving a piece of the studio itself.",
     included: "With every original",
@@ -47,7 +47,7 @@ const copy = {
     eyebrow: "Atölyeden evine",
     heading: "Sana yalnızca bir resim ulaşmaz.",
     first:
-      "Her orijinal eser, Aida’nın İstanbul’daki atölyesinde imzalanır, çerçevelenir ve kişisel olarak hazırlanır.",
+      "Her orijinal eser, Aida tarafından imzalanır, çerçevelenir ve kişisel olarak hazırlanır.",
     second:
       "Eserle birlikte koleksiyonerlere özgünlük sertifikası, el yapımı bir teşekkür kartı ve küçük bir stüdyo sticker paketi gönderilir. Paketin her parçası özenle hazırlanır, böylece kutuyu açmak atölyeden bir parça almak gibi hissettirir.",
     included: "Her orijinal eserle birlikte",

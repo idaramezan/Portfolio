@@ -10,7 +10,7 @@ interface ArtistPhotoFrameProps {
 export default function ArtistPhotoFrame({
   src,
   alt,
-  caption = "Aida in her Istanbul studio",
+  caption = "Aida in her studio",
   variant = "default",
 }: ArtistPhotoFrameProps) {
   return (

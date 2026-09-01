@@ -16,7 +16,7 @@ const streams = readFileSync(
 assert.ok(home.includes("const HOME_COPY"));
 assert.ok(home.includes("const text = HOME_COPY[locale]"));
 for (const translation of [
-  "Aida’nın İstanbul’daki atölyesinden sanat",
+  "Aida’nın atölyesinden",
   "Ne arıyorsunuz?",
   "Orijinal Eserler",
   "Baskılar ve Çıkartmalar",
