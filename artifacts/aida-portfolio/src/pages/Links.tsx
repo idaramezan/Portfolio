@@ -15,7 +15,6 @@ import printsGoodsImage from "@assets/links-prints-goods.jpg";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
-import { useLocale } from "@/lib/locale";
 import CommissionLinkCard from "@/components/CommissionLinkCard";
 
 function validExternalUrl(value: string) {
@@ -90,6 +89,7 @@ function LinksMobile({
         <span>{locale === "tr" ? "Atölyeyi keşfet" : "Shop the studio"}</span>
         <ArrowRight aria-hidden="true" />
       </Link>
+      <CommissionLinkCard locale={locale} compactMobile />
       {project && (
         <Link
           href="/100-windows"
@@ -144,7 +144,6 @@ function LinksMobile({
           </span>
         </Link>
       )}
-      <CommissionLinkCard locale={locale} compactMobile />
       <Link
         ref={letterRef}
         href="/newsletter"
@@ -311,7 +310,7 @@ export default function Links() {
     "Explore Aida Ramezani's studio, 100 Windows, Newsletter and social channels.",
   );
   const settings = useShopSettings();
-  const { locale } = useLocale();
+  const locale = "en" as const;
   const socials = [
     [
       settings.siteLinks.instagramUrl,
@@ -347,31 +346,29 @@ export default function Links() {
     {
       href: "/shop?category=originals",
       image: originalPaintingsImage,
-      title: locale === "tr" ? "Orijinal Eserler" : "Original Art",
-      copy:
-        locale === "tr"
-          ? "Aida'nın tek ve orijinal yağlı pastel resimleri."
-          : "One-of-a-kind oil pastel paintings by Aida.",
+      title: "Original Art",
+      copy: "One-of-a-kind oil pastel paintings by Aida.",
     },
     {
       href: "/shop?category=prints",
       image: printsGoodsImage,
-      title: locale === "tr" ? "Baskılar ve Ürünler" : "Prints & Goods",
-      copy:
-        locale === "tr"
-          ? "İmzalı baskılar ve küçük atölye parçaları."
-          : "Signed prints and small studio pieces.",
+      title: "Prints & Goods",
+      copy: "Signed prints and small studio pieces.",
     },
   ];
   return (
-    <main className="links-page mx-auto min-h-screen w-full max-w-[600px] px-5 py-8 md:py-12">
+    <main
+      lang="en"
+      data-no-translate
+      className="links-page mx-auto min-h-screen w-full max-w-[600px] px-5 py-8 md:py-12"
+    >
       <LinksMobile settings={settings} locale={locale} />
       <div className="links-desktop">
         <Link
           href="/"
           className="text-sm font-semibold underline underline-offset-4"
         >
-          ← {locale === "tr" ? "Web sitesine dön" : "Full website"}
+          ← Full website
         </Link>
         <header className="mt-8 text-center">
           <img
@@ -388,21 +385,18 @@ export default function Links() {
           href="/shop"
           className="button-primary mt-7 flex min-h-14 w-full items-center justify-center"
         >
-          {locale === "tr" ? "Atölyeyi keşfet" : "Shop the studio"}
+          Shop the studio
         </Link>
+        <CommissionLinkCard locale={locale} />
         <Link
           href="/100-windows"
           onClick={() => trackAnalytics("hundred_windows_links_page_click")}
           className="links-windows-card mt-3 block border border-ink/10 bg-blue/15 p-5"
         >
           <p className="eyebrow">100 WINDOWS · 100 DAYS</p>
-          <h2 className="mt-2 text-3xl">
-            {locale === "tr" ? "Projeyi takip et" : "Follow 100 Windows"}
-          </h2>
+          <h2 className="mt-2 text-3xl">Follow 100 Windows</h2>
           <p className="mt-2 text-sm text-ink/65">
-            {locale === "tr"
-              ? `100 günün ${settings.hundredWindows?.currentDay || 1}. günü`
-              : `Day ${settings.hundredWindows?.currentDay || 1} of 100`}
+            Day {settings.hundredWindows?.currentDay || 1} of 100
           </p>
         </Link>
         <Link
@@ -410,9 +404,8 @@ export default function Links() {
           className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 border border-coral bg-paper px-5 font-semibold text-coral"
         >
           <Mail size={18} aria-hidden="true" />
-          {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}
+          Join the Newsletter
         </Link>
-        <CommissionLinkCard locale={locale} />
         <section className="mt-5 grid grid-cols-2 gap-3">
           {tiles.map((tile) => (
             <Link
@@ -435,9 +428,7 @@ export default function Links() {
           ))}
         </section>
         <section className="mt-10 border-t border-ink/15 pt-7">
-          <h2 className="eyebrow text-center">
-            {locale === "tr" ? "Atölyeyi takip et" : "Follow the studio"}
-          </h2>
+          <h2 className="eyebrow text-center">Follow the studio</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {socials.map(([url, name, handle, Icon]) => {
               const I = Icon as typeof Instagram;
