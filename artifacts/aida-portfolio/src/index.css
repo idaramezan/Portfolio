@@ -1606,6 +1606,7 @@
   display: block;
   width: 100%;
   height: auto;
+  object-fit: contain;
 }
 .commission-link-card__digital {
   position: relative;

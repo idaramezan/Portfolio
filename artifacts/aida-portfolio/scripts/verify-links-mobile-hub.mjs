@@ -25,8 +25,7 @@ assert.ok(
 for (const copy of [
   "Explore the full website",
   "Oil pastel paintings, studio prints and daily stories",
-  "Follow 100 Windows",
-  "One window, one painting, every day.",
+  "Website",
   "SHOP BY COLLECTION",
   "WATCH ME PAINT LIVE",
   "FOLLOW THE STUDIO",
@@ -34,28 +33,20 @@ for (const copy of [
 ])
   assert.ok(page.includes(copy), `missing mobile hub copy: ${copy}`);
 assert.ok(
-  page.indexOf("<CommissionLinkCard") < page.indexOf("ref={letterRef}") &&
-    page.indexOf("ref={letterRef}") < page.indexOf("links-mobile__collections"),
-  "mobile hierarchy must place commission, Newsletter and collections in order",
+  page.indexOf("<CommissionLinkCard") < page.indexOf("links-mobile__collections"),
+  "mobile hierarchy must place commission before collections",
 );
 assert.ok(
-  page.includes("project?.currentDay") &&
-    page.includes("currentProduct?.imageUrl") &&
-    page.includes("project?.heroImageUrl") &&
-    page.includes("printsGoodsImage"),
-  "100 Windows must use dynamic data with an image fallback",
+  !page.includes('href="/100-windows"') &&
+    !page.includes('href="/newsletter"') &&
+    page.includes('href="/"'),
+  "Links must omit 100 Windows and Newsletter while linking Website to home",
 );
 assert.ok(
   page.includes("validExternalUrl") &&
     page.includes("settings.siteLinks.discordUrl") &&
     page.includes("settings.siteLinks.twitchUrl"),
   "missing social URLs must be hidden and configured URLs reused",
-);
-assert.ok(
-  page.includes("IntersectionObserver") &&
-    css.includes("links-letter-arrive") &&
-    css.includes("prefers-reduced-motion"),
-  "Newsletter arrival motion must run once and respect reduced motion",
 );
 assert.ok(
   css.includes("grid-template-columns: repeat(2, minmax(0, 1fr))") &&

@@ -50,9 +50,9 @@ const checks = [
       newsletterLib.includes('newsletter: "newsletter-page"'),
   ],
   [
-    "Links page newsletter option",
-    links.includes('href="/newsletter"') &&
-      links.includes("Join the Newsletter"),
+    "Links page omits newsletter option",
+    !links.includes('href="/newsletter"') &&
+      !links.includes("Join the Newsletter"),
   ],
   [
     "valid email normalization",

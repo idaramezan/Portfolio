@@ -45,10 +45,8 @@ assert.ok(
   "responsive viewer affordance, containment, safe areas and native pinch zoom must be styled",
 );
 assert.ok(
-  links.lastIndexOf("<CommissionLinkCard") >
-    links.lastIndexOf('href="/newsletter"') &&
-    links.lastIndexOf("<CommissionLinkCard") < links.indexOf("tiles.map"),
-  "commission card must sit after Newsletter and before category cards",
+  links.lastIndexOf("<CommissionLinkCard") < links.indexOf("tiles.map"),
+  "commission card must sit before category cards",
 );
 assert.ok(
   commission.includes("4546787742/custom-oil-pastel-portrait-from-photo") &&
@@ -57,10 +55,11 @@ assert.ok(
   "Etsy CTA must use the exact secure external URL",
 );
 assert.ok(
-  commission.includes("Have something in mind?") &&
-    commission.includes("Aklında bir fikir mi var?") &&
+  commission.includes("Have something you want me to make?") &&
+    commission.includes("Oil Pastel") &&
+    commission.includes("Digital Art") &&
     commission.includes("high-resolution digital") === false,
-  "commission invitation must include complete localized copy without false shipping claims",
+  "commission invitation must include both art media without false shipping claims",
 );
 assert.ok(
   analytics.includes('"commission_etsy_click"') &&
@@ -74,7 +73,7 @@ assert.ok(
 assert.ok(
   commission.includes("oil-pastel-commission-card.jpg") &&
     commission.includes('width="1090"') &&
-    styles.includes(".commission-link-card__visual img") &&
+    styles.includes(".commission-link-card__pastel img") &&
     styles.includes("object-fit: contain"),
   "commission card must use the supplied uncropped local artwork image",
 );

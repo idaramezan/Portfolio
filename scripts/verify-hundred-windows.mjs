@@ -75,11 +75,10 @@ if (
   !page.includes("siteLinks.kickUrl")
 )
   throw new Error("Existing live platform settings are not reused");
-if (
-  !page.includes('context="hundred-windows"') ||
-  !links.includes('href="/100-windows"')
-)
-  throw new Error("Newsletter or Links integration is missing");
+if (!page.includes('context="hundred-windows"'))
+  throw new Error("Newsletter integration is missing");
+if (links.includes('href="/100-windows"'))
+  throw new Error("Links page must not include the 100 Windows section");
 const sample = [
   { id: "a", createdAt: "2026-01-01" },
   { id: "b", createdAt: "2026-01-02" },

@@ -68,8 +68,10 @@ assert.ok(
   "recent products must use creation chronology and fallback logic",
 );
 assert.ok(
-  !links.includes("DestinationControl") && links.includes('href="/shop"'),
-  "Links must keep one shop CTA without a visible country selector",
+  !links.includes("DestinationControl") &&
+    links.includes('href="/"') &&
+    links.includes("Website"),
+  "Links must keep one Website CTA to home without a visible country selector",
 );
 assert.ok(
   shell.includes("<DestinationControl utility") &&
