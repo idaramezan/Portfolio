@@ -15,6 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import SpatialGalleryScene from "@/components/visual-gallery/SpatialGalleryScene";
 import { loadShopSettings } from "@/lib/store";
 import {
   GALLERY_PREVIEW_PATH,
@@ -62,6 +63,9 @@ const freshElement = (
   shadowIntensity: 0.18,
   shadowBlur: 10,
   shadowOffset: 4,
+  wallId: "main",
+  centerHeightM: 1.45,
+  scale3d: [1, 1, 1],
 });
 
 function artworkElement(product: {
@@ -604,38 +608,19 @@ export default function VisualGalleryAdmin() {
           </aside>
           <main className="gallery-editor-stage" data-device={device}>
             <div
-              className="gallery-editor-canvas"
+              className="gallery-editor-canvas gallery-editor-canvas--3d"
               ref={canvas}
-              style={{ backgroundColor: scene.wallColor }}
             >
-              {scene.elements.map((e) => (
-                <div
-                  key={e.id}
-                  className={`gallery-editor-element ${selectedId === e.id ? "is-selected" : ""}`}
-                  style={{
-                    left: `${e.x}%`,
-                    top: `${e.y}%`,
-                    width: `${e.width}%`,
-                    height: `${e.height}%`,
-                    zIndex: e.zIndex,
-                    transform: `rotate(${e.rotation}deg) scaleX(${e.flipX ? -1 : 1})`,
-                    display: e.visible ? undefined : "none",
-                  }}
-                  onPointerDown={(event) => pointer(event, e.id)}
-                >
-                  <img src={e.imageUrl} alt="" draggable={false} />
-                  {selectedId === e.id && !e.locked && (
-                    <button
-                      aria-label="Resize"
-                      className="gallery-resize-handle"
-                      onPointerDown={(event) => pointer(event, e.id, true)}
-                    />
-                  )}
-                </div>
-              ))}
-              <div
-                className={`gallery-editor-floor floor-${scene.floorType}`}
+              <SpatialGalleryScene
+                scene={scene}
+                editing
+                selectedId={selectedId}
+                quality={device === "mobile" ? "mobile" : "high"}
+                onElementSelect={(element) => setSelectedId(element.id)}
               />
+              <p className="gallery-editor-orbit-hint">
+                Drag to orbit · scroll to zoom · click an artwork to edit
+              </p>
             </div>
           </main>
           <aside className="gallery-editor-panel">
@@ -708,6 +693,24 @@ export default function VisualGalleryAdmin() {
                 value={scene.wallColor}
                 onChange={(e) => updateScene({ wallColor: e.target.value })}
               />
+            </label>
+            <label>
+              Visitor viewpoint
+              <select
+                value={scene.activeCameraViewId || "entrance"}
+                onChange={(event) =>
+                  updateScene({ activeCameraViewId: event.target.value })
+                }
+              >
+                {(scene.cameraViews || []).map((view) => (
+                  <option key={view.id} value={view.id}>
+                    {view.name}
+                  </option>
+                ))}
+                {!(scene.cameraViews || []).length && (
+                  <option value="entrance">Entrance</option>
+                )}
+              </select>
             </label>
             <div className="gallery-palette">
               {palette.map((color) => (
@@ -789,6 +792,53 @@ export default function VisualGalleryAdmin() {
                 <h3>{selected.label}</h3>
                 {selected.type === "artwork" && (
                   <>
+                    <label>
+                      Gallery wall
+                      <select
+                        value={selected.wallId || "main"}
+                        onChange={(e) =>
+                          updateElement(selected.id, { wallId: e.target.value })
+                        }
+                      >
+                        <option value="main">Main wall</option>
+                        <option value="left">Blush wall</option>
+                        <option value="right">Sage wall</option>
+                      </select>
+                    </label>
+                    <label>
+                      Centre height — {selected.centerHeightM || 1.45} m
+                      <input
+                        type="range"
+                        min="0.7"
+                        max="2.8"
+                        step="0.05"
+                        value={selected.centerHeightM || 1.45}
+                        onChange={(e) =>
+                          updateElement(selected.id, {
+                            centerHeightM: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Real width —{" "}
+                      {selected.realWidthCm || Math.round(selected.width * 2.4)}{" "}
+                      cm
+                      <input
+                        type="range"
+                        min="15"
+                        max="220"
+                        value={
+                          selected.realWidthCm ||
+                          Math.round(selected.width * 2.4)
+                        }
+                        onChange={(e) =>
+                          updateElement(selected.id, {
+                            realWidthCm: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </label>
                     <p className="text-xs text-ink/55">
                       Actual artwork size:{" "}
                       {[

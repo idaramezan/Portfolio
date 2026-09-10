@@ -13,6 +13,12 @@ const editor = read(
 );
 const api = read("../artifacts/api-server/src/routes/visual-gallery.ts");
 const migration = read("../lib/db/migrations/0015_visual_gallery.sql");
+const spatialMigration = read(
+  "../lib/db/migrations/0016_visual_gallery_spatial.sql",
+);
+const spatialScene = read(
+  "../artifacts/aida-portfolio/src/components/visual-gallery/SpatialGalleryScene.tsx",
+);
 const shell = read(
   "../artifacts/aida-portfolio/src/components/layout/Shell.tsx",
 );
@@ -39,7 +45,7 @@ for (const table of [
 ])
   assert.ok(migration.includes(`CREATE TABLE IF NOT EXISTS ${table}`));
 assert.ok(
-  editor.includes("onPointerDown") && editor.includes("gallery-resize-handle"),
+  editor.includes("<SpatialGalleryScene") && editor.includes("editing"),
 );
 assert.ok(
   editor.includes("Undo2") &&
@@ -57,13 +63,22 @@ assert.ok(
   page.includes('role="dialog"') && page.includes('event.key === "Escape"'),
 );
 assert.ok(
-  page.includes("Previous room") &&
-    page.includes("Next room") &&
+  page.includes("Gallery viewpoints") &&
+    page.includes("Private preview") &&
     page.includes("isSoldOut"),
 );
 assert.ok(
-  page.includes("Resimler için küçük bir galeri") &&
-    page.includes("A little gallery for the art"),
+  spatialScene.includes("<Canvas") &&
+    spatialScene.includes("OrbitControls") &&
+    spatialScene.includes("N8AO") &&
+    spatialScene.includes("ACESFilmicToneMapping"),
+);
+assert.ok(
+  spatialScene.includes("Architecture") && spatialScene.includes("TrackLights"),
+);
+assert.ok(
+  spatialMigration.includes("camera_views") &&
+    spatialMigration.includes("position_3d"),
 );
 
 console.log("Visual Gallery architecture verification passed.");

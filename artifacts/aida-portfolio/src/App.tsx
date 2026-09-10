@@ -28,11 +28,25 @@ import HundredWindows from "@/pages/HundredWindows";
 import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
 import AceoDetail from "@/pages/AceoDetail";
-import VisualGallery from "@/pages/VisualGallery";
 import { GALLERY_PREVIEW_PATH } from "@/lib/visual-gallery";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
+const VisualGallery = lazy(() => import("@/pages/VisualGallery"));
+
+function GalleryPreviewRoute() {
+  return (
+    <Suspense
+      fallback={
+        <main className="gallery-3d-shell gallery-3d-empty">
+          Preparing the room…
+        </main>
+      }
+    >
+      <VisualGallery />
+    </Suspense>
+  );
+}
 
 function AdminRoute() {
   return (
@@ -60,12 +74,12 @@ function Router() {
       <Route path="/admin/*" component={AdminRoute} />
       <Route path="/admin" component={AdminRoute} />
       <Route path="/links" component={Links} />
+      <Route path={GALLERY_PREVIEW_PATH} component={GalleryPreviewRoute} />
       <Route>
         <Shell>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/gallery" component={Gallery} />
-            <Route path={GALLERY_PREVIEW_PATH} component={VisualGallery} />
             <Route path="/shop/turkiye/originals/:slug">
               {() => <OriginalDetail market="turkiye" />}
             </Route>

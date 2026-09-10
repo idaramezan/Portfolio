@@ -38,6 +38,17 @@ async function ensureTables() {
     CREATE TABLE IF NOT EXISTS gallery_scenes (id UUID PRIMARY KEY,internal_name TEXT NOT NULL,title_en TEXT NOT NULL,title_tr TEXT NOT NULL DEFAULT '',description_en TEXT NOT NULL DEFAULT '',description_tr TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'draft',display_order INTEGER NOT NULL DEFAULT 0,wall_color TEXT NOT NULL DEFAULT '#efe4d4',wall_texture TEXT NOT NULL DEFAULT 'subtle_plaster',floor_type TEXT NOT NULL DEFAULT 'light_oak',baseboard BOOLEAN NOT NULL DEFAULT TRUE,lighting_preset TEXT NOT NULL DEFAULT 'natural_daylight',light_direction TEXT NOT NULL DEFAULT 'left',mobile_crop TEXT NOT NULL DEFAULT 'center',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     CREATE TABLE IF NOT EXISTS gallery_elements (id UUID PRIMARY KEY,scene_id UUID NOT NULL REFERENCES gallery_scenes(id) ON DELETE CASCADE,type TEXT NOT NULL,reference_id TEXT,label TEXT NOT NULL DEFAULT '',image_url TEXT NOT NULL DEFAULT '',x_percent DOUBLE PRECISION NOT NULL,y_percent DOUBLE PRECISION NOT NULL,width_percent DOUBLE PRECISION NOT NULL,height_percent DOUBLE PRECISION NOT NULL,rotation DOUBLE PRECISION NOT NULL DEFAULT 0,z_index INTEGER NOT NULL DEFAULT 1,visible BOOLEAN NOT NULL DEFAULT TRUE,locked BOOLEAN NOT NULL DEFAULT FALSE,flip_x BOOLEAN NOT NULL DEFAULT FALSE,lock_aspect BOOLEAN NOT NULL DEFAULT TRUE,scale_mode TEXT NOT NULL DEFAULT 'realistic',frame_style TEXT NOT NULL DEFAULT 'none',mat_style TEXT NOT NULL DEFAULT 'none',shadow_intensity DOUBLE PRECISION NOT NULL DEFAULT .18,shadow_blur DOUBLE PRECISION NOT NULL DEFAULT 10,shadow_offset DOUBLE PRECISION NOT NULL DEFAULT 4);
     CREATE TABLE IF NOT EXISTS gallery_assets (id UUID PRIMARY KEY,name TEXT NOT NULL,category TEXT NOT NULL,image_url TEXT NOT NULL,default_width DOUBLE PRECISION NOT NULL DEFAULT 30,default_layer INTEGER NOT NULL DEFAULT 1,enabled BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT 'contemporary_gallery';
+    ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS environment_preset TEXT NOT NULL DEFAULT 'daylight';
+    ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS active_camera_view_id TEXT NOT NULL DEFAULT 'main';
+    ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS camera_views JSONB NOT NULL DEFAULT '[{"id":"main","name":"Main gallery wall","position":[7,2.25,8.8],"target":[0,1.65,-1.5],"fieldOfView":36,"displayOrder":0},{"id":"side","name":"Side wall","position":[2.8,2.1,7.5],"target":[5,1.55,-1],"fieldOfView":38,"displayOrder":1},{"id":"corridor","name":"Reading corner","position":[-4.5,2.15,6.8],"target":[-4.2,1.5,-3.6],"fieldOfView":35,"displayOrder":2}]'::jsonb;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS wall_id TEXT NOT NULL DEFAULT 'main';
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS position_3d JSONB;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS rotation_3d JSONB;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS scale_3d JSONB;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_width_cm DOUBLE PRECISION;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_height_cm DOUBLE PRECISION;
+    ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS center_height_m DOUBLE PRECISION NOT NULL DEFAULT 1.45;
   `);
 }
 
@@ -64,6 +75,13 @@ const mapElement = (row: any) => ({
   shadowIntensity: row.shadow_intensity,
   shadowBlur: row.shadow_blur,
   shadowOffset: row.shadow_offset,
+  wallId: row.wall_id,
+  position3d: row.position_3d,
+  rotation3d: row.rotation_3d,
+  scale3d: row.scale_3d,
+  realWidthCm: row.real_width_cm,
+  realHeightCm: row.real_height_cm,
+  centerHeightM: row.center_height_m,
 });
 const mapScene = (row: any, elements: any[]) => ({
   id: row.id,
@@ -81,6 +99,10 @@ const mapScene = (row: any, elements: any[]) => ({
   lightingPreset: row.lighting_preset,
   lightDirection: row.light_direction,
   mobileCrop: row.mobile_crop,
+  templateId: row.template_id,
+  environmentPreset: row.environment_preset,
+  activeCameraViewId: row.active_camera_view_id,
+  cameraViews: row.camera_views,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   elements: elements.filter((e) => e.sceneId === row.id),
@@ -182,7 +204,7 @@ router.put("/gallery/admin/scenes/:id", requireAdmin, async (req, res) => {
   try {
     await client.query("BEGIN");
     await client.query(
-      "UPDATE gallery_scenes SET internal_name=$2,title_en=$3,title_tr=$4,description_en=$5,description_tr=$6,status=$7,display_order=$8,wall_color=$9,wall_texture=$10,floor_type=$11,baseboard=$12,lighting_preset=$13,light_direction=$14,mobile_crop=$15,updated_at=NOW() WHERE id=$1",
+      "UPDATE gallery_scenes SET internal_name=$2,title_en=$3,title_tr=$4,description_en=$5,description_tr=$6,status=$7,display_order=$8,wall_color=$9,wall_texture=$10,floor_type=$11,baseboard=$12,lighting_preset=$13,light_direction=$14,mobile_crop=$15,template_id=$16,environment_preset=$17,active_camera_view_id=$18,camera_views=$19::jsonb,updated_at=NOW() WHERE id=$1",
       [
         req.params.id,
         b.internalName,
@@ -199,6 +221,10 @@ router.put("/gallery/admin/scenes/:id", requireAdmin, async (req, res) => {
         b.lightingPreset || "natural_daylight",
         b.lightDirection || "left",
         b.mobileCrop || "center",
+        b.templateId || "contemporary_gallery",
+        b.environmentPreset || "daylight",
+        b.activeCameraViewId || "entrance",
+        JSON.stringify(Array.isArray(b.cameraViews) ? b.cameraViews : []),
       ],
     );
     await client.query("DELETE FROM gallery_elements WHERE scene_id=$1", [
@@ -206,7 +232,7 @@ router.put("/gallery/admin/scenes/:id", requireAdmin, async (req, res) => {
     ]);
     for (const e of Array.isArray(b.elements) ? b.elements : [])
       await client.query(
-        "INSERT INTO gallery_elements(id,scene_id,type,reference_id,label,image_url,x_percent,y_percent,width_percent,height_percent,rotation,z_index,visible,locked,flip_x,lock_aspect,scale_mode,frame_style,mat_style,shadow_intensity,shadow_blur,shadow_offset) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)",
+        "INSERT INTO gallery_elements(id,scene_id,type,reference_id,label,image_url,x_percent,y_percent,width_percent,height_percent,rotation,z_index,visible,locked,flip_x,lock_aspect,scale_mode,frame_style,mat_style,shadow_intensity,shadow_blur,shadow_offset,wall_id,position_3d,rotation_3d,scale_3d,real_width_cm,real_height_cm,center_height_m) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24::jsonb,$25::jsonb,$26::jsonb,$27,$28,$29)",
         [
           e.id || crypto.randomUUID(),
           req.params.id,
@@ -230,6 +256,13 @@ router.put("/gallery/admin/scenes/:id", requireAdmin, async (req, res) => {
           Number(e.shadowIntensity) ?? 0.18,
           Number(e.shadowBlur) || 10,
           Number(e.shadowOffset) || 4,
+          e.wallId || "main",
+          JSON.stringify(e.position3d || null),
+          JSON.stringify(e.rotation3d || null),
+          JSON.stringify(e.scale3d || [1, 1, 1]),
+          Number(e.realWidthCm) || null,
+          Number(e.realHeightCm) || null,
+          Number(e.centerHeightM) || null,
         ],
       );
     await client.query("COMMIT");
@@ -253,12 +286,12 @@ router.post(
     if (!source) return res.status(404).json({ error: "Room not found" });
     const id = crypto.randomUUID();
     await pool.query(
-      "INSERT INTO gallery_scenes(id,internal_name,title_en,title_tr,description_en,description_tr,status,display_order,wall_color,wall_texture,floor_type,baseboard,lighting_preset,light_direction,mobile_crop) SELECT $2,internal_name||' copy',title_en,title_tr,description_en,description_tr,'draft',(SELECT COALESCE(MAX(display_order),-1)+1 FROM gallery_scenes),wall_color,wall_texture,floor_type,baseboard,lighting_preset,light_direction,mobile_crop FROM gallery_scenes WHERE id=$1",
+      "INSERT INTO gallery_scenes(id,internal_name,title_en,title_tr,description_en,description_tr,status,display_order,wall_color,wall_texture,floor_type,baseboard,lighting_preset,light_direction,mobile_crop,template_id,environment_preset,active_camera_view_id,camera_views) SELECT $2,internal_name||' copy',title_en,title_tr,description_en,description_tr,'draft',(SELECT COALESCE(MAX(display_order),-1)+1 FROM gallery_scenes),wall_color,wall_texture,floor_type,baseboard,lighting_preset,light_direction,mobile_crop,template_id,environment_preset,active_camera_view_id,camera_views FROM gallery_scenes WHERE id=$1",
       [req.params.id, id],
     );
     for (const e of source.elements)
       await pool.query(
-        "INSERT INTO gallery_elements SELECT $1,$2,type,reference_id,label,image_url,x_percent,y_percent,width_percent,height_percent,rotation,z_index,visible,locked,flip_x,lock_aspect,scale_mode,frame_style,mat_style,shadow_intensity,shadow_blur,shadow_offset FROM gallery_elements WHERE id=$3",
+        "INSERT INTO gallery_elements(id,scene_id,type,reference_id,label,image_url,x_percent,y_percent,width_percent,height_percent,rotation,z_index,visible,locked,flip_x,lock_aspect,scale_mode,frame_style,mat_style,shadow_intensity,shadow_blur,shadow_offset,wall_id,position_3d,rotation_3d,scale_3d,real_width_cm,real_height_cm,center_height_m) SELECT $1,$2,type,reference_id,label,image_url,x_percent,y_percent,width_percent,height_percent,rotation,z_index,visible,locked,flip_x,lock_aspect,scale_mode,frame_style,mat_style,shadow_intensity,shadow_blur,shadow_offset,wall_id,position_3d,rotation_3d,scale_3d,real_width_cm,real_height_cm,center_height_m FROM gallery_elements WHERE id=$3",
         [crypto.randomUUID(), id, e.id],
       );
     return res.status(201).json(await state());

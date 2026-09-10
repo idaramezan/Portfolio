@@ -34,6 +34,21 @@ export interface GalleryElement {
   shadowIntensity: number;
   shadowBlur: number;
   shadowOffset: number;
+  wallId?: string;
+  position3d?: [number, number, number] | null;
+  rotation3d?: [number, number, number] | null;
+  scale3d?: [number, number, number] | null;
+  realWidthCm?: number | null;
+  realHeightCm?: number | null;
+  centerHeightM?: number;
+}
+export interface GalleryCameraView {
+  id: string;
+  name: string;
+  position: [number, number, number];
+  target: [number, number, number];
+  fieldOfView: number;
+  displayOrder: number;
 }
 export interface GalleryScene {
   id: string;
@@ -51,6 +66,10 @@ export interface GalleryScene {
   lightingPreset: string;
   lightDirection: string;
   mobileCrop: string;
+  templateId?: string;
+  environmentPreset?: string;
+  activeCameraViewId?: string;
+  cameraViews?: GalleryCameraView[];
   elements: GalleryElement[];
 }
 export interface GalleryAsset {

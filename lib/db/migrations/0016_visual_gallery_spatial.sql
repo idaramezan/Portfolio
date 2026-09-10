@@ -1,0 +1,11 @@
+ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS template_id TEXT NOT NULL DEFAULT 'contemporary_gallery';
+ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS environment_preset TEXT NOT NULL DEFAULT 'daylight';
+ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS active_camera_view_id TEXT NOT NULL DEFAULT 'main';
+ALTER TABLE gallery_scenes ADD COLUMN IF NOT EXISTS camera_views JSONB NOT NULL DEFAULT '[{"id":"main","name":"Main gallery wall","position":[7,2.25,8.8],"target":[0,1.65,-1.5],"fieldOfView":36,"displayOrder":0},{"id":"side","name":"Side wall","position":[2.8,2.1,7.5],"target":[5,1.55,-1],"fieldOfView":38,"displayOrder":1},{"id":"corridor","name":"Reading corner","position":[-4.5,2.15,6.8],"target":[-4.2,1.5,-3.6],"fieldOfView":35,"displayOrder":2}]'::jsonb;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS wall_id TEXT NOT NULL DEFAULT 'main';
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS position_3d JSONB;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS rotation_3d JSONB;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS scale_3d JSONB;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_width_cm DOUBLE PRECISION;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_height_cm DOUBLE PRECISION;
+ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS center_height_m DOUBLE PRECISION NOT NULL DEFAULT 1.45;
