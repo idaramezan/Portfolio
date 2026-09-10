@@ -49,6 +49,11 @@ async function ensureTables() {
     ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_width_cm DOUBLE PRECISION;
     ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS real_height_cm DOUBLE PRECISION;
     ALTER TABLE gallery_elements ADD COLUMN IF NOT EXISTS center_height_m DOUBLE PRECISION NOT NULL DEFAULT 1.45;
+    ALTER TABLE gallery_assets ADD COLUMN IF NOT EXISTS model_url TEXT;
+    ALTER TABLE gallery_assets ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+    ALTER TABLE gallery_assets ADD COLUMN IF NOT EXISTS default_scale JSONB NOT NULL DEFAULT '[1,1,1]'::jsonb;
+    ALTER TABLE gallery_assets ADD COLUMN IF NOT EXISTS ground_offset DOUBLE PRECISION NOT NULL DEFAULT 0;
+    ALTER TABLE gallery_assets ADD COLUMN IF NOT EXISTS rotation_offset JSONB NOT NULL DEFAULT '[0,0,0]'::jsonb;
   `);
 }
 
@@ -140,6 +145,11 @@ async function state(publishedOnly = false) {
       defaultWidth: row.default_width,
       defaultLayer: row.default_layer,
       enabled: row.enabled,
+      modelUrl: row.model_url,
+      thumbnailUrl: row.thumbnail_url,
+      defaultScale: row.default_scale,
+      groundOffset: row.ground_offset,
+      rotationOffset: row.rotation_offset,
     })),
   };
 }
@@ -306,7 +316,7 @@ router.post("/gallery/admin/assets", requireAdmin, async (req, res) => {
   await ensureTables();
   const b = req.body || {};
   await pool.query(
-    "INSERT INTO gallery_assets(id,name,category,image_url,default_width,default_layer,enabled) VALUES($1,$2,$3,$4,$5,$6,$7)",
+    "INSERT INTO gallery_assets(id,name,category,image_url,default_width,default_layer,enabled,model_url,thumbnail_url,default_scale,ground_offset,rotation_offset) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12::jsonb)",
     [
       crypto.randomUUID(),
       String(b.name || "Gallery asset"),
@@ -315,6 +325,11 @@ router.post("/gallery/admin/assets", requireAdmin, async (req, res) => {
       Number(b.defaultWidth) || 30,
       Number(b.defaultLayer) || 1,
       b.enabled !== false,
+      String(b.modelUrl || "") || null,
+      String(b.thumbnailUrl || b.imageUrl || "") || null,
+      JSON.stringify(b.defaultScale || [1, 1, 1]),
+      Number(b.groundOffset) || 0,
+      JSON.stringify(b.rotationOffset || [0, 0, 0]),
     ],
   );
   res.status(201).json(await state());

@@ -99,6 +99,10 @@ export default function VisualGalleryAdmin() {
     [deleting, setDeleting] = useState(false),
     [assetName, setAssetName] = useState(""),
     [assetCategory, setAssetCategory] = useState("furniture"),
+    [assetModelUrl, setAssetModelUrl] = useState(""),
+    [previewQuality, setPreviewQuality] = useState<
+      "performance" | "balanced" | "final"
+    >("balanced"),
     [history, setHistory] = useState<GalleryScene[]>([]),
     [future, setFuture] = useState<GalleryScene[]>([]);
   const canvas = useRef<HTMLDivElement>(null);
@@ -307,6 +311,24 @@ export default function VisualGalleryAdmin() {
     });
     setData(payload);
     setMessage("Asset uploaded");
+  };
+  const addModelAsset = async () => {
+    if (!assetModelUrl || !/\.(glb|gltf)(\?.*)?$/i.test(assetModelUrl)) {
+      setMessage("Use a valid .glb or .gltf model URL.");
+      return;
+    }
+    const payload = await galleryRequest("/api/gallery/admin/assets", {
+      method: "POST",
+      body: JSON.stringify({
+        name: assetName || "Gallery model",
+        category: assetCategory,
+        modelUrl: assetModelUrl,
+        thumbnailUrl: "",
+      }),
+    });
+    setData(payload);
+    setAssetModelUrl("");
+    setMessage("Reusable 3D asset added");
   };
   if (!data)
     return (
@@ -542,6 +564,7 @@ export default function VisualGalleryAdmin() {
                   .map((a) => (
                     <button
                       key={a.id}
+                      disabled={!a.modelUrl}
                       onClick={() =>
                         add(
                           freshElement(
@@ -553,10 +576,17 @@ export default function VisualGalleryAdmin() {
                         )
                       }
                     >
-                      <img src={a.imageUrl} alt="" />
+                      {(a.thumbnailUrl || a.imageUrl) && (
+                        <img src={a.thumbnailUrl || a.imageUrl} alt="" />
+                      )}
                       <span>
                         {a.name}
-                        <small>{a.category}</small>
+                        <small>
+                          {a.category} ·{" "}
+                          {a.modelUrl
+                            ? "GLB/GLTF"
+                            : "Legacy placeholder — replace with realistic asset"}
+                        </small>
                       </span>
                     </button>
                   ))}
@@ -582,6 +612,21 @@ export default function VisualGalleryAdmin() {
                   <option key={x}>{x}</option>
                 ))}
               </select>
+              <input
+                placeholder="HTTPS model URL (.glb or .gltf)"
+                value={assetModelUrl}
+                onChange={(event) => setAssetModelUrl(event.target.value)}
+              />
+              <button
+                className="button-secondary"
+                onClick={() => void addModelAsset()}
+              >
+                Add reusable 3D model
+              </button>
+              <p className="text-xs text-coral">
+                PNG/WebP decor is legacy-only and is never rendered in the
+                public 3D gallery.
+              </p>
               <label className="button-secondary">
                 <Upload size={15} /> Upload PNG / WebP
                 <input
@@ -613,14 +658,35 @@ export default function VisualGalleryAdmin() {
             >
               <SpatialGalleryScene
                 scene={scene}
+                assets={data.assets}
                 editing
                 selectedId={selectedId}
-                quality={device === "mobile" ? "mobile" : "high"}
+                quality={
+                  previewQuality === "performance" || device === "mobile"
+                    ? "mobile"
+                    : "high"
+                }
                 onElementSelect={(element) => setSelectedId(element.id)}
               />
               <p className="gallery-editor-orbit-hint">
                 Drag to orbit · scroll to zoom · click an artwork to edit
               </p>
+              <div
+                className="gallery-editor-quality"
+                aria-label="Preview quality"
+              >
+                {(["performance", "balanced", "final"] as const).map(
+                  (quality) => (
+                    <button
+                      key={quality}
+                      className={previewQuality === quality ? "is-active" : ""}
+                      onClick={() => setPreviewQuality(quality)}
+                    >
+                      {quality}
+                    </button>
+                  ),
+                )}
+              </div>
             </div>
           </main>
           <aside className="gallery-editor-panel">

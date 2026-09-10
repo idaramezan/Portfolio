@@ -16,6 +16,9 @@ const migration = read("../lib/db/migrations/0015_visual_gallery.sql");
 const spatialMigration = read(
   "../lib/db/migrations/0016_visual_gallery_spatial.sql",
 );
+const modelMigration = read(
+  "../lib/db/migrations/0017_gallery_model_assets.sql",
+);
 const spatialScene = read(
   "../artifacts/aida-portfolio/src/components/visual-gallery/SpatialGalleryScene.tsx",
 );
@@ -74,11 +77,24 @@ assert.ok(
     spatialScene.includes("ACESFilmicToneMapping"),
 );
 assert.ok(
-  spatialScene.includes("Architecture") && spatialScene.includes("TrackLights"),
+  spatialScene.includes("Architecture") && spatialScene.includes("useGLTF"),
+);
+assert.ok(
+  !spatialScene.includes("function Bench") &&
+    !spatialScene.includes("function Plant"),
 );
 assert.ok(
   spatialMigration.includes("camera_views") &&
     spatialMigration.includes("position_3d"),
+);
+assert.ok(
+  modelMigration.includes("model_url") &&
+    modelMigration.includes("default_scale"),
+);
+assert.ok(page.includes("Inspect artwork") && page.includes("onTouchMove"));
+assert.ok(page.includes("Zoom in") && page.includes("Reset gallery view"));
+assert.ok(
+  spatialScene.includes("focusArtwork") && spatialScene.includes("backToRoom"),
 );
 
 console.log("Visual Gallery architecture verification passed.");

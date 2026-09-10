@@ -1,72 +1,241 @@
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import {
+  Suspense,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   ContactShadows,
   Html,
   OrbitControls,
   RoundedBox,
+  useGLTF,
   useTexture,
 } from "@react-three/drei";
 import { EffectComposer, N8AO, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type {
+  GalleryAsset,
   GalleryCameraView,
   GalleryElement,
   GalleryScene,
 } from "@/lib/visual-gallery";
 
+export interface SpatialGalleryHandle {
+  focusArtwork: (element: GalleryElement) => void;
+  backToRoom: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
+}
+
 type Props = {
   scene: GalleryScene;
+  assets?: GalleryAsset[];
   cameraView?: GalleryCameraView;
   selectedId?: string;
   editing?: boolean;
   quality?: "high" | "mobile";
   wallMood?: "scene" | "cream" | "blush" | "sage";
-  onArtworkClick?: (element: GalleryElement, button?: HTMLElement) => void;
+  onArtworkClick?: (element: GalleryElement) => void;
   onElementSelect?: (element: GalleryElement) => void;
+  onFocusChange?: (focused: boolean) => void;
 };
 
 const frameColors: Record<string, string> = {
-  "natural-oak": "#a9784e",
-  "warm-walnut": "#65412f",
-  "slim-dark-brown": "#382921",
-  "dark-wood": "#382921",
-  "soft-white": "#f8f2e8",
-  "thin-white": "#f8f2e8",
-  "thin-black": "#201c1c",
-  none: "#b9a58f",
+  "natural-oak": "#9a6a42",
+  "warm-walnut": "#503326",
+  "slim-dark-brown": "#33261f",
+  "dark-wood": "#30241e",
+  "soft-white": "#eee8dc",
+  "thin-white": "#eee8dc",
+  "thin-black": "#181615",
+  none: "#aa9075",
 };
-function CameraRig({
-  view,
-  editing,
-}: {
-  view?: GalleryCameraView;
-  editing: boolean;
-}) {
-  const { camera } = useThree();
-  const target = useRef(new THREE.Vector3());
-  useEffect(() => {
-    if (!view || editing) return;
-    target.current.set(...view.target);
-    camera.userData.destination = new THREE.Vector3(...view.position);
-    (camera as THREE.PerspectiveCamera).fov = view.fieldOfView;
-    (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
-  }, [view, camera, editing]);
-  useFrame((_, delta) => {
-    if (editing || !camera.userData.destination) return;
-    camera.position.lerp(camera.userData.destination, 1 - Math.exp(-delta * 4));
-    camera.lookAt(target.current);
-  });
-  return editing ? (
-    <OrbitControls
-      makeDefault
-      target={[0, 1.55, -1.4]}
-      minDistance={3}
-      maxDistance={16}
-      maxPolarAngle={Math.PI / 2.05}
-    />
-  ) : null;
+
+function surfaceTexture(base: string, variation: number, size = 128) {
+  const color = new THREE.Color(base);
+  const bytes = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const i = (y * size + x) * 4;
+      const grain =
+        (Math.sin(x * 0.73 + y * 0.19) + Math.sin(x * 0.11 - y * 0.57)) *
+        variation;
+      bytes[i] = THREE.MathUtils.clamp(color.r * 255 + grain, 0, 255);
+      bytes[i + 1] = THREE.MathUtils.clamp(color.g * 255 + grain, 0, 255);
+      bytes[i + 2] = THREE.MathUtils.clamp(color.b * 255 + grain, 0, 255);
+      bytes[i + 3] = 255;
+    }
+  }
+  const texture = new THREE.DataTexture(bytes, size, size, THREE.RGBAFormat);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(7, 5);
+  texture.needsUpdate = true;
+  return texture;
 }
+
+function ImageBasedLighting() {
+  const { gl, scene } = useThree();
+  useEffect(() => {
+    const generator = new THREE.PMREMGenerator(gl);
+    const environment = generator.fromScene(
+      new RoomEnvironment(),
+      0.04,
+    ).texture;
+    scene.environment = environment;
+    scene.environmentIntensity = 0.55;
+    return () => {
+      if (scene.environment === environment) scene.environment = null;
+      environment.dispose();
+      generator.dispose();
+    };
+  }, [gl, scene]);
+  return null;
+}
+
+function artworkTransform(element: GalleryElement) {
+  const x = (element.x - 50) / 18;
+  const y = element.centerHeightM || 1.52;
+  const wall = element.wallId || "main";
+  if (element.position3d)
+    return {
+      position: element.position3d,
+      rotation: element.rotation3d || ([0, 0, 0] as [number, number, number]),
+      normal: new THREE.Vector3(0, 0, 1),
+    };
+  if (wall === "right")
+    return {
+      position: [4.91, y, -1 + x] as [number, number, number],
+      rotation: [0, -Math.PI / 2, 0] as [number, number, number],
+      normal: new THREE.Vector3(-1, 0, 0),
+    };
+  if (wall === "left")
+    return {
+      position: [-4.91, y, -1 - x] as [number, number, number],
+      rotation: [0, Math.PI / 2, 0] as [number, number, number],
+      normal: new THREE.Vector3(1, 0, 0),
+    };
+  return {
+    position: [x, y, -3.71] as [number, number, number],
+    rotation: [0, 0, THREE.MathUtils.degToRad(element.rotation)] as [
+      number,
+      number,
+      number,
+    ],
+    normal: new THREE.Vector3(0, 0, 1),
+  };
+}
+
+type SavedCamera = {
+  position: THREE.Vector3;
+  target: THREE.Vector3;
+  fov: number;
+};
+const CameraRig = forwardRef<
+  SpatialGalleryHandle,
+  Pick<Props, "cameraView" | "editing" | "onFocusChange">
+>(function CameraRig({ cameraView, editing = false, onFocusChange }, ref) {
+  const { camera } = useThree();
+  const controls = useRef<any>(null);
+  const destination = useRef<SavedCamera | null>(null);
+  const roomView = useRef<SavedCamera | null>(null);
+  const initial = useRef<SavedCamera | null>(null);
+
+  const animateTo = (next: SavedCamera) => {
+    destination.current = next;
+  };
+  const applyView = (view?: GalleryCameraView) => {
+    if (!view) return;
+    const next = {
+      position: new THREE.Vector3(...view.position),
+      target: new THREE.Vector3(...view.target),
+      fov: THREE.MathUtils.clamp(view.fieldOfView, 38, 52),
+    };
+    initial.current = next;
+    animateTo(next);
+    onFocusChange?.(false);
+  };
+  useEffect(() => applyView(cameraView), [cameraView]);
+
+  useImperativeHandle(ref, () => ({
+    focusArtwork(element) {
+      const transform = artworkTransform(element);
+      const target = new THREE.Vector3(...transform.position);
+      roomView.current = {
+        position: camera.position.clone(),
+        target:
+          controls.current?.target?.clone() || new THREE.Vector3(0, 1.55, -3),
+        fov: (camera as THREE.PerspectiveCamera).fov,
+      };
+      const width = Math.max(
+        0.15,
+        (element.realWidthCm || element.width * 2.4) / 100,
+      );
+      const distance = THREE.MathUtils.clamp(width * 3.2, 0.72, 1.75);
+      animateTo({
+        position: target.clone().add(transform.normal.multiplyScalar(distance)),
+        target,
+        fov: 42,
+      });
+      onFocusChange?.(true);
+    },
+    backToRoom() {
+      if (roomView.current) animateTo(roomView.current);
+      onFocusChange?.(false);
+    },
+    zoomIn() {
+      controls.current?.dollyIn(1.22);
+      controls.current?.update();
+    },
+    zoomOut() {
+      controls.current?.dollyOut(1.22);
+      controls.current?.update();
+    },
+    resetView() {
+      if (initial.current) animateTo(initial.current);
+      onFocusChange?.(false);
+    },
+  }));
+
+  useFrame((_, delta) => {
+    const next = destination.current;
+    if (!next) return;
+    const amount = 1 - Math.exp(-delta * 5.2);
+    camera.position.lerp(next.position, amount);
+    controls.current?.target.lerp(next.target, amount);
+    const perspective = camera as THREE.PerspectiveCamera;
+    perspective.fov = THREE.MathUtils.lerp(perspective.fov, next.fov, amount);
+    perspective.updateProjectionMatrix();
+    controls.current?.update();
+    if (camera.position.distanceTo(next.position) < 0.008)
+      destination.current = null;
+  });
+  return (
+    <OrbitControls
+      ref={controls}
+      makeDefault
+      enableDamping
+      dampingFactor={0.075}
+      enablePan={editing}
+      minDistance={0.58}
+      maxDistance={8.5}
+      minPolarAngle={Math.PI * 0.28}
+      maxPolarAngle={Math.PI * 0.62}
+      minAzimuthAngle={-Math.PI * 0.48}
+      maxAzimuthAngle={Math.PI * 0.48}
+      zoomSpeed={0.7}
+      rotateSpeed={0.35}
+      target={[0, 1.55, -3]}
+    />
+  );
+});
+
 function Artwork({
   element,
   selected,
@@ -78,7 +247,7 @@ function Artwork({
 }) {
   const texture = useTexture(element.imageUrl);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
+  texture.anisotropy = 16;
   const dims = useMemo(() => {
     const width = Math.max(
       0.14,
@@ -91,183 +260,103 @@ function Artwork({
       Math.max(0.14, (element.realHeightCm || width * 100 * ratio) / 100),
     ] as const;
   }, [element, texture]);
-  const wall = element.wallId || "main";
-  const legacyX = (element.x - 50) / 11,
-    legacyY = 0.6 + ((100 - element.y) / 100) * 2.3;
-  let position: [number, number, number] = [
-    legacyX,
-    element.centerHeightM || legacyY,
-    -3.72,
-  ];
-  let rotation: [number, number, number] = [
-    0,
-    0,
-    THREE.MathUtils.degToRad(element.rotation),
-  ];
-  if (wall === "right") {
-    position = [5.65, element.centerHeightM || legacyY, -0.9 + legacyX];
-    rotation = [0, -Math.PI / 2, THREE.MathUtils.degToRad(element.rotation)];
-  }
-  if (wall === "left") {
-    position = [-5.65, element.centerHeightM || legacyY, -1.1 - legacyX];
-    rotation = [0, Math.PI / 2, THREE.MathUtils.degToRad(element.rotation)];
-  }
-  const depth = 0.055,
-    frame = frameColors[element.frameStyle] || frameColors.none;
+  const transform = artworkTransform(element);
+  const frame = frameColors[element.frameStyle] || frameColors.none;
+  const frameless = element.frameStyle === "none";
   return (
     <group
-      position={element.position3d || position}
-      rotation={element.rotation3d || rotation}
+      position={transform.position}
+      rotation={transform.rotation}
       visible={element.visible}
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={(event) => {
+        event.stopPropagation();
         onClick();
       }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        document.body.style.cursor = "pointer";
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        document.body.style.cursor = "zoom-in";
       }}
       onPointerOut={() => {
         document.body.style.cursor = "auto";
       }}
     >
-      <mesh castShadow receiveShadow position={[0, 0, -depth]}>
-        <boxGeometry args={[dims[0] + 0.09, dims[1] + 0.09, depth]} />
+      {!frameless && (
+        <RoundedBox
+          args={[dims[0] + 0.075, dims[1] + 0.075, 0.055]}
+          radius={0.012}
+          smoothness={4}
+          castShadow
+          receiveShadow
+          position={[0, 0, -0.022]}
+        >
+          <meshStandardMaterial
+            color={frame}
+            roughness={0.68}
+            metalness={0.01}
+          />
+        </RoundedBox>
+      )}
+      <mesh castShadow position={[0, 0, 0.012]}>
+        <planeGeometry args={[dims[0], dims[1]]} />
         <meshStandardMaterial
-          color={selected ? "#d7a3b6" : frame}
-          roughness={0.58}
+          map={texture}
+          roughness={0.88}
+          metalness={0}
+          emissiveMap={texture}
+          emissive="#ffffff"
+          emissiveIntensity={0.16}
+          toneMapped={false}
         />
       </mesh>
-      <mesh castShadow position={[0, 0, 0.005]}>
-        <planeGeometry args={[dims[0], dims[1]]} />
-        <meshBasicMaterial map={texture} toneMapped={false} />
-      </mesh>
       <mesh visible={false}>
-        <boxGeometry args={[dims[0] + 0.18, dims[1] + 0.18, 0.14]} />
-        <meshBasicMaterial transparent opacity={0} />
+        <boxGeometry
+          args={[
+            Math.max(dims[0] + 0.22, 0.32),
+            Math.max(dims[1] + 0.22, 0.32),
+            0.16,
+          ]}
+        />
+        <meshBasicMaterial />
       </mesh>
+      {selected && (
+        <Html center position={[0, -dims[1] / 2 - 0.13, 0.05]}>
+          <span className="gallery-art-hover-label">View artwork</span>
+        </Html>
+      )}
     </group>
   );
 }
-function Bench() {
-  return (
-    <group position={[1.25, 0.34, 1.1]} rotation={[0, -0.13, 0]}>
-      <RoundedBox args={[2.45, 0.18, 0.72]} radius={0.06} castShadow>
-        <meshStandardMaterial color="#b88f68" roughness={0.62} />
-      </RoundedBox>
-      {[-1, 1].map((x) => (
-        <mesh key={x} position={[x, 0.15, 0]} castShadow>
-          <boxGeometry args={[0.13, 0.55, 0.56]} />
-          <meshStandardMaterial color="#6b4834" roughness={0.72} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-function Console() {
-  return (
-    <group position={[-4.75, 0.62, -2]}>
-      <RoundedBox args={[1.5, 0.1, 0.45]} radius={0.025} castShadow>
-        <meshStandardMaterial color="#c8ad91" roughness={0.76} />
-      </RoundedBox>
-      {[-0.58, 0.58].map((x) => (
-        <mesh key={x} position={[x, -0.42, 0]} castShadow>
-          <boxGeometry args={[0.1, 0.85, 0.34]} />
-          <meshStandardMaterial color="#8f755d" roughness={0.75} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-function Plant({
-  position = [-5.05, 0, -0.1] as [number, number, number],
-  scale = 1,
+
+function ModelAsset({
+  asset,
+  element,
 }: {
-  position?: [number, number, number];
-  scale?: number;
+  asset: GalleryAsset;
+  element: GalleryElement;
 }) {
-  const leaves = useMemo(
-    () =>
-      Array.from({ length: 18 }, (_, i) => ({
-        y: 0.5 + i * 0.075,
-        a: i * 2.4,
-        s: 0.22 + (i % 3) * 0.04,
-      })),
-    [],
-  );
+  const gltf = useGLTF(asset.modelUrl!);
+  const instance = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  useEffect(() => {
+    instance.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+      }
+    });
+  }, [instance]);
+  const scale = element.scale3d || asset.defaultScale || [1, 1, 1];
+  const position = element.position3d || [0, asset.groundOffset || 0, 0];
+  const rotation = element.rotation3d || asset.rotationOffset || [0, 0, 0];
   return (
-    <group position={position} scale={scale}>
-      <mesh castShadow position={[0, 0.28, 0]}>
-        <cylinderGeometry args={[0.28, 0.2, 0.55, 24]} />
-        <meshStandardMaterial color="#9b6f56" roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 1.05, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.045, 1.55, 8]} />
-        <meshStandardMaterial color="#5c5033" roughness={1} />
-      </mesh>
-      {leaves.map((l, i) => (
-        <mesh
-          key={i}
-          scale={[1, 0.36, 0.16]}
-          position={[Math.cos(l.a) * 0.25, l.y, Math.sin(l.a) * 0.25]}
-          rotation={[0, l.a, Math.sin(l.a) * 0.45]}
-          castShadow
-        >
-          <sphereGeometry args={[l.s, 12, 6]} />
-          <meshStandardMaterial
-            color={i % 2 ? "#63725a" : "#788269"}
-            roughness={0.92}
-          />
-        </mesh>
-      ))}
-    </group>
+    <primitive
+      object={instance}
+      scale={scale}
+      position={position}
+      rotation={rotation}
+    />
   );
 }
-function TrackLights() {
-  return (
-    <group>
-      {[-3, 0, 3].map((x, i) => (
-        <group key={x} position={[x, 3.62, 1.2]}>
-          <mesh castShadow>
-            <boxGeometry args={[0.16, 0.16, 4.8]} />
-            <meshStandardMaterial
-              color="#403832"
-              metalness={0.7}
-              roughness={0.35}
-            />
-          </mesh>
-          {[-1.5, 0, 1.5].map((z, j) => (
-            <group
-              key={z}
-              position={[0, -0.14, z]}
-              rotation={[0.45 + (j - i) * 0.04, 0, 0]}
-            >
-              <mesh castShadow>
-                <cylinderGeometry args={[0.11, 0.15, 0.28, 18]} />
-                <meshStandardMaterial
-                  color="#453d38"
-                  metalness={0.65}
-                  roughness={0.35}
-                />
-              </mesh>
-              <spotLight
-                position={[0, -0.15, 0]}
-                intensity={i === 1 ? 23 : 16}
-                distance={8}
-                angle={0.38}
-                penumbra={0.9}
-                decay={2.1}
-                color={i === 2 ? "#ffe4c0" : "#fff0da"}
-                castShadow
-                shadow-mapSize={[512, 512]}
-              />
-            </group>
-          ))}
-        </group>
-      ))}
-    </group>
-  );
-}
+
 function Architecture({
   scene,
   wallMood,
@@ -283,54 +372,94 @@ function Architecture({
         : wallMood === "sage"
           ? "#aab6a0"
           : scene.wallColor || "#e9e2d6";
+  const wall = useMemo(() => surfaceTexture(main, 2.2), [main]);
+  const blush = useMemo(() => surfaceTexture("#d5b3b0", 2), []);
+  const sage = useMemo(() => surfaceTexture("#a9b09c", 2), []);
+  const ceiling = useMemo(() => surfaceTexture("#eeeae2", 1.4), []);
+  const floor = useMemo(() => surfaceTexture("#aaa093", 5), []);
   return (
     <group>
-      <mesh position={[0, 1.85, -3.85]} receiveShadow>
-        <boxGeometry args={[11.6, 3.7, 0.22]} />
-        <meshStandardMaterial color={main} roughness={0.94} />
-      </mesh>
-      <mesh position={[-5.8, 1.85, -0.3]} receiveShadow>
-        <boxGeometry args={[0.22, 3.7, 7.3]} />
-        <meshStandardMaterial color="#d6b0b1" roughness={0.92} />
-      </mesh>
-      <mesh position={[5.8, 1.85, -0.25]} receiveShadow>
-        <boxGeometry args={[0.22, 3.7, 7.2]} />
-        <meshStandardMaterial color="#9eaa96" roughness={0.94} />
-      </mesh>
-      <mesh position={[0, 3.75, -0.25]} receiveShadow>
-        <boxGeometry args={[11.8, 0.18, 7.3]} />
-        <meshStandardMaterial color="#eee8df" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, -0.06, -0.2]} receiveShadow>
-        <boxGeometry args={[11.8, 0.12, 7.4]} />
+      <mesh position={[0, 1.9, -3.82]} receiveShadow>
+        <boxGeometry args={[10, 3.8, 0.24]} />
         <meshStandardMaterial
-          color="#b9aa99"
-          roughness={0.68}
-          metalness={0.02}
+          map={wall}
+          roughness={0.96}
+          bumpMap={wall}
+          bumpScale={0.006}
         />
       </mesh>
-      <mesh position={[-2.8, 1.75, -3.72]}>
-        <boxGeometry args={[2.05, 3.25, 0.18]} />
-        <meshStandardMaterial color="#5e554d" roughness={0.85} />
+      <mesh position={[-5, 1.9, 0]} receiveShadow>
+        <boxGeometry args={[0.24, 3.8, 7.6]} />
+        <meshStandardMaterial
+          map={blush}
+          roughness={0.95}
+          bumpMap={blush}
+          bumpScale={0.005}
+        />
       </mesh>
-      <mesh position={[-2.8, 1.72, -3.58]}>
-        <planeGeometry args={[1.7, 2.85]} />
-        <meshBasicMaterial color="#dbe6e8" />
+      <mesh position={[5, 1.9, 0]} receiveShadow>
+        <boxGeometry args={[0.24, 3.8, 7.6]} />
+        <meshStandardMaterial
+          map={sage}
+          roughness={0.95}
+          bumpMap={sage}
+          bumpScale={0.005}
+        />
       </mesh>
-      <mesh position={[-2.8, 3.25, -2.1]}>
-        <boxGeometry args={[2.15, 1, 3.25]} />
-        <meshStandardMaterial color="#ede6dc" roughness={0.93} />
+      <mesh position={[0, 3.82, 0]} receiveShadow>
+        <boxGeometry args={[10.2, 0.18, 7.8]} />
+        <meshStandardMaterial map={ceiling} roughness={0.97} />
       </mesh>
-      <mesh position={[-3.86, 1.65, -2.1]}>
-        <boxGeometry args={[0.2, 3.2, 3.2]} />
-        <meshStandardMaterial color="#e4dbcf" roughness={0.94} />
+      <mesh position={[0, -0.07, 0]} receiveShadow>
+        <boxGeometry args={[10.2, 0.14, 7.8]} />
+        <meshStandardMaterial
+          map={floor}
+          color="#b9afa2"
+          roughness={0.72}
+          metalness={0.015}
+          bumpMap={floor}
+          bumpScale={0.012}
+        />
+      </mesh>
+      <mesh position={[0, 0.07, -3.64]} receiveShadow>
+        <boxGeometry args={[10, 0.14, 0.08]} />
+        <meshStandardMaterial color="#e7dfd3" roughness={0.86} />
+      </mesh>
+      <mesh position={[-2.65, 1.55, -3.64]}>
+        <boxGeometry args={[2.35, 2.85, 0.09]} />
+        <meshStandardMaterial
+          color="#dfe8e7"
+          roughness={0.45}
+          transparent
+          opacity={0.88}
+        />
+      </mesh>
+      <mesh position={[-3.84, 1.55, -2.25]} receiveShadow>
+        <boxGeometry args={[0.18, 3.1, 2.85]} />
+        <meshStandardMaterial map={ceiling} roughness={0.96} />
+      </mesh>
+      <mesh position={[0, 3.68, -0.2]}>
+        <boxGeometry args={[7.8, 0.035, 0.045]} />
+        <meshStandardMaterial
+          color="#2b2927"
+          metalness={0.72}
+          roughness={0.34}
+        />
       </mesh>
     </group>
   );
 }
-function Scene({ props }: { props: Props }) {
+
+function Scene({
+  props,
+  controller,
+}: {
+  props: Props;
+  controller: React.Ref<SpatialGalleryHandle>;
+}) {
   const {
     scene,
+    assets = [],
     cameraView,
     editing = false,
     quality = "high",
@@ -338,28 +467,57 @@ function Scene({ props }: { props: Props }) {
     selectedId,
     onArtworkClick,
     onElementSelect,
+    onFocusChange,
   } = props;
+  const models = scene.elements.flatMap((element) => {
+    if (element.type === "artwork" || !element.referenceId) return [];
+    const asset = assets.find(
+      (item) =>
+        item.id === element.referenceId && item.enabled && item.modelUrl,
+    );
+    return asset ? [{ element, asset }] : [];
+  });
   return (
     <>
-      <color attach="background" args={["#e9e1d5"]} />
-      <fog attach="fog" args={["#e7ded1", 12, 22]} />
-      <ambientLight intensity={0.52} />
+      <color attach="background" args={["#d9d3c9"]} />
+      <fog attach="fog" args={["#d9d3c9", 10, 18]} />
+      <ImageBasedLighting />
+      <hemisphereLight intensity={0.7} color="#fff8ec" groundColor="#857a6e" />
       <directionalLight
-        position={[-5, 7, 6]}
-        intensity={2.4}
-        color="#fff5df"
+        position={[-4, 7, 5]}
+        intensity={1.65}
+        color="#fff6e8"
         castShadow
         shadow-mapSize={quality === "mobile" ? [512, 512] : [1536, 1536]}
-        shadow-camera-far={24}
+        shadow-radius={7}
+        shadow-bias={-0.0002}
       />
+      {[
+        [-2.4, 3.55, 0.3],
+        [0, 3.55, 0.2],
+        [2.4, 3.55, 0.4],
+      ].map((position, index) => (
+        <spotLight
+          key={index}
+          position={position as [number, number, number]}
+          intensity={10}
+          distance={7}
+          angle={0.48}
+          penumbra={1}
+          decay={2.2}
+          color="#fff4df"
+          castShadow={quality !== "mobile"}
+          shadow-radius={8}
+        />
+      ))}
       <Architecture scene={scene} wallMood={wallMood} />
-      <TrackLights />
-      <Bench />
-      <Console />
-      <Plant />
-      <Plant position={[5.1, 0, -2.7]} scale={0.72} />
+      {models.map(({ element, asset }) => (
+        <Suspense key={element.id} fallback={null}>
+          <ModelAsset asset={asset} element={element} />
+        </Suspense>
+      ))}
       {scene.elements
-        .filter((e) => e.type === "artwork" && e.imageUrl)
+        .filter((element) => element.type === "artwork" && element.imageUrl)
         .map((element) => (
           <Suspense key={element.id} fallback={null}>
             <Artwork
@@ -372,53 +530,70 @@ function Scene({ props }: { props: Props }) {
           </Suspense>
         ))}
       <ContactShadows
-        position={[0, 0.02, 0]}
-        opacity={0.38}
-        scale={14}
-        blur={2.4}
-        far={7}
+        position={[0, 0.01, 0]}
+        opacity={0.24}
+        scale={10}
+        blur={3.4}
+        far={5}
       />
-      <CameraRig view={cameraView} editing={editing} />
+      <CameraRig
+        ref={controller}
+        cameraView={cameraView}
+        editing={editing}
+        onFocusChange={onFocusChange}
+      />
       {quality === "high" && (
-        <EffectComposer multisampling={0}>
-          <N8AO aoRadius={1.8} intensity={1.35} distanceFalloff={0.8} />
+        <EffectComposer multisampling={4}>
+          <N8AO aoRadius={1.4} intensity={0.75} distanceFalloff={1.2} />
           <SMAA />
         </EffectComposer>
       )}
     </>
   );
 }
-export default function SpatialGalleryScene(props: Props) {
-  return (
-    <Canvas
-      shadows
-      dpr={props.quality === "mobile" ? [1, 1.25] : [1, 1.75]}
-      camera={{
-        position: props.cameraView?.position || [7, 2.25, 8.8],
-        fov: props.cameraView?.fieldOfView || 36,
-        near: 0.1,
-        far: 40,
-      }}
-      gl={{
-        antialias: props.quality !== "mobile",
-        powerPreference: "high-performance",
-        toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.05,
-      }}
-      onCreated={({ gl }) => {
-        gl.outputColorSpace = THREE.SRGBColorSpace;
-        gl.shadowMap.type = THREE.PCFSoftShadowMap;
-      }}
-    >
-      <Suspense
-        fallback={
-          <Html center>
-            <div className="gallery-3d-loading">Hanging the paintings…</div>
-          </Html>
-        }
+
+const SpatialGalleryScene = forwardRef<SpatialGalleryHandle, Props>(
+  function SpatialGalleryScene(props, ref) {
+    const controller = useRef<SpatialGalleryHandle>(null);
+    useImperativeHandle(ref, () => ({
+      focusArtwork: (element) => controller.current?.focusArtwork(element),
+      backToRoom: () => controller.current?.backToRoom(),
+      zoomIn: () => controller.current?.zoomIn(),
+      zoomOut: () => controller.current?.zoomOut(),
+      resetView: () => controller.current?.resetView(),
+    }));
+    return (
+      <Canvas
+        shadows
+        dpr={props.quality === "mobile" ? [1, 1.25] : [1, 1.8]}
+        camera={{
+          position: props.cameraView?.position || [0.8, 1.62, 3.2],
+          fov: props.cameraView?.fieldOfView || 44,
+          near: 0.08,
+          far: 30,
+        }}
+        gl={{
+          antialias: true,
+          powerPreference: "high-performance",
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.05,
+        }}
+        onCreated={({ gl }) => {
+          gl.outputColorSpace = THREE.SRGBColorSpace;
+          gl.shadowMap.type = THREE.PCFSoftShadowMap;
+        }}
       >
-        <Scene props={props} />
-      </Suspense>
-    </Canvas>
-  );
-}
+        <Suspense
+          fallback={
+            <Html center>
+              <div className="gallery-3d-loading">Hanging the paintings…</div>
+            </Html>
+          }
+        >
+          <Scene props={props} controller={controller} />
+        </Suspense>
+      </Canvas>
+    );
+  },
+);
+export default SpatialGalleryScene;

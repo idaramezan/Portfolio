@@ -80,6 +80,11 @@ export interface GalleryAsset {
   defaultWidth: number;
   defaultLayer: number;
   enabled: boolean;
+  modelUrl?: string | null;
+  thumbnailUrl?: string | null;
+  defaultScale?: [number, number, number];
+  groundOffset?: number;
+  rotationOffset?: [number, number, number];
 }
 export interface GalleryState {
   settings: {
