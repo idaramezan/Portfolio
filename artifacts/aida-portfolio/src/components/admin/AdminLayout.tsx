@@ -57,6 +57,7 @@ const groups = [
     [
       ["/admin/events", "Events", CalendarDays],
       ["/admin/marketing/100-windows", "100 Windows", Images],
+      ["/admin/marketing/visual-gallery", "Visual Gallery", PanelsTopLeft],
       ["/admin/marketing/event-banner", "Homepage Event Feature", CalendarDays],
       [
         "/admin/marketing/collector-experience",

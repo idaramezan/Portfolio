@@ -22,6 +22,7 @@
     "test:hundred-windows": "node scripts/verify-hundred-windows.mjs",
     "test:homepage-localization": "node scripts/verify-homepage-localization.mjs",
     "test:discount-codes": "node scripts/verify-discount-codes.mjs && pnpm --filter @workspace/api-server run test:discounts",
+    "test:visual-gallery": "node scripts/verify-visual-gallery.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

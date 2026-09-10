@@ -20,6 +20,7 @@ import Analytics from "@/pages/admin/Analytics";
 import DiscountCodes from "@/pages/admin/DiscountCodes";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
+import VisualGalleryAdmin from "@/pages/admin/VisualGallery";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -162,6 +163,8 @@ export default function Admin() {
   if (location === "/admin/marketing/event-banner") return <EventBanner />;
   if (location === "/admin/marketing/100-windows")
     return <HundredWindowsAdmin />;
+  if (location === "/admin/marketing/visual-gallery")
+    return <VisualGalleryAdmin />;
   if (location === "/admin/marketing/collector-experience")
     return <CollectorExperience />;
   if (location === "/admin/sticker-drop") return <StickerDropList />;
