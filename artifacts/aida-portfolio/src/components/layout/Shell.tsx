@@ -15,7 +15,6 @@ import {
 const NAV_LINKS = [
   { href: "/shop", en: "Shop", tr: "Mağaza" },
   { href: "/newsletter", en: "Newsletter", tr: "Bülten" },
-  { href: "/100-windows", en: "100 Windows", tr: "100 Pencere" },
   { href: "/events", en: "Events", tr: "Etkinlikler" },
   { href: "/about", en: "About", tr: "Hakkında" },
 ];
@@ -353,7 +352,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             );
           })}
           {[
-            ["/100-windows", "100 Windows"],
             ["/events", locale === "tr" ? "Etkinlikler" : "Events"],
             ["/newsletter", locale === "tr" ? "Bülten" : "Newsletter"],
             ["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"],
@@ -486,7 +484,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Link href="/shop">Shop all</Link>
                 <Link href="/shop?category=originals">Original Art</Link>
                 <Link href="/shop?category=prints">Prints &amp; Goods</Link>
-                <Link href="/100-windows">100 Windows</Link>
               </div>
             </nav>
             <nav
@@ -514,7 +511,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   <Link href="/shop">Shop all</Link>
                   <Link href="/shop?category=originals">Original Art</Link>
                   <Link href="/shop?category=prints">Prints & Goods</Link>
-                  <Link href="/100-windows">100 Windows</Link>
                 </div>
               </details>
               <details className="site-footer__nav-group">

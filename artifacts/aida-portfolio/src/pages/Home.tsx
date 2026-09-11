@@ -367,13 +367,6 @@ export default function Home() {
       ...text.categories.prints,
       number: "02",
     },
-    {
-      href: "/100-windows",
-      image: settings.hundredWindows?.heroImageUrl || printsCoverImage,
-      key: "windows",
-      ...text.categories.windows,
-      number: "03",
-    },
   ];
 
   return (
@@ -405,12 +398,6 @@ export default function Home() {
               <PaperButton href="/shop" variant="pink" size="lg" arrow>
                 {locale === "tr" ? "Mağazayı keşfet" : "Explore the shop"}
               </PaperButton>
-              <Link href="/100-windows" className="button-link">
-                {locale === "tr"
-                  ? "100 Windows'ı takip et"
-                  : "Follow 100 Windows"}{" "}
-                →
-              </Link>
             </div>
           </div>
           <img
