@@ -269,7 +269,7 @@ export default function VisualGallery() {
             )}
             <strong>
               {product && isSoldOut(product)
-                ? "Sold — this piece has found a home."
+                ? "Sold. This piece has found a home."
                 : "Available"}
             </strong>
             <Link

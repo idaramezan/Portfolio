@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lilita+One&display=swap");
+@import "./styles/editorial-theme.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -68,12 +69,12 @@
   --font-hand: "Caveat", cursive;
   --font-play: "Lilita One", "Arial Black", sans-serif;
 
-  --color-paper: #f6f1e7;
-  --color-ink: #1b1a17;
-  --color-blue: #1b3a6b;
-  --color-green: #5c7a3b;
-  --color-ochre: #d9a441;
-  --color-coral: #c4432e;
+  --color-paper: #f7f3ec;
+  --color-ink: #36232f;
+  --color-blue: #586e73;
+  --color-green: #64705c;
+  --color-ochre: #96763d;
+  --color-coral: #9a5548;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -82,16 +83,35 @@
 }
 
 :root {
+  --bg-page: #f7f3ec;
+  --bg-soft: #f1ebe3;
+  --bg-card: #fcf9f5;
+  --bg-muted: #eee6dd;
+  --text-primary: #36232f;
+  --text-secondary: #716b67;
+  --text-tertiary: #99918b;
+  --border-soft: #ded6cc;
+  --border-medium: #cfc4b8;
+  --accent-primary: #3b2531;
+  --accent-blush: #e8d3d2;
+  --accent-blush-soft: #f3e5e2;
+  --accent-sage: #dde2d8;
+  --accent-blue-soft: #dde8ea;
+  --success-editorial: #64705c;
+  --error-editorial: #9a5548;
+  --warning-editorial: #96763d;
+  --shadow-editorial: 0 18px 48px rgb(54 35 47 / 0.09);
+  --content-max: 1440px;
   /* HSL values for default shadcn mapped to our colors */
   /* #F6F1E7 -> H:40 S:41% L:94% */
-  --background: 40 41% 94%;
+  --background: 37 41% 95%;
   /* #1B1A17 -> H:45 S:8% L:10% */
-  --foreground: 45 8% 10%;
+  --foreground: 324 21% 17%;
 
   /* Borders slightly darker paper */
-  --border: 40 20% 85%;
-  --input: 40 20% 85%;
-  --ring: 217 60% 26%; /* blue */
+  --border: 34 18% 84%;
+  --input: 34 18% 84%;
+  --ring: 324 23% 19%;
 
   /* Cards are slightly lighter or same as paper */
   --card: 40 50% 98%;
@@ -103,48 +123,48 @@
   --popover-border: 40 20% 85%;
 
   /* Primary: Blue */
-  --primary: 217 60% 26%;
+  --primary: 324 23% 19%;
   --primary-foreground: 40 41% 94%;
 
   /* Secondary: Green */
-  --secondary: 88 35% 35%;
+  --secondary: 84 12% 40%;
   --secondary-foreground: 40 41% 94%;
 
   /* Accent: Ochre */
-  --accent: 39 67% 55%;
+  --accent: 3 32% 87%;
   --accent-foreground: 45 8% 10%;
 
   /* Destructive: Coral */
-  --destructive: 8 62% 47%;
+  --destructive: 9 35% 44%;
   --destructive-foreground: 40 41% 94%;
 
   /* Muted: dark text faded */
   --muted: 40 20% 85%;
   --muted-foreground: 45 8% 40%;
 
-  --radius: 0; /* Removing standard radius to use clip-paths instead */
+  --radius: 2px;
 }
 
 .dark {
   /* Forced to light mode paper colors for this brand */
-  --background: 40 41% 94%;
-  --foreground: 45 8% 10%;
-  --border: 40 20% 85%;
-  --input: 40 20% 85%;
-  --ring: 217 60% 26%;
+  --background: 37 41% 95%;
+  --foreground: 324 21% 17%;
+  --border: 34 18% 84%;
+  --input: 34 18% 84%;
+  --ring: 324 23% 19%;
   --card: 40 50% 98%;
   --card-foreground: 45 8% 10%;
   --card-border: 40 20% 85%;
   --popover: 40 50% 98%;
   --popover-foreground: 45 8% 10%;
   --popover-border: 40 20% 85%;
-  --primary: 217 60% 26%;
+  --primary: 324 23% 19%;
   --primary-foreground: 40 41% 94%;
-  --secondary: 88 35% 35%;
+  --secondary: 84 12% 40%;
   --secondary-foreground: 40 41% 94%;
-  --accent: 39 67% 55%;
+  --accent: 3 32% 87%;
   --accent-foreground: 45 8% 10%;
-  --destructive: 8 62% 47%;
+  --destructive: 9 35% 44%;
   --destructive-foreground: 40 41% 94%;
   --muted: 40 20% 85%;
   --muted-foreground: 45 8% 40%;
@@ -157,10 +177,11 @@
   body {
     @apply font-sans antialiased bg-paper text-ink;
     overflow-x: clip;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    background-color: var(--bg-page);
+    background-image: none;
   }
   :focus-visible {
-    outline: 2px solid var(--color-coral);
+    outline: 2px solid var(--accent-primary);
     outline-offset: 3px;
   }
   h1,

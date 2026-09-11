@@ -253,6 +253,7 @@ export default function Links() {
     <main
       lang="en"
       data-no-translate
+      data-public-site
       className="links-page mx-auto min-h-screen w-full max-w-[600px] px-5 py-8 md:py-12"
     >
       <LinksMobile settings={settings} locale={locale} />

@@ -103,9 +103,9 @@ assert.ok(
 );
 assert.ok(
   home.includes('href="/shop"') &&
-    home.includes('href="/100-windows"') &&
+    !home.includes('href="/100-windows"') &&
     !home.includes("homepage_market_selected"),
-  "homepage hero must offer one shop and a 100 Windows project path",
+  "homepage hero must lead to the unified shop without reviving 100 Windows",
 );
 assert.ok(
   home.includes("What are you looking for?") &&

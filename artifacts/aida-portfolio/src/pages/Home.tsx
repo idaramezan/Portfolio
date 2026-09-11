@@ -48,11 +48,6 @@ const HOME_COPY = {
         description: "Signed prints, stickers and studio pieces.",
         cta: "Browse prints & goods",
       },
-      windows: {
-        title: "100 Windows",
-        description: "One new window, one new story, every day.",
-        cta: "Follow the project",
-      },
     },
     exploreCategory: (title: string) => `Explore ${title}`,
     availableEyebrow: "Available now",
@@ -95,11 +90,6 @@ const HOME_COPY = {
         title: "Baskılar ve Çıkartmalar",
         description: "İmzalı baskılar, çıkartmalar ve atölye parçaları.",
         cta: "Baskı ve ürünlere göz at",
-      },
-      windows: {
-        title: "100 Windows",
-        description: "Her gün yeni bir pencere, yeni bir hikâye.",
-        cta: "Projeyi takip et",
       },
     },
     exploreCategory: (title: string) => `${title} kategorisini keşfet`,
@@ -194,7 +184,7 @@ function NewsletterEnvelopeCard({
       <span className="newsletter-envelope-card__paper" aria-hidden="true">
         <span className="newsletter-envelope-card__flap" />
         <span className="newsletter-envelope-card__sender">
-          AIDA · STUDIO LETTER
+          AIDA · NEWSLETTER
         </span>
         <span className="newsletter-envelope-card__stamp">AR</span>
         <span className="newsletter-envelope-card__postmark" />

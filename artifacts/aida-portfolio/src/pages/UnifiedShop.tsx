@@ -17,11 +17,10 @@ import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { isAceoProduct } from "@/lib/turkiye-products";
 
-type Filter = "all" | "originals" | "aceos" | "prints" | "100-windows";
+type Filter = "all" | "originals" | "aceos" | "prints";
 
 const newestFirst = (a: ManagedProduct, b: ManagedProduct) =>
-  (Date.parse(b.createdAt || "") || 0) -
-  (Date.parse(a.createdAt || "") || 0);
+  (Date.parse(b.createdAt || "") || 0) - (Date.parse(a.createdAt || "") || 0);
 
 const copy = {
   en: {
@@ -32,7 +31,6 @@ const copy = {
     originals: "Original Art",
     prints: "Prints & Goods",
     aceos: "ACEOs",
-    windows: "100 Windows",
     sold: "Sold",
     view: "View piece",
     local: "Prepared in Aida's studio",
@@ -66,7 +64,6 @@ const copy = {
     originals: "Orijinal Eserler",
     prints: "Baskılar ve Ürünler",
     aceos: "ACEO'lar",
-    windows: "100 Windows",
     sold: "Satıldı",
     view: "Eseri görüntüle",
     local: "Aida'nın atölyesinde hazırlanır",
@@ -133,12 +130,9 @@ export default function UnifiedShop() {
   const requested = new URLSearchParams(search).get(
     "category",
   ) as Filter | null;
-  const filter: Filter = [
-    "originals",
-    "aceos",
-    "prints",
-    "100-windows",
-  ].includes(requested || "")
+  const filter: Filter = ["originals", "aceos", "prints"].includes(
+    requested || "",
+  )
     ? requested!
     : "all";
   usePageMeta(
@@ -161,12 +155,9 @@ export default function UnifiedShop() {
       .filter(isPubliclyVisible)
       .sort(newestFirst);
     if (filter === "originals") return originals;
-    if (filter === "aceos")
-      return prints.filter(isAceoProduct);
+    if (filter === "aceos") return prints.filter(isAceoProduct);
     if (filter === "prints")
       return prints.filter((product) => !isAceoProduct(product));
-    if (filter === "100-windows")
-      return prints.filter((product) => product.isHundredWindowsProduct);
     return [...originals, ...prints].sort(newestFirst);
   }, [settings.originalProducts, settings.printProducts, filter]);
 
@@ -175,7 +166,6 @@ export default function UnifiedShop() {
     ["originals", c.originals],
     ["aceos", c.aceos],
     ["prints", c.prints],
-    ["100-windows", c.windows],
   ];
   return (
     <main className="unified-shop">
