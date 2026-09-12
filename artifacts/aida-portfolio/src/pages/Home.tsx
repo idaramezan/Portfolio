@@ -1,13 +1,6 @@
-import { Link } from "wouter";
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import {
-  getResponsiveImageSrcSet,
-  heroPortrait,
-  homeAboutImage,
-  originalsCoverImage,
-  printsCoverImage,
-} from "@/lib/assets";
+import { Link } from "wouter";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
@@ -15,101 +8,151 @@ import type { ManagedProduct } from "@/lib/store";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { trackAnalytics } from "@/lib/analytics";
 import Money from "@/components/Money";
-import TikTokLiveSection from "@/components/TikTokLiveSection";
-import StudioDiscordSection from "@/components/StudioDiscordSection";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
-import IstanbulPaintingEventBanner from "@/components/IstanbulPaintingEventBanner";
-import { PaperButton } from "@/components/ui/playful-studio";
+import CommissionLinkCard from "@/components/CommissionLinkCard";
 import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isAceoProduct } from "@/lib/turkiye-products";
 
-const HOME_COPY = {
+const HERO_IMAGE = "/assets/aida-green-gallery-hero.png";
+type HomeFilter = "all" | "originals" | "prints" | "aceos";
+type HomeSort = "newest" | "price-asc" | "price-desc";
+
+const copy = {
   en: {
-    seoTitle: "Original Art, Prints & Goods | Aida Ramezani",
+    seoTitle: "Original Art, Prints & Small Works | Aida Ramezani",
     seoDescription:
-      "Shop original paintings, prints and studio goods by Aida Ramezani.",
-    heroEyebrow: "From Aida’s studio",
-    heroTitle: "Pieces made to hold a memory.",
-    heroIntro:
-      "Original paintings, signed prints and small studio editions, available in Türkiye and internationally.",
-    heroAlt: "Aida Ramezani holding one of her artworks",
-    browseEyebrow: "Browse the studio",
-    browseTitle: "What are you looking for?",
-    categories: {
-      originals: {
-        title: "Original Art",
-        description: "One-of-a-kind oil pastel paintings.",
-        cta: "Explore originals",
-      },
-      prints: {
-        title: "Prints & Stickers",
-        description: "Signed prints, stickers and studio pieces.",
-        cta: "Browse prints & goods",
-      },
-    },
-    exploreCategory: (title: string) => `Explore ${title}`,
-    availableEyebrow: "Available now",
-    recentTitle: "Recently from the studio",
-    viewAll: "View all available work",
-    aboutAlt: "Aida preparing artwork at her work table",
-    aboutEyebrow: "About the artist",
-    aboutTitle: "Made by Aida.",
-    aboutBody:
-      "Original art, prints and studio packages created and prepared personally by Aida Ramezani.",
-    meetAida: "Meet Aida",
-    originalType: "Original oil pastel",
+      "Original paintings, prints and small works by Aida Ramezani.",
+    heroEyebrow: "ART TO LIVE WITH",
+    heroLead: "Art that makes",
+    heroAccent: "room for feeling.",
+    heroBody: "Original paintings, small works and art made to live with you.",
+    collection: "View the collection",
+    commission: "Commission a piece",
+    introEyebrow: "ART BY AIDA RAMEZANI",
+    introTitle: "A little wild, a little quiet. Art made to stay with you.",
+    introBody:
+      "Aida works through colour, memory and small moments that are easy to miss. Each piece begins by hand and is made to bring something personal into the spaces we live in.",
+    browse: "Browse the current works",
+    available: "AVAILABLE NOW",
+    collectionTitle: "The collection",
+    collectionBody:
+      "Original works, prints and small pieces ready to find a home.",
+    all: "All",
+    originals: "Originals",
+    prints: "Prints & Goods",
+    aceos: "ACEOs",
+    sort: "Sort",
+    newest: "Newest",
+    low: "Price low to high",
+    high: "Price high to low",
+    more: "View more works",
+    fullShop: "View full shop",
+    notesEyebrow: "FROM AIDA",
+    notesTitle: "Notes on making",
+    notes: [
+      [
+        "01",
+        "The person behind the work",
+        "A little more about Aida, her materials and the ideas that stay with her.",
+        "/about",
+        "About Aida",
+      ],
+      [
+        "02",
+        "Stories from the making",
+        "New work, process notes and the quieter moments around each piece.",
+        "/newsletter",
+        "Read the Newsletter",
+      ],
+      [
+        "03",
+        "A piece made for you",
+        "Oil pastel and digital commissions shaped around a photograph, character, place or idea.",
+        "#commissions",
+        "See commissions",
+      ],
+    ],
+    keep: "KEEP IN TOUCH",
+    good: "Good things,",
+    occasionally: "occasionally.",
+    newsletterBody:
+      "New work, stories, events and the occasional early look. No noise.",
+    originalType: "Original",
     printType: "Print",
     sold: "Sold",
-    available: "Available",
-    turkiyeOnly: "TÜRKİYE ONLY",
-    viewArtwork: "View artwork",
-    viewDetails: "View details",
-    seeOptions: "See options",
+    availableLabel: "Available",
+    turkiyeOnly: "Türkiye only",
+    viewWork: "View work",
     priceLoading: "Price loading",
   },
   tr: {
-    seoTitle: "Orijinal Sanat, Baskılar ve Ürünler | Aida Ramezani",
+    seoTitle: "Orijinal Eserler, Baskılar ve Küçük İşler | Aida Ramezani",
     seoDescription:
-      "Aida Ramezani'nin orijinal resimlerini, baskılarını ve atölye ürünlerini keşfedin.",
-    heroEyebrow: "Aida’nın atölyesinden",
-    heroTitle: "Bir anıyı saklamak için üretilen parçalar.",
-    heroIntro:
-      "Türkiye'de ve uluslararası olarak sunulan orijinal resimler, imzalı baskılar ve küçük atölye edisyonları.",
-    heroAlt: "Aida Ramezani eserlerinden birini tutarken",
-    browseEyebrow: "Atölyeyi keşfet",
-    browseTitle: "Ne arıyorsunuz?",
-    categories: {
-      originals: {
-        title: "Orijinal Eserler",
-        description: "Eşi benzeri olmayan yağlı pastel resimler.",
-        cta: "Orijinal eserleri keşfet",
-      },
-      prints: {
-        title: "Baskılar ve Çıkartmalar",
-        description: "İmzalı baskılar, çıkartmalar ve atölye parçaları.",
-        cta: "Baskı ve ürünlere göz at",
-      },
-    },
-    exploreCategory: (title: string) => `${title} kategorisini keşfet`,
-    availableEyebrow: "Şimdi mevcut",
-    recentTitle: "Atölyeden en yeniler",
-    viewAll: "Mevcut tüm çalışmaları gör",
-    aboutAlt: "Aida çalışma masasında bir eseri hazırlarken",
-    aboutEyebrow: "Sanatçı hakkında",
-    aboutTitle: "Aida tarafından üretildi.",
-    aboutBody:
-      "Aida Ramezani tarafından bizzat üretilen ve hazırlanan orijinal eserler, baskılar ve atölye paketleri.",
-    meetAida: "Aida ile tanış",
-    originalType: "Orijinal yağlı pastel",
+      "Aida Ramezani'nin orijinal resimleri, baskıları ve küçük eserleri.",
+    heroEyebrow: "YAŞAMAK İÇİN SANAT",
+    heroLead: "Duygulara yer",
+    heroAccent: "açan sanat.",
+    heroBody:
+      "Seninle yaşamak için yapılmış orijinal resimler, küçük eserler ve sanat.",
+    collection: "Koleksiyonu gör",
+    commission: "Özel eser siparişi",
+    introEyebrow: "AIDA RAMEZANI'NİN SANATI",
+    introTitle: "Biraz özgür, biraz sakin. Seninle kalmak için yapılan sanat.",
+    introBody:
+      "Aida renkler, anılar ve kolayca gözden kaçan küçük anlar üzerinden çalışır. Her eser elde başlar ve yaşadığımız alanlara kişisel bir his katmak için yapılır.",
+    browse: "Mevcut eserleri keşfet",
+    available: "ŞİMDİ MEVCUT",
+    collectionTitle: "Koleksiyon",
+    collectionBody:
+      "Yeni bir yuva bulmaya hazır orijinal eserler, baskılar ve küçük parçalar.",
+    all: "Tümü",
+    originals: "Orijinaller",
+    prints: "Baskılar ve Ürünler",
+    aceos: "ACEO'lar",
+    sort: "Sırala",
+    newest: "En yeni",
+    low: "Fiyat artan",
+    high: "Fiyat azalan",
+    more: "Daha fazla eser gör",
+    fullShop: "Tüm mağazayı gör",
+    notesEyebrow: "AIDA'DAN",
+    notesTitle: "Üretime dair notlar",
+    notes: [
+      [
+        "01",
+        "Eserlerin ardındaki kişi",
+        "Aida, malzemeleri ve onunla kalan fikirler hakkında biraz daha fazlası.",
+        "/about",
+        "Aida hakkında",
+      ],
+      [
+        "02",
+        "Üretimden hikâyeler",
+        "Yeni eserler, süreç notları ve her parçanın çevresindeki sakin anlar.",
+        "/newsletter",
+        "Bülteni oku",
+      ],
+      [
+        "03",
+        "Senin için bir eser",
+        "Bir fotoğraf, karakter, yer veya fikirden doğan yağlı pastel ve dijital siparişler.",
+        "#commissions",
+        "Siparişleri gör",
+      ],
+    ],
+    keep: "HABERDAR OL",
+    good: "Güzel şeyler,",
+    occasionally: "ara sıra.",
+    newsletterBody:
+      "Yeni eserler, hikâyeler, etkinlikler ve bazen erken bir bakış. Gürültü yok.",
+    originalType: "Orijinal",
     printType: "Baskı",
     sold: "Satıldı",
-    available: "Mevcut",
-    turkiyeOnly: "YALNIZCA TÜRKİYE",
-    viewArtwork: "Eseri gör",
-    viewDetails: "Detayları gör",
-    seeOptions: "Seçenekleri gör",
+    availableLabel: "Mevcut",
+    turkiyeOnly: "Yalnızca Türkiye",
+    viewWork: "Eseri gör",
     priceLoading: "Fiyat yükleniyor",
   },
 } as const;
@@ -119,7 +162,7 @@ const SHIPPING_COPY_TR: Record<string, string> = {
   "Checking delivery options": "Teslimat seçenekleri kontrol ediliyor",
   "Free delivery within Türkiye": "Türkiye içinde ücretsiz teslimat",
   "Türkiye only": "Yalnızca Türkiye",
-  "Prepared in Aida's studio": "Aida'nın atölyesinde hazırlanır",
+  "Prepared in Aida's studio": "Aida tarafından hazırlanır",
   "Not available for US delivery": "ABD teslimatı için mevcut değil",
   "Delivery available by request": "Talep üzerine teslimat yapılabilir",
   "Fulfilled through Aida's print partner":
@@ -127,91 +170,6 @@ const SHIPPING_COPY_TR: Record<string, string> = {
   "Not available for this destination yet":
     "Bu teslimat bölgesi için henüz mevcut değil",
 };
-
-const PRODUCT_CATEGORY_TR: Record<string, string> = {
-  Print: "Baskı",
-  Prints: "Baskılar",
-  Sticker: "Çıkartma",
-  Stickers: "Çıkartmalar",
-  Mug: "Kupa",
-  Mugs: "Kupalar",
-  "T-shirt": "Tişört",
-  "T-shirts": "Tişörtler",
-};
-
-function NewsletterEnvelopeCard({
-  href,
-  number,
-  locale,
-  onClick,
-}: {
-  href: string;
-  number: string;
-  locale: "en" | "tr";
-  onClick: () => void;
-}) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
-  const [arrived, setArrived] = useState(false);
-
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || !window.IntersectionObserver) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setArrived(true);
-        observer.disconnect();
-      },
-      { threshold: 0.45 },
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <Link
-      ref={cardRef}
-      href={href}
-      onClick={onClick}
-      className="newsletter-envelope-card"
-      data-arrived={arrived || undefined}
-      aria-label={
-        locale === "tr"
-          ? "Bülteni oku ve abone ol"
-          : "Read and subscribe to the Newsletter"
-      }
-    >
-      <span className="newsletter-envelope-card__paper" aria-hidden="true">
-        <span className="newsletter-envelope-card__flap" />
-        <span className="newsletter-envelope-card__sender">
-          AIDA · NEWSLETTER
-        </span>
-        <span className="newsletter-envelope-card__stamp">AR</span>
-        <span className="newsletter-envelope-card__postmark" />
-      </span>
-      <span className="newsletter-envelope-card__content">
-        <span className="home-category-link__number home-category-link__number--desktop">
-          {number}
-        </span>
-        <span className="newsletter-envelope-card__eyebrow">
-          {locale === "tr"
-            ? "GELEN KUTUNA, AIDA’DAN"
-            : "FROM AIDA, TO YOUR INBOX"}
-        </span>
-        <h3>{locale === "tr" ? "Bülten" : "Newsletter"}</h3>
-        <p>
-          {locale === "tr"
-            ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar."
-            : "Personal art stories, studio notes and first looks at new work."}
-        </p>
-        <span className="newsletter-envelope-card__cta">
-          {locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"}{" "}
-          <ArrowRight aria-hidden="true" />
-        </span>
-      </span>
-    </Link>
-  );
-}
 
 function ProductTile({
   product,
@@ -224,7 +182,7 @@ function ProductTile({
   >["products"];
   locale: "en" | "tr";
 }) {
-  const text = HOME_COPY[locale];
+  const text = copy[locale];
   const { destination } = useShippingDestination();
   const original = product.kind === "original";
   const aceo = isAceoProduct(product);
@@ -244,7 +202,7 @@ function ProductTile({
     >
       <Link
         href={href}
-        className="group block"
+        className="home-product-tile__link"
         onClick={() =>
           trackAnalytics("homepage_product_clicked", {
             entityType: original ? "original" : "product",
@@ -254,65 +212,53 @@ function ProductTile({
           })
         }
       >
-        <img
-          src={product.imageUrl}
-          alt={product.altText || product.name}
-          loading="lazy"
-          decoding="async"
-          className="aspect-[4/5] w-full bg-white object-contain transition-transform duration-300 group-hover:scale-[1.01]"
-        />
-        <div className="pt-4">
-          <p className="text-[11px] font-bold uppercase tracking-[.1em] text-ink/45">
-            {original
-              ? text.originalType
-              : aceo
-                ? locale === "tr"
-                  ? "ORİJİNAL ACEO"
-                  : "ACEO ORIGINAL"
-                : locale === "tr" && product.category
-                  ? PRODUCT_CATEGORY_TR[product.category] || product.category
-                  : product.category || text.printType}{" "}
+        <span className="home-product-tile__media">
+          <img
+            src={product.imageUrl}
+            alt={product.altText || product.name}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 767px) calc(100vw - 36px), (max-width: 1199px) 46vw, 31vw"
+          />
+        </span>
+        <span className="home-product-tile__body">
+          <span className="home-product-tile__type">
+            {aceo
+              ? "ACEO · ORIGINAL"
+              : original
+                ? text.originalType
+                : product.category || text.printType}{" "}
             ·{" "}
             {isSoldOut(product)
               ? text.sold
               : aceo && destination?.countryCode !== "TR"
                 ? text.turkiyeOnly
-                : text.available}
-          </p>
-          <h3 className="mt-2 text-2xl leading-tight">{product.name}</h3>
+                : text.availableLabel}
+          </span>
+          <strong>{product.name}</strong>
           {presentation.amountMinor !== null && presentation.currency && (
             <Money
               baseAmountUsdCents={presentation.amountMinor}
               canonicalCurrency={presentation.currency}
-              className="mt-2 block text-sm font-bold"
+              className="home-product-tile__price"
             />
           )}
           {presentation.externalPrice && (
-            <strong className="mt-2 block text-sm">
+            <span className="home-product-tile__price">
               {presentation.externalPrice}
-            </strong>
+            </span>
           )}
           {presentation.availability === "loading" && (
-            <span
-              className="price-skeleton mt-2"
-              aria-label={text.priceLoading}
-            />
+            <span className="price-skeleton" aria-label={text.priceLoading} />
           )}
-          <p className="mt-2 text-xs text-ink/55">
+          <small>
             {locale === "tr"
               ? SHIPPING_COPY_TR[presentation.shippingMessage] ||
                 presentation.shippingMessage
               : presentation.shippingMessage}
-          </p>
-          <span className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-ink underline decoration-ink/25 underline-offset-4">
-            {original
-              ? text.viewArtwork
-              : aceo
-                ? text.viewDetails
-                : text.seeOptions}{" "}
-            →
-          </span>
-        </div>
+          </small>
+          <span className="home-product-tile__view">{text.viewWork} ↗</span>
+        </span>
       </Link>
     </article>
   );
@@ -320,147 +266,141 @@ function ProductTile({
 
 export default function Home() {
   const { locale } = useLocale();
-  const text = HOME_COPY[locale];
+  const text = copy[locale];
   usePageMeta(text.seoTitle, text.seoDescription);
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const links = settings.siteLinks;
-  const originals = settings.originalProducts
-    .filter(isPubliclyVisible)
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime(),
+  const [filter, setFilter] = useState<HomeFilter>("all");
+  const [sort, setSort] = useState<HomeSort>("newest");
+  const [visible, setVisible] = useState(8);
+  const products = useMemo(() => {
+    const all = [
+      ...settings.originalProducts,
+      ...settings.printProducts,
+    ].filter(isPubliclyVisible);
+    const filtered = all.filter(
+      (product) =>
+        filter === "all" ||
+        (filter === "originals" && product.kind === "original") ||
+        (filter === "aceos" && isAceoProduct(product)) ||
+        (filter === "prints" &&
+          product.kind === "print" &&
+          !isAceoProduct(product)),
     );
-  const localPrints = settings.printProducts
-    .filter(isPubliclyVisible)
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0).getTime() -
-        new Date(a.createdAt || 0).getTime(),
+    return filtered.sort((a, b) =>
+      sort === "newest"
+        ? (Date.parse(b.createdAt || "") || 0) -
+          (Date.parse(a.createdAt || "") || 0)
+        : sort === "price-asc"
+          ? a.priceUsdCents - b.priceUsdCents
+          : b.priceUsdCents - a.priceUsdCents,
     );
-  const recentProducts = originals.length
-    ? [...originals.slice(0, 1), ...localPrints.slice(0, 2)]
-    : localPrints.slice(0, 3);
-  const categoryItems = [
-    {
-      href: "/shop?category=originals",
-      image: originalsCoverImage,
-      key: "originals",
-      ...text.categories.originals,
-      number: "01",
-    },
-    {
-      href: "/shop?category=prints",
-      image: printsCoverImage,
-      key: "prints",
-      ...text.categories.prints,
-      number: "02",
-    },
-  ];
+  }, [settings.originalProducts, settings.printProducts, filter, sort]);
+  const availableFilters: Array<[HomeFilter, string]> = [["all", text.all]];
+  if (settings.originalProducts.some(isPubliclyVisible))
+    availableFilters.push(["originals", text.originals]);
+  if (
+    settings.printProducts.some(
+      (product) => isPubliclyVisible(product) && !isAceoProduct(product),
+    )
+  )
+    availableFilters.push(["prints", text.prints]);
+  if (
+    settings.printProducts.some(
+      (product) => isPubliclyVisible(product) && isAceoProduct(product),
+    )
+  )
+    availableFilters.push(["aceos", text.aceos]);
 
   return (
-    <div className="home-editorial flex flex-col overflow-hidden">
-      <IstanbulPaintingEventBanner placement="home" compact />
-
-      <section className="home-market-hero">
-        <div className="section-shell home-market-hero__layout">
-          <div className="home-market-hero__content">
-            <p className="eyebrow">{text.heroEyebrow}</p>
-            <h1>{text.heroTitle}</h1>
-            <p className="home-market-hero__intro">{text.heroIntro}</p>
-            <img
-              src={heroPortrait}
-              srcSet={getResponsiveImageSrcSet(heroPortrait)}
-              sizes="100vw"
-              alt={text.heroAlt}
-              width="800"
-              height="1000"
-              fetchPriority="high"
-              className="home-market-hero__image home-market-hero__image--mobile"
-            />
-            <div
-              className="home-market-actions home-market-actions--unified"
-              aria-label={
-                locale === "tr" ? "Stüdyoyu keşfet" : "Explore the studio"
-              }
-            >
-              <PaperButton href="/shop" variant="pink" size="lg" arrow>
-                {locale === "tr" ? "Mağazayı keşfet" : "Explore the shop"}
-              </PaperButton>
-            </div>
-          </div>
-          <img
-            src={heroPortrait}
-            srcSet={getResponsiveImageSrcSet(heroPortrait)}
-            sizes="(max-width: 767px) 100vw, 48vw"
-            alt={text.heroAlt}
-            width="800"
-            height="1000"
-            fetchPriority="high"
-            className="home-market-hero__image"
-          />
-        </div>
-      </section>
-
-      <section className="section-shell home-categories collection-navigation-section home-section">
-        <div className="collection-navigation-section__header flex flex-wrap items-end justify-between gap-4 border-b border-ink/15 pb-5">
+    <div className="home-green">
+      <section className="home-green-hero" aria-labelledby="home-hero-title">
+        <img
+          src={HERO_IMAGE}
+          srcSet="/assets/aida-green-gallery-hero-720.jpg 720w, /assets/aida-green-gallery-hero-1080.jpg 1080w, /assets/aida-green-gallery-hero.png 1080w"
+          sizes="100vw"
+          alt="Two colorful paintings displayed above a handcrafted wooden console on a forest green wall"
+          width="1080"
+          height="1080"
+          fetchPriority="high"
+        />
+        <div className="home-green-hero__shade" />
+        <div className="home-green-hero__content">
+          <p className="eyebrow">{text.heroEyebrow}</p>
+          <h1 id="home-hero-title">
+            {text.heroLead}
+            <br />
+            <em>{text.heroAccent}</em>
+          </h1>
+          <p>{text.heroBody}</p>
           <div>
-            <p className="eyebrow">{text.browseEyebrow}</p>
-            <h2 className="collection-navigation-section__title mt-2 text-4xl md:text-5xl">
-              {text.browseTitle}
-            </h2>
+            <a href="#collection" className="home-green-button">
+              {text.collection} ↗
+            </a>
+            <a href="#commissions" className="home-green-text-link">
+              {text.commission} ↘
+            </a>
           </div>
         </div>
-        <div className="home-category-grid home-category-grid--region mt-8">
-          {categoryItems.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`home-category-link home-category-link--paper home-category-link--tone-${index + 1}`}
-              aria-label={text.exploreCategory(item.title)}
-              onClick={() =>
-                trackAnalytics("homepage_category_clicked", {
-                  metadata: { category: item.key },
-                })
-              }
-            >
-              <span className="home-category-link__media">
-                <img
-                  src={item.image}
-                  alt=""
-                  width="480"
-                  height="600"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </span>
-              <span className="home-category-link__content">
-                <span className="home-category-link__number home-category-link__number--desktop">
-                  {item.number}
-                </span>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                <span className="home-category-link__cta">{item.cta}</span>
-              </span>
-              <ArrowRight
-                className="home-category-link__arrow"
-                aria-hidden="true"
-              />
-            </Link>
-          ))}
-        </div>
+        <a href="#introduction" className="home-green-hero__scroll">
+          Scroll to explore
+        </a>
       </section>
 
-      <section className="section-shell home-latest !pt-4">
+      <section id="introduction" className="home-green-intro section-shell">
         <div>
-          <div>
-            <p className="eyebrow">{text.availableEyebrow}</p>
-            <h2 className="mt-2 text-4xl md:text-5xl">{text.recentTitle}</h2>
-          </div>
+          <p className="eyebrow">{text.introEyebrow}</p>
+          <h2>{text.introTitle}</h2>
         </div>
-        <div className="home-product-grid mt-8">
-          {recentProducts.map((product) => (
+        <div>
+          <p>{text.introBody}</p>
+          <Link href="/shop" className="home-green-rule-link">
+            {text.browse} <ArrowRight />
+          </Link>
+        </div>
+      </section>
+
+      <section id="collection" className="home-green-collection section-shell">
+        <header>
+          <div>
+            <p className="eyebrow">{text.available}</p>
+            <h2>{text.collectionTitle}</h2>
+          </div>
+          <p>{text.collectionBody}</p>
+        </header>
+        <div className="home-green-collection__tools">
+          <div
+            role="tablist"
+            aria-label={locale === "tr" ? "Ürün türü" : "Product type"}
+          >
+            {availableFilters.map(([value, label]) => (
+              <button
+                key={value}
+                role="tab"
+                aria-selected={filter === value}
+                onClick={() => {
+                  setFilter(value);
+                  setVisible(8);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <label>
+            <span>{text.sort}</span>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as HomeSort)}
+            >
+              <option value="newest">{text.newest}</option>
+              <option value="price-asc">{text.low}</option>
+              <option value="price-desc">{text.high}</option>
+            </select>
+          </label>
+        </div>
+        <div className="home-collection-grid">
+          {products.slice(0, visible).map((product) => (
             <ProductTile
               key={product.id}
               product={product}
@@ -469,51 +409,76 @@ export default function Home() {
             />
           ))}
         </div>
-        <div className="product-section__footer">
-          <PaperButton href="/shop" variant="pink" size="lg" arrow>
-            {text.viewAll}
-          </PaperButton>
+        {!products.length && (
+          <div className="home-green-empty">
+            <h3>
+              {locale === "tr"
+                ? "Bu kategoride henüz eser yok."
+                : "No works in this category yet."}
+            </h3>
+            <p>
+              {locale === "tr"
+                ? "Başka bir kategoriye göz atabilirsin."
+                : "Try another part of the collection."}
+            </p>
+          </div>
+        )}
+        <footer>
+          {visible < products.length && (
+            <button onClick={() => setVisible((count) => count + 8)}>
+              {text.more} ↓
+            </button>
+          )}
+          <Link href="/shop">{text.fullShop} →</Link>
+        </footer>
+      </section>
+
+      <section className="home-green-notes">
+        <div className="section-shell">
+          <p className="eyebrow">{text.notesEyebrow}</p>
+          <h2>{text.notesTitle}</h2>
+          <div>
+            {text.notes.map(([number, title, body, href, label]) => (
+              <article key={number}>
+                <span>{number}</span>
+                <h3>{title}</h3>
+                <p>{body}</p>
+                <a href={href}>{label} ↗</a>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <div className="home-studio-letter">
-        <StudioLetterSignup
-          variant="story-preview"
-          context="home"
-          presentation="compact"
-        />
-      </div>
+      <section
+        id="commissions"
+        className="home-green-commissions section-shell"
+      >
+        <CommissionLinkCard locale={locale} />
+      </section>
 
-      <section className="home-about-teaser section-shell">
-        <img
-          src={homeAboutImage}
-          srcSet={getResponsiveImageSrcSet(homeAboutImage)}
-          sizes="(max-width: 767px) 100vw, 42vw"
-          alt={text.aboutAlt}
-          loading="lazy"
-        />
+      <section className="home-green-newsletter section-shell">
         <div>
-          <p className="eyebrow">{text.aboutEyebrow}</p>
-          <h2>{text.aboutTitle}</h2>
-          <p>{text.aboutBody}</p>
-          <Link
-            href="/about"
-            className="button-link"
-            onClick={() => trackAnalytics("homepage_about_clicked")}
-          >
-            {text.meetAida} →
-          </Link>
+          <p className="eyebrow">{text.keep}</p>
+          <h2>
+            {text.good}
+            <br />
+            <em>{text.occasionally}</em>
+          </h2>
+        </div>
+        <div>
+          <p>{text.newsletterBody}</p>
+          <StudioLetterSignup
+            variant="compact"
+            context="home"
+            submitLabel={{ en: "Subscribe ↗", tr: "Abone ol ↗" }}
+            trustText={{
+              en: "Occasional notes. Unsubscribe anytime.",
+              tr: "Ara sıra notlar. İstediğin zaman ayrıl.",
+            }}
+          />
         </div>
       </section>
-
-      <TikTokLiveSection
-        links={{
-          tiktokUrl: links.tiktokUrl,
-          twitchUrl: links.twitchUrl,
-          kickUrl: links.kickUrl,
-        }}
-      />
-      <StudioDiscordSection discordUrl={links.discordUrl} />
     </div>
   );
 }

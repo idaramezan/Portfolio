@@ -108,17 +108,17 @@ assert.ok(
   "homepage hero must lead to the unified shop without reviving 100 Windows",
 );
 assert.ok(
-  home.includes("What are you looking for?") &&
-    home.includes("/shop?category=prints") &&
-    home.includes("home-category-link--paper") &&
+  home.includes('id="collection"') &&
+    home.includes('role="tablist"') &&
+    home.includes("home-collection-grid") &&
     !home.includes("hasActiveShoppingRegionPreference"),
-  "homepage categories must lead to the unified catalog without a duplicated selector",
+  "homepage must expose the live unified collection without a duplicated destination selector",
 );
 assert.ok(
   home.includes(".filter(isPubliclyVisible)") &&
-    home.includes("recentProducts") &&
-    home.includes("Recently from the studio"),
-  "homepage products must be status-filtered and limited",
+    home.includes("products.slice(0, visible)") &&
+    home.includes("setVisible((count) => count + 8)"),
+  "homepage products must be status-filtered and progressively browsable",
 );
 assert.ok(
   !home.includes("Choose where we deliver") &&
@@ -129,10 +129,9 @@ assert.ok(
   "homepage must not repeat the removed routing and oversized information sections",
 );
 assert.ok(
-  home.includes("home-market-hero__image--mobile") &&
-    home.indexOf("home-market-hero__image--mobile") <
-      home.indexOf("home-market-actions"),
-  "mobile hero photograph must connect the introduction to the market actions",
+  home.includes('HERO_IMAGE = "/assets/aida-green-gallery-hero.png"') &&
+    home.includes('className="home-green-hero"'),
+  "mobile hero must use the supplied gallery photograph",
 );
 assert.ok(
   styles.includes("grid-template-columns: repeat(2, minmax(0, 1fr))") &&
@@ -154,8 +153,8 @@ assert.ok(
 );
 assert.ok(
   app.includes('<Route path="/events/:slug">') &&
-    home.includes('<IstanbulPaintingEventBanner placement="home" compact />'),
-  "compact event announcement must lead to the existing full registration component",
+    shell.includes('href: "/events"'),
+  "the simplified homepage must preserve access to the existing editorial and event routes",
 );
 assert.ok(
   styles.includes(".home-live-section__piece:nth-child(n + 3)") &&

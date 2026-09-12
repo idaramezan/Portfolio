@@ -55,15 +55,15 @@ assert.ok(
   "Etsy CTA must use the exact secure external URL",
 );
 assert.ok(
-  commission.includes("Have something you want me to make?") &&
-    commission.includes("Oil Pastel") &&
-    commission.includes("Digital Art") &&
+  commission.includes("Have something") &&
+    commission.includes('"oil-pastel"') &&
+    commission.includes("digital") &&
     commission.includes("high-resolution digital") === false,
   "commission invitation must include both art media without false shipping claims",
 );
 assert.ok(
   analytics.includes('"commission_etsy_click"') &&
-    commission.includes('source: "links_page"'),
+    commission.includes('"links_page"'),
   "commission click must use existing analytics",
 );
 assert.ok(

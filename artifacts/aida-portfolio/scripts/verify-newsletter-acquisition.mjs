@@ -26,8 +26,8 @@ const adminLayout = read("../src/components/admin/AdminLayout.tsx");
 
 const checks = [
   [
-    "homepage story-preview section",
-    home.includes('variant="story-preview"') && home.includes('context="home"'),
+    "homepage editorial signup section",
+    home.includes('variant="compact"') && home.includes('context="home"'),
   ],
   [
     "Türkiye shop editorial source",
@@ -113,7 +113,9 @@ const checks = [
   [
     "responsive story-preview layout",
     storefrontCss.includes(".studio-letter-preview__layout") &&
-      storefrontCss.includes("grid-template-columns: minmax(0, 0.44fr) minmax(0, 0.56fr)") &&
+      storefrontCss.includes(
+        "grid-template-columns: minmax(0, 0.44fr) minmax(0, 0.56fr)",
+      ) &&
       storefrontCss.includes("@media (max-width: 767px)"),
   ],
   [
@@ -221,8 +223,9 @@ const checks = [
   ],
   [
     "painting event banner placement",
-    home.indexOf('<IstanbulPaintingEventBanner placement="home" compact />') <
-      home.indexOf('<section className="home-market-hero">') &&
+    !home.includes(
+      '<IstanbulPaintingEventBanner placement="home" compact />',
+    ) &&
       regional.includes('placement="turkiye-shop"') &&
       regional.indexOf('placement="turkiye-shop"') <
         regional.indexOf("regional-shop-hero"),
@@ -268,7 +271,9 @@ const checks = [
       backend.includes(
         "Your attendance is confirmed personally by Aida on WhatsApp",
       ) &&
-      backend.includes("config.secondary_details_en || config.description_en") &&
+      backend.includes(
+        "config.secondary_details_en || config.description_en",
+      ) &&
       backend.includes("text,") &&
       emailBackend.includes("text: input.text"),
   ],

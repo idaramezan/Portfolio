@@ -64,8 +64,9 @@ assert.ok(
 assert.ok(
   home.includes("b.createdAt") &&
     !home.includes("b.updatedAt") &&
-    home.includes("originals.length"),
-  "recent products must use creation chronology and fallback logic",
+    home.includes('sort === "newest"') &&
+    home.includes("products.slice(0, visible)"),
+  "homepage collection must use creation chronology and progressive loading",
 );
 assert.ok(
   !links.includes("DestinationControl") &&

@@ -70,11 +70,11 @@
   --font-play: "Lilita One", "Arial Black", sans-serif;
 
   --color-paper: #f7f3ec;
-  --color-ink: #36232f;
-  --color-blue: #586e73;
-  --color-green: #64705c;
-  --color-ochre: #96763d;
-  --color-coral: #9a5548;
+  --color-ink: #173c32;
+  --color-blue: #285447;
+  --color-green: #285447;
+  --color-ochre: #c27d34;
+  --color-coral: #a96f4d;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -87,31 +87,45 @@
   --bg-soft: #f1ebe3;
   --bg-card: #fcf9f5;
   --bg-muted: #eee6dd;
-  --text-primary: #36232f;
-  --text-secondary: #716b67;
-  --text-tertiary: #99918b;
-  --border-soft: #ded6cc;
-  --border-medium: #cfc4b8;
-  --accent-primary: #3b2531;
-  --accent-blush: #e8d3d2;
-  --accent-blush-soft: #f3e5e2;
-  --accent-sage: #dde2d8;
-  --accent-blue-soft: #dde8ea;
-  --success-editorial: #64705c;
-  --error-editorial: #9a5548;
-  --warning-editorial: #96763d;
-  --shadow-editorial: 0 18px 48px rgb(54 35 47 / 0.09);
-  --content-max: 1440px;
+  --forest-950: #173c32;
+  --forest-900: #1d473b;
+  --forest-800: #285447;
+  --ivory-50: #f7f4ec;
+  --ivory-100: #f1ede2;
+  --ivory-200: #e8e1d4;
+  --amber-500: #d99645;
+  --amber-600: #c27d34;
+  --earth-500: #a96f4d;
+  --bg-page: var(--ivory-50);
+  --bg-soft: var(--ivory-100);
+  --bg-card: #fbf8f1;
+  --bg-muted: var(--ivory-200);
+  --text-primary: var(--forest-950);
+  --text-secondary: #687269;
+  --text-tertiary: #777d75;
+  --border-soft: rgb(23 60 50 / 0.16);
+  --border-medium: rgb(23 60 50 / 0.28);
+  --border-dark: rgb(243 238 228 / 0.22);
+  --accent-primary: var(--forest-950);
+  --accent-blush: var(--ivory-200);
+  --accent-blush-soft: var(--ivory-100);
+  --accent-sage: #dce3d8;
+  --accent-blue-soft: #dce6e3;
+  --success-editorial: #65765d;
+  --error-editorial: #985846;
+  --warning-editorial: var(--amber-600);
+  --shadow-editorial: 0 18px 48px rgb(23 60 50 / 0.09);
+  --content-max: 1500px;
   /* HSL values for default shadcn mapped to our colors */
   /* #F6F1E7 -> H:40 S:41% L:94% */
   --background: 37 41% 95%;
   /* #1B1A17 -> H:45 S:8% L:10% */
-  --foreground: 324 21% 17%;
+  --foreground: 162 44% 16%;
 
   /* Borders slightly darker paper */
   --border: 34 18% 84%;
   --input: 34 18% 84%;
-  --ring: 324 23% 19%;
+  --ring: 162 44% 16%;
 
   /* Cards are slightly lighter or same as paper */
   --card: 40 50% 98%;
@@ -123,7 +137,7 @@
   --popover-border: 40 20% 85%;
 
   /* Primary: Blue */
-  --primary: 324 23% 19%;
+  --primary: 162 44% 16%;
   --primary-foreground: 40 41% 94%;
 
   /* Secondary: Green */
@@ -148,17 +162,17 @@
 .dark {
   /* Forced to light mode paper colors for this brand */
   --background: 37 41% 95%;
-  --foreground: 324 21% 17%;
+  --foreground: 162 44% 16%;
   --border: 34 18% 84%;
   --input: 34 18% 84%;
-  --ring: 324 23% 19%;
+  --ring: 162 44% 16%;
   --card: 40 50% 98%;
   --card-foreground: 45 8% 10%;
   --card-border: 40 20% 85%;
   --popover: 40 50% 98%;
   --popover-foreground: 45 8% 10%;
   --popover-border: 40 20% 85%;
-  --primary: 324 23% 19%;
+  --primary: 162 44% 16%;
   --primary-foreground: 40 41% 94%;
   --secondary: 84 12% 40%;
   --secondary-foreground: 40 41% 94%;

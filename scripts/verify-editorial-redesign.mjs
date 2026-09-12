@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const theme = read(
@@ -15,6 +15,9 @@ const links = read("../artifacts/aida-portfolio/src/pages/Links.tsx");
 const toast = read("../artifacts/aida-portfolio/src/components/ui/toast.tsx");
 
 for (const token of [
+  "--forest-950",
+  "--ivory-50",
+  "--amber-500",
   "--bg-page",
   "--bg-card",
   "--text-primary",
@@ -41,8 +44,24 @@ assert.ok(links.includes("data-public-site"));
 assert.ok(!shell.includes("/100-windows"));
 assert.ok(!home.includes("STUDIO LETTER"));
 assert.ok(!shop.includes('"100-windows"'));
-assert.ok(toast.includes("#fcf9f5") && toast.includes("#9a5548"));
+assert.ok(toast.includes("#f7f4ec") && toast.includes("#985846"));
 assert.ok(theme.includes("prefers-reduced-motion"));
 assert.ok(theme.includes("@media (max-width: 767px)"));
+assert.ok(home.includes('HERO_IMAGE = "/assets/aida-green-gallery-hero.png"'));
+assert.ok(
+  home.includes('id="collection"') && home.includes("home-collection-grid"),
+);
+assert.ok(
+  home.includes('id="commissions"') && home.includes("home-green-newsletter"),
+);
+assert.ok(
+  existsSync(
+    new URL(
+      "../artifacts/aida-portfolio/public/assets/aida-green-gallery-hero.png",
+      import.meta.url,
+    ),
+  ),
+  "Supplied homepage hero must be present",
+);
 
 console.log("Editorial public-site redesign verification passed.");
