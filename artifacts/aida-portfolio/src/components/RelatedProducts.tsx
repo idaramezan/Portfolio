@@ -1,11 +1,9 @@
-import { Link } from "wouter";
 import Money from "@/components/Money";
 import { useInternationalProducts } from "@/hooks/use-international";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { getArtworkImage } from "@/lib/assets";
-import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { useLocale } from "@/lib/locale";
-import { isPurchasable } from "@/lib/product-status";
+import { isPurchasable, isSoldOut } from "@/lib/product-status";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import type { ManagedProduct } from "@/lib/store";
 import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
@@ -13,6 +11,7 @@ import {
   getFourthwallVariants,
   getLowestFourthwallVariant,
 } from "@/lib/fourthwall-variants";
+import EditorialProductCard from "@/components/EditorialProductCard";
 
 function productType(product: ManagedProduct) {
   if (product.kind === "original") return "original";
@@ -86,17 +85,6 @@ export default function RelatedProducts({
                   (item) => item.id === product.fourthwallProductId,
                 )
               : undefined;
-            const fallback =
-              product.fourthwallProductUrl &&
-              isSafeFourthwallUrl(
-                product.fourthwallProductUrl,
-                international.shopUrl,
-              )
-                ? product.fourthwallProductUrl
-                : "";
-            const hasInternationalEdition = Boolean(
-              (linked?.externalUrl || fallback) && linked?.available !== false,
-            );
             const variants = getFourthwallVariants(
               product,
               international.products,
@@ -110,8 +98,19 @@ export default function RelatedProducts({
                     product.printOptions,
                   )
                 : (product.priceMinor ?? product.priceUsdCents);
+            const internationalPrice =
+              cardVariant?.product?.price?.formatted ||
+              linked?.price?.formatted;
+            const price = !destination ? undefined : isTürkiye ? (
+              <Money
+                baseAmountUsdCents={localPrice}
+                canonicalCurrency={product.kind === "original" ? "USD" : "TRY"}
+              />
+            ) : cardVariant?.available && internationalPrice ? (
+              internationalPrice
+            ) : undefined;
             return (
-              <Link
+              <EditorialProductCard
                 key={product.id}
                 href={
                   product.kind === "original"
@@ -120,65 +119,21 @@ export default function RelatedProducts({
                       ? `/shop/aceos/${product.slug || product.id}`
                       : `/shop/prints/${product.slug || product.id}`
                 }
-                className="related-product-card"
-              >
-                <span className="related-product-card__media">
-                  <img
-                    src={getArtworkImage(product, index)}
-                    alt={product.altText || product.name}
-                    width="640"
-                    height="640"
-                    loading="lazy"
-                    decoding="async"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = getArtworkImage(
-                        { ...product, imageUrl: "" },
-                        index,
-                      );
-                    }}
-                  />
-                </span>
-                <span className="related-product-card__body">
-                  <small>{typeLabel(product, locale)}</small>
-                  <strong>{product.name}</strong>
-                  <span className="related-product-card__price">
-                    {!destination ? (
-                      locale === "tr" ? (
-                        "Fiyatı görmek için ülke seç"
-                      ) : (
-                        "Choose a country to see price"
-                      )
-                    ) : isTürkiye ? (
-                      <Money
-                        baseAmountUsdCents={localPrice}
-                        canonicalCurrency={
-                          product.kind === "original" ? "USD" : "TRY"
-                        }
-                      />
-                    ) : isAceoProduct(product) ? (
-                      locale === "tr" ? (
-                        "Yalnızca Türkiye"
-                      ) : (
-                        "Türkiye only"
-                      )
-                    ) : product.kind === "original" ? (
-                      <Money baseAmountUsdCents={product.priceUsdCents} />
-                    ) : (cardVariant?.available || hasInternationalEdition) &&
-                      (cardVariant?.product?.price?.formatted ||
-                        linked?.price?.formatted) ? (
-                      `${variants.filter((variant) => variant.available).length > 1 ? (locale === "tr" ? "Başlangıç " : "From ") : ""}${cardVariant?.product?.price?.formatted || linked?.price?.formatted}`
-                    ) : locale === "tr" ? (
-                      "Uluslararası edisyonu görüntüle"
-                    ) : (
-                      "View international availability"
-                    )}
-                  </span>
-                  <b>
-                    {locale === "tr" ? "Detayları gör →" : "View details →"}
-                  </b>
-                </span>
-              </Link>
+                image={getArtworkImage(product, index)}
+                alt={product.altText || product.name}
+                title={product.name}
+                price={price}
+                pricePrefix={
+                  !isTürkiye &&
+                  variants.filter((variant) => variant.available).length > 1
+                    ? locale === "tr"
+                      ? "BAŞLANGIÇ"
+                      : "FROM"
+                    : undefined
+                }
+                metadata={`${typeLabel(product, locale)} · ${isSoldOut(product) ? (locale === "tr" ? "SATILDI" : "SOLD") : locale === "tr" ? "MEVCUT" : "AVAILABLE"}`}
+                status={isSoldOut(product) ? "sold" : "available"}
+              />
             );
           })}
         </div>

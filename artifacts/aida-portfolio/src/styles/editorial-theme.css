@@ -932,6 +932,170 @@
     animation: none;
   }
 }
+
+/* One quiet editorial card system across every public catalogue. */
+[data-public-site] .editorial-product-card {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+[data-public-site] .editorial-product-card__link {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--forest-950);
+  text-align: left;
+  cursor: pointer;
+}
+[data-public-site] .editorial-product-card__media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--forest-800) 10%, var(--ivory-100));
+}
+[data-public-site] .editorial-product-card__media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition:
+    transform 420ms ease-out,
+    filter 420ms ease-out;
+}
+[data-public-site] .editorial-product-card__link:hover img,
+[data-public-site] .editorial-product-card__link:focus-visible img {
+  filter: contrast(1.015);
+  transform: scale(1.018);
+}
+[data-public-site] .editorial-product-card__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-content: center;
+  gap: 0.75rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+[data-public-site] .editorial-product-card__placeholder svg {
+  width: 1.5rem;
+  margin-inline: auto;
+  stroke-width: 1.25;
+}
+[data-public-site] .editorial-product-card__sold {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: var(--ivory-50);
+  color: var(--forest-950);
+  padding: 0.4rem 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+[data-public-site] .editorial-product-card__info {
+  display: block;
+  padding-top: 1rem;
+}
+[data-public-site] .editorial-product-card__headline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+}
+[data-public-site] .editorial-product-card__headline > strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--forest-950);
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.55rem, 2.25vw, 2rem);
+  font-weight: 400;
+  line-height: 1.08;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transition: color 260ms ease-out;
+}
+[data-public-site]
+  .editorial-product-card__link:hover
+  .editorial-product-card__headline
+  > strong,
+[data-public-site]
+  .editorial-product-card__link:focus-visible
+  .editorial-product-card__headline
+  > strong {
+  color: var(--amber-600);
+}
+[data-public-site] .editorial-product-card__price {
+  color: var(--forest-800);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+[data-public-site] .editorial-product-card__price small {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+}
+[data-public-site] .editorial-product-card__metadata {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--text-tertiary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+[data-public-site] .home-collection-grid,
+[data-public-site] .unified-product-grid,
+[data-public-site] .managed-product-grid,
+[data-public-site] .related-products__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(3.75rem, 5.5vw, 5rem) clamp(2.25rem, 3vw, 3rem);
+}
+[data-public-site] .unified-shop__catalog,
+[data-public-site] .home-green-collection,
+[data-public-site] .related-products__inner {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+}
+
+@media (max-width: 1023px) {
+  [data-public-site] .home-collection-grid,
+  [data-public-site] .unified-product-grid,
+  [data-public-site] .managed-product-grid,
+  [data-public-site] .related-products__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  [data-public-site] .home-collection-grid,
+  [data-public-site] .unified-product-grid,
+  [data-public-site] .managed-product-grid,
+  [data-public-site] .related-products__grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+    overflow: visible;
+    padding-right: 0;
+  }
+  [data-public-site] .editorial-product-card {
+    width: 100%;
+  }
+  [data-public-site] .editorial-product-card__headline > strong {
+    font-size: clamp(1.45rem, 7vw, 1.75rem);
+  }
+  [data-public-site] .editorial-product-card__headline {
+    gap: 0.75rem;
+  }
+}
 [data-public-site] .events-hero {
   border-bottom: 1px solid var(--border-soft);
   background: transparent;

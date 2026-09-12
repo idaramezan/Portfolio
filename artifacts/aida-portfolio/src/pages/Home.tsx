@@ -14,6 +14,7 @@ import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import EditorialProductCard from "@/components/EditorialProductCard";
 import {
   getDefaultFourthwallVariant,
   getFourthwallVariants,
@@ -158,20 +159,6 @@ const copy = {
   },
 } as const;
 
-const SHIPPING_COPY_TR: Record<string, string> = {
-  Sold: "Satıldı",
-  "Checking delivery options": "Teslimat seçenekleri kontrol ediliyor",
-  "Free delivery within Türkiye": "Türkiye içinde ücretsiz teslimat",
-  "Türkiye only": "Yalnızca Türkiye",
-  "Prepared in Aida's studio": "Aida tarafından hazırlanır",
-  "Not available for US delivery": "ABD teslimatı için mevcut değil",
-  "Delivery available by request": "Talep üzerine teslimat yapılabilir",
-  "Fulfilled through Aida's print partner":
-    "Aida'nın baskı ortağı tarafından gönderilir",
-  "Not available for this destination yet":
-    "Bu teslimat bölgesi için henüz mevcut değil",
-};
-
 function ProductTile({
   product,
   internationalProducts,
@@ -205,73 +192,51 @@ function ProductTile({
     cardVariant?.product || linked,
     cardVariant?.href || product.fourthwallProductUrl,
   );
+  const sold = isSoldOut(product);
+  const price =
+    presentation.amountMinor !== null && presentation.currency ? (
+      <Money
+        baseAmountUsdCents={presentation.amountMinor}
+        canonicalCurrency={presentation.currency}
+      />
+    ) : presentation.externalPrice ? (
+      presentation.externalPrice
+    ) : presentation.availability === "loading" ? (
+      <span className="price-skeleton" aria-label={text.priceLoading} />
+    ) : undefined;
+  const type = aceo
+    ? "ACEO"
+    : original
+      ? text.originalType
+      : product.category === "print" || !product.category
+        ? text.printType
+        : product.category;
   return (
-    <article
-      className={`home-product-tile ${original ? "home-product-tile--original" : "home-product-tile--goods"}`}
-    >
-      <Link
-        href={href}
-        className="home-product-tile__link"
-        onClick={() =>
-          trackAnalytics("homepage_product_clicked", {
-            entityType: original ? "original" : "product",
-            entityId: product.id,
-            entityName: product.name,
-            metadata: { countryCode: destination?.countryCode || "unknown" },
-          })
-        }
-      >
-        <span className="home-product-tile__media">
-          <img
-            src={product.imageUrl}
-            alt={product.altText || product.name}
-            loading="lazy"
-            decoding="async"
-            sizes="(max-width: 767px) calc(100vw - 36px), (max-width: 1199px) 46vw, 31vw"
-          />
-        </span>
-        <span className="home-product-tile__body">
-          <span className="home-product-tile__type">
-            {aceo
-              ? "ACEO · ORIGINAL"
-              : original
-                ? text.originalType
-                : product.category || text.printType}{" "}
-            ·{" "}
-            {isSoldOut(product)
-              ? text.sold
-              : aceo && destination?.countryCode !== "TR"
-                ? text.turkiyeOnly
-                : text.availableLabel}
-          </span>
-          <strong>{product.name}</strong>
-          {presentation.amountMinor !== null && presentation.currency && (
-            <Money
-              baseAmountUsdCents={presentation.amountMinor}
-              canonicalCurrency={presentation.currency}
-              className="home-product-tile__price"
-            />
-          )}
-          {presentation.externalPrice && (
-            <span className="home-product-tile__price">
-              {variants.filter((variant) => variant.available).length > 1 &&
-                (locale === "tr" ? "BAŞLANGIÇ " : "FROM ")}
-              {presentation.externalPrice}
-            </span>
-          )}
-          {presentation.availability === "loading" && (
-            <span className="price-skeleton" aria-label={text.priceLoading} />
-          )}
-          <small>
-            {locale === "tr"
-              ? SHIPPING_COPY_TR[presentation.shippingMessage] ||
-                presentation.shippingMessage
-              : presentation.shippingMessage}
-          </small>
-          <span className="home-product-tile__view">{text.viewWork} ↗</span>
-        </span>
-      </Link>
-    </article>
+    <EditorialProductCard
+      href={href}
+      image={product.imageUrl}
+      alt={product.altText || product.name}
+      title={product.name}
+      price={price}
+      pricePrefix={
+        presentation.externalPrice &&
+        variants.filter((variant) => variant.available).length > 1
+          ? locale === "tr"
+            ? "BAŞLANGIÇ"
+            : "FROM"
+          : undefined
+      }
+      metadata={`${type} · ${sold ? text.sold : text.availableLabel}`}
+      status={sold ? "sold" : presentation.availability}
+      onNavigate={() =>
+        trackAnalytics("homepage_product_clicked", {
+          entityType: original ? "original" : "product",
+          entityId: product.id,
+          entityName: product.name,
+          metadata: { countryCode: destination?.countryCode || "unknown" },
+        })
+      }
+    />
   );
 }
 

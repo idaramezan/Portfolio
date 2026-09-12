@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import { Image as ImageIcon } from "lucide-react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
 import {
@@ -8,7 +7,7 @@ import {
   DestinationControl,
 } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
-import { isPubliclyVisible } from "@/lib/product-status";
+import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import type { ManagedProduct } from "@/lib/store";
 import Money from "@/components/Money";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -20,6 +19,7 @@ import {
   getFourthwallVariants,
   getLowestFourthwallVariant,
 } from "@/lib/fourthwall-variants";
+import EditorialProductCard from "@/components/EditorialProductCard";
 
 type Filter = "originals" | "prints";
 
@@ -37,7 +37,6 @@ const copy = {
     aceos: "ACEOs",
     sold: "Sold",
     view: "View piece",
-    local: "Prepared in Aida's studio",
     fourthwall: "Fulfilled through Aida's print partner",
     request: "Delivery available by request",
     us: "Unavailable for US delivery",
@@ -70,7 +69,6 @@ const copy = {
     aceos: "ACEO'lar",
     sold: "Satıldı",
     view: "Eseri görüntüle",
-    local: "Aida'nın atölyesinde hazırlanır",
     fourthwall: "Fourthwall üzerinden uluslararası baskı",
     request: "Uluslararası teslimat talebi",
     us: "ABD'ye gönderilemiyor",
@@ -94,34 +92,6 @@ const copy = {
       "Aida bu tek ve özgün minyatürleri canlı yayında boyuyor. Sıradaki eser için yayınları takip edebilir veya Newsletter'a katılabilirsin.",
   },
 } as const;
-
-function ProductImage({
-  product,
-  noImage,
-}: {
-  product: ManagedProduct;
-  noImage: string;
-}) {
-  const [failed, setFailed] = useState(!product.imageUrl);
-  return (
-    <div className="unified-product-card__media">
-      {failed ? (
-        <span>
-          <ImageIcon aria-hidden="true" />
-          {noImage}
-        </span>
-      ) : (
-        <img
-          src={product.imageUrl}
-          alt={product.altText || product.name}
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-        />
-      )}
-    </div>
-  );
-}
 
 export default function UnifiedShop() {
   const { locale } = useLocale();
@@ -231,98 +201,58 @@ export default function UnifiedShop() {
                 cardVariant?.href || fallback,
               );
               const href = `/shop/${original ? "originals" : aceo ? "aceos" : "prints"}/${product.slug || product.id}`;
-              return (
-                <article
-                  className={`unified-product-card ${aceo ? "unified-product-card--aceo" : ""}`}
-                  key={product.id}
-                >
-                  <Link
-                    href={href}
-                    onClick={() =>
-                      trackAnalytics("product_view", {
-                        entityId: product.id,
-                        entityName: product.name,
-                      })
+              const price =
+                aceo && destination?.countryCode === "TR" ? (
+                  <Money
+                    baseAmountUsdCents={
+                      product.priceMinor ?? product.priceUsdCents
                     }
-                  >
-                    <ProductImage product={product} noImage={c.noImage} />
-                    <div className="unified-product-card__body">
-                      <p className="eyebrow">
-                        {original
-                          ? c.originals
-                          : aceo
-                            ? "ACEO ORIGINAL"
-                            : product.category || c.prints}
-                      </p>
-                      <h2>{product.name}</h2>
-                      {aceo && (
-                        <p className="aceo-card__metadata">
-                          {locale === "tr"
-                            ? "Canlı yayında boyandı · Tek ve özgün"
-                            : "Painted live · One of one"}
-                          <br />
-                          6.4 × 8.9 cm
-                        </p>
-                      )}
-                      <p className="unified-product-card__fulfillment">
-                        {aceo
-                          ? destination?.countryCode === "TR"
-                            ? locale === "tr"
-                              ? "Türkiye'de ücretsiz teslimat"
-                              : "Free shipping in Türkiye"
-                            : locale === "tr"
-                              ? "Yalnızca Türkiye"
-                              : "Türkiye only"
-                          : presentation.shippingMessage}
-                      </p>
-                      {aceo && destination?.countryCode === "TR" ? (
-                        <Money
-                          baseAmountUsdCents={
-                            product.priceMinor ?? product.priceUsdCents
-                          }
-                          canonicalCurrency="TRY"
-                          className="unified-product-card__price"
-                        />
-                      ) : (
-                        !aceo &&
-                        presentation.amountMinor !== null &&
-                        presentation.currency && (
-                          <Money
-                            baseAmountUsdCents={presentation.amountMinor}
-                            canonicalCurrency={presentation.currency}
-                            className="unified-product-card__price"
-                          />
-                        )
-                      )}
-                      {!aceo && presentation.externalPrice && (
-                        <strong className="unified-product-card__price">
-                          {variants.filter((variant) => variant.available)
-                            .length > 1 &&
-                            (locale === "tr" ? "BAŞLANGIÇ " : "FROM ")}
-                          {presentation.externalPrice}
-                        </strong>
-                      )}
-                      {!aceo && presentation.availability === "loading" && (
-                        <span
-                          className="price-skeleton unified-product-card__price"
-                          aria-label={
-                            locale === "tr"
-                              ? "Fiyat yükleniyor"
-                              : "Price loading"
-                          }
-                        />
-                      )}
-                      <span>
-                        {aceo
-                          ? locale === "tr"
-                            ? "Detayları gör"
-                            : "View details"
-                          : c.view}{" "}
-                        →
-                      </span>
-                    </div>
-                  </Link>
-                </article>
+                    canonicalCurrency="TRY"
+                  />
+                ) : !aceo &&
+                  presentation.amountMinor !== null &&
+                  presentation.currency ? (
+                  <Money
+                    baseAmountUsdCents={presentation.amountMinor}
+                    canonicalCurrency={presentation.currency}
+                  />
+                ) : !aceo && presentation.externalPrice ? (
+                  presentation.externalPrice
+                ) : !aceo && presentation.availability === "loading" ? (
+                  <span
+                    className="price-skeleton"
+                    aria-label={
+                      locale === "tr" ? "Fiyat yükleniyor" : "Price loading"
+                    }
+                  />
+                ) : undefined;
+              return (
+                <EditorialProductCard
+                  key={product.id}
+                  href={href}
+                  image={product.imageUrl}
+                  alt={product.altText || product.name}
+                  title={product.name}
+                  price={price}
+                  pricePrefix={
+                    presentation.externalPrice &&
+                    variants.filter((variant) => variant.available).length > 1
+                      ? locale === "tr"
+                        ? "BAŞLANGIÇ"
+                        : "FROM"
+                      : undefined
+                  }
+                  metadata={`${original ? c.originals : aceo ? "ACEO · ORIGINAL" : "PRINT"} · ${isSoldOut(product) ? c.sold : locale === "tr" ? "MEVCUT" : "AVAILABLE"}`}
+                  status={
+                    isSoldOut(product) ? "sold" : presentation.availability
+                  }
+                  onNavigate={() =>
+                    trackAnalytics("product_view", {
+                      entityId: product.id,
+                      entityName: product.name,
+                    })
+                  }
+                />
               );
             })}
           </div>

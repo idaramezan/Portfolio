@@ -11,6 +11,7 @@ import {
 } from "@/lib/store";
 import { getPrintStartingPrice } from "@/lib/turkiye-products";
 import { convertUsdCentsToTry, useCurrency } from "@/lib/currency";
+import EditorialProductCard from "@/components/EditorialProductCard";
 
 function productNeedsOptions(product: ManagedProduct) {
   return (
@@ -104,6 +105,27 @@ export default function ManagedProductCard({
     );
     window.setTimeout(() => setFeedback(""), 2600);
   };
+
+  if (!hideImage)
+    return (
+      <EditorialProductCard
+        href={viewHref}
+        onClick={openDetails || (purchasable ? add : undefined)}
+        image={product.imageUrl}
+        alt={product.altText || `${product.name}, ${categoryLabel(product)}`}
+        title={product.name}
+        price={
+          <Money
+            baseAmountUsdCents={price}
+            canonicalCurrency={original ? "USD" : "TRY"}
+            showBase
+          />
+        }
+        pricePrefix={product.category === "print" ? "FROM" : undefined}
+        metadata={`${categoryLabel(product).toUpperCase()} · ${sold ? "SOLD" : "AVAILABLE"}`}
+        status={sold ? "sold" : "available"}
+      />
+    );
 
   return (
     <article
