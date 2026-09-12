@@ -177,6 +177,7 @@ export default function ProductEditor({
   const [saving, setSaving] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const newSizeRef = useRef<HTMLInputElement>(null);
   const savingRef = useRef(false);
@@ -361,6 +362,13 @@ export default function ProductEditor({
   };
   const persist = async (publish = false) => {
     if (savingRef.current) return;
+    if (galleryUploading) {
+      setErrors((current) => ({
+        ...current,
+        image: "Wait for the additional images to finish uploading.",
+      }));
+      return;
+    }
     if (!validate(publish)) return;
     const savingVersion = editVersionRef.current;
     const targetStatus =
@@ -519,6 +527,59 @@ export default function ProductEditor({
     setErrors((current) => ({ ...current, image: "" }));
     setDirty(true);
     editVersionRef.current += 1;
+  };
+  const validImageFile = (file: File) => {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setErrors((current) => ({ ...current, image: "Use JPEG, PNG or WebP" }));
+      return false;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors((current) => ({
+        ...current,
+        image: "Each image must be under 10 MB",
+      }));
+      return false;
+    }
+    return true;
+  };
+  const addGalleryImages = async (files: File[]) => {
+    const accepted = files.filter(validImageFile);
+    if (!accepted.length) return;
+    setGalleryUploading(true);
+    setErrors((current) => ({ ...current, image: "" }));
+    try {
+      const uploaded = await Promise.all(accepted.map(uploadImage));
+      update({
+        galleryImages: Array.from(
+          new Set([...(draft.galleryImages || []), ...uploaded]),
+        ),
+      });
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        image:
+          error instanceof Error
+            ? error.message
+            : "Additional images could not be uploaded.",
+      }));
+    } finally {
+      setGalleryUploading(false);
+    }
+  };
+  const makeDefaultImage = (url: string) => {
+    const previousDefault = draft.imageUrl;
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setPendingImage(null);
+    setImagePreview("");
+    update({
+      imageUrl: url,
+      galleryImages: Array.from(
+        new Set([
+          ...(previousDefault ? [previousDefault] : []),
+          ...(draft.galleryImages || []).filter((image: string) => image !== url),
+        ]),
+      ),
+    });
   };
   const setSizes = (sizes: any[]) =>
     update({
@@ -894,7 +955,7 @@ export default function ProductEditor({
             )}
           </FormSection>
           {!isMail && (
-            <FormSection title="Product image">
+            <FormSection title="Product images">
               {String(draft.imageUrl || "").startsWith("/api/uploads/") &&
                 !pendingImage && (
                   <div
@@ -955,8 +1016,77 @@ export default function ProductEditor({
                 </label>
               </div>
               {errors.image && <ErrorText>{errors.image}</ErrorText>}
+              <div className="md:col-span-2 border-t border-ink/10 pt-5">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold">Additional images</h3>
+                    <p className="text-xs text-ink/45">
+                      These appear as a gallery on the product detail page.
+                    </p>
+                  </div>
+                  <label className="flex h-11 cursor-pointer items-center border border-ink/20 px-4 text-sm font-semibold">
+                    {galleryUploading ? "Uploading…" : "Add images"}
+                    <input
+                      type="file"
+                      multiple
+                      disabled={galleryUploading}
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        void addGalleryImages(
+                          Array.from(event.target.files || []),
+                        );
+                        event.currentTarget.value = "";
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+                {draft.galleryImages?.length ? (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {draft.galleryImages.map((url: string, index: number) => (
+                      <div
+                        key={`${url}-${index}`}
+                        className="border border-ink/10 p-2"
+                      >
+                        <img
+                          src={url}
+                          alt={`Additional product image ${index + 1}`}
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="text-xs font-semibold underline"
+                            onClick={() => makeDefaultImage(url)}
+                          >
+                            Make default
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs text-coral underline"
+                            onClick={() =>
+                              update({
+                                galleryImages: draft.galleryImages.filter(
+                                  (image: string) => image !== url,
+                                ),
+                              })
+                            }
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-ink/45">
+                    No additional images yet.
+                  </p>
+                )}
+              </div>
               <p className="text-xs text-ink/45">
-                JPEG, PNG or WebP, up to 2 MB.
+                JPEG, PNG or WebP, up to 10 MB each. The large image above is
+                the default.
               </p>
             </FormSection>
           )}

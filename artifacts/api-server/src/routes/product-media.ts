@@ -168,4 +168,32 @@ router.get("/product-media", requireAdmin, async (request, response) => {
   }
 });
 
+router.delete("/product-media", requireAdmin, async (request, response) => {
+  const imageUrls = Array.isArray(request.body?.imageUrls)
+    ? request.body.imageUrls
+    : [];
+  const ids = imageUrls
+    .map((value: unknown) =>
+      String(value).match(
+        /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z]+)?$/i,
+      )?.[1],
+    )
+    .filter((value: string | undefined): value is string => Boolean(value));
+  if (!ids.length) return response.json({ deleted: 0 });
+  try {
+    await ensureProductImagesTable();
+    const result = await pool.query(
+      "DELETE FROM product_images WHERE id = ANY($1::text[]) RETURNING id",
+      [Array.from(new Set(ids))],
+    );
+    return response.json({ deleted: result.rowCount || 0 });
+  } catch (error) {
+    request.log.error(
+      { error, operation: "product-media-delete" },
+      "Failed to delete product media",
+    );
+    return response.status(500).json({ error: "Product media could not be deleted" });
+  }
+});
+
 export default router;

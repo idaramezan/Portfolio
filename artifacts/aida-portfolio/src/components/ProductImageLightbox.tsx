@@ -93,6 +93,25 @@ export default function ProductImageLightbox({
           <Expand /> <span>View larger</span>
         </span>
       </button>
+      {multiple && (
+        <div className="product-image-thumbnails" aria-label="Product images">
+          {images.map((candidate, candidateIndex) => (
+            <button
+              key={`${candidate.src}-${candidateIndex}`}
+              type="button"
+              className={candidateIndex === index ? "is-active" : ""}
+              onClick={() => {
+                setFailed(false);
+                setIndex(candidateIndex);
+              }}
+              aria-label={`Show image ${candidateIndex + 1} of ${images.length}`}
+              aria-current={candidateIndex === index ? "true" : undefined}
+            >
+              <img src={candidate.src} alt="" />
+            </button>
+          ))}
+        </div>
+      )}
       {open &&
         createPortal(
           <div

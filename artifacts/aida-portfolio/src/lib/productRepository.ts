@@ -170,5 +170,22 @@ export const productRepository = {
       status: "archived",
       ...(kind !== "studio-mail" ? { available: false } : {}),
     } as any),
+  remove: (kind: CatalogKind, id: string) => {
+    const s = loadShopSettings();
+    const k = key(kind);
+    const list = s[k] as Array<ManagedProduct | StudioMailPackage>;
+    const index = list.findIndex((product) => product.id === id);
+    if (index < 0) throw new Error("Product not found");
+    const [removed] = list.splice(index, 1);
+    if (
+      kind === "studio-mail" &&
+      s.mysteryMail.activeEditionId === id
+    ) {
+      s.mysteryMail.activeEditionId = undefined;
+      s.mysteryMail.storefrontMode = "not-available-yet";
+    }
+    saveShopSettings(s);
+    return removed;
+  },
   replaceSettings: (settings: ShopSettings) => saveShopSettings(settings),
 };

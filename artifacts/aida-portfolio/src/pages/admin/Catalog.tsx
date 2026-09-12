@@ -4,7 +4,7 @@ import { MoreHorizontal, Search } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { EmptyState, StatusBadge } from "@/components/admin/AdminUI";
 import { formatCurrencyMinor } from "@/lib/currency";
-import { type ManagedProduct } from "@/lib/store";
+import { saveShopSettingsAndWait, type ManagedProduct } from "@/lib/store";
 import { productRepository } from "@/lib/productRepository";
 export default function Catalog({
   kind,
@@ -92,6 +92,59 @@ export default function Catalog({
         };
     setSettings(next);
     productRepository.replaceSettings(next);
+  };
+  const deleteProducts = async (ids: string[]) => {
+    const targets = raw.filter((product) => ids.includes(product.id));
+    if (!targets.length) return;
+    const label =
+      targets.length === 1
+        ? `“${targets[0].title || targets[0].name}”`
+        : `${targets.length} products`;
+    if (!window.confirm(`Permanently delete ${label}? This cannot be undone.`))
+      return;
+
+    const targetUrls = targets.flatMap((product) =>
+      [product.imageUrl, ...(product.galleryImages || [])].filter(Boolean),
+    );
+    const remainingProducts = productRepository
+      .getAll()
+      .filter((product: any) => !ids.includes(product.id));
+    const retainedUrls = new Set(
+      remainingProducts.flatMap((product: any) =>
+        [product.imageUrl, ...(product.galleryImages || [])].filter(Boolean),
+      ),
+    );
+    const imageUrls = Array.from(new Set(targetUrls)).filter(
+      (url) => !retainedUrls.has(url),
+    );
+    try {
+      ids.forEach((productId) => productRepository.remove(kind, productId));
+      await saveShopSettingsAndWait(productRepository.getSettings());
+      setSettings(productRepository.getSettings());
+      setSelected([]);
+      if (imageUrls.length) {
+        const password =
+          sessionStorage.getItem("aida-admin-password") ||
+          import.meta.env.VITE_ADMIN_PASSWORD ||
+          "a0019280718";
+        const response = await fetch("/api/admin/product-media", {
+          method: "DELETE",
+          headers: {
+            "content-type": "application/json",
+            "x-admin-password": password,
+          },
+          body: JSON.stringify({ imageUrls }),
+        });
+        if (!response.ok)
+          throw new Error(
+            "The products were deleted, but their stored images could not be cleaned up.",
+          );
+      }
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Products could not be deleted.",
+      );
+    }
   };
   return (
     <AdminLayout
@@ -185,12 +238,36 @@ export default function Catalog({
           <button className="text-sm underline" onClick={() => setSelected([])}>
             Clear selection
           </button>
+          <button
+            className="ml-auto text-sm font-semibold text-coral underline"
+            onClick={() => void deleteProducts(selected)}
+          >
+            Delete selected
+          </button>
         </div>
       )}
       {rows.length ? (
         <div className="overflow-hidden border border-ink/10 bg-paper">
           <div className="hidden grid-cols-[40px_64px_1fr_110px_120px_110px_80px] gap-3 border-b border-ink/10 bg-ink/5 px-4 py-3 text-xs font-bold uppercase tracking-wider text-ink/50 md:grid">
-            <span />
+            <input
+              type="checkbox"
+              checked={
+                rows.length > 0 &&
+                rows.every((row) => selected.includes(row.id))
+              }
+              onChange={(event) =>
+                setSelected(
+                  event.target.checked
+                    ? Array.from(
+                        new Set([...selected, ...rows.map((row) => row.id)]),
+                      )
+                    : selected.filter(
+                        (id) => !rows.some((row) => row.id === id),
+                      ),
+                )
+              }
+              aria-label="Select all visible products"
+            />
             <span>Image</span>
             <span>Product</span>
             <span>Status</span>
@@ -356,6 +433,12 @@ export default function Catalog({
                         className="w-full border-t border-ink/10 px-3 py-2 text-left text-sm"
                       >
                         Archive
+                      </button>
+                      <button
+                        onClick={() => void deleteProducts([x.id])}
+                        className="w-full border-t border-ink/10 px-3 py-2 text-left text-sm text-coral"
+                      >
+                        Delete permanently
                       </button>
                     </div>
                   </details>
