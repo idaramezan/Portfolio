@@ -45,7 +45,6 @@ export default function RelatedProducts({
   const international = useInternationalProducts();
   const { destination, isTürkiye } = useShippingDestination();
   const { locale } = useLocale();
-  const aceo = isAceoProduct(currentProduct);
   const source =
     currentProduct.kind === "original"
       ? settings.originalProducts
@@ -70,23 +69,8 @@ export default function RelatedProducts({
     >
       <div className="section-shell related-products__inner">
         <header className="related-products__header">
-          <p className="eyebrow">
-            {aceo
-              ? locale === "tr"
-                ? "ATÖLYEDEN DAHA FAZLA MİNİK ORİJİNAL"
-                : "MORE TINY ORIGINALS"
-              : locale === "tr"
-                ? "ATÖLYEDEN DAHA FAZLASI"
-                : "MORE FROM THE STUDIO"}
-          </p>
           <h2 id="related-products-title">
-            {aceo
-              ? locale === "tr"
-                ? "Diğer ACEO'lar"
-                : "More ACEOs from the studio"
-              : locale === "tr"
-                ? "Bunlar da ilgini çekebilir"
-                : "You might also like"}
+            {locale === "tr" ? "DAHA FAZLASINI GÖR" : "MORE TO SEE"}
           </h2>
         </header>
         <div className="related-products__grid">

@@ -17,7 +17,8 @@ import {
 } from "@/lib/shipping-destination";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
 import RelatedProducts from "@/components/RelatedProducts";
-import { isAceoProduct } from "@/lib/turkiye-products";
+import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
+import Money from "@/components/Money";
 
 const detailCopy = {
   en: {
@@ -188,6 +189,16 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
             )}
             <div className="print-story-detail__purchase-intro">
               <p className="eyebrow">{c.printInfo}</p>
+              {destination && isTürkiye && !sold && (
+                <Money
+                  baseAmountUsdCents={getPrintStartingPrice(
+                    product.priceUsdCents,
+                    product.printOptions,
+                  )}
+                  canonicalCurrency="TRY"
+                  className="product-detail__price"
+                />
+              )}
               <DestinationControl compact />
               {sold ? (
                 <p>
@@ -196,7 +207,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
               ) : !destination ? (
                 <button
                   type="button"
-                  className="paper-button paper-button--pink paper-button--md"
+                  className="button-primary product-detail__cta"
                   onClick={() =>
                     openDestination((next) => {
                       if (next.countryCode === "TR") setSelected(product);
@@ -216,7 +227,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                   </p>
                   <button
                     type="button"
-                    className="paper-button paper-button--pink paper-button--md"
+                    className="button-primary product-detail__cta"
                     disabled={!product.available}
                     onClick={() => {
                       setSelected(product);
@@ -225,7 +236,10 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                       });
                     }}
                   >
-                    {locale === "tr" ? "Seçenekleri gör" : "See print options"}
+                    {locale === "tr"
+                      ? "Seçenekleri seç"
+                      : "Choose size & finish"}{" "}
+                    →
                   </button>
                 </>
               ) : international.loading ? (
@@ -245,7 +259,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                     <strong>{linked.price.formatted}</strong>
                   )}
                   <a
-                    className="paper-button paper-button--pink paper-button--md"
+                    className="button-primary product-detail__cta"
                     href={internationalHref}
                     target="_blank"
                     rel="noopener noreferrer"

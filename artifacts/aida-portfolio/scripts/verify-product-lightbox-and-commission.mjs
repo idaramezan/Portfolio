@@ -71,11 +71,11 @@ assert.ok(
   "Etsy must not be embedded or scraped",
 );
 assert.ok(
-  commission.includes("oil-pastel-commission-card.jpg") &&
-    commission.includes('width="1090"') &&
-    styles.includes(".commission-link-card__pastel img") &&
+  commission.includes("commission-order-your-unique-art.png") &&
+    commission.includes('width="1080"') &&
+    styles.includes(".commission-link-card__gallery") &&
     styles.includes("object-fit: contain"),
-  "commission card must use the supplied uncropped local artwork image",
+  "commission card must use the supplied square ORDER YOUR UNIQUE ART image",
 );
 
 console.log("Product lightbox and Etsy commission verification passed.");

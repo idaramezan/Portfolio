@@ -87,12 +87,14 @@ export default function OriginalDetail({
         <Link href="/shop?category=originals" className="button-link">
           ← {locale === "tr" ? "Orijinal eserlere dön" : "Back to originals"}
         </Link>
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1.2fr_.8fr]">
-          <ProductImageLightbox
-            images={artworkImages}
-            imageClassName="w-full bg-ink/5 object-contain"
-          />
-          <div>
+        <div className="product-detail-layout">
+          <div className="product-detail-media">
+            <ProductImageLightbox
+              images={artworkImages}
+              imageClassName="w-full object-contain"
+            />
+          </div>
+          <div className="product-detail-info">
             <p className="eyebrow">
               {locale === "tr" ? "TEK VE ORİJİNAL" : "ONE-OF-ONE ORIGINAL"}
             </p>
@@ -135,7 +137,7 @@ export default function OriginalDetail({
             ) : !destination ? (
               <button
                 type="button"
-                className="paper-button paper-button--pink paper-button--md mt-5"
+                className="button-primary product-detail__cta mt-5"
                 onClick={() =>
                   openDestination((next) =>
                     next.countryCode !== "TR" && next.countryCode !== "US"
@@ -172,7 +174,7 @@ export default function OriginalDetail({
                     href={printHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="paper-button paper-button--pink paper-button--md"
+                    className="button-primary product-detail__cta"
                   >
                     {locale === "tr" ? "Baskıyı edin" : "Get the print instead"}{" "}
                     <ArrowUpRight aria-hidden="true" />
@@ -196,7 +198,7 @@ export default function OriginalDetail({
                 </p>
                 <button
                   type="button"
-                  className="paper-button paper-button--pink paper-button--md"
+                  className="button-primary product-detail__cta"
                   onClick={() => setRequesting(true)}
                 >
                   {locale === "tr"

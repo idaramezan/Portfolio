@@ -188,7 +188,7 @@ export default function AceoDetail() {
             ) : !destination ? (
               <button
                 type="button"
-                className="paper-button paper-button--pink paper-button--md"
+                className="button-primary product-detail__cta"
                 onClick={() =>
                   openDestination((next) => next.countryCode === "TR" && add())
                 }
@@ -208,7 +208,7 @@ export default function AceoDetail() {
                 <p>{c.available}</p>
                 <button
                   type="button"
-                  className="paper-button paper-button--pink paper-button--md"
+                  className="button-primary product-detail__cta"
                   onClick={add}
                 >
                   {feedback === c.added ? c.added : c.add}

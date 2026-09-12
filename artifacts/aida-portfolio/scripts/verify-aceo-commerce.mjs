@@ -52,7 +52,7 @@ assert.ok(
   "ACEO detail must reuse the lightbox, basket and recommendation systems",
 );
 assert.ok(
-  related.includes('"MORE TINY ORIGINALS"') &&
+  related.includes('"MORE TO SEE"') &&
     related.includes("`/shop/aceos/${product.slug || product.id}`") &&
     related.includes("productType(product) === productType(currentProduct)"),
   "ACEO recommendations must stay within the ACEO product type",

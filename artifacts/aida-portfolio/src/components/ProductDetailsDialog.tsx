@@ -35,7 +35,7 @@ export default function ProductDetailsDialog({
         className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 mx-auto w-full max-w-4xl overflow-hidden rounded-none border border-ink/10 bg-paper shadow-2xl">
+      <div className="product-quickview relative z-10 mx-auto w-full max-w-5xl overflow-auto bg-paper">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="relative flex min-h-0 items-center justify-center bg-ink/5">
             {product.imageUrl ? (
@@ -69,7 +69,7 @@ export default function ProductDetailsDialog({
                 </button>
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="product-quickview__meta mt-5 flex flex-wrap gap-2">
                 <span className="rounded-full border border-ink/10 bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-ink">
                   {availabilityLabel}
                 </span>
@@ -83,7 +83,7 @@ export default function ProductDetailsDialog({
                   {product.description || "No description provided."}
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-none border border-ink/10 bg-card p-4">
+                  <div className="product-quickview__fact p-4">
                     <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
                       Medium
                     </p>
@@ -93,7 +93,7 @@ export default function ProductDetailsDialog({
                         : formatArtworkSurface(product.artworkSurface)}
                     </p>
                   </div>
-                  <div className="rounded-none border border-ink/10 bg-card p-4">
+                  <div className="product-quickview__fact p-4">
                     <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
                       Includes
                     </p>
@@ -119,7 +119,7 @@ export default function ProductDetailsDialog({
                 </div>
                 <Button
                   onClick={onAdd}
-                  className="rounded-none bg-blue px-8 py-4 text-lg text-paper hover:bg-ink"
+                  className="button-primary product-detail__cta"
                 >
                   Add this {purchaseLabel} to basket
                 </Button>

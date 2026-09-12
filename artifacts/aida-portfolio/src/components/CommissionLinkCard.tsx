@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { trackAnalytics } from "@/lib/analytics";
-import commissionImage from "@assets/oil-pastel-commission-card.jpg";
-import digitalCatsImage from "@assets/digital-commission-cats.jpg";
-import digitalCharacterImage from "@assets/digital-commission-character.jpg";
+
+const COMMISSION_IMAGE = "/assets/commission-order-your-unique-art.png";
 
 const ETSY_URL =
   "https://www.etsy.com/listing/4546787742/custom-oil-pastel-portrait-from-photo";
@@ -11,12 +10,12 @@ type CommissionMedium = "oil-pastel" | "digital";
 const media = {
   "oil-pastel": {
     label: "Oil pastel",
-    description: "A handmade physical artwork drawn with oil pastels.",
+    description: "A handmade physical artwork created in oil pastel.",
   },
   digital: {
     label: "Digital art",
     description:
-      "A textured digital drawing in Aida's expressive sketch style.",
+      "A custom digital artwork created from your idea or reference.",
   },
 } as const;
 
@@ -95,39 +94,19 @@ export default function CommissionLinkCard({
           <ExternalLink aria-hidden="true" />
         </a>
       </div>
-      <div
-        className="commission-link-card__gallery"
-        aria-label={tr ? "Sipariş örnekleri" : "Commission examples"}
-      >
-        {activeMedium === "oil-pastel" ? (
-          <img
-            src={commissionImage}
-            alt="Oil pastel commission examples by Aida"
-            width="1090"
-            height="1600"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div>
-            <img
-              src={digitalCatsImage}
-              alt="Digital drawing of two cats"
-              width="1169"
-              height="1800"
-              loading="lazy"
-              decoding="async"
-            />
-            <img
-              src={digitalCharacterImage}
-              alt="Digital character illustration"
-              width="1076"
-              height="1349"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        )}
+      <div className="commission-link-card__gallery">
+        <img
+          src={COMMISSION_IMAGE}
+          alt={
+            tr
+              ? "Kendine özgü sanat eserini sipariş et"
+              : "Order your unique art"
+          }
+          width="1080"
+          height="1080"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
     </section>
   );

@@ -3,7 +3,6 @@ import { ArrowRight, Check } from "lucide-react";
 import { Link } from "wouter";
 import { heroPortrait, paintingVideo, paintingVideoPoster } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { PaperButton } from "@/components/ui/playful-studio";
 
 const principles = [
   "I paint directly with oil pastel.",
@@ -82,8 +81,8 @@ export default function About() {
           <p className="eyebrow">About Aida Ramezani</p>
           <h1>Art made directly, honestly and by hand.</h1>
           <p>
-            Aida Ramezani is a self-taught oil pastel artist. Her work is
-            rooted in texture, instinct and the physical act of making.
+            Aida Ramezani is a self-taught oil pastel artist. Her work is rooted
+            in texture, instinct and the physical act of making.
           </p>
           <p>
             She works directly on paper, allowing fingerprints, smudges and
@@ -204,13 +203,9 @@ export default function About() {
             <Link href="/shop/turkiye/originals" className="button-primary">
               View available originals <ArrowRight size={16} />
             </Link>
-            <PaperButton
-              href="/how-to-collect"
-              variant="blue"
-              arrow
-            >
-              How to start a collection
-            </PaperButton>
+            <Link href="/how-to-collect" className="button-secondary">
+              How to start a collection <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
