@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Globe2, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Globe2, X } from "lucide-react";
 import {
   clearCart,
   loadCart,
@@ -68,10 +68,14 @@ export function ShippingDestinationProvider({
     destination?.countryCode || "",
   );
   const [warnBasket, setWarnBasket] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState("");
   const pending = useRef<((destination: ShippingDestination) => void) | null>(
     null,
   );
   const trigger = useRef<HTMLElement | null>(null);
+  const dialog = useRef<HTMLElement | null>(null);
+  const countrySelect = useRef<HTMLSelectElement | null>(null);
 
   const countries = useMemo(() => {
     const names = new Intl.DisplayNames([locale], { type: "region" });
@@ -114,14 +118,45 @@ export function ShippingDestinationProvider({
 
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
+    const scrollY = window.scrollY;
+    const previous = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
     document.body.style.overflow = "hidden";
-    const close = (event: KeyboardEvent) =>
-      event.key === "Escape" && setOpen(false);
-    document.addEventListener("keydown", close);
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    requestAnimationFrame(() => countrySelect.current?.focus());
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const controls = Array.from(
+        dialog.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) || [],
+      );
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
     return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", close);
+      Object.assign(document.body.style, previous);
+      window.scrollTo(0, scrollY);
+      document.removeEventListener("keydown", handleKeydown);
       trigger.current?.focus();
     };
   }, [open]);
@@ -133,9 +168,10 @@ export function ShippingDestinationProvider({
     pending.current = afterConfirm || null;
     setSelectedCode(destination?.countryCode || "");
     setWarnBasket(false);
+    setUpdateError("");
     setOpen(true);
   };
-  const confirm = (force = false) => {
+  const confirm = async (force = false) => {
     if (!selected) return;
     if (
       !force &&
@@ -146,50 +182,65 @@ export function ShippingDestinationProvider({
       setWarnBasket(true);
       return;
     }
-    if (force && selected.code !== "TR") {
-      const aceos = loadCart("TR").filter((item) => item.kind === "aceo");
-      clearCart("TR");
-      if (aceos.length) {
-        const international = loadCart("INTERNATIONAL").filter(
-          (item) => item.kind !== "aceo",
-        );
-        saveCart([...international, ...aceos], "INTERNATIONAL");
+    setUpdating(true);
+    setUpdateError("");
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    try {
+      if (force && selected.code !== "TR") {
+        const aceos = loadCart("TR").filter((item) => item.kind === "aceo");
+        clearCart("TR");
+        if (aceos.length) {
+          const international = loadCart("INTERNATIONAL").filter(
+            (item) => item.kind !== "aceo",
+          );
+          saveCart([...international, ...aceos], "INTERNATIONAL");
+        }
       }
-    }
-    if (selected.code === "TR") {
-      const international = loadCart("INTERNATIONAL");
-      const aceos = international.filter((item) => item.kind === "aceo");
-      if (aceos.length) {
-        saveCart(
-          international.filter((item) => item.kind !== "aceo"),
-          "INTERNATIONAL",
-        );
-        const local = loadCart("TR").filter((item) => item.kind !== "aceo");
-        saveCart([...local, ...aceos], "TR");
+      if (selected.code === "TR") {
+        const international = loadCart("INTERNATIONAL");
+        const aceos = international.filter((item) => item.kind === "aceo");
+        if (aceos.length) {
+          saveCart(
+            international.filter((item) => item.kind !== "aceo"),
+            "INTERNATIONAL",
+          );
+          const local = loadCart("TR").filter((item) => item.kind !== "aceo");
+          saveCart([...local, ...aceos], "TR");
+        }
       }
-    }
-    const next: ShippingDestination = {
-      countryCode: selected.code,
-      countryName: selected.name,
-      source: "user",
-      confirmedByUser: true,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setDestination(next);
-    setActiveShoppingRegion(next.countryCode === "TR" ? "TR" : "INTERNATIONAL");
-    trackAnalytics("shipping_destination_changed", {
-      metadata: { countryCode: next.countryCode },
-    });
-    toast({
-      title:
+      const next: ShippingDestination = {
+        countryCode: selected.code,
+        countryName: selected.name,
+        source: "user",
+        confirmedByUser: true,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      setDestination(next);
+      setActiveShoppingRegion(
+        next.countryCode === "TR" ? "TR" : "INTERNATIONAL",
+      );
+      trackAnalytics("shipping_destination_changed", {
+        metadata: { countryCode: next.countryCode },
+      });
+      toast({
+        title:
+          locale === "tr"
+            ? `Gönderim konumu ${next.countryName} olarak güncellendi.`
+            : `Shipping destination updated to ${next.countryName}.`,
+      });
+      const action = pending.current;
+      pending.current = null;
+      action?.(next);
+      setOpen(false);
+    } catch {
+      setUpdateError(
         locale === "tr"
-          ? `Gönderim konumu ${next.countryName} olarak güncellendi.`
-          : `Shipping destination updated to ${next.countryName}.`,
-    });
-    setOpen(false);
-    const action = pending.current;
-    pending.current = null;
-    action?.(next);
+          ? "Gönderim ülkeni güncelleyemedik. Lütfen tekrar dene."
+          : "We couldn’t update your shipping country. Please try again.",
+      );
+    } finally {
+      setUpdating(false);
+    }
   };
 
   return (
@@ -211,10 +262,11 @@ export function ShippingDestinationProvider({
             }
           >
             <section
+              ref={dialog}
               role="dialog"
               aria-modal="true"
               aria-labelledby="destination-title"
-              className="destination-modal"
+              className="destination-modal destination-modal--shipping"
             >
               <button
                 type="button"
@@ -243,16 +295,19 @@ export function ShippingDestinationProvider({
                   <p>
                     {locale === "tr"
                       ? "Ülken için doğru fiyatları ve teslimat seçeneklerini göstereceğiz."
-                      : "We'll show the right prices and delivery options for your country."}
+                      : "Choose your shipping country so we can show the correct prices, availability and delivery options."}
                   </p>
                   <label className="destination-modal__select">
                     <span>
                       {locale === "tr" ? "Gönderim ülkesi" : "Shipping country"}
                     </span>
                     <select
-                      autoFocus
+                      ref={countrySelect}
                       value={selectedCode}
-                      onChange={(event) => setSelectedCode(event.target.value)}
+                      onChange={(event) => {
+                        setSelectedCode(event.target.value);
+                        setUpdateError("");
+                      }}
                     >
                       <option value="">
                         {locale === "tr" ? "Ülke seç" : "Choose a country"}
@@ -264,20 +319,41 @@ export function ShippingDestinationProvider({
                       ))}
                     </select>
                   </label>
+                  {updateError && (
+                    <p className="destination-modal__error" role="alert">
+                      {updateError}
+                    </p>
+                  )}
                   <button
                     type="button"
-                    disabled={!selected}
-                    className="paper-button paper-button--pink paper-button--md destination-modal__confirm"
-                    onClick={() => confirm()}
+                    disabled={!selected || updating}
+                    className="destination-modal__confirm"
+                    onClick={() => void confirm()}
                   >
-                    {selected
-                      ? locale === "tr"
-                        ? `${selected.name} konumunu kullan`
-                        : `Use ${selected.name}`
-                      : locale === "tr"
-                        ? "Ülke seç"
-                        : "Choose country"}
+                    <span>
+                      {updating
+                        ? locale === "tr"
+                          ? "Güncelleniyor…"
+                          : "Updating…"
+                        : selected
+                          ? selected.name.length > 24
+                            ? locale === "tr"
+                              ? "Devam et"
+                              : "Continue"
+                            : locale === "tr"
+                              ? `${selected.name} ile devam et`
+                              : `Continue with ${selected.name}`
+                          : locale === "tr"
+                            ? "Ülke seç"
+                            : "Choose country"}
+                    </span>
+                    <ArrowRight aria-hidden="true" />
                   </button>
+                  <p className="destination-modal__reassurance">
+                    {locale === "tr"
+                      ? "Bunu site başlığından istediğin zaman değiştirebilirsin."
+                      : "You can change this anytime from the site header."}
+                  </p>
                 </>
               ) : (
                 <>
@@ -307,12 +383,20 @@ export function ShippingDestinationProvider({
                     </button>
                     <button
                       type="button"
-                      className="paper-button paper-button--pink paper-button--md"
-                      onClick={() => confirm(true)}
+                      className="destination-modal__confirm"
+                      disabled={updating}
+                      onClick={() => void confirm(true)}
                     >
-                      {locale === "tr"
-                        ? "Konumu değiştir"
-                        : "Change destination"}
+                      <span>
+                        {updating
+                          ? locale === "tr"
+                            ? "Güncelleniyor…"
+                            : "Updating…"
+                          : locale === "tr"
+                            ? "Konumu değiştir"
+                            : "Change destination"}
+                      </span>
+                      <ArrowRight aria-hidden="true" />
                     </button>
                   </div>
                 </>
