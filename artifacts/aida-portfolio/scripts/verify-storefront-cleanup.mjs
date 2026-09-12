@@ -77,8 +77,10 @@ assert.ok(
 assert.ok(
   shell.includes("<DestinationControl utility") &&
     shell.includes("header-language") &&
-    shell.includes("header-basket"),
-  "desktop header must use compact editorial utilities",
+    shell.includes("{isTürkiye && (") &&
+    shell.includes("header-basket") &&
+    shell.includes("<CartDrawer"),
+  "desktop header must show its compact basket utility only for Türkiye",
 );
 assert.ok(
   shop.includes("Get this print") || presentation.includes("Get this print"),

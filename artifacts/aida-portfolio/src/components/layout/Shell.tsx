@@ -147,6 +147,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => setIsMobileMenuOpen(false), [location]);
+  useEffect(() => {
+    if (!isTürkiye) setCartOpen(false);
+  }, [isTürkiye]);
 
   return (
     <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
@@ -216,22 +219,28 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             </details>
-            <button
-              onClick={() => setCartOpen(true)}
-              disabled={isMobileMenuOpen}
-              className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
-              aria-label={`Open collection basket, ${cartCount} items`}
-            >
-              <ShoppingBag size={20} />
-              <span className="hidden lg:inline text-sm font-semibold">
-                Basket
-              </span>
-              <span
-                className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
+            {isTürkiye && (
+              <button
+                onClick={() => setCartOpen(true)}
+                disabled={isMobileMenuOpen}
+                className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
+                aria-label={
+                  locale === "tr"
+                    ? `Koleksiyon sepetini aç, ${cartCount} ürün`
+                    : `Open collection basket, ${cartCount} items`
+                }
               >
-                {cartCount}
-              </span>
-            </button>
+                <ShoppingBag size={20} />
+                <span className="hidden lg:inline text-sm font-semibold">
+                  {locale === "tr" ? "Sepet" : "Basket"}
+                </span>
+                <span
+                  className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
+                >
+                  {cartCount}
+                </span>
+              </button>
+            )}
             <button
               ref={menuButtonRef}
               className="md:hidden z-50 min-h-11 min-w-11 p-2 text-ink hover:text-coral focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
@@ -541,11 +550,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      <CartDrawer
-        open={cartOpen}
-        onOpenChange={setCartOpen}
-        region={activeRegion}
-      />
+      {isTürkiye && (
+        <CartDrawer
+          open={cartOpen}
+          onOpenChange={setCartOpen}
+          region={activeRegion}
+        />
+      )}
     </div>
   );
 }
