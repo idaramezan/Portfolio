@@ -39,6 +39,8 @@ export default function TurkeyProductDialog({
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const [added, setAdded] = useState(false);
+  const [imageReady, setImageReady] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const { toast } = useToast();
   const { locale } = useLocale();
 
@@ -60,6 +62,8 @@ export default function TurkeyProductDialog({
     setQuantity(1);
     setMessage("");
     setAdded(false);
+    setImageReady(false);
+    setImageFailed(false);
     document.body.style.overflow = "hidden";
     const appRoot = document.getElementById("root");
     if (appRoot) appRoot.inert = true;
@@ -145,6 +149,10 @@ export default function TurkeyProductDialog({
   // the same 200 TL first-item rule to prints, stickers, mugs and shirts.
   const shipping = calculateTurkiyeProductShipping(quantity);
   const orderTotal = pricing.lineTotalCents + shipping;
+  const supportsFramedPreview =
+    category === "print" &&
+    Boolean(product.printOptions?.framing.framedAvailable);
+  const showFramedPreview = supportsFramedPreview && framing === "framed";
 
   const add = () => {
     if (!valid) {
@@ -255,7 +263,33 @@ export default function TurkeyProductDialog({
           <X />
         </button>
         <div className="print-modal__media">
-          <img src={product.imageUrl} alt={product.name} />
+          <div
+            className={`artwork-finish-preview ${showFramedPreview ? "artwork-finish-preview--framed" : "artwork-finish-preview--unframed"} ${imageReady ? "is-ready" : "is-loading"}`}
+          >
+            {imageFailed ? (
+              <div
+                className="artwork-finish-preview__fallback"
+                role="img"
+                aria-label={product.name}
+              >
+                Image unavailable
+              </div>
+            ) : (
+              <div className="artwork-finish-preview__frame">
+                <div className="artwork-finish-preview__mat">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    onLoad={() => setImageReady(true)}
+                    onError={() => {
+                      setImageFailed(true);
+                      setImageReady(true);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <div className="print-modal__content">
           <p className="eyebrow pr-14">{categoryLabel}</p>
@@ -345,7 +379,8 @@ export default function TurkeyProductDialog({
                               <span className="flex items-center gap-2">
                                 <input
                                   type="radio"
-                                  name="print-finish"
+                                  name="finish"
+                                  value={option}
                                   checked={selected}
                                   onChange={() => setFraming(option)}
                                 />
