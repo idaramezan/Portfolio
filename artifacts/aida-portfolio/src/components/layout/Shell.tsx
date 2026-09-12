@@ -20,7 +20,6 @@ const NAV_LINKS = [
 
 const INFORMATION_LINKS = [
   { href: "/about", label: "About" },
-  { href: "/how-to-collect", label: "How to Collect" },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
@@ -28,11 +27,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const previousPathRef = useRef<string | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLElement>(null);
+  const languagePickerRef = useRef<HTMLDivElement>(null);
+  const languageTriggerRef = useRef<HTMLButtonElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openMobileShop, setOpenMobileShop] = useState<"shop" | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeEvent, setActiveEvent] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const { isTürkiye } = useShippingDestination();
   const activeRegion = isTürkiye ? "TR" : "INTERNATIONAL";
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
@@ -147,6 +149,24 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => setIsMobileMenuOpen(false), [location]);
   useEffect(() => {
+    if (!languageOpen) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!languagePickerRef.current?.contains(event.target as Node))
+        setLanguageOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setLanguageOpen(false);
+      languageTriggerRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [languageOpen]);
+  useEffect(() => {
     if (!isTürkiye) setCartOpen(false);
   }, [isTürkiye]);
 
@@ -188,36 +208,87 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div className="hidden lg:block">
               <DestinationControl utility />
             </div>
-            <details
-              key={locale}
+            <div
+              ref={languagePickerRef}
               className="header-language hidden md:block"
               data-active-locale={locale}
+              data-open={languageOpen || undefined}
               data-no-translate
             >
-              <summary
+              <button
+                ref={languageTriggerRef}
+                type="button"
+                className="header-language__trigger"
                 aria-label={
                   locale === "tr" ? "Dili değiştir" : "Change language"
                 }
+                aria-haspopup="menu"
+                aria-expanded={languageOpen}
+                aria-controls="header-language-menu"
+                onClick={() => setLanguageOpen((current) => !current)}
+                onKeyDown={(event) => {
+                  if (!["ArrowDown", "ArrowUp"].includes(event.key)) return;
+                  event.preventDefault();
+                  setLanguageOpen(true);
+                  requestAnimationFrame(() => {
+                    const options =
+                      languagePickerRef.current?.querySelectorAll<HTMLButtonElement>(
+                        '[role="menuitemradio"]',
+                      );
+                    options?.[event.key === "ArrowUp" ? options.length - 1 : 0]?.focus();
+                  });
+                }}
               >
-                {locale.toUpperCase()} <ChevronDown aria-hidden="true" />
-              </summary>
-              <div className="header-language__menu">
-                <button
-                  type="button"
-                  aria-current={locale === "en"}
-                  onClick={() => setLocale("en")}
-                >
-                  English
-                </button>
-                <button
-                  type="button"
-                  aria-current={locale === "tr"}
-                  onClick={() => setLocale("tr")}
-                >
-                  Türkçe
-                </button>
+                {locale.toUpperCase()}
+                <ChevronDown aria-hidden="true" />
+              </button>
+              <div
+                id="header-language-menu"
+                className="header-language__menu"
+                role="menu"
+                aria-label={locale === "tr" ? "Dil seç" : "Choose language"}
+                aria-hidden={!languageOpen}
+                onKeyDown={(event) => {
+                  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key))
+                    return;
+                  event.preventDefault();
+                  const options = Array.from(
+                    event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                      '[role="menuitemradio"]',
+                    ),
+                  );
+                  const current = options.indexOf(document.activeElement as HTMLButtonElement);
+                  const next =
+                    event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? options.length - 1
+                        : (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+                  options[next]?.focus();
+                }}
+              >
+                {([
+                  ["en", "English"],
+                  ["tr", "Türkçe"],
+                ] as const).map(([code, label]) => (
+                  <button
+                    key={code}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={locale === code}
+                    tabIndex={languageOpen && locale === code ? 0 : -1}
+                    onClick={() => {
+                      setLocale(code);
+                      setLanguageOpen(false);
+                      languageTriggerRef.current?.focus();
+                    }}
+                  >
+                    <span className="header-language__indicator" aria-hidden="true" />
+                    {label}
+                  </button>
+                ))}
               </div>
-            </details>
+            </div>
             {isTürkiye && (
               <button
                 onClick={() => setCartOpen(true)}
@@ -519,8 +590,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   Information <ChevronDown aria-hidden="true" />
                 </summary>
                 <div className="site-footer__nav-links">
+                  <Link href="/events">Events</Link>
                   <Link href="/about">About</Link>
-                  <Link href="/how-to-collect">How to collect</Link>
+                  <Link href="/links">Links</Link>
                   <a href="mailto:aida@aedaart.com">Contact</a>
                 </div>
               </details>

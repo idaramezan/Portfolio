@@ -1750,7 +1750,7 @@
 .header-language {
   position: relative;
 }
-.header-language summary {
+.header-language__trigger {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -1758,34 +1758,76 @@
   padding: 0.5rem;
   cursor: pointer;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   list-style: none;
 }
-.header-language summary::-webkit-details-marker {
-  display: none;
-}
-.header-language summary svg {
+.header-language__trigger svg {
   width: 13px;
+  transition: transform 170ms ease;
+}
+.header-language[data-open] .header-language__trigger svg {
+  transform: rotate(180deg);
 }
 .header-language__menu {
   position: absolute;
-  top: calc(100% + 0.35rem);
+  top: calc(100% + 0.5rem);
   right: 0;
-  z-index: 20;
-  min-width: 132px;
-  border: 1px solid #39283320;
-  background: #fffaf2;
-  box-shadow: 4px 5px 0 #e9dace;
+  z-index: 1000;
+  width: 150px;
+  padding: 7px;
+  border: 1px solid rgb(243 238 228 / 16%);
+  border-radius: 1px;
+  background: rgb(18 63 52 / 98%);
+  box-shadow: 0 12px 32px rgb(10 25 20 / 16%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  visibility: hidden;
+  transition:
+    opacity 170ms ease,
+    transform 170ms ease,
+    visibility 170ms ease;
+}
+.header-language[data-open] .header-language__menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
 }
 .header-language__menu button {
-  display: block;
+  display: flex;
   width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.65rem;
   padding: 0.7rem 0.85rem;
+  color: rgb(243 238 228 / 76%);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-align: left;
 }
-.header-language__menu button[aria-current="true"] {
-  background: #dce9ef70;
-  font-weight: 800;
+.header-language__menu button:hover {
+  background: rgb(255 255 255 / 7%);
+  color: #f3eee4;
+}
+.header-language__menu button:focus-visible {
+  outline: 1px solid var(--amber-500);
+  outline-offset: -2px;
+}
+.header-language__menu button[aria-checked="true"] {
+  color: #f3eee4;
+  font-weight: 650;
+}
+.header-language__indicator {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: transparent;
+}
+.header-language__menu button[aria-checked="true"] .header-language__indicator {
+  background: var(--amber-500);
 }
 .header-basket {
   border: 0;

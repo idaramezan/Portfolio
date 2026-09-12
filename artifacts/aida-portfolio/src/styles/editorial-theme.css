@@ -258,7 +258,7 @@
   background: var(--accent-primary);
 }
 [data-public-site] .destination-control,
-[data-public-site] .header-language summary,
+[data-public-site] .header-language__trigger,
 [data-public-site] .site-header__utilities button {
   border-color: transparent !important;
   background: transparent !important;
@@ -266,10 +266,21 @@
   color: var(--text-secondary);
 }
 [data-public-site] .header-language__menu {
-  border: 1px solid var(--border-soft);
+  border: 1px solid rgb(243 238 228 / 16%);
   border-radius: 1px;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-editorial);
+  background: rgb(18 63 52 / 98%);
+  box-shadow: 0 12px 32px rgb(10 25 20 / 16%);
+}
+[data-public-site] .header-language__menu button {
+  color: rgb(243 238 228 / 76%) !important;
+}
+[data-public-site] .header-language__menu button:hover,
+[data-public-site] .header-language__menu button[aria-checked="true"] {
+  color: var(--ivory-50) !important;
+}
+[data-public-site] .header-language__menu button:hover,
+[data-public-site] .header-language__menu button:focus-visible {
+  background: rgb(255 255 255 / 7%) !important;
 }
 [data-public-site] .mobile-menu {
   background: var(--bg-page) !important;
