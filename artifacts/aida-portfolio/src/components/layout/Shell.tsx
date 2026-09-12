@@ -1,6 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  Menu,
+  Minus,
+  Plus,
+  ShoppingBag,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import CartDrawer from "@/components/CartDrawer";
 import { getCartCount, loadShopSettings } from "@/lib/store";
@@ -409,13 +417,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       </span>
                     )}
                   </span>
-                  <ChevronDown
-                    className={cn("mobile-menu__chevron", isOpen && "is-open")}
-                    aria-hidden="true"
-                  />
+                  {isOpen ? (
+                    <Minus className="mobile-menu__chevron" aria-hidden="true" />
+                  ) : (
+                    <Plus className="mobile-menu__chevron" aria-hidden="true" />
+                  )}
                 </button>
-                {isOpen && (
-                  <div id={submenuId} className="mobile-menu__submenu">
+                  <div
+                    id={submenuId}
+                    className="mobile-menu__submenu"
+                    data-open={isOpen || undefined}
+                    aria-hidden={!isOpen}
+                  >
                     <Link href={group.home} onClick={() => closeMobileMenu()}>
                       {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
                     </Link>
@@ -429,7 +442,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       </Link>
                     ))}
                   </div>
-                )}
               </div>
             );
           })}
@@ -447,7 +459,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 )}
                 aria-current={location.startsWith(href) ? "page" : undefined}
               >
-                {label}
+                <span>{label}</span>
+                <ArrowUpRight aria-hidden="true" />
               </Link>
             </div>
           ))}
@@ -467,14 +480,25 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           )}
         </div>
         <div className="mobile-menu__destination">
-          <DestinationControl />
+          <p className="mobile-menu__utility-label">
+            {locale === "tr" ? "GÖNDERİM" : "SHIPPING TO"}
+          </p>
+          <DestinationControl menu />
         </div>
-        <p className="mobile-menu__note">
-          {locale === "tr"
-            ? "Aida’dan kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar."
-            : "Personal art stories, studio notes and first looks at new work."}
-        </p>
+        <div className="mobile-menu__note">
+          <p className="mobile-menu__utility-label">
+            {locale === "tr" ? "ATÖLYE NOTLARI" : "STUDIO NOTES"}
+          </p>
+          <p>
+            {locale === "tr"
+              ? "Kişisel sanat hikâyeleri ve yeni çalışmalara ara sıra ilk bakışlar."
+              : "Personal art stories and occasional first looks."}
+          </p>
+        </div>
         <footer className="mobile-menu__footer">
+          <p className="mobile-menu__utility-label">
+            {locale === "tr" ? "DİL" : "LANGUAGE"}
+          </p>
           <div
             className="mobile-menu__languages"
             aria-label={locale === "tr" ? "Dil" : "Language"}
@@ -498,7 +522,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               English
             </button>
           </div>
-          <div className="mobile-menu__secondary-links">
+          <p className="mobile-menu__utility-label mobile-menu__social-label">
+            {locale === "tr" ? "SOSYAL" : "FOLLOW"}
+          </p>
+          <div className="mobile-menu__secondary-links mobile-menu__socials">
             {socialLinks.map(([label, href]) => (
               <a
                 key={label}
@@ -510,10 +537,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 {label}
               </a>
             ))}
-            <button type="button" onClick={manageAnalytics}>
-              {locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}
-            </button>
           </div>
+          <button
+            type="button"
+            className="mobile-menu__privacy"
+            onClick={manageAnalytics}
+          >
+            {locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}
+          </button>
         </footer>
       </nav>
 
@@ -576,7 +607,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div className="site-footer__nav footer-mobile-links">
               <details className="site-footer__nav-group">
                 <summary className="site-footer__nav-trigger">
-                  Shop <ChevronDown aria-hidden="true" />
+                  Shop
                 </summary>
                 <div className="site-footer__nav-links">
                   <Link href="/shop?category=prints">Prints</Link>
@@ -587,7 +618,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </details>
               <details className="site-footer__nav-group">
                 <summary className="site-footer__nav-trigger">
-                  Information <ChevronDown aria-hidden="true" />
+                  Information
                 </summary>
                 <div className="site-footer__nav-links">
                   <Link href="/events">Events</Link>

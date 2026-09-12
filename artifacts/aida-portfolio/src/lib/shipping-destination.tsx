@@ -421,9 +421,11 @@ export function useShippingDestination() {
 export function DestinationControl({
   compact = false,
   utility = false,
+  menu = false,
 }: {
   compact?: boolean;
   utility?: boolean;
+  menu?: boolean;
 }) {
   const { destination, loading, openDestination } = useShippingDestination();
   const { locale } = useLocale();
@@ -458,6 +460,32 @@ export function DestinationControl({
               (locale === "tr" ? "Ülke" : "Country")}
         </span>
         <ChevronDown aria-hidden="true" />
+      </button>
+    );
+  if (menu)
+    return (
+      <button
+        type="button"
+        className="destination-control destination-control--menu"
+        onClick={() => openDestination()}
+        aria-label={
+          locale === "tr"
+            ? `Gönderim konumunu değiştir. Şu anda ${destination?.countryName || "seçilmedi"}.`
+            : `Change shipping destination. Currently ${destination?.countryName || "not selected"}.`
+        }
+      >
+        <Globe2 aria-hidden="true" />
+        <span>
+          {loading
+            ? locale === "tr"
+              ? "Konum belirleniyor…"
+              : "Finding destination…"
+            : destination?.countryName ||
+              (locale === "tr" ? "Ülke seç" : "Choose country")}
+        </span>
+        <strong>
+          {locale === "tr" ? "Değiştir" : "Change"}
+        </strong>
       </button>
     );
   return (
