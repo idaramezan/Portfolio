@@ -655,7 +655,7 @@ publicRouter.post(
       const paymentBreakdown = `<p>Order subtotal: ${escapeHtml(subtotal)}</p><p>Shipping: ${escapeHtml(shipping)}</p>${discountSummary}<p><strong>Order total: ${escapeHtml(total)}</strong></p>`;
       void sendEmail({
         to: email,
-        subject: `We received your Aida Ramezani order — ${number}`,
+        subject: `We received your Aeda Art order — ${number}`,
         html: emailShell(
           `<h1>Your order has been received</h1><p><strong>${number}</strong> ${savedOrder.grand_total_minor === 0 ? "is fully discounted. No payment is required." : "is awaiting payment verification."}</p><ul>${rows}</ul>${paymentBreakdown}<p>${savedOrder.grand_total_minor === 0 ? "Aida can begin preparing your order." : "Aida will review your transfer receipt before preparing the order."}</p>`,
         ),

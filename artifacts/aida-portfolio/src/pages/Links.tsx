@@ -48,8 +48,8 @@ function LinksMobile({
           : "Explore the full website"}
       </Link>
       <header className="links-mobile__profile">
-        <img src={portrait} alt="Aida Ramezani" width="96" height="96" />
-        <h1>Aida Ramezani</h1>
+        <img src={portrait} alt="Aeda Art" width="96" height="96" />
+        <h1>Aeda Art</h1>
         <p>
           {locale === "tr"
             ? "Aida'dan yağlı pastel resimler, stüdyo baskıları ve günlük hikâyeler."
@@ -199,8 +199,8 @@ function LinksMobile({
 
 export default function Links() {
   usePageMeta(
-    "Aida Ramezani | Shop & Social Links",
-    "Explore Aida Ramezani's art, commissions and social channels.",
+    "Aeda Art | Shop & Social Links",
+    "Explore Aeda Art's art, commissions and social channels.",
   );
   const settings = useShopSettings();
   const locale = "en" as const;
@@ -267,10 +267,10 @@ export default function Links() {
         <header className="mt-8 text-center">
           <img
             src={portrait}
-            alt="Aida Ramezani"
+            alt="Aeda Art"
             className="mx-auto h-28 w-28 rounded-full object-cover object-[center_25%]"
           />
-          <h1 className="mt-5 text-4xl">Aida Ramezani</h1>
+          <h1 className="mt-5 text-4xl">Aeda Art</h1>
           <p className="mx-auto mt-3 max-w-md leading-relaxed text-ink/65">
             {settings.siteLinks.linkHubDescription}
           </p>

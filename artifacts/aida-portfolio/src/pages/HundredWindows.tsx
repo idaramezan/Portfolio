@@ -116,11 +116,11 @@ export default function HundredWindows() {
 
   usePageMeta(
     locale === "tr"
-      ? "100 Pencere, 100 Gün | Aida Ramezani"
-      : "100 Windows, 100 Days | Aida Ramezani",
+      ? "100 Pencere, 100 Gün | Aeda Art"
+      : "100 Windows, 100 Days | Aeda Art",
     locale === "tr"
-      ? "Aida Ramezani’nin 100 günlük resim projesini takip et."
-      : "Follow Aida Ramezani’s daily 100 Windows painting project.",
+      ? "Aeda Art’nin 100 günlük resim projesini takip et."
+      : "Follow Aeda Art’s daily 100 Windows painting project.",
   );
   useEffect(() => {
     trackAnalytics("hundred_windows_page_view");

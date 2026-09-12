@@ -41,8 +41,8 @@ const paths = [
 
 export default function HowToCollect() {
   usePageMeta(
-    "How to Collect | Aida Ramezani",
-    "Learn how to collect Aida Ramezani originals, Türkiye editions and international Fourthwall prints.",
+    "How to Collect | Aeda Art",
+    "Learn how to collect Aeda Art originals, Türkiye editions and international Fourthwall prints.",
   );
   return (
     <div className="section-shell">

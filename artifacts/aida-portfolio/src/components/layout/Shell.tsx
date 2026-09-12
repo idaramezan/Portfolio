@@ -277,7 +277,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             className="mobile-menu__brand"
             onClick={() => closeMobileMenu()}
           >
-            Aida Ramezani
+            Aeda Art
           </Link>
           <button
             type="button"
@@ -452,13 +452,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="site-footer__inner">
           <div className="site-footer__main">
             <section>
-              <h2 className="site-footer__brand">Aida Ramezani</h2>
+              <h2 className="site-footer__brand">Aeda Art</h2>
               <p className="site-footer__studio-line">
                 Original art, studio stories and small editions made by Aida.
               </p>
               <div
                 className="site-footer__social"
-                aria-label="Aida Ramezani on social media"
+                aria-label="Aeda Art on social media"
               >
                 {socialLinks.map(([label, href]) => (
                   <a
@@ -527,7 +527,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="site-footer__legal">
-            <span>&copy; {new Date().getFullYear()} Aida Ramezani</span>
+            <span>&copy; {new Date().getFullYear()} Aeda Art</span>
             <span>Made by Aida</span>
             <button type="button" onClick={manageAnalytics}>
               Manage analytics

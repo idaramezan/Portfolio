@@ -502,11 +502,11 @@ export default function RegionalLanding({
   useEffect(() => setActiveShoppingRegion(region), [region]);
   usePageMeta(
     tr
-      ? "Aida Ramezani Türkiye Shop | Original Art, Prints & Mystery Mail"
-      : "Aida Ramezani International Shop | Original Art & Prints",
+      ? "Aeda Art Türkiye Shop | Original Art, Prints & Mystery Mail"
+      : "Aeda Art International Shop | Original Art & Prints",
     tr
-      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Aida Ramezani."
-      : "Collect original oil pastel paintings by Aida Ramezani internationally, or shop prints and art goods through her Fourthwall store.",
+      ? "Shop original oil pastel paintings, signed prints, art goods and limited Mystery Mail editions by Aeda Art."
+      : "Collect original oil pastel paintings by Aeda Art internationally, or shop prints and art goods through her Fourthwall store.",
   );
   const originals = sortedPreview(settings.originalProducts, region);
   const prints = sortedPreview(settings.printProducts, "TR");
@@ -563,8 +563,8 @@ export default function RegionalLanding({
               src={tr ? originalsCoverImage : heroPortrait}
               alt={
                 tr
-                  ? "An original artwork and certificate of authenticity packed by Aida Ramezani"
-                  : "Aida Ramezani holding one of her artworks"
+                  ? "An original artwork and certificate of authenticity packed by Aeda Art"
+                  : "Aeda Art holding one of her artworks"
               }
               caption={
                 tr

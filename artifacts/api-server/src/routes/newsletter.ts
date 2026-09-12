@@ -802,7 +802,7 @@ function buildPaintingEventInterestEmail(input: {
     html: emailShell(content, {
       preheader: config.secondary_details_en || config.description_en,
       unsubscribeUrl: input.unsubscribe,
-      headerLabel: "AIDA RAMEZANI · NEWSLETTER",
+      headerLabel: "AEDA ART · NEWSLETTER",
       footerNote:
         "You received this email because you joined Aida’s Newsletter through the Istanbul painting day invitation.",
       showSignature: false,

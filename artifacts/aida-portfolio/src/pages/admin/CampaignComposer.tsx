@@ -1524,7 +1524,7 @@ export default function CampaignComposer() {
                 }}
               >
                 <p className="mb-6 text-xs font-bold uppercase tracking-[.16em] text-[#a44938]">
-                  Aida Ramezani · Artist
+                  Aeda Art · Artist
                 </p>
                 {blocks.map((block) => {
                   if (block.type === "divider")

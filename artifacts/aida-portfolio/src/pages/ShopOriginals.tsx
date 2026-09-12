@@ -65,7 +65,7 @@ export default function ShopOriginals() {
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-ink/65">
             Explore one of a kind oil pastel paintings, created and signed by
-            Aida Ramezani. Each original artwork is accompanied by a Certificate
+            Aeda Art. Each original artwork is accompanied by a Certificate
             of Authenticity.
           </p>
           <p className="mt-3 text-lg leading-relaxed text-ink/65">
@@ -75,7 +75,7 @@ export default function ShopOriginals() {
         <div className="originals-hero__media">
           <img
             src={originalsCoverImage}
-            alt="Original paintings by Aida Ramezani"
+            alt="Original paintings by Aeda Art"
             fetchPriority="high"
           />
         </div>

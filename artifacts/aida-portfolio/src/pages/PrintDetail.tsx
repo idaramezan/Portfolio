@@ -117,11 +117,11 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
 
   usePageMeta(
     product
-      ? `${product.name} | Art Print | Aida Ramezani`
-      : "Print unavailable | Aida Ramezani",
+      ? `${product.name} | Art Print | Aeda Art`
+      : "Print unavailable | Aeda Art",
     product?.fullDescription ||
       product?.description ||
-      "View prints and studio goods by Aida Ramezani.",
+      "View prints and studio goods by Aeda Art.",
   );
   if (!product)
     return (

@@ -26,13 +26,13 @@ import {
 } from "@/lib/shipping-destination";
 import StudioLetterSignup from "@/components/StudioLetterSignup";
 
-const TITLE = "Mystery Mail Art Package in Türkiye | Aida Ramezani";
+const TITLE = "Mystery Mail Art Package in Türkiye | Aeda Art";
 const DESCRIPTION =
-  "Order Aida Ramezani’s limited Mystery Mail in Türkiye, featuring an exclusive art postcard, studio stickers and surprise art objects with free shipping.";
+  "Order Aeda Art’s limited Mystery Mail in Türkiye, featuring an exclusive art postcard, studio stickers and surprise art objects with free shipping.";
 const CANONICAL_PATH = "/shop/mystery-mail";
-const EMPTY_TITLE = "Mystery Mail Art Editions | Aida Ramezani";
+const EMPTY_TITLE = "Mystery Mail Art Editions | Aeda Art";
 const EMPTY_DESCRIPTION =
-  "Discover Aida Ramezani’s limited Mystery Mail art editions, released for a short time with exclusive art postcards, stickers and studio surprises in Türkiye.";
+  "Discover Aeda Art’s limited Mystery Mail art editions, released for a short time with exclusive art postcards, stickers and studio surprises in Türkiye.";
 
 const MYSTERY_NEWSLETTER_COPY = {
   en: {
@@ -224,7 +224,7 @@ export default function MysteryMail() {
       property: "og:title",
       content: betweenEditions
         ? EMPTY_TITLE
-        : "Current Mystery Mail by Aida Ramezani",
+        : "Current Mystery Mail by Aeda Art",
     });
     upsertMeta('meta[property="og:description"]', {
       property: "og:description",
@@ -248,7 +248,7 @@ export default function MysteryMail() {
       name: "twitter:title",
       content: betweenEditions
         ? EMPTY_TITLE
-        : "Current Mystery Mail by Aida Ramezani",
+        : "Current Mystery Mail by Aeda Art",
     });
     upsertMeta('meta[name="twitter:description"]', {
       name: "twitter:description",
@@ -289,7 +289,7 @@ export default function MysteryMail() {
       description: DESCRIPTION,
       image: new URL(image, origin).href,
       sku: current?.id || "mystery-mail",
-      brand: { "@type": "Brand", name: "Aida Ramezani" },
+      brand: { "@type": "Brand", name: "Aeda Art" },
       offers: current
         ? {
             "@type": "Offer",
@@ -498,7 +498,7 @@ export default function MysteryMail() {
             <div className="min-w-0 border border-ink/15 bg-paper-light text-ink">
               <img
                 src={mysteryMailCoverImage}
-                alt="A sealed Mystery Mail art parcel from Aida Ramezani’s studio between editions."
+                alt="A sealed Mystery Mail art parcel from Aeda Art’s studio between editions."
                 className="aspect-[16/9] w-full object-cover opacity-70 contrast-75"
               />
               <div className="border-t border-paper/15 p-5 md:p-7">
@@ -554,7 +554,7 @@ export default function MysteryMail() {
           <div className="min-w-0">
             <img
               src={displayedCover}
-              alt="A sealed Mystery Mail art parcel prepared by Aida Ramezani."
+              alt="A sealed Mystery Mail art parcel prepared by Aeda Art."
               className="aspect-[4/3] w-full border border-paper/15 object-cover shadow-2xl"
             />
             {current && (

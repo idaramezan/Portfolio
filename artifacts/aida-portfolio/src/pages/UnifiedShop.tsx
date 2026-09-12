@@ -110,8 +110,8 @@ export default function UnifiedShop() {
       : "prints";
   usePageMeta(
     locale === "tr"
-      ? "Atölyeyi keşfet | Aida Ramezani"
-      : "Shop the Studio | Aida Ramezani",
+      ? "Atölyeyi keşfet | Aeda Art"
+      : "Shop the Studio | Aeda Art",
     c.body,
   );
   useEffect(() => {

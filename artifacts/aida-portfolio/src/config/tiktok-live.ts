@@ -54,7 +54,7 @@ export const tiktokLiveSection = {
       imageUrlLarge: dinosaurLarge,
       width: 538,
       height: 800,
-      alt: "Text-based oil pastel dinosaur portrait painted live by Aida Ramezani",
+      alt: "Text-based oil pastel dinosaur portrait painted live by Aeda Art",
       displayOrder: 1,
       collageStyleKey: "primary",
     },

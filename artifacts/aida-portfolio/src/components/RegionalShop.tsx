@@ -237,13 +237,13 @@ export default function RegionalShop({
   const slug = region === "TR" ? "turkiye" : "international";
   usePageMeta(
     region === "TR"
-      ? "Türkiye Shop | Aida Ramezani"
-      : "International Shop | Aida Ramezani",
+      ? "Türkiye Shop | Aeda Art"
+      : "International Shop | Aeda Art",
     region === "TR"
       ? category === "prints"
-        ? "Shop signed prints and studio goods by Aida Ramezani in Türkiye. Shipping price is calculated based on package size."
-        : "Shop original oil pastel paintings by Aida Ramezani in Türkiye."
-      : "Collect original paintings directly from Aida Ramezani or shop international prints through Fourthwall.",
+        ? "Shop signed prints and studio goods by Aeda Art in Türkiye. Shipping price is calculated based on package size."
+        : "Shop original oil pastel paintings by Aeda Art in Türkiye."
+      : "Collect original paintings directly from Aeda Art or shop international prints through Fourthwall.",
   );
   useEffect(() => {
     setActiveShoppingRegion(region);

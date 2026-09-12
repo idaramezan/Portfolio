@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 export function StudioWordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className={cn("studio-wordmark", compact && "studio-wordmark--compact")}>
-      <span>Aida Ramezani</span>
+      <span>Aeda Art</span>
       {!compact && <small>oil pastel artist</small>}
     </span>
   );

@@ -47,7 +47,7 @@ function PaintingProcessVideo() {
     return (
       <img
         src={paintingVideoPoster}
-        alt="Aida Ramezani painting with oil pastel in her studio"
+        alt="Aeda Art painting with oil pastel in her studio"
         className="about-process__visual"
       />
     );
@@ -61,7 +61,7 @@ function PaintingProcessVideo() {
       playsInline
       preload="metadata"
       poster={paintingVideoPoster}
-      aria-label="Aida Ramezani painting with oil pastel in her studio"
+      aria-label="Aeda Art painting with oil pastel in her studio"
       className="about-process__visual"
     >
       <source src={paintingVideo} type="video/mp4" />
@@ -72,18 +72,18 @@ function PaintingProcessVideo() {
 export default function About() {
   const { isTürkiye } = useShippingDestination();
   usePageMeta(
-    "About Aida Ramezani | Oil Pastel Artist",
-    "Meet Aida Ramezani, a self-taught oil pastel artist. Discover her materials, creative process, studio practice and approach to handmade original art.",
+    "About Aeda Art | Oil Pastel Artist",
+    "Meet Aeda Art, a self-taught oil pastel artist. Discover her materials, creative process, studio practice and approach to handmade original art.",
   );
 
   return (
     <div className="w-full">
       <section className="about-hero">
         <div className="about-hero__content">
-          <p className="eyebrow">About Aida Ramezani</p>
+          <p className="eyebrow">About Aeda Art</p>
           <h1>Art made directly, honestly and by hand.</h1>
           <p>
-            Aida Ramezani is a self-taught oil pastel artist. Her work is rooted
+            Aeda Art is a self-taught oil pastel artist. Her work is rooted
             in texture, instinct and the physical act of making.
           </p>
           <p>
@@ -95,7 +95,7 @@ export default function About() {
         <div className="about-hero__media">
           <img
             src={heroPortrait}
-            alt="Oil pastel artist Aida Ramezani holding one of her artworks"
+            alt="Oil pastel artist Aeda Art holding one of her artworks"
             fetchPriority="high"
           />
         </div>

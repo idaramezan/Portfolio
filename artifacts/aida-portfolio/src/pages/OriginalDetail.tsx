@@ -36,9 +36,9 @@ export default function OriginalDetail({
   );
   usePageMeta(
     product
-      ? `${product.name} | Original Painting | Aida Ramezani`
-      : "Original painting unavailable | Aida Ramezani",
-    product?.description || "View original paintings by Aida Ramezani.",
+      ? `${product.name} | Original Painting | Aeda Art`
+      : "Original painting unavailable | Aeda Art",
+    product?.description || "View original paintings by Aeda Art.",
   );
   const linked = product?.fourthwallProductId
     ? international.products.find(

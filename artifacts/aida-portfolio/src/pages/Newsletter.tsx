@@ -71,10 +71,10 @@ export default function Newsletter() {
   const text = copy[locale];
   const [toast, setToast] = useState(false);
   usePageMeta(
-    locale === "tr" ? "Bülten | Aida Ramezani" : "Newsletter | Aida Ramezani",
+    locale === "tr" ? "Bülten | Aeda Art" : "Newsletter | Aeda Art",
     locale === "tr"
-      ? "Aida Ramezani’nin resimlerin ardındaki hikâyeleri ve atölye notlarını paylaştığı ücretsiz Bültene katıl."
-      : "Join Aida Ramezani’s free Newsletter for stories behind the paintings, studio notes and first looks at new work.",
+      ? "Aeda Art’nin resimlerin ardındaki hikâyeleri ve atölye notlarını paylaştığı ücretsiz Bültene katıl."
+      : "Join Aeda Art’s free Newsletter for stories behind the paintings, studio notes and first looks at new work.",
   );
   useEffect(() => {
     const success = () => setToast(true);

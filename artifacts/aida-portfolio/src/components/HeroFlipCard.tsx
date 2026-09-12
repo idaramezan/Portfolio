@@ -79,8 +79,8 @@ export default function HeroFlipCard({ portrait, paintings }: Props) {
           src={displaySrc}
           alt={
             isPortrait
-              ? "Aida Ramezani in the studio"
-              : "Original painting by Aida Ramezani"
+              ? "Aeda Art in the studio"
+              : "Original painting by Aeda Art"
           }
           className="w-full h-auto object-cover transform -rotate-3 torn-edge shadow-xl"
           style={{ willChange: "transform" }}

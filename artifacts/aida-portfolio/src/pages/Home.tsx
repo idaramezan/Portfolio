@@ -27,16 +27,16 @@ type HomeSort = "newest" | "price-asc" | "price-desc";
 
 const copy = {
   en: {
-    seoTitle: "Original Art, Prints & Small Works | Aida Ramezani",
+    seoTitle: "Original Art, Prints & Small Works | Aeda Art",
     seoDescription:
-      "Original paintings, prints and small works by Aida Ramezani.",
+      "Original paintings, prints and small works by Aeda Art.",
     heroEyebrow: "ART TO LIVE WITH",
     heroLead: "Art that makes",
     heroAccent: "room for feeling.",
     heroBody: "Original paintings, small works and art made to live with you.",
     collection: "View the collection",
     commission: "Commission a piece",
-    introEyebrow: "ART BY AIDA RAMEZANI",
+    introEyebrow: "ART BY AEDA ART",
     introTitle: "A little wild, a little quiet. Art made to stay with you.",
     introBody:
       "Aida works through colour, memory and small moments that are easy to miss. Each piece begins by hand and is made to bring something personal into the spaces we live in.",
@@ -85,9 +85,9 @@ const copy = {
     priceLoading: "Price loading",
   },
   tr: {
-    seoTitle: "Orijinal Eserler, Baskılar ve Küçük İşler | Aida Ramezani",
+    seoTitle: "Orijinal Eserler, Baskılar ve Küçük İşler | Aeda Art",
     seoDescription:
-      "Aida Ramezani'nin orijinal resimleri, baskıları ve küçük eserleri.",
+      "Aeda Art'nin orijinal resimleri, baskıları ve küçük eserleri.",
     heroEyebrow: "YAŞAMAK İÇİN SANAT",
     heroLead: "Duygulara yer",
     heroAccent: "açan sanat.",
@@ -95,7 +95,7 @@ const copy = {
       "Seninle yaşamak için yapılmış orijinal resimler, küçük eserler ve sanat.",
     collection: "Koleksiyonu gör",
     commission: "Özel eser siparişi",
-    introEyebrow: "AIDA RAMEZANI'NİN SANATI",
+    introEyebrow: "AEDA ART'IN SANATI",
     introTitle: "Biraz özgür, biraz sakin. Seninle kalmak için yapılan sanat.",
     introBody:
       "Aida renkler, anılar ve kolayca gözden kaçan küçük anlar üzerinden çalışır. Her eser elde başlar ve yaşadığımız alanlara kişisel bir his katmak için yapılır.",

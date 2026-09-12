@@ -64,7 +64,7 @@ const money = (minor: number, currency: string) =>
 
 const CHECKOUT_COPY = {
   en: {
-    documentTitle: "Complete your order | Aida Ramezani",
+    documentTitle: "Complete your order | Aeda Art",
     progressLabel: "Checkout progress",
     basketStep: "1. Basket",
     deliveryStep: "2. Delivery",
@@ -137,7 +137,7 @@ const CHECKOUT_COPY = {
       "This discount code is no longer available. Your order total has been updated.",
     copied: (label: string) => `${label} copied`,
     copyLabel: (label: string) => `Copy ${label}`,
-    successDocumentTitle: "Order received | Aida Ramezani",
+    successDocumentTitle: "Order received | Aeda Art",
     pending: "Pending payment review",
     confirmed: "Order confirmed",
     received: "Your order has been received",
@@ -156,7 +156,7 @@ const CHECKOUT_COPY = {
     returnStudio: "Return to the studio",
   },
   tr: {
-    documentTitle: "Siparişinizi tamamlayın | Aida Ramezani",
+    documentTitle: "Siparişinizi tamamlayın | Aeda Art",
     progressLabel: "Ödeme adımları",
     basketStep: "1. Sepet",
     deliveryStep: "2. Teslimat",
@@ -229,7 +229,7 @@ const CHECKOUT_COPY = {
       "Bu indirim kodu artık kullanılamıyor. Sipariş toplamın güncellendi.",
     copied: (label: string) => `${label} kopyalandı`,
     copyLabel: (label: string) => `${label} bilgisini kopyala`,
-    successDocumentTitle: "Sipariş alındı | Aida Ramezani",
+    successDocumentTitle: "Sipariş alındı | Aeda Art",
     pending: "Ödeme kontrolü bekleniyor",
     confirmed: "Sipariş onaylandı",
     received: "Siparişiniz alındı",

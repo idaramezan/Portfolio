@@ -72,8 +72,8 @@ export default function AceoDetail() {
   );
   usePageMeta(
     product
-      ? `${product.name} | ACEO Original | Aida Ramezani`
-      : "ACEO unavailable | Aida Ramezani",
+      ? `${product.name} | ACEO Original | Aeda Art`
+      : "ACEO unavailable | Aeda Art",
     product?.description ||
       "Tiny one-of-one original artworks painted live by Aida.",
   );
@@ -99,7 +99,7 @@ export default function AceoDetail() {
     .map((src) => ({
       src,
       highResolutionSrc: src,
-      alt: product.altText || `${product.name}, ACEO original by Aida Ramezani`,
+      alt: product.altText || `${product.name}, ACEO original by Aeda Art`,
     }));
   const add = () => {
     const result = addItemToCart(
