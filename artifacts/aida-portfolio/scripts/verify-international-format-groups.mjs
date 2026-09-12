@@ -30,7 +30,10 @@ assert.ok(
     selector.includes('role="radio"') &&
     selector.includes("format_selected") &&
     selector.includes("external_purchase_click") &&
-    selector.includes("GET THIS PRINT"),
+    selector.includes("GET THIS PRINT") &&
+    selector.includes("QUALITY GUARANTEE & RETURNS") &&
+    selector.includes("selected.product?.variants") &&
+    selector.includes("selected.product?.description"),
   "international format controls must be accessible and analytics-aware",
 );
 assert.ok(

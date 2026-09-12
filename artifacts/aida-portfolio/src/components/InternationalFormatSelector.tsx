@@ -37,6 +37,13 @@ export default function InternationalFormatSelector({
   const selected =
     variants.find((variant) => variant.id === selectedId) || initial;
   if (!selected) return null;
+  const optionNames = [
+    ...new Set(
+      (selected.product?.variants || [])
+        .map((variant) => variant.name.trim())
+        .filter(Boolean),
+    ),
+  ];
 
   return (
     <div className="international-formats">
@@ -87,6 +94,53 @@ export default function InternationalFormatSelector({
         {selected.product?.price?.formatted ||
           (locale === "tr" ? "Fiyat mağazada" : "Price available on shop")}
       </strong>
+      <div className="international-formats__information">
+        <details open>
+          <summary>{locale === "tr" ? "BOYUTLAR" : "SIZE"}</summary>
+          {optionNames.length ? (
+            <ul>
+              {optionNames.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>
+              {locale === "tr"
+                ? "Mevcut boyutlar seçili ürünün mağaza sayfasında gösterilir."
+                : "Available sizes are shown on the selected product’s shop page."}
+            </p>
+          )}
+        </details>
+        <details>
+          <summary>
+            {locale === "tr" ? "DAHA FAZLA DETAY" : "MORE DETAILS"}
+          </summary>
+          <p>
+            {selected.product?.description ||
+              (locale === "tr"
+                ? `${selected.label} baskının tüm malzeme ve üretim detayları mağaza sayfasında yer alır.`
+                : `Full material and production details for the ${selected.label.toLowerCase()} print are available on the shop page.`)}
+          </p>
+        </details>
+        <details>
+          <summary>
+            {locale === "tr"
+              ? "KALİTE GARANTİSİ VE İADELER"
+              : "QUALITY GUARANTEE & RETURNS"}
+          </summary>
+          <p>
+            {locale === "tr"
+              ? "Bu ürünün kalite sorunları ve iade uygunluğu Fourthwall tarafından yönetilir. Güncel koşulları seçili ürünün mağaza sayfasında inceleyin."
+              : "Quality issues and return eligibility for this item are handled by Fourthwall. Review the selected product page for the current terms."}
+          </p>
+          {selected.href && (
+            <a href={selected.href} target="_blank" rel="noopener noreferrer">
+              {locale === "tr" ? "GÜNCEL KOŞULLARI GÖR" : "VIEW CURRENT TERMS"}{" "}
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+          )}
+        </details>
+      </div>
       {selected.available ? (
         <a
           className="button-primary product-detail__cta"
