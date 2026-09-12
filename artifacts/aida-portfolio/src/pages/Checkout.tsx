@@ -31,6 +31,7 @@ type Quote = {
   discountAmountMinor: number;
   grandTotalMinor: number;
   printQuantity: number;
+  framedQuantity: number;
   originalQuantity: number;
 };
 type Bank = {
@@ -122,8 +123,10 @@ const CHECKOUT_COPY = {
     nothingToPayDescription:
       "Your discount covers the full order. No bank transfer or payment receipt is required.",
     calculating: "Calculating authoritative prices…",
-    printShipping: (quantity: number) =>
-      `Delivery calculation: 200 TL for the first print${quantity > 1 ? ` + 20 TL for ${quantity - 1} additional print${quantity > 2 ? "s" : ""}` : ""}. Originals ship free.`,
+    printShipping: (_quantity: number, framedQuantity: number) =>
+      framedQuantity > 0
+        ? "Framed delivery starts at 350 TL. Each additional framed piece is 150 TL; each unframed piece is 50 TL. Originals ship free."
+        : "Unframed delivery is 200 TL for the first piece, then 50 TL for each additional piece. Originals ship free.",
     originalsFree: "Original paintings ship free within Türkiye.",
     internationalShipping:
       "Fixed international original shipping: 100 USD per order.",
@@ -214,8 +217,10 @@ const CHECKOUT_COPY = {
     nothingToPayDescription:
       "İndirimin sipariş tutarının tamamını karşılıyor. Banka havalesi veya ödeme dekontu gerekmiyor.",
     calculating: "Fiyatlar hesaplanıyor…",
-    printShipping: (quantity: number) =>
-      `Teslimat hesaplaması: İlk baskı için 200 TL${quantity > 1 ? ` + ${quantity - 1} ek baskı için ${20 * (quantity - 1)} TL` : ""}. Orijinal eserlerde kargo ücretsizdir.`,
+    printShipping: (_quantity: number, framedQuantity: number) =>
+      framedQuantity > 0
+        ? "Çerçeveli gönderim 350 TL'den başlar. Her ek çerçeveli eser 150 TL, her çerçevesiz eser 50 TL'dir. Orijinal eserlerde kargo ücretsizdir."
+        : "Çerçevesiz gönderimde ilk eser 200 TL, her ek eser 50 TL'dir. Orijinal eserlerde kargo ücretsizdir.",
     originalsFree: "Orijinal eserlerin Türkiye içi kargosu ücretsizdir.",
     internationalShipping:
       "Uluslararası orijinal eser kargosu sipariş başına sabit 100 USD'dir.",
@@ -758,7 +763,10 @@ export default function Checkout({
               <p className="checkout-shipping-copy">
                 {market === "turkiye"
                   ? quote.printQuantity
-                    ? copyText.printShipping(quote.printQuantity)
+                    ? copyText.printShipping(
+                        quote.printQuantity,
+                        quote.framedQuantity || 0,
+                      )
                     : copyText.originalsFree
                   : copyText.internationalShipping}
               </p>

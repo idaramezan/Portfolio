@@ -454,7 +454,7 @@ function TurkiyeCatalogue() {
   };
   const faq = locale === "tr" ? [
     ["Siparişimi nasıl tamamlarım?", "Ürünleri sepete ekle, teslimat bilgilerini gir, banka transferini tamamla ve ödeme dekontunu yükle."],
-    ["Türkiye içinde teslimat nasıl yapılır?", "Orijinaller ücretsiz gönderilir. Baskı teslimatı ilk baskı için 200 TL, her ek baskı için 20 TL’dir."],
+    ["Türkiye içinde teslimat nasıl yapılır?", "Orijinaller ücretsiz gönderilir. Çerçevesiz teslimat 200 TL’den, çerçeveli teslimat 350 TL’den başlar. Ek çerçevesiz eser 50 TL, ek çerçeveli eser 150 TL’dir."],
     ["Orijinal eserler tek mi?", "Evet. Her orijinal eser benzersizdir ve satıldıktan sonra yeniden sipariş edilemez."],
   ] as const : turkiyeFaq.slice(0, 3);
 

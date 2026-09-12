@@ -217,6 +217,7 @@ async function calculate(body: any) {
   const items: any[] = [];
   const seenAceos = new Set<string>();
   let printQuantity = 0,
+    framedQuantity = 0,
     originalQuantity = 0;
   for (const input of requested) {
     const quantity = Number(input.quantity);
@@ -305,7 +306,14 @@ async function calculate(body: any) {
     }
     if (!Number.isInteger(unit) || unit < 0)
       throw new Error("A product price is invalid.");
-    if (kind === "print") printQuantity += quantity;
+    if (kind === "print") {
+      printQuantity += quantity;
+      if (
+        product.printOptions &&
+        input.selectedOptions?.framing === "framed"
+      )
+        framedQuantity += quantity;
+    }
     else originalQuantity += quantity;
     items.push({
       productId: product.id,
@@ -323,7 +331,11 @@ async function calculate(body: any) {
     (sum, item) => sum + item.lineTotalMinor,
     0,
   );
-  const shippingMinor = calculateCheckoutShipping({ market, printQuantity });
+  const shippingMinor = calculateCheckoutShipping({
+    market,
+    printQuantity,
+    framedQuantity,
+  });
   return {
     market,
     currency,
@@ -332,6 +344,7 @@ async function calculate(body: any) {
     shippingMinor,
     grandTotalMinor: subtotalMinor + shippingMinor,
     printQuantity,
+    framedQuantity,
     originalQuantity,
   };
 }

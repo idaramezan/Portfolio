@@ -164,9 +164,21 @@ export default function CartDrawer({
       total + (["print", "product"].includes(item.kind) ? item.quantity : 0),
     0,
   );
+  const framedProductQuantity = cart.reduce(
+    (total, item) =>
+      total +
+      (item.kind === "print" &&
+      item.printConfiguration?.framing === "framed"
+        ? item.quantity
+        : 0),
+    0,
+  );
   const shipping =
     region === "TR"
-      ? calculateTurkiyeProductShipping(totalProductQuantity)
+      ? calculateTurkiyeProductShipping(
+          totalProductQuantity,
+          framedProductQuantity,
+        )
       : cart.length
         ? 10_000
         : 0;
@@ -491,7 +503,7 @@ export default function CartDrawer({
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
               <PackageCheck size={17} aria-hidden="true" />
               {totalProductQuantity > 0
-                ? "Türkiye delivery is 200 TL for the first product, then 20 TL for each additional product. Originals ship free."
+                ? "Unframed delivery starts at 200 TL and framed delivery at 350 TL. Additional framed pieces are 150 TL each; additional unframed pieces are 50 TL each. Originals ship free."
                 : "Free shipping within Türkiye"}
             </p>
           ) : (

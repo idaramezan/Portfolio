@@ -10,10 +10,23 @@ export function isAceoProduct(product: { category?: string | null }) {
 export type PrintFraming = "framed" | "unframed";
 export type TshirtColor = "black" | "white";
 
-export function calculateTurkiyeProductShipping(productQuantity: number) {
+export function calculateTurkiyeProductShipping(
+  productQuantity: number,
+  framedQuantity = 0,
+) {
   if (!Number.isInteger(productQuantity) || productQuantity < 0)
     throw new Error("Product quantity must be a non-negative integer.");
-  return productQuantity === 0 ? 0 : 20_000 + (productQuantity - 1) * 2_000;
+  if (
+    !Number.isInteger(framedQuantity) ||
+    framedQuantity < 0 ||
+    framedQuantity > productQuantity
+  )
+    throw new Error("Framed quantity must be within the product quantity.");
+  if (productQuantity === 0) return 0;
+  const unframedQuantity = productQuantity - framedQuantity;
+  return framedQuantity > 0
+    ? 35_000 + (framedQuantity - 1) * 15_000 + unframedQuantity * 5_000
+    : 20_000 + (unframedQuantity - 1) * 5_000;
 }
 
 /** @deprecated Use calculateTurkiyeProductShipping for all non-original goods. */

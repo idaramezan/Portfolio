@@ -145,9 +145,12 @@ export default function TurkeyProductDialog({
   const selectedColor =
     category === "tshirt" ? color : category === "mug" ? "white" : undefined;
   const formattedSize = size ? formatPrintSize(size) : null;
-  // This dialog only handles non-original Türkiye products. Checkout applies
-  // the same 200 TL first-item rule to prints, stickers, mugs and shirts.
-  const shipping = calculateTurkiyeProductShipping(quantity);
+  // This dialog only handles non-original Türkiye products. Framed prints use
+  // the same finish-aware delivery calculation as the basket and checkout.
+  const shipping = calculateTurkiyeProductShipping(
+    quantity,
+    category === "print" && framing === "framed" ? quantity : 0,
+  );
   const orderTotal = pricing.lineTotalCents + shipping;
   const supportsFramedPreview =
     category === "print" &&
@@ -594,8 +597,8 @@ export default function TurkeyProductDialog({
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <PackageCheck size={17} aria-hidden="true" />
               {locale === "tr"
-                ? "Türkiye içi kargo ilk ürün için 200 TL, eklenen her ürün için ise +20 TL'dir. Orijinal eserlerde kargo ücretsizdir."
-                : "Türkiye delivery is 200 TL for the first product, then 20 TL for each additional product. Originals ship free."}
+                ? "Çerçevesiz gönderim 200 TL'den, çerçeveli gönderim 350 TL'den başlar. Ek çerçeveli eser +150 TL, ek çerçevesiz eser +50 TL'dir. Orijinal eserlerde kargo ücretsizdir."
+                : "Unframed delivery starts at 200 TL and framed delivery at 350 TL. Each additional framed piece is 150 TL; each additional unframed piece is 50 TL. Originals ship free."}
             </p>
           </section>
 

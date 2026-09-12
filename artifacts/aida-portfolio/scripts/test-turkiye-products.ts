@@ -36,13 +36,17 @@ import {
 
 assert.equal(calculateTurkiyePrintShipping(0), 0);
 assert.equal(calculateTurkiyePrintShipping(1), 20_000);
-assert.equal(calculateTurkiyePrintShipping(2), 22_000);
-assert.equal(calculateTurkiyePrintShipping(3), 24_000);
-assert.equal(calculateTurkiyePrintShipping(5), 28_000);
+assert.equal(calculateTurkiyePrintShipping(2), 25_000);
+assert.equal(calculateTurkiyePrintShipping(3), 30_000);
+assert.equal(calculateTurkiyePrintShipping(5), 40_000);
 assert.throws(() => calculateTurkiyePrintShipping(-1));
 assert.equal(calculateTurkiyeProductShipping(1), 20_000);
-assert.equal(calculateTurkiyeProductShipping(2), 22_000);
+assert.equal(calculateTurkiyeProductShipping(2), 25_000);
+assert.equal(calculateTurkiyeProductShipping(1, 1), 35_000);
+assert.equal(calculateTurkiyeProductShipping(2, 2), 50_000);
+assert.equal(calculateTurkiyeProductShipping(3, 2), 55_000);
 assert.throws(() => calculateTurkiyeProductShipping(-1));
+assert.throws(() => calculateTurkiyeProductShipping(1, 2));
 
 assert.equal(normalizeArtworkSurface("paper"), "paper");
 assert.equal(normalizeArtworkSurface("canvas"), "canvas");
