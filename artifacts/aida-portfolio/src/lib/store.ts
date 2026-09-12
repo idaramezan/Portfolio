@@ -39,6 +39,19 @@ export type ProductCategory = "Prints" | "T-shirts" | "Mugs" | "Stickers";
 export type ProductKind =
   "original" | "aceo" | "print" | "studio-mail" | "product";
 
+export type FourthwallVariantType = "poster" | "framed" | (string & {});
+
+export interface ProductFourthwallVariant {
+  id: string;
+  fourthwallProductId: string;
+  fourthwallProductUrl?: string;
+  variantType: FourthwallVariantType;
+  label: string;
+  sortOrder: number;
+  isDefault: boolean;
+  enabled: boolean;
+}
+
 export interface ManagedProduct {
   id: string;
   kind: "print" | "original";
@@ -79,6 +92,8 @@ export interface ManagedProduct {
   fourthwallProductId?: string;
   fourthwallProductUrl?: string;
   fourthwallLinkType?: "exact" | "edition" | "related";
+  fourthwallVariantGroupEnabled?: boolean;
+  fourthwallVariants?: ProductFourthwallVariant[];
   isHundredWindowsProduct?: boolean;
   paintedLive?: boolean;
   createdAt?: string;

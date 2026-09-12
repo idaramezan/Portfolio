@@ -291,18 +291,21 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               home: "/shop",
               description:
                 locale === "tr"
-                  ? "Orijinaller, baskılar ve atölye ürünleri"
-                  : "Originals, prints and studio goods",
+                  ? "Baskılar ve orijinal eserler"
+                  : "Prints and original works",
               links: [
-                ["/shop", locale === "tr" ? "Tümü" : "All"],
-                [
-                  "/shop?category=originals",
-                  locale === "tr" ? "Orijinal Eserler" : "Original Art",
-                ],
                 [
                   "/shop?category=prints",
-                  locale === "tr" ? "Baskılar ve Ürünler" : "Prints & Goods",
+                  locale === "tr" ? "Baskılar" : "Prints",
                 ],
+                ...(isTürkiye
+                  ? [
+                      [
+                        "/shop?category=originals",
+                        locale === "tr" ? "Orijinal Eserler" : "Original Art",
+                      ],
+                    ]
+                  : []),
               ],
             },
           ].map((group) => {
@@ -481,9 +484,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             >
               <p className="footer-eyebrow">Shop</p>
               <div className="site-footer__nav-links">
-                <Link href="/shop">Shop all</Link>
-                <Link href="/shop?category=originals">Original Art</Link>
-                <Link href="/shop?category=prints">Prints &amp; Goods</Link>
+                <Link href="/shop?category=prints">Prints</Link>
+                {isTürkiye && (
+                  <Link href="/shop?category=originals">Original Art</Link>
+                )}
               </div>
             </nav>
             <nav
@@ -508,9 +512,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   Shop <ChevronDown aria-hidden="true" />
                 </summary>
                 <div className="site-footer__nav-links">
-                  <Link href="/shop">Shop all</Link>
-                  <Link href="/shop?category=originals">Original Art</Link>
-                  <Link href="/shop?category=prints">Prints & Goods</Link>
+                  <Link href="/shop?category=prints">Prints</Link>
+                  {isTürkiye && (
+                    <Link href="/shop?category=originals">Original Art</Link>
+                  )}
                 </div>
               </details>
               <details className="site-footer__nav-group">

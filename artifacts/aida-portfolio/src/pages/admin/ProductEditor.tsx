@@ -290,6 +290,25 @@ export default function ProductEditor({
       const optionErrors = validatePrintOptions(draft.printOptions);
       if (optionErrors.length) next.options = optionErrors[0];
     }
+    if (publishing && draft.fourthwallVariantGroupEnabled) {
+      const enabled = (draft.fourthwallVariants || []).filter(
+        (variant) => variant.enabled,
+      );
+      if (!enabled.length || enabled.some((variant) => !variant.fourthwallProductId))
+        next.fourthwall =
+          "Assign a Fourthwall product to every enabled international format.";
+      if (
+        new Set(enabled.map((variant) => variant.fourthwallProductId)).size !==
+        enabled.length
+      )
+        next.fourthwall =
+          "The same Fourthwall product cannot be assigned more than once.";
+      if (
+        new Set(enabled.map((variant) => variant.variantType)).size !==
+        enabled.length
+      )
+        next.fourthwall = "Each international format type must be unique.";
+    }
     if (
       publishing &&
       isMail &&
@@ -1722,6 +1741,11 @@ export default function ProductEditor({
               product={draft as ManagedProduct}
               onChange={update}
             />
+          )}
+          {errors.fourthwall && (
+            <p role="alert" className="text-sm font-semibold text-warning">
+              {errors.fourthwall}
+            </p>
           )}
           {isMail && (
             <div className="border border-ink/10 bg-paper p-5 text-sm">

@@ -106,6 +106,48 @@ function validFourthwallConnections(settings: Record<string, unknown>) {
     const type = String(record.fourthwallLinkType || "").trim();
     if (type && !["exact", "edition", "related"].includes(type)) return false;
     if (id && id.length > 200) return false;
+    const grouped = Boolean(record.fourthwallVariantGroupEnabled);
+    const variants = Array.isArray(record.fourthwallVariants)
+      ? record.fourthwallVariants
+      : [];
+    if (grouped) {
+      const enabled = variants.filter(
+        (variant) =>
+          variant &&
+          typeof variant === "object" &&
+          Boolean((variant as Record<string, unknown>).enabled),
+      ) as Record<string, unknown>[];
+      const ids = enabled.map((variant) =>
+        String(variant.fourthwallProductId || "").trim(),
+      );
+      const types = enabled.map((variant) =>
+        String(variant.variantType || "").trim(),
+      );
+      if (
+        !enabled.length ||
+        ids.some((value) => !value || value.length > 200) ||
+        types.some((value) => !value || value.length > 50) ||
+        new Set(ids).size !== ids.length ||
+        new Set(types).size !== types.length ||
+        enabled.filter((variant) => Boolean(variant.isDefault)).length > 1
+      )
+        return false;
+      for (const variant of enabled) {
+        const variantUrl = String(variant.fourthwallProductUrl || "").trim();
+        if (!variantUrl) continue;
+        try {
+          const parsed = new URL(variantUrl);
+          if (
+            parsed.protocol !== "https:" ||
+            !expectedHost ||
+            parsed.hostname !== expectedHost
+          )
+            return false;
+        } catch {
+          return false;
+        }
+      }
+    }
     if (!url) return true;
     try {
       const parsed = new URL(url);

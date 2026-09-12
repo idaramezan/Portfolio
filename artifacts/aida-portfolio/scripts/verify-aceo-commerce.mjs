@@ -37,12 +37,10 @@ assert.ok(
   "admin catalog must identify and filter ACEOs",
 );
 assert.ok(
-  shop.includes('["aceos", c.aceos]') &&
-    shop.includes('filter === "aceos"') &&
-    shop.includes(".filter(isAceoProduct)") &&
-    shop.includes("!isAceoProduct(product)") &&
-    shop.includes("ACEOs are currently available in Türkiye only."),
-  "unified shop must expose a distinct browsable ACEO category",
+  !shop.includes('["aceos", c.aceos]') &&
+    !shop.includes('filter === "aceos"') &&
+    shop.includes("!isAceoProduct(product)"),
+  "ACEO commerce must remain internal while the public shop exposes only Prints and Originals",
 );
 assert.ok(
   app.includes('<Route path="/shop/aceos/:slug" component={AceoDetail}') &&

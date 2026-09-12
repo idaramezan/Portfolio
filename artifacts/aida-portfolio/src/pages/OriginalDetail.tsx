@@ -14,7 +14,6 @@ import {
   useShippingDestination,
 } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
-import Money from "@/components/Money";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { trackAnalytics } from "@/lib/analytics";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
@@ -69,8 +68,19 @@ export default function OriginalDetail({
             ? "Bu eser şu anda mevcut değil."
             : "This work is not currently available."}
         </h1>
-        <Link href="/shop?category=originals" className="button-primary mt-7">
-          {locale === "tr" ? "Orijinal eserlere dön" : "Browse originals"}
+        <Link
+          href={
+            isTürkiye ? "/shop?category=originals" : "/shop?category=prints"
+          }
+          className="button-primary mt-7"
+        >
+          {isTürkiye
+            ? locale === "tr"
+              ? "Orijinal eserlere dön"
+              : "Browse originals"
+            : locale === "tr"
+              ? "Baskıları gör"
+              : "View prints"}
         </Link>
       </section>
     );
@@ -84,8 +94,20 @@ export default function OriginalDetail({
   return (
     <>
       <section className="section-shell original-unified-detail">
-        <Link href="/shop?category=originals" className="button-link">
-          ← {locale === "tr" ? "Orijinal eserlere dön" : "Back to originals"}
+        <Link
+          href={
+            isTürkiye ? "/shop?category=originals" : "/shop?category=prints"
+          }
+          className="button-link"
+        >
+          ←{" "}
+          {isTürkiye
+            ? locale === "tr"
+              ? "Orijinal eserlere dön"
+              : "Back to originals"
+            : locale === "tr"
+              ? "Baskılara dön"
+              : "Back to prints"}
         </Link>
         <div className="product-detail-layout">
           <div className="product-detail-media">
@@ -103,14 +125,18 @@ export default function OriginalDetail({
               {product.description}
             </p>
             <DestinationControl compact />
-            {!sold && destination && !isTürkiye && (
-              <Money
-                baseAmountUsdCents={product.priceUsdCents}
-                canonicalCurrency="USD"
-                className="mt-5 block text-2xl font-bold"
-              />
-            )}
-            {sold ? (
+            {destination && !isTürkiye ? (
+              <div className="original-fulfillment-state">
+                <h2>
+                  {locale === "tr"
+                    ? "Bu orijinal eser yalnızca Türkiye teslimatı için mevcut."
+                    : "This original is currently available only for delivery within Türkiye."}
+                </h2>
+                <Link href="/shop?category=prints" className="button-link">
+                  {locale === "tr" ? "BASKILARI GÖR" : "VIEW PRINTS"} →
+                </Link>
+              </div>
+            ) : sold ? (
               <div className="original-fulfillment-state">
                 <strong>SOLD</strong>
                 {printHref && (

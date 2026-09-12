@@ -8,7 +8,7 @@ import {
   DestinationControl,
 } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
-import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
+import { isPubliclyVisible } from "@/lib/product-status";
 import type { ManagedProduct } from "@/lib/store";
 import Money from "@/components/Money";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -16,8 +16,12 @@ import { trackAnalytics } from "@/lib/analytics";
 import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import {
+  getFourthwallVariants,
+  getLowestFourthwallVariant,
+} from "@/lib/fourthwall-variants";
 
-type Filter = "all" | "originals" | "aceos" | "prints";
+type Filter = "originals" | "prints";
 
 const newestFirst = (a: ManagedProduct, b: ManagedProduct) =>
   (Date.parse(b.createdAt || "") || 0) - (Date.parse(a.createdAt || "") || 0);
@@ -28,8 +32,8 @@ const copy = {
     title: "Shop the studio.",
     body: "Original paintings, prints and small studio editions made by Aida.",
     all: "All",
-    originals: "Original Art",
-    prints: "Prints & Goods",
+    originals: "Originals",
+    prints: "Prints",
     aceos: "ACEOs",
     sold: "Sold",
     view: "View piece",
@@ -62,7 +66,7 @@ const copy = {
     body: "Aida'nın ürettiği orijinal resimler, baskılar ve küçük atölye edisyonları.",
     all: "Tümü",
     originals: "Orijinal Eserler",
-    prints: "Baskılar ve Ürünler",
+    prints: "Baskılar",
     aceos: "ACEO'lar",
     sold: "Satıldı",
     view: "Eseri görüntüle",
@@ -124,17 +128,16 @@ export default function UnifiedShop() {
   const c = copy[locale];
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const { destination, openDestination } = useShippingDestination();
+  const { destination, loading: destinationLoading } = useShippingDestination();
   const [, navigate] = useLocation();
   const search = useSearch();
   const requested = new URLSearchParams(search).get(
     "category",
   ) as Filter | null;
-  const filter: Filter = ["originals", "aceos", "prints"].includes(
-    requested || "",
-  )
-    ? requested!
-    : "all";
+  const filter: Filter =
+    requested === "originals" && destination?.countryCode === "TR"
+      ? "originals"
+      : "prints";
   usePageMeta(
     locale === "tr"
       ? "Atölyeyi keşfet | Aida Ramezani"
@@ -148,6 +151,7 @@ export default function UnifiedShop() {
   }, []);
 
   const products = useMemo(() => {
+    if (!destination) return [];
     const originals = settings.originalProducts
       .filter(isPubliclyVisible)
       .sort(newestFirst);
@@ -155,24 +159,26 @@ export default function UnifiedShop() {
       .filter(isPubliclyVisible)
       .sort(newestFirst);
     if (filter === "originals") return originals;
-    if (filter === "aceos") return prints.filter(isAceoProduct);
-    if (filter === "prints")
-      return prints.filter((product) => !isAceoProduct(product));
-    return [...originals, ...prints].sort(newestFirst);
-  }, [settings.originalProducts, settings.printProducts, filter]);
+    if (filter === "originals" && destination.countryCode === "TR")
+      return originals;
+    return prints.filter((product) => !isAceoProduct(product));
+  }, [settings.originalProducts, settings.printProducts, filter, destination]);
 
-  const filters: Array<[Filter, string]> = [
-    ["all", c.all],
-    ["originals", c.originals],
-    ["aceos", c.aceos],
-    ["prints", c.prints],
-  ];
+  const filters: Array<[Filter, string]> = [["prints", c.prints]];
+  if (destination?.countryCode === "TR")
+    filters.push(["originals", c.originals]);
   return (
     <main className="unified-shop">
       <header className="section-shell unified-shop__header">
         <p className="eyebrow">{c.eyebrow}</p>
         <h1>{c.title}</h1>
-        <p>{c.body}</p>
+        <p>
+          {destination?.countryCode === "TR"
+            ? c.body
+            : locale === "tr"
+              ? "Aida'nın eserlerinden hazırlanan sanat baskıları."
+              : "Art prints made from Aida's original work."}
+        </p>
         <DestinationControl compact />
       </header>
       <nav
@@ -183,46 +189,20 @@ export default function UnifiedShop() {
           <button
             type="button"
             key={value}
-            onClick={() =>
-              navigate(value === "all" ? "/shop" : `/shop?category=${value}`)
-            }
+            onClick={() => navigate(`/shop?category=${value}`)}
             aria-current={filter === value ? "page" : undefined}
           >
             {label}
           </button>
         ))}
       </nav>
-      {filter === "aceos" && (
-        <section className="section-shell aceo-intro">
-          <p className="eyebrow">{c.aceoEyebrow}</p>
-          <h2>{c.aceoTitle}</h2>
-          <p>{c.aceoBody}</p>
-          <strong>{c.aceoMeta}</strong>
-          {destination && destination.countryCode !== "TR" && (
-            <div className="aceo-availability-note">
-              <h3>{c.aceoOnlyTitle}</h3>
-              <p>{c.aceoOnlyBody}</p>
-              <button
-                type="button"
-                className="button-link"
-                onClick={() => openDestination()}
-              >
-                {locale === "tr"
-                  ? "Gönderim ülkesini değiştir"
-                  : "Change shipping country"}
-              </button>
-            </div>
-          )}
-          {products.length > 0 && products.every(isSoldOut) && (
-            <div className="aceo-collected-note">
-              <h3>{c.collectedTitle}</h3>
-              <p>{c.collectedBody}</p>
-            </div>
-          )}
-        </section>
-      )}
       <section className="section-shell unified-shop__catalog">
-        {products.length ? (
+        {destinationLoading && !destination ? (
+          <div
+            className="storefront-catalog-skeleton"
+            aria-label="Loading shop"
+          />
+        ) : products.length ? (
           <div className="unified-product-grid">
             {products.map((product) => {
               const original = product.kind === "original";
@@ -238,11 +218,17 @@ export default function UnifiedShop() {
                 )
                   ? product.fourthwallProductUrl
                   : "";
+              const variants = getFourthwallVariants(
+                product,
+                international.products,
+                international.shopUrl,
+              );
+              const cardVariant = getLowestFourthwallVariant(variants);
               const presentation = resolveProductPresentation(
                 product,
                 destination,
-                linked,
-                fallback,
+                cardVariant?.product || linked,
+                cardVariant?.href || fallback,
               );
               const href = `/shop/${original ? "originals" : aceo ? "aceos" : "prints"}/${product.slug || product.id}`;
               return (
@@ -310,6 +296,9 @@ export default function UnifiedShop() {
                       )}
                       {!aceo && presentation.externalPrice && (
                         <strong className="unified-product-card__price">
+                          {variants.filter((variant) => variant.available)
+                            .length > 1 &&
+                            (locale === "tr" ? "BAŞLANGIÇ " : "FROM ")}
                           {presentation.externalPrice}
                         </strong>
                       )}
@@ -336,40 +325,6 @@ export default function UnifiedShop() {
                 </article>
               );
             })}
-          </div>
-        ) : filter === "aceos" ? (
-          <div className="unified-shop__empty aceo-empty-state">
-            <p className="eyebrow">{c.emptyEyebrow}</p>
-            <h2>{c.emptyAceo}</h2>
-            <p>{c.emptyAceoBody}</p>
-            <div>
-              {[
-                settings.siteLinks.twitchUrl,
-                settings.siteLinks.tiktokUrl,
-                settings.siteLinks.kickUrl,
-              ].find(Boolean) && (
-                <a
-                  className="button-secondary"
-                  href={[
-                    settings.siteLinks.twitchUrl,
-                    settings.siteLinks.tiktokUrl,
-                    settings.siteLinks.kickUrl,
-                  ].find(Boolean)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {locale === "tr"
-                    ? "Aida'yı canlı izle"
-                    : "Watch Aida paint live"}
-                </a>
-              )}
-              <Link
-                href="/newsletter"
-                className="paper-button paper-button--pink paper-button--md"
-              >
-                {locale === "tr" ? "Newsletter'a katıl" : "Join the Newsletter"}
-              </Link>
-            </div>
           </div>
         ) : (
           <p className="unified-shop__empty">{c.empty}</p>

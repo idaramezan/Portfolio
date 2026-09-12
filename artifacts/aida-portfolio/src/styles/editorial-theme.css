@@ -838,6 +838,100 @@
     display: none;
   }
 }
+
+/* Region-aware storefront and grouped international formats */
+[data-public-site] .storefront-catalog-skeleton {
+  min-height: 28rem;
+  background: linear-gradient(
+    100deg,
+    var(--ivory-100) 20%,
+    var(--ivory-50) 38%,
+    var(--ivory-100) 56%
+  );
+  background-size: 200% 100%;
+  animation: storefront-loading 1.4s ease infinite;
+}
+@keyframes storefront-loading {
+  to {
+    background-position-x: -200%;
+  }
+}
+[data-public-site] .international-formats {
+  margin-top: 1.5rem;
+}
+[data-public-site] .international-formats fieldset {
+  border: 0;
+  padding: 0;
+}
+[data-public-site] .international-formats legend,
+[data-public-site] .international-formats__single {
+  color: var(--text-tertiary);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+[data-public-site] .international-formats [role="radiogroup"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+[data-public-site] .international-formats [role="radio"] {
+  position: relative;
+  min-height: 48px;
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+[data-public-site] .international-formats [role="radio"] small {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+[data-public-site] .international-formats [role="radio"][aria-checked="true"] {
+  color: var(--forest-950);
+}
+[data-public-site]
+  .international-formats
+  [role="radio"][aria-checked="true"]::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--amber-500);
+  content: "";
+}
+[data-public-site] .international-formats__preview {
+  width: min(100%, 230px);
+  max-height: 210px;
+  margin-top: 1.25rem;
+  background: var(--ivory-100);
+  object-fit: contain;
+}
+[data-public-site] .international-formats__price {
+  display: block;
+  margin-top: 1.25rem;
+  color: var(--forest-950);
+  font-size: 1.45rem;
+}
+[data-public-site] .international-formats__unavailable {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border-soft);
+  padding-top: 1rem;
+  color: var(--text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-public-site] .storefront-catalog-skeleton {
+    animation: none;
+  }
+}
 [data-public-site] .events-hero {
   border-bottom: 1px solid var(--border-soft);
   background: transparent;

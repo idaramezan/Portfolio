@@ -47,7 +47,7 @@ assert.ok(
     shop.includes("const search = useSearch()") &&
     shop.includes("new URLSearchParams(search)") &&
     shop.includes("<button") &&
-    shop.includes("navigate(value ==="),
+    shop.includes("navigate(`/shop?category=${value}`)"),
   "shop filters must be semantic and react to query-string navigation",
 );
 assert.ok(

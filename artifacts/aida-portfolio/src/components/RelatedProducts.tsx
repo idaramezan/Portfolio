@@ -9,6 +9,10 @@ import { isPurchasable } from "@/lib/product-status";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import type { ManagedProduct } from "@/lib/store";
 import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
+import {
+  getFourthwallVariants,
+  getLowestFourthwallVariant,
+} from "@/lib/fourthwall-variants";
 
 function productType(product: ManagedProduct) {
   if (product.kind === "original") return "original";
@@ -45,6 +49,8 @@ export default function RelatedProducts({
   const international = useInternationalProducts();
   const { destination, isTürkiye } = useShippingDestination();
   const { locale } = useLocale();
+  if (currentProduct.kind === "original" && destination && !isTürkiye)
+    return null;
   const source =
     currentProduct.kind === "original"
       ? settings.originalProducts
@@ -91,6 +97,12 @@ export default function RelatedProducts({
             const hasInternationalEdition = Boolean(
               (linked?.externalUrl || fallback) && linked?.available !== false,
             );
+            const variants = getFourthwallVariants(
+              product,
+              international.products,
+              international.shopUrl,
+            );
+            const cardVariant = getLowestFourthwallVariant(variants);
             const localPrice =
               product.category === "print"
                 ? getPrintStartingPrice(
@@ -152,8 +164,10 @@ export default function RelatedProducts({
                       )
                     ) : product.kind === "original" ? (
                       <Money baseAmountUsdCents={product.priceUsdCents} />
-                    ) : hasInternationalEdition && linked?.price?.formatted ? (
-                      linked.price.formatted
+                    ) : (cardVariant?.available || hasInternationalEdition) &&
+                      (cardVariant?.product?.price?.formatted ||
+                        linked?.price?.formatted) ? (
+                      `${variants.filter((variant) => variant.available).length > 1 ? (locale === "tr" ? "Başlangıç " : "From ") : ""}${cardVariant?.product?.price?.formatted || linked?.price?.formatted}`
                     ) : locale === "tr" ? (
                       "Uluslararası edisyonu görüntüle"
                     ) : (

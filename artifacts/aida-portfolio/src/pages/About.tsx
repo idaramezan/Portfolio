@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { Link } from "wouter";
 import { heroPortrait, paintingVideo, paintingVideoPoster } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import { useShippingDestination } from "@/lib/shipping-destination";
 
 const principles = [
   "I paint directly with oil pastel.",
@@ -69,6 +70,7 @@ function PaintingProcessVideo() {
 }
 
 export default function About() {
+  const { isTürkiye } = useShippingDestination();
   usePageMeta(
     "About Aida Ramezani | Oil Pastel Artist",
     "Meet Aida Ramezani, a self-taught oil pastel artist. Discover her materials, creative process, studio practice and approach to handmade original art.",
@@ -200,9 +202,11 @@ export default function About() {
             </p>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/shop/turkiye/originals" className="button-primary">
-              View available originals <ArrowRight size={16} />
-            </Link>
+            {isTürkiye && (
+              <Link href="/shop/turkiye/originals" className="button-primary">
+                View available originals <ArrowRight size={16} />
+              </Link>
+            )}
             <Link href="/how-to-collect" className="button-secondary">
               How to start a collection <ArrowRight size={16} />
             </Link>

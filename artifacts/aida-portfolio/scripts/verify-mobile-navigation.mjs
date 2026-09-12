@@ -70,7 +70,7 @@ assert.ok(
 );
 assert.ok(
   shell.includes("Explore the studio") &&
-    shell.includes("Originals, prints and studio goods") &&
+    shell.includes("Prints and original works") &&
     !shell.includes("/shop?category=mystery-mail") &&
     shell.includes("mobile-menu__event-badge") &&
     !shell.includes("mobile-menu__letter-card"),
@@ -92,7 +92,7 @@ assert.ok(
   "mobile navigation must not render every destination as an oversized heading",
 );
 assert.ok(
-  shell.includes('locale === "tr" ? "Baskılar ve Ürünler"'),
+  shell.includes('locale === "tr" ? "Baskılar"'),
   "mobile commerce navigation must have first-party Turkish labels",
 );
 assert.ok(

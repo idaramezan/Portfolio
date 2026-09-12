@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -14,9 +14,14 @@ import { useLocale } from "@/lib/locale";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import { resolveProductPresentation } from "@/lib/product-presentation";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import {
+  getDefaultFourthwallVariant,
+  getFourthwallVariants,
+  getLowestFourthwallVariant,
+} from "@/lib/fourthwall-variants";
 
 const HERO_IMAGE = "/assets/aida-green-gallery-hero.png";
-type HomeFilter = "all" | "originals" | "prints" | "aceos";
+type HomeFilter = "originals" | "prints";
 type HomeSort = "newest" | "price-asc" | "price-desc";
 
 const copy = {
@@ -39,10 +44,8 @@ const copy = {
     collectionTitle: "The collection",
     collectionBody:
       "Original works, prints and small pieces ready to find a home.",
-    all: "All",
     originals: "Originals",
-    prints: "Prints & Goods",
-    aceos: "ACEOs",
+    prints: "Prints",
     sort: "Sort",
     newest: "Newest",
     low: "Price low to high",
@@ -107,10 +110,8 @@ const copy = {
     collectionTitle: "Koleksiyon",
     collectionBody:
       "Yeni bir yuva bulmaya hazır orijinal eserler, baskılar ve küçük parçalar.",
-    all: "Tümü",
     originals: "Orijinaller",
-    prints: "Baskılar ve Ürünler",
-    aceos: "ACEO'lar",
+    prints: "Baskılar",
     sort: "Sırala",
     newest: "En yeni",
     low: "Fiyat artan",
@@ -174,12 +175,14 @@ const SHIPPING_COPY_TR: Record<string, string> = {
 function ProductTile({
   product,
   internationalProducts,
+  internationalShopUrl,
   locale,
 }: {
   product: ManagedProduct;
   internationalProducts: ReturnType<
     typeof useInternationalProducts
   >["products"];
+  internationalShopUrl: string | null;
   locale: "en" | "tr";
 }) {
   const text = copy[locale];
@@ -190,11 +193,17 @@ function ProductTile({
   const linked = internationalProducts.find(
     (item) => item.id === product.fourthwallProductId,
   );
+  const variants = getFourthwallVariants(
+    product,
+    internationalProducts,
+    internationalShopUrl,
+  );
+  const cardVariant = getLowestFourthwallVariant(variants);
   const presentation = resolveProductPresentation(
     product,
     destination,
-    linked,
-    product.fourthwallProductUrl,
+    cardVariant?.product || linked,
+    cardVariant?.href || product.fourthwallProductUrl,
   );
   return (
     <article
@@ -245,6 +254,8 @@ function ProductTile({
           )}
           {presentation.externalPrice && (
             <span className="home-product-tile__price">
+              {variants.filter((variant) => variant.available).length > 1 &&
+                (locale === "tr" ? "BAŞLANGIÇ " : "FROM ")}
               {presentation.externalPrice}
             </span>
           )}
@@ -270,23 +281,18 @@ export default function Home() {
   usePageMeta(text.seoTitle, text.seoDescription);
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const [filter, setFilter] = useState<HomeFilter>("all");
+  const { destination, loading: destinationLoading } = useShippingDestination();
+  const [filter, setFilter] = useState<HomeFilter>("prints");
   const [sort, setSort] = useState<HomeSort>("newest");
   const [visible, setVisible] = useState(8);
   const products = useMemo(() => {
-    const all = [
-      ...settings.originalProducts,
-      ...settings.printProducts,
-    ].filter(isPubliclyVisible);
-    const filtered = all.filter(
-      (product) =>
-        filter === "all" ||
-        (filter === "originals" && product.kind === "original") ||
-        (filter === "aceos" && isAceoProduct(product)) ||
-        (filter === "prints" &&
-          product.kind === "print" &&
-          !isAceoProduct(product)),
-    );
+    if (!destination) return [];
+    const filtered =
+      filter === "originals" && destination.countryCode === "TR"
+        ? settings.originalProducts.filter(isPubliclyVisible)
+        : settings.printProducts.filter(
+            (product) => isPubliclyVisible(product) && !isAceoProduct(product),
+          );
     return filtered.sort((a, b) =>
       sort === "newest"
         ? (Date.parse(b.createdAt || "") || 0) -
@@ -295,10 +301,18 @@ export default function Home() {
           ? a.priceUsdCents - b.priceUsdCents
           : b.priceUsdCents - a.priceUsdCents,
     );
-  }, [settings.originalProducts, settings.printProducts, filter, sort]);
-  const availableFilters: Array<[HomeFilter, string]> = [["all", text.all]];
-  if (settings.originalProducts.some(isPubliclyVisible))
-    availableFilters.push(["originals", text.originals]);
+  }, [
+    settings.originalProducts,
+    settings.printProducts,
+    destination,
+    filter,
+    sort,
+  ]);
+  useEffect(() => {
+    if (destination?.countryCode !== "TR" && filter === "originals")
+      setFilter("prints");
+  }, [destination?.countryCode, filter]);
+  const availableFilters: Array<[HomeFilter, string]> = [];
   if (
     settings.printProducts.some(
       (product) => isPubliclyVisible(product) && !isAceoProduct(product),
@@ -306,11 +320,10 @@ export default function Home() {
   )
     availableFilters.push(["prints", text.prints]);
   if (
-    settings.printProducts.some(
-      (product) => isPubliclyVisible(product) && isAceoProduct(product),
-    )
+    destination?.countryCode === "TR" &&
+    settings.originalProducts.some(isPubliclyVisible)
   )
-    availableFilters.push(["aceos", text.aceos]);
+    availableFilters.push(["originals", text.originals]);
 
   return (
     <div className="home-green">
@@ -366,7 +379,13 @@ export default function Home() {
             <p className="eyebrow">{text.available}</p>
             <h2>{text.collectionTitle}</h2>
           </div>
-          <p>{text.collectionBody}</p>
+          <p>
+            {destination?.countryCode === "TR"
+              ? text.collectionBody
+              : locale === "tr"
+                ? "Yeni bir yuva bulmaya hazır sanat baskıları."
+                : "Art prints ready to find a home."}
+          </p>
         </header>
         <div className="home-green-collection__tools">
           <div
@@ -399,16 +418,24 @@ export default function Home() {
             </select>
           </label>
         </div>
-        <div className="home-collection-grid">
-          {products.slice(0, visible).map((product) => (
-            <ProductTile
-              key={product.id}
-              product={product}
-              internationalProducts={international.products}
-              locale={locale}
-            />
-          ))}
-        </div>
+        {destinationLoading && !destination ? (
+          <div
+            className="storefront-catalog-skeleton"
+            aria-label="Loading collection"
+          />
+        ) : (
+          <div className="home-collection-grid">
+            {products.slice(0, visible).map((product) => (
+              <ProductTile
+                key={product.id}
+                product={product}
+                internationalProducts={international.products}
+                internationalShopUrl={international.shopUrl}
+                locale={locale}
+              />
+            ))}
+          </div>
+        )}
         {!products.length && (
           <div className="home-green-empty">
             <h3>

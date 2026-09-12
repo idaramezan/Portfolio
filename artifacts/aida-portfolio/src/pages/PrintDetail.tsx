@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import TurkeyProductDialog from "@/components/TurkeyProductDialog";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -19,6 +18,7 @@ import ProductImageLightbox from "@/components/ProductImageLightbox";
 import RelatedProducts from "@/components/RelatedProducts";
 import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
 import Money from "@/components/Money";
+import InternationalFormatSelector from "@/components/InternationalFormatSelector";
 
 const detailCopy = {
   en: {
@@ -248,34 +248,15 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                     ? "Uluslararası mağaza yükleniyor…"
                     : "Loading international shop…"}
                 </p>
-              ) : internationalAvailable ? (
-                <>
-                  <p>
-                    {locale === "tr"
-                      ? "Bu baskının uluslararası siparişleri Aida'nın Fourthwall mağazası üzerinden hazırlanır."
-                      : "International orders for this print are fulfilled through Aida's Fourthwall shop."}
-                  </p>
-                  {linked?.price?.formatted && (
-                    <strong>{linked.price.formatted}</strong>
-                  )}
-                  <a
-                    className="button-primary product-detail__cta"
-                    href={internationalHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      trackAnalytics("fourthwall_redirect", {
-                        metadata: {
-                          productId: product.id,
-                          countryCode: destination.countryCode,
-                        },
-                      })
-                    }
-                  >
-                    {locale === "tr" ? "Bu baskıyı edin" : "Get this print"}{" "}
-                    <ArrowUpRight aria-hidden="true" />
-                  </a>
-                </>
+              ) : internationalAvailable ||
+                product.fourthwallVariantGroupEnabled ? (
+                <InternationalFormatSelector
+                  product={product}
+                  catalogue={international.products}
+                  shopUrl={international.shopUrl}
+                  countryCode={destination.countryCode}
+                  locale={locale}
+                />
               ) : (
                 <>
                   <h2>{c.coming}</h2>
