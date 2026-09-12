@@ -65,13 +65,6 @@ const copy = {
       ],
       [
         "02",
-        "Stories from the making",
-        "New work, process notes and the quieter moments around each piece.",
-        "/newsletter",
-        "Read the Newsletter",
-      ],
-      [
-        "03",
         "A piece made for you",
         "Oil pastel and digital commissions shaped around a photograph, character, place or idea.",
         "#commissions",
@@ -131,13 +124,6 @@ const copy = {
       ],
       [
         "02",
-        "Üretimden hikâyeler",
-        "Yeni eserler, süreç notları ve her parçanın çevresindeki sakin anlar.",
-        "/newsletter",
-        "Bülteni oku",
-      ],
-      [
-        "03",
         "Senin için bir eser",
         "Bir fotoğraf, karakter, yer veya fikirden doğan yağlı pastel ve dijital siparişler.",
         "#commissions",

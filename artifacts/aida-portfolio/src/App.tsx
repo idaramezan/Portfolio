@@ -15,7 +15,6 @@ import { LocaleProvider } from "@/lib/locale";
 import Links from "@/pages/Links";
 import OriginalDetail from "@/pages/OriginalDetail";
 import PrintDetail from "@/pages/PrintDetail";
-import Newsletter from "@/pages/Newsletter";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import { analyticsConsent, trackAnalytics } from "@/lib/analytics";
 import StickerDropExperience from "@/components/StickerDropExperience";
@@ -132,7 +131,7 @@ function Router() {
               <RedirectTo to="/shop?category=prints" />
             </Route>
             <Route path="/studio-mail">
-              <RedirectTo to="/newsletter" />
+              <RedirectTo to="/" />
             </Route>
             <Route path="/studio-mail/:slug">
               <RedirectTo to="/shop" />
@@ -151,9 +150,11 @@ function Router() {
             </Route>
             <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
-            <Route path="/newsletter" component={Newsletter} />
+            <Route path="/newsletter">
+              <RedirectTo to="/" />
+            </Route>
             <Route path="/studio-letter">
-              <RedirectTo to="/newsletter" />
+              <RedirectTo to="/" />
             </Route>
             <Route path="/event">
               <RedirectTo to="/events" />

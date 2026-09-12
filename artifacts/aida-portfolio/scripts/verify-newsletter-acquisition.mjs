@@ -38,14 +38,15 @@ const checks = [
     regional.includes('context={tr ? "turkiye" : "international"}'),
   ],
   [
-    "compact footer links to the Newsletter without duplicating its form",
-    shell.includes('className="site-footer__letter"') &&
-      shell.includes('href="/newsletter"') &&
-      !shell.includes("<Newsletter />"),
+    "public navigation temporarily omits the Newsletter",
+    !shell.includes('className="site-footer__letter"') &&
+      !shell.includes('href="/newsletter"') &&
+      !shell.includes('href: "/newsletter"'),
   ],
   [
-    "dedicated newsletter page and route",
-    app.includes('path="/newsletter" component={Newsletter}') &&
+    "newsletter route temporarily redirects while acquisition infrastructure remains",
+    app.includes('<Route path="/newsletter">') &&
+      app.includes('<RedirectTo to="/" />') &&
       newsletterPage.includes('variant="story-preview" context="newsletter"') &&
       newsletterLib.includes('newsletter: "newsletter-page"'),
   ],

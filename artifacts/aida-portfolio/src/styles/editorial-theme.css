@@ -1801,7 +1801,7 @@
 }
 [data-public-site] .home-green-notes .section-shell > div {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   margin-top: 5rem;
   border-top: 1px solid rgb(247 244 236 / 0.22);
 }

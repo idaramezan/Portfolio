@@ -14,7 +14,6 @@ import {
 
 const NAV_LINKS = [
   { href: "/shop", en: "Shop", tr: "Mağaza" },
-  { href: "/newsletter", en: "Newsletter", tr: "Bülten" },
   { href: "/events", en: "Events", tr: "Etkinlikler" },
   { href: "/about", en: "About", tr: "Hakkında" },
 ];
@@ -365,7 +364,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           })}
           {[
             ["/events", locale === "tr" ? "Etkinlikler" : "Events"],
-            ["/newsletter", locale === "tr" ? "Bülten" : "Newsletter"],
             ["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"],
           ].map(([href, label]) => (
             <div className="mobile-menu__row" key={href}>
@@ -476,17 +474,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ))}
               </div>
             </section>
-            <section className="site-footer__letter">
-              <h2>{locale === "tr" ? "Bülten" : "Newsletter"}</h2>
-              <p>
-                {locale === "tr"
-                  ? "Kişisel sanat hikâyeleri, atölye notları ve yeni çalışmalara ilk bakışlar."
-                  : "Personal art stories, studio notes and first looks at new work."}
-              </p>
-              <Link href="/newsletter">
-                {locale === "tr" ? "Oku ve abone ol" : "Read and subscribe"} →
-              </Link>
-            </section>
             <nav
               className="site-footer__nav site-footer__nav--shop footer-desktop-links"
               aria-label="Shop navigation"
@@ -534,7 +521,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <div className="site-footer__nav-links">
                   <Link href="/about">About</Link>
                   <Link href="/how-to-collect">How to collect</Link>
-                  <Link href="/newsletter">Newsletter</Link>
                   <a href="mailto:aida@aedaart.com">Contact</a>
                 </div>
               </details>
