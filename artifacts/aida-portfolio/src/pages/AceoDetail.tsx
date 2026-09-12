@@ -94,7 +94,10 @@ export default function AceoDetail() {
     );
 
   const sold = isSoldOut(product);
-  const images = [product.imageUrl, ...(product.galleryImages || [])]
+  const regionalGallery = isTürkiye
+    ? (product.galleryImagesTurkiye ?? product.galleryImages ?? [])
+    : (product.galleryImagesInternational ?? product.galleryImages ?? []);
+  const images = [product.imageUrl, ...regionalGallery]
     .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
     .map((src) => ({
       src,

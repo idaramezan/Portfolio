@@ -117,6 +117,8 @@ export default function ProductEditor({
         availableInternationally: kind === "originals",
         category: kind === "prints" ? "print" : undefined,
         galleryImages: [],
+        galleryImagesTurkiye: [],
+        galleryImagesInternational: [],
         displayOrder: settings.printProducts.length + 1,
         freeShippingInTurkiye: false,
         printOptions:
@@ -157,6 +159,12 @@ export default function ProductEditor({
       initialDraft.name = initialDraft.name ?? initialDraft.title ?? "";
       initialDraft.description =
         initialDraft.description ?? initialDraft.shortDescription ?? "";
+      const legacyGallery = initialDraft.galleryImages || [];
+      initialDraft.galleryImagesTurkiye =
+        initialDraft.galleryImagesTurkiye ?? legacyGallery;
+      initialDraft.galleryImagesInternational =
+        initialDraft.galleryImagesInternational ?? legacyGallery;
+      initialDraft.galleryImages = [];
       if (kind === "originals") {
         initialDraft.artworkSurface = normalizeArtworkSurface(
           initialDraft.artworkSurface,
@@ -542,7 +550,10 @@ export default function ProductEditor({
     }
     return true;
   };
-  const addGalleryImages = async (files: File[]) => {
+  const addGalleryImages = async (
+    files: File[],
+    fieldName: "galleryImagesTurkiye" | "galleryImagesInternational",
+  ) => {
     const accepted = files.filter(validImageFile);
     if (!accepted.length) return;
     setGalleryUploading(true);
@@ -550,8 +561,8 @@ export default function ProductEditor({
     try {
       const uploaded = await Promise.all(accepted.map(uploadImage));
       update({
-        galleryImages: Array.from(
-          new Set([...(draft.galleryImages || []), ...uploaded]),
+        [fieldName]: Array.from(
+          new Set([...(draft[fieldName] || []), ...uploaded]),
         ),
       });
     } catch (error) {
@@ -566,17 +577,22 @@ export default function ProductEditor({
       setGalleryUploading(false);
     }
   };
-  const makeDefaultImage = (url: string) => {
+  const makeDefaultImage = (
+    url: string,
+    fieldName: "galleryImagesTurkiye" | "galleryImagesInternational",
+  ) => {
     const previousDefault = draft.imageUrl;
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setPendingImage(null);
     setImagePreview("");
     update({
       imageUrl: url,
-      galleryImages: Array.from(
+      [fieldName]: Array.from(
         new Set([
           ...(previousDefault ? [previousDefault] : []),
-          ...(draft.galleryImages || []).filter((image: string) => image !== url),
+          ...(draft[fieldName] || []).filter(
+            (image: string) => image !== url,
+          ),
         ]),
       ),
     });
@@ -1016,74 +1032,91 @@ export default function ProductEditor({
                 </label>
               </div>
               {errors.image && <ErrorText>{errors.image}</ErrorText>}
-              <div className="md:col-span-2 border-t border-ink/10 pt-5">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold">Additional images</h3>
-                    <p className="text-xs text-ink/45">
-                      These appear as a gallery on the product detail page.
-                    </p>
+              {(
+                [
+                  [
+                    "galleryImagesTurkiye",
+                    "Türkiye additional images",
+                    "Shown to visitors whose shipping country is Türkiye.",
+                  ],
+                  [
+                    "galleryImagesInternational",
+                    "International additional images",
+                    "Shown to visitors whose shipping country is outside Türkiye.",
+                  ],
+                ] as const
+              ).map(([fieldName, heading, description]) => (
+                <div
+                  key={fieldName}
+                  className="md:col-span-2 border-t border-ink/10 pt-5"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold">{heading}</h3>
+                      <p className="text-xs text-ink/45">{description}</p>
+                    </div>
+                    <label className="flex h-11 cursor-pointer items-center border border-ink/20 px-4 text-sm font-semibold">
+                      {galleryUploading ? "Uploading…" : "Add images"}
+                      <input
+                        type="file"
+                        multiple
+                        disabled={galleryUploading}
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) => {
+                          void addGalleryImages(
+                            Array.from(event.target.files || []),
+                            fieldName,
+                          );
+                          event.currentTarget.value = "";
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
                   </div>
-                  <label className="flex h-11 cursor-pointer items-center border border-ink/20 px-4 text-sm font-semibold">
-                    {galleryUploading ? "Uploading…" : "Add images"}
-                    <input
-                      type="file"
-                      multiple
-                      disabled={galleryUploading}
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(event) => {
-                        void addGalleryImages(
-                          Array.from(event.target.files || []),
-                        );
-                        event.currentTarget.value = "";
-                      }}
-                      className="sr-only"
-                    />
-                  </label>
-                </div>
-                {draft.galleryImages?.length ? (
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                    {draft.galleryImages.map((url: string, index: number) => (
-                      <div
-                        key={`${url}-${index}`}
-                        className="border border-ink/10 p-2"
-                      >
-                        <img
-                          src={url}
-                          alt={`Additional product image ${index + 1}`}
-                          className="aspect-square w-full object-cover"
-                        />
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            className="text-xs font-semibold underline"
-                            onClick={() => makeDefaultImage(url)}
-                          >
-                            Make default
-                          </button>
-                          <button
-                            type="button"
-                            className="text-xs text-coral underline"
-                            onClick={() =>
-                              update({
-                                galleryImages: draft.galleryImages.filter(
-                                  (image: string) => image !== url,
-                                ),
-                              })
-                            }
-                          >
-                            Remove
-                          </button>
+                  {draft[fieldName]?.length ? (
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                      {draft[fieldName].map((url: string, index: number) => (
+                        <div
+                          key={`${url}-${index}`}
+                          className="border border-ink/10 p-2"
+                        >
+                          <img
+                            src={url}
+                            alt={`Additional product image ${index + 1}`}
+                            className="aspect-square w-full object-cover"
+                          />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              className="text-xs font-semibold underline"
+                              onClick={() => makeDefaultImage(url, fieldName)}
+                            >
+                              Make default
+                            </button>
+                            <button
+                              type="button"
+                              className="text-xs text-coral underline"
+                              onClick={() =>
+                                update({
+                                  [fieldName]: draft[fieldName].filter(
+                                    (image: string) => image !== url,
+                                  ),
+                                })
+                              }
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-ink/45">
-                    No additional images yet.
-                  </p>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-ink/45">
+                      No {heading.toLowerCase()} yet.
+                    </p>
+                  )}
+                </div>
+              ))}
               <p className="text-xs text-ink/45">
                 JPEG, PNG or WebP, up to 10 MB each. The large image above is
                 the default.

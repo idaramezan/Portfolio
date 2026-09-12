@@ -78,6 +78,8 @@ export interface ManagedProduct {
   availableInternationally?: boolean;
   category?: TurkeyProductCategory;
   galleryImages?: string[];
+  galleryImagesTurkiye?: string[];
+  galleryImagesInternational?: string[];
   inventory?: number;
   displayOrder?: number;
   freeShippingInTurkiye?: boolean;
@@ -572,6 +574,9 @@ export function loadShopSettings(): ShopSettings {
                   category: "print" as const,
                   slug: product.slug || product.id,
                   galleryImages: product.galleryImages || [],
+                  galleryImagesTurkiye: product.galleryImagesTurkiye,
+                  galleryImagesInternational:
+                    product.galleryImagesInternational,
                   displayOrder: product.displayOrder ?? index + 1,
                   freeShippingInTurkiye: false,
                   ...product,

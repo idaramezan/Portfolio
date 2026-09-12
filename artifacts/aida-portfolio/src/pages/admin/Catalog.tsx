@@ -104,14 +104,24 @@ export default function Catalog({
       return;
 
     const targetUrls = targets.flatMap((product) =>
-      [product.imageUrl, ...(product.galleryImages || [])].filter(Boolean),
+      [
+        product.imageUrl,
+        ...(product.galleryImages || []),
+        ...(product.galleryImagesTurkiye || []),
+        ...(product.galleryImagesInternational || []),
+      ].filter(Boolean),
     );
     const remainingProducts = productRepository
       .getAll()
       .filter((product: any) => !ids.includes(product.id));
     const retainedUrls = new Set(
       remainingProducts.flatMap((product: any) =>
-        [product.imageUrl, ...(product.galleryImages || [])].filter(Boolean),
+        [
+          product.imageUrl,
+          ...(product.galleryImages || []),
+          ...(product.galleryImagesTurkiye || []),
+          ...(product.galleryImagesInternational || []),
+        ].filter(Boolean),
       ),
     );
     const imageUrls = Array.from(new Set(targetUrls)).filter(

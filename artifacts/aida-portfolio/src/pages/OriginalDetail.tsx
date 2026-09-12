@@ -84,7 +84,10 @@ export default function OriginalDetail({
         </Link>
       </section>
     );
-  const artworkImages = [product.imageUrl, ...(product.galleryImages || [])]
+  const regionalGallery = isTürkiye
+    ? (product.galleryImagesTurkiye ?? product.galleryImages ?? [])
+    : (product.galleryImagesInternational ?? product.galleryImages ?? []);
+  const artworkImages = [product.imageUrl, ...regionalGallery]
     .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
     .map((src) => ({
       src,

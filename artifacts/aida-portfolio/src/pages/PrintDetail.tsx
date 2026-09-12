@@ -151,7 +151,10 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
     internationalHref && (linked ? linked.available : true),
   );
   const sold = isSoldOut(product);
-  const productImages = [product.imageUrl, ...(product.galleryImages || [])]
+  const regionalGallery = isTürkiye
+    ? (product.galleryImagesTurkiye ?? product.galleryImages ?? [])
+    : (product.galleryImagesInternational ?? product.galleryImages ?? []);
+  const productImages = [product.imageUrl, ...regionalGallery]
     .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
     .map((src) => ({
       src,
