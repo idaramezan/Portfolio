@@ -15,7 +15,7 @@
     min-height: 100dvh;
     height: 100dvh;
     max-height: 100dvh;
-    padding: max(20px, env(safe-area-inset-top)) 24px
+    padding: max(24px, env(safe-area-inset-top)) 28px
       calc(32px + env(safe-area-inset-bottom));
     overflow-y: auto;
     background: var(--forest-950) !important;
@@ -41,7 +41,7 @@
   [data-public-site] .mobile-menu__brand {
     color: var(--ivory-50) !important;
     font-family: "Fraunces", serif;
-    font-size: 1.8rem;
+    font-size: clamp(2.125rem, 10vw, 2.5rem);
     font-weight: 500;
   }
   [data-public-site] .mobile-menu__close {
@@ -61,7 +61,7 @@
     width: auto;
     margin: 24px 0 10px;
     color: var(--amber-500) !important;
-    font: 600 0.68rem/1.2 "Inter", sans-serif;
+    font: 600 0.75rem/1.2 "Inter", sans-serif;
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
@@ -76,14 +76,15 @@
   }
   [data-public-site] .mobile-menu__link,
   [data-public-site] .mobile-menu__trigger {
-    min-height: 68px;
+    min-height: 74px;
     padding: 15px 0;
     border: 0;
     background: transparent !important;
     color: var(--ivory-50) !important;
     font-family: "Fraunces", serif;
-    font-size: clamp(1.8rem, 8vw, 2.1rem);
-    font-weight: 500;
+    font-size: clamp(1.875rem, 8vw, 2.5rem);
+    font-weight: 400;
+    opacity: 1;
   }
   [data-public-site] .mobile-menu__link > svg,
   [data-public-site] .mobile-menu__chevron {
@@ -150,12 +151,12 @@
   }
   [data-public-site] .destination-control--menu span {
     color: var(--ivory-50);
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 500;
   }
   [data-public-site] .destination-control--menu strong {
     color: var(--amber-500);
-    font-size: 0.82rem;
+    font-size: 0.94rem;
     font-weight: 600;
     text-decoration-color: currentColor;
   }
@@ -216,13 +217,13 @@
   [data-public-site] .mobile-menu__socials {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 20px;
+    gap: 20px 28px;
     margin-top: 0;
   }
   [data-public-site] .mobile-menu__socials a {
     min-height: 44px;
     color: var(--ivory-50) !important;
-    font-size: 0.94rem;
+    font-size: 1rem;
     font-weight: 500;
     text-decoration-color: rgb(243 238 228 / 34%);
   }

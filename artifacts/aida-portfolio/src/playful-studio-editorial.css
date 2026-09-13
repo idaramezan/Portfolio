@@ -976,6 +976,56 @@ iframe[src*="feedback.smartlook"],
   .home-category-grid--region { animation: none; }
 }
 
+/* The mobile menu is a single dark editorial surface. Keep this final in the
+   cascade so legacy light-menu components cannot reintroduce cards or ink text. */
+@media (max-width: 767px) {
+  [data-public-site] .mobile-menu,
+  [data-public-site] .mobile-menu__header,
+  [data-public-site] .mobile-menu__navigation,
+  [data-public-site] .mobile-menu__row,
+  [data-public-site] .mobile-menu__destination,
+  [data-public-site] .mobile-menu__note,
+  [data-public-site] .mobile-menu__footer,
+  [data-public-site] .mobile-menu__languages,
+  [data-public-site] .mobile-menu__submenu {
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  [data-public-site] .mobile-menu {
+    padding-inline: 28px;
+    background: var(--forest-950) !important;
+    color: var(--ivory-50) !important;
+  }
+
+  [data-public-site] .mobile-menu a,
+  [data-public-site] .mobile-menu button,
+  [data-public-site] .mobile-menu h1,
+  [data-public-site] .mobile-menu h2,
+  [data-public-site] .mobile-menu h3 {
+    color: var(--ivory-50);
+  }
+
+  [data-public-site] .mobile-menu__link,
+  [data-public-site] .mobile-menu__trigger {
+    color: var(--ivory-50) !important;
+    opacity: 1 !important;
+  }
+
+  [data-public-site] .mobile-menu__close,
+  [data-public-site] .mobile-menu__language,
+  [data-public-site] .destination-control--menu,
+  [data-public-site] .mobile-menu__privacy {
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  [data-public-site] .mobile-menu__event-badge {
+    background: transparent;
+    color: var(--amber-500);
+  }
+}
+
 /* Compact artist-studio mobile index. */
 .mobile-menu-overlay { position: fixed; inset: 0; z-index: 1000; background: rgb(64 40 58 / .16); backdrop-filter: blur(3px); }
 .mobile-menu { position: fixed; inset: 0; z-index: 1001; display: flex; width: 100%; height: 100dvh; max-height: 100dvh; min-width: 0; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: max(18px, env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); visibility: hidden; pointer-events: none; transform: translateX(100%); transition: transform 220ms ease, visibility 0s linear 220ms; }

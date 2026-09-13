@@ -411,11 +411,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     <span className="mobile-menu__trigger-title">
                       {group.label}
                     </span>
-                    {!isOpen && (
-                      <span className="mobile-menu__trigger-description">
-                        {group.description}
-                      </span>
-                    )}
                   </span>
                   {isOpen ? (
                     <Minus className="mobile-menu__chevron" aria-hidden="true" />
@@ -423,25 +418,25 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     <Plus className="mobile-menu__chevron" aria-hidden="true" />
                   )}
                 </button>
-                  <div
-                    id={submenuId}
-                    className="mobile-menu__submenu"
-                    data-open={isOpen || undefined}
-                    aria-hidden={!isOpen}
-                  >
-                    <Link href={group.home} onClick={() => closeMobileMenu()}>
-                      {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
+                <div
+                  id={submenuId}
+                  className="mobile-menu__submenu"
+                  data-open={isOpen || undefined}
+                  aria-hidden={!isOpen}
+                >
+                  <Link href={group.home} onClick={() => closeMobileMenu()}>
+                    {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
+                  </Link>
+                  {group.links.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => closeMobileMenu()}
+                    >
+                      {label}
                     </Link>
-                    {group.links.map(([href, label]) => (
-                      <Link
-                        key={href}
-                        href={href}
-                        onClick={() => closeMobileMenu()}
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
+                  ))}
+                </div>
               </div>
             );
           })}
