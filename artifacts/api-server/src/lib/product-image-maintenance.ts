@@ -1,6 +1,12 @@
 import { pool } from "@workspace/db";
 import { logger } from "./logger";
 
+export const productImageMaintenanceStatus: {
+  state: "pending" | "running" | "complete" | "failed";
+  compacted?: number;
+  deleted?: number;
+} = { state: "pending" };
+
 const IMAGE_PATTERN = /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z0-9]+)?$/i;
 
 function collectImageIds(value: unknown, result = new Set<string>()) {
@@ -31,11 +37,15 @@ async function preserveTableReferences(
 }
 
 export async function compactProductImageStorage() {
+  productImageMaintenanceStatus.state = "running";
   try {
     const table = await pool.query(
       "SELECT to_regclass('public.product_images') AS name",
     );
-    if (!table.rows[0]?.name) return;
+    if (!table.rows[0]?.name) {
+      productImageMaintenanceStatus.state = "complete";
+      return;
+    }
     const retained = new Set<string>();
     await preserveTableReferences(retained, "shop_settings", ["payload"]);
     await preserveTableReferences(retained, "artworks", ["image_url"]);
@@ -92,7 +102,13 @@ export async function compactProductImageStorage() {
       },
       "Reclaimed unused product image storage",
     );
+    Object.assign(productImageMaintenanceStatus, {
+      state: "complete",
+      compacted,
+      deleted,
+    });
   } catch (error) {
+    productImageMaintenanceStatus.state = "failed";
     logger.error(
       { error, operation: "product-image-compaction" },
       "Product image storage compaction could not run",
