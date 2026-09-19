@@ -22,6 +22,7 @@ import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 import VisualGalleryAdmin from "@/pages/admin/VisualGallery";
 import CommerceCollections from "@/pages/admin/CommerceCollections";
+import PaletteEditor from "@/pages/admin/PaletteEditor";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -150,6 +151,8 @@ export default function Admin() {
   if (location === "/admin/mystery-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
+  const paletteEditor = location.match(/^\/admin\/palettes\/(new|[^/]+)$/);
+  if (paletteEditor) return <PaletteEditor id={paletteEditor[1]} />;
   if (location === "/admin/palettes") return <CommerceCollections section="palettes" />;
   if (location === "/admin/mail-club") return <CommerceCollections section="mail-club" />;
   if (location === "/admin/animation-merch") return <CommerceCollections section="animation-merch" />;

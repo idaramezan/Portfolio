@@ -217,6 +217,12 @@ router.get("/shop-settings", async (request, response) => {
     if (!Array.isArray(settings.readyMadePalettes)) {
       settings.readyMadePalettes = [];
       upgraded = true;
+    } else {
+      settings.readyMadePalettes = settings.readyMadePalettes.map((palette: any) => {
+        if (palette.colors) return palette;
+        upgraded = true;
+        return { ...palette, colors: palette.description || "" };
+      });
     }
     if (!Array.isArray(settings.mailClubEditions)) {
       settings.mailClubEditions = [{ id: "mail-club-october", slug: "october-mail-club", internalName: "October Mail Club", title: "October Mail Club", titleTr: "Ekim Mail Club", monthYear: "2026-10", description: "A little envelope of art, notes and surprises made for this month's Mail Club.", descriptionTr: "Bu ayın Mail Club'ı için hazırlanan küçük bir sanat, not ve sürpriz paketi.", coverImage: "/assets/mail-club-october.jpg", altText: "October Mail Club contents", priceMinor: 49000, stock: 20, enabled: true, status: "published", current: true, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() }];

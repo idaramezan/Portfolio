@@ -54,6 +54,7 @@ export interface ReadyMadePalette {
   nameTr?: string;
   description: string;
   descriptionTr?: string;
+  colors: string;
   note?: string;
   imageUrl: string;
   altText: string;
@@ -584,7 +585,10 @@ export function loadShopSettings(): ShopSettings {
           ...(saved.paletteSettings || {}),
         },
         readyMadePalettes: Array.isArray(saved.readyMadePalettes)
-          ? saved.readyMadePalettes
+          ? saved.readyMadePalettes.map((palette: ReadyMadePalette) => ({
+              ...palette,
+              colors: palette.colors || palette.description || "",
+            }))
           : defaults.readyMadePalettes,
         mailClubEditions: Array.isArray(saved.mailClubEditions)
           ? saved.mailClubEditions
