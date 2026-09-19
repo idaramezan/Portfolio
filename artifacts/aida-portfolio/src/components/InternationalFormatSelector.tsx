@@ -9,6 +9,8 @@ import {
 import type { ManagedProduct } from "@/lib/store";
 import { trackAnalytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
+import FourthwallVariantPicker from "@/components/FourthwallVariantPicker";
+import { normalizeFourthwallVariant } from "@/lib/fourthwall-options";
 
 const words = {
   en: {
@@ -95,6 +97,10 @@ export default function InternationalFormatSelector({
   const option =
     availableOptions.find((variant) => variant.id === optionId) ||
     availableOptions[0];
+  const normalizedOption =
+    option && selected.product
+      ? normalizeFourthwallVariant(selected.product.name, option)
+      : null;
   const formatDescription =
     selected.variantType === "framed" ? text.framed : text.poster;
   const add = async () => {
@@ -108,7 +114,7 @@ export default function InternationalFormatSelector({
         productId: selected.product.id,
         title: product.name,
         format: selected.label,
-        variantName: option.name,
+        variantName: normalizedOption?.label || option.name,
         imageUrl: selected.product.primaryImage?.url,
         quantity,
         unitAmountMinor: Math.round(option.price.amount * 100),
@@ -184,29 +190,14 @@ export default function InternationalFormatSelector({
           ))}
         </div>
       </fieldset>
-      {availableOptions.length > 1 && (
-        <fieldset className="international-formats__options">
-          <legend>{text.variant}</legend>
-          <div>
-            {availableOptions.map((variant) => (
-              <label
-                key={variant.id}
-                className={variant.id === option?.id ? "is-selected" : ""}
-              >
-                <input
-                  type="radio"
-                  name={`fourthwall-option-${product.id}`}
-                  checked={variant.id === option?.id}
-                  onChange={() => setOptionId(variant.id)}
-                />
-                <span>
-                  <strong>{variant.name}</strong>
-                  <small>{variant.price.formatted}</small>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+      {selected.product && option && (
+        <FourthwallVariantPicker
+          product={selected.product}
+          selectedId={option.id}
+          onSelect={setOptionId}
+          locale={locale}
+          name={`fourthwall-option-${product.id}`}
+        />
       )}
       {option && (
         <>
@@ -215,8 +206,8 @@ export default function InternationalFormatSelector({
           </strong>
           <p className="international-formats__selection">
             {selected.label} · {formatDescription}
-            {option.name && option.name !== "Standard"
-              ? ` · ${option.name}`
+            {normalizedOption?.label && normalizedOption.label !== "Standard"
+              ? ` · ${normalizedOption.label}`
               : ""}
           </p>
           <div className="international-formats__quantity">

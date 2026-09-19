@@ -18,6 +18,12 @@ type InternationalProduct = {
   variants: {
     id: string;
     name: string;
+    rawName: string;
+    attributes?: {
+      description?: string;
+      color?: { name: string; swatch?: string };
+      size?: { name: string };
+    };
     available: boolean;
     price: { amount: number; currency: string; formatted: string };
   }[];
@@ -32,6 +38,31 @@ type Cache = {
 };
 let cache: Cache | null = null;
 let lastAttempt: string | null = null;
+
+function decodeHtmlText(value: unknown) {
+  const named: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: '"',
+  };
+  return String(value || "").replace(
+    /&(#(?:x[0-9a-f]+|\d+)|[a-z]+);/gi,
+    (match, entity: string) => {
+      if (entity[0] === "#") {
+        const hexadecimal = entity[1]?.toLowerCase() === "x";
+        const point = Number.parseInt(
+          entity.slice(hexadecimal ? 2 : 1),
+          hexadecimal ? 16 : 10,
+        );
+        return Number.isFinite(point) ? String.fromCodePoint(point) : match;
+      }
+      return named[entity.toLowerCase()] ?? match;
+    },
+  );
+}
 
 function configuredShopUrl() {
   const raw = process.env.FOURTHWALL_SHOP_URL;
@@ -84,10 +115,37 @@ function mapProducts(payload: unknown): InternationalProduct[] {
         const amount = Number(variant?.unitPrice?.value);
         const currency = String(variant?.unitPrice?.currency || "USD");
         if (!Number.isFinite(amount)) return [];
+        const colorName = decodeHtmlText(
+          variant?.attributes?.color?.name,
+        ).trim();
+        const sizeName = decodeHtmlText(variant?.attributes?.size?.name).trim();
+        const description = decodeHtmlText(
+          variant?.attributes?.description,
+        ).trim();
+        const rawName = String(variant.name || "Standard");
         return [
           {
             id: String(variant.id || variant.name || "variant"),
-            name: String(variant.name || "Standard"),
+            name: decodeHtmlText(rawName),
+            rawName,
+            attributes:
+              colorName || sizeName || description
+                ? {
+                    ...(description ? { description } : {}),
+                    ...(colorName
+                      ? {
+                          color: {
+                            name: colorName,
+                            ...(typeof variant?.attributes?.color?.swatch ===
+                            "string"
+                              ? { swatch: variant.attributes.color.swatch }
+                              : {}),
+                          },
+                        }
+                      : {}),
+                    ...(sizeName ? { size: { name: sizeName } } : {}),
+                  }
+                : undefined,
             available:
               variant.stock?.inStock !== false &&
               variant.state?.type !== "SOLD_OUT",
@@ -108,7 +166,7 @@ function mapProducts(payload: unknown): InternationalProduct[] {
           url: image.url,
           width: Number(image.width) || undefined,
           height: Number(image.height) || undefined,
-          alt: String(image.altText || `${raw.name} product image`),
+          alt: decodeHtmlText(image.altText || `${raw.name} product image`),
         }));
       const available = variants.some((x) => x.available);
       const updatedAt = [raw.updatedAt, raw.publishedAt, raw.createdAt].find(
@@ -119,10 +177,10 @@ function mapProducts(payload: unknown): InternationalProduct[] {
         {
           id: raw.id,
           slug: raw.slug,
-          name: raw.name,
+          name: decodeHtmlText(raw.name),
           description:
             typeof raw.description === "string"
-              ? raw.description.replace(/<[^>]*>/g, " ").trim()
+              ? decodeHtmlText(raw.description.replace(/<[^>]*>/g, " ")).trim()
               : undefined,
           primaryImage: images[0],
           images,
@@ -170,9 +228,12 @@ async function refresh() {
         throw new Error("Malformed provider response");
       rows.push(...payload.results);
       if (payload.paging?.hasNextPage !== true) break;
-      if (page === 99) throw new Error("Provider pagination exceeded its safety limit");
+      if (page === 99)
+        throw new Error("Provider pagination exceeded its safety limit");
     }
-    const uniqueRows = [...new Map(rows.map((row: any) => [row?.id || row?.slug, row])).values()];
+    const uniqueRows = [
+      ...new Map(rows.map((row: any) => [row?.id || row?.slug, row])).values(),
+    ];
     const products = mapProducts({ results: uniqueRows });
     const seconds = Math.max(
       60,

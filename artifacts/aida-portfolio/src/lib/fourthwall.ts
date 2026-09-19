@@ -12,6 +12,12 @@ export interface InternationalProduct {
   variants: {
     id: string;
     name: string;
+    rawName?: string;
+    attributes?: {
+      description?: string;
+      color?: { name: string; swatch?: string };
+      size?: { name: string };
+    };
     available: boolean;
     price: { amount: number; currency: string; formatted: string };
   }[];

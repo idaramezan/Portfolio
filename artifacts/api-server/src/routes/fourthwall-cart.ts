@@ -45,9 +45,30 @@ function items(body: any) {
     : null;
 }
 
+function safeProviderError(data: any) {
+  if (!data || typeof data !== "object") return null;
+  return {
+    code: typeof data.code === "string" ? data.code.slice(0, 120) : undefined,
+    message:
+      typeof data.message === "string" ? data.message.slice(0, 300) : undefined,
+    error:
+      typeof data.error === "string" ? data.error.slice(0, 300) : undefined,
+  };
+}
+
 async function provider(path: string, init?: RequestInit) {
   const storefrontToken = token();
-  if (!storefrontToken) return { ok: false, status: 503, data: null };
+  if (!storefrontToken) {
+    console.error("[fourthwall-cart] configuration missing", {
+      tokenConfigured: false,
+    });
+    return {
+      ok: false,
+      status: 503,
+      data: null,
+      providerCode: "TOKEN_MISSING",
+    };
+  }
   const url = new URL(`${API_ORIGIN}${path}`);
   url.searchParams.set("storefront_token", storefrontToken);
   try {
@@ -60,9 +81,36 @@ async function provider(path: string, init?: RequestInit) {
       signal: AbortSignal.timeout(15_000),
     });
     const data = await response.json().catch(() => null);
-    return { ok: response.ok, status: response.status, data };
-  } catch {
-    return { ok: false, status: 502, data: null };
+    const providerError = safeProviderError(data);
+    if (!response.ok)
+      console.error("[fourthwall-cart] provider rejected request", {
+        method: init?.method || "GET",
+        host: url.host,
+        path: url.pathname,
+        status: response.status,
+        tokenConfigured: true,
+        providerError,
+      });
+    return {
+      ok: response.ok,
+      status: response.status,
+      data,
+      providerCode: providerError?.code || providerError?.error || undefined,
+    };
+  } catch (error) {
+    console.error("[fourthwall-cart] provider request failed", {
+      method: init?.method || "GET",
+      host: url.host,
+      path: url.pathname,
+      tokenConfigured: true,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return {
+      ok: false,
+      status: 502,
+      data: null,
+      providerCode: "UPSTREAM_UNREACHABLE",
+    };
   }
 }
 
@@ -76,6 +124,8 @@ function reply(
   return res.status(invalid ? 410 : result.status >= 500 ? 503 : 400).json({
     error: invalid ? "This basket has expired." : message,
     invalidCart: invalid,
+    providerStatus: result.status,
+    ...(result.providerCode ? { providerCode: result.providerCode } : {}),
   });
 }
 
