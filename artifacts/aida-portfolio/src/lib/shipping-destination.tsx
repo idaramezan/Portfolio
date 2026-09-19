@@ -52,6 +52,14 @@ export function getStoredShippingDestination(): ShippingDestination | null {
   }
 }
 
+export function inferBrowserCountry(): string | null {
+  try {
+    if (Intl.DateTimeFormat().resolvedOptions().timeZone === "Europe/Istanbul")
+      return "TR";
+  } catch {}
+  return null;
+}
+
 export function ShippingDestinationProvider({
   children,
 }: {
@@ -94,25 +102,34 @@ export function ShippingDestinationProvider({
       setLoading(false);
       return;
     }
+    const applyDetectedCountry = (value: unknown) => {
+      const serverCode = String(value || "").toUpperCase();
+      const code = COUNTRY_CODES.includes(serverCode)
+        ? serverCode
+        : inferBrowserCountry();
+      if (!code) return;
+      const names = new Intl.DisplayNames([locale], { type: "region" });
+      const next: ShippingDestination = {
+        countryCode: code,
+        countryName: names.of(code) || code,
+        source: "geo",
+        confirmedByUser: false,
+      };
+      setDestination(next);
+      setActiveShoppingRegion(code === "TR" ? "TR" : "INTERNATIONAL");
+      trackAnalytics("shipping_destination_detected", {
+        metadata: {
+          countryCode: code,
+          detectionSource: code === serverCode ? "server" : "browser_timezone",
+        },
+      });
+    };
     fetch("/api/currency")
       .then((response) => response.json())
       .then((data) => {
-        const code = String(data.country || "").toUpperCase();
-        if (!COUNTRY_CODES.includes(code)) return;
-        const names = new Intl.DisplayNames([locale], { type: "region" });
-        const next: ShippingDestination = {
-          countryCode: code,
-          countryName: names.of(code) || code,
-          source: "geo",
-          confirmedByUser: false,
-        };
-        setDestination(next);
-        setActiveShoppingRegion(code === "TR" ? "TR" : "INTERNATIONAL");
-        trackAnalytics("shipping_destination_detected", {
-          metadata: { countryCode: code },
-        });
+        applyDetectedCountry(data.country);
       })
-      .catch(() => {})
+      .catch(() => applyDetectedCountry(null))
       .finally(() => setLoading(false));
   }, []);
 
@@ -184,7 +201,9 @@ export function ShippingDestinationProvider({
     }
     setUpdating(true);
     setUpdateError("");
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
     try {
       if (force && selected.code !== "TR") {
         const aceos = loadCart("TR").filter((item) => item.kind === "aceo");
@@ -483,9 +502,7 @@ export function DestinationControl({
             : destination?.countryName ||
               (locale === "tr" ? "Ülke seç" : "Choose country")}
         </span>
-        <strong>
-          {locale === "tr" ? "Değiştir" : "Change"}
-        </strong>
+        <strong>{locale === "tr" ? "Değiştir" : "Change"}</strong>
       </button>
     );
   return (
