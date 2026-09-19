@@ -8,6 +8,22 @@ import { pool } from "@workspace/db";
 
 const router = Router();
 const ACEO_DIMENSION = "6.4 × 8.9 cm · 2.5 × 3.5 in";
+const PRODUCT_IMAGE_PATTERN = /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z0-9]+)?$/i;
+
+function productImageIds(value: unknown, result = new Set<string>()) {
+  if (typeof value === "string") {
+    const id = value.trim().match(PRODUCT_IMAGE_PATTERN)?.[1];
+    if (id) result.add(id);
+    return result;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) productImageIds(item, result);
+    return result;
+  }
+  if (value && typeof value === "object")
+    for (const item of Object.values(value)) productImageIds(item, result);
+  return result;
+}
 
 async function ensureTable() {
   await pool.query(`
@@ -357,15 +373,54 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
     });
   try {
     await ensureTable();
-    const result = await pool.query(
-      `INSERT INTO shop_settings (id, payload, updated_at)
-       VALUES ($1, $2::jsonb, NOW())
-       ON CONFLICT (id) DO UPDATE
-       SET payload = EXCLUDED.payload, updated_at = NOW()
-       RETURNING updated_at`,
-      ["primary", JSON.stringify(request.body.settings)],
-    );
-    return response.json({ ok: true, updatedAt: result.rows[0].updated_at });
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const previous = await client.query(
+        "SELECT payload FROM shop_settings WHERE id=$1 FOR UPDATE",
+        ["primary"],
+      );
+      const result = await client.query(
+        `INSERT INTO shop_settings (id, payload, updated_at)
+         VALUES ($1, $2::jsonb, NOW())
+         ON CONFLICT (id) DO UPDATE
+         SET payload = EXCLUDED.payload, updated_at = NOW()
+         RETURNING updated_at`,
+        ["primary", JSON.stringify(request.body.settings)],
+      );
+      const oldIds = productImageIds(previous.rows[0]?.payload);
+      const retainedIds = productImageIds(request.body.settings);
+      const orphanedIds = [...oldIds].filter((id) => !retainedIds.has(id));
+      let deletedImages = 0;
+      if (orphanedIds.length) {
+        const table = await client.query(
+          "SELECT to_regclass('public.product_images') AS name",
+        );
+        if (table.rows[0]?.name) {
+          const deleted = await client.query(
+            "DELETE FROM product_images WHERE id = ANY($1::text[]) RETURNING id",
+            [orphanedIds],
+          );
+          deletedImages = deleted.rowCount || 0;
+        }
+      }
+      await client.query("COMMIT");
+      if (orphanedIds.length)
+        request.log.info(
+          { operation: "product-image-cleanup", orphanedReferences: orphanedIds.length, deletedImages },
+          "Removed product images no longer referenced by shop settings",
+        );
+      return response.json({
+        ok: true,
+        updatedAt: result.rows[0].updated_at,
+        deletedImages,
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     request.log.error({ error }, "Failed to save shop settings");
     return response
