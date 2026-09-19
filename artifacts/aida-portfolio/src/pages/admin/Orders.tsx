@@ -12,6 +12,9 @@ type OrderItem = {
   unit_price_minor: number;
   line_total_minor: number;
   selected_options?: Record<string, unknown>;
+  regular_unit_price_minor?: number | null;
+  product_discount_percentage?: number;
+  product_discount_amount_minor?: number;
   sku?: string | null;
 };
 
@@ -79,11 +82,12 @@ const dateTime = (value?: string | null) =>
 
 const optionText = (options?: Record<string, unknown>) => {
   if (options?.paletteType) {
-    const colours = options.colorSelectionMode === "live"
-      ? "To be chosen during TikTok Live"
-      : Array.isArray(options.selectedColorNames)
-        ? options.selectedColorNames.join(", ")
-        : "Not provided";
+    const colours =
+      options.colorSelectionMode === "live"
+        ? "To be chosen during TikTok Live"
+        : Array.isArray(options.selectedColorNames)
+          ? options.selectedColorNames.join(", ")
+          : "Not provided";
     return `CUSTOM PALETTE · Palette type: ${options.paletteTypeName || options.paletteType} · Colour selection: ${colours} · TikTok: @${options.tikTokUsername || "Not provided"}${options.customerNote ? ` · Customer note: ${options.customerNote}` : ""}`;
   }
   return Object.entries(options || {})
@@ -529,6 +533,30 @@ export default function Orders() {
                                 </td>
                                 <td className="py-3 pr-3">
                                   {optionText(item.selected_options) || "None"}
+                                  {Number(
+                                    item.product_discount_percentage || 0,
+                                  ) > 0 && (
+                                    <span className="mt-2 block text-coral">
+                                      Regular:{" "}
+                                      {money(
+                                        item.regular_unit_price_minor ||
+                                          item.unit_price_minor,
+                                        order.currency,
+                                      )}{" "}
+                                      · Product discount:{" "}
+                                      {item.product_discount_percentage}% · Sale
+                                      price:{" "}
+                                      {money(
+                                        item.unit_price_minor,
+                                        order.currency,
+                                      )}{" "}
+                                      · Total:{" "}
+                                      {money(
+                                        item.line_total_minor,
+                                        order.currency,
+                                      )}
+                                    </span>
+                                  )}
                                 </td>
                                 <td className="py-3 pr-3">{item.quantity}</td>
                                 <td className="py-3 pr-3">

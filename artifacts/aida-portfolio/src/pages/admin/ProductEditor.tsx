@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import SaleEditor from "@/components/admin/SaleEditor";
 import {
   saveShopSettingsAndWait,
   type ManagedProduct,
@@ -301,10 +302,13 @@ export default function ProductEditor({
       if (optionErrors.length) next.options = optionErrors[0];
     }
     if (publishing && draft.fourthwallVariantGroupEnabled) {
-      const enabled: ProductFourthwallVariant[] = (draft.fourthwallVariants || []).filter(
-        (variant: ProductFourthwallVariant) => variant.enabled,
-      );
-      if (!enabled.length || enabled.some((variant) => !variant.fourthwallProductId))
+      const enabled: ProductFourthwallVariant[] = (
+        draft.fourthwallVariants || []
+      ).filter((variant: ProductFourthwallVariant) => variant.enabled);
+      if (
+        !enabled.length ||
+        enabled.some((variant) => !variant.fourthwallProductId)
+      )
         next.fourthwall =
           "Assign a Fourthwall product to every enabled international format.";
       if (
@@ -591,9 +595,7 @@ export default function ProductEditor({
       [fieldName]: Array.from(
         new Set([
           ...(previousDefault ? [previousDefault] : []),
-          ...(draft[fieldName] || []).filter(
-            (image: string) => image !== url,
-          ),
+          ...(draft[fieldName] || []).filter((image: string) => image !== url),
         ]),
       ),
     });
@@ -1216,6 +1218,14 @@ export default function ProductEditor({
               </>
             )}
           </FormSection>
+          <div className="border border-ink/10 bg-paper p-5">
+            <SaleEditor
+              regularPriceMinor={draft.priceUsdCents}
+              currency={kind === "originals" ? "USD" : "TRY"}
+              sale={draft.sale}
+              onChange={(sale) => update({ sale })}
+            />
+          </div>
           <FormSection title={isMail ? "Order window" : "Inventory"}>
             {isMail ? (
               <>

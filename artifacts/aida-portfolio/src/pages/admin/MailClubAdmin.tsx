@@ -1,24 +1,417 @@
 import { useState } from "react";
 import { ImagePlus } from "lucide-react";
 import type { MailClubEdition, ShopSettings } from "@/lib/store";
+import SaleEditor from "@/components/admin/SaleEditor";
 
-const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const trMonths = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const trMonths = [
+  "Ocak",
+  "Şubat",
+  "Mart",
+  "Nisan",
+  "Mayıs",
+  "Haziran",
+  "Temmuz",
+  "Ağustos",
+  "Eylül",
+  "Ekim",
+  "Kasım",
+  "Aralık",
+];
 const input = "mt-2 min-h-11 w-full border border-ink/20 bg-paper px-3";
-const localValue = (value?: string) => value ? new Date(value).toISOString().slice(0,16) : "";
+const localValue = (value?: string) =>
+  value ? new Date(value).toISOString().slice(0, 16) : "";
 
-export default function MailClubAdmin({ settings, onChange }: { settings: ShopSettings; onChange: (settings: ShopSettings) => void }) {
-  const [selectedId, setSelectedId] = useState(settings.mailClubEditions.find((edition) => edition.current)?.id || settings.mailClubEditions[0]?.id || ""); const [uploading,setUploading]=useState(false); const [error,setError]=useState("");
-  const edition = settings.mailClubEditions.find((item) => item.id === selectedId);
-  const patch = (changes: Partial<MailClubEdition>) => { if (!edition) return; onChange({ ...settings, mailClubEditions: settings.mailClubEditions.map((item) => item.id === edition.id ? { ...item, ...changes, ...(changes.current ? { current: true } : {}) } : changes.current ? { ...item, current: false } : item) }); };
-  const create = () => { const now=new Date(); const month=now.getMonth(); const id=crypto.randomUUID(); const next: MailClubEdition={ id, slug:`mail-club-${now.getFullYear()}-${month+1}`, internalName:`${months[month]} ${now.getFullYear()}`, title:`${months[month]} Mail Club`, titleTr:`${trMonths[month]} Mail Club`, monthYear:`${now.getFullYear()}-${String(month+1).padStart(2,"0")}`, description:"A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.", descriptionTr:"Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.", coverImage:"", altText:"", altTextTr:"", priceMinor:49000, stock:20, enabled:false, status:"draft", current:false, timezone:"Europe/Istanbul", createdAt:now.toISOString() }; onChange({...settings,mailClubEditions:[...settings.mailClubEditions,next]}); setSelectedId(id); };
-  if (!edition) return <section className="admin-card"><button className="button-primary" onClick={create}>New edition</button></section>;
-  const [year,monthString]=edition.monthYear.split("-"); const month=Math.max(0,Number(monthString)-1); const now=Date.now(); const start=edition.availabilityStart?Date.parse(edition.availabilityStart):null; const end=edition.availabilityEnd?Date.parse(edition.availabilityEnd):null; const badge=!edition.enabled||edition.status==="draft"?"DRAFT":edition.stock===0?"SOLD OUT":start&&now<start?"SCHEDULED":end&&now>=end?"ENDED":end&&end-now<3*86400000?"ENDING SOON":"LIVE";
-  const upload = async (file?:File) => { if(!file)return; setUploading(true);setError("");try{const body=new FormData();body.append("image",file);body.append("productId",edition.id);const password=sessionStorage.getItem("aida-admin-password")||import.meta.env.VITE_ADMIN_PASSWORD||"a0019280718";const response=await fetch("/api/admin/product-media",{method:"POST",headers:{"x-admin-password":password},body});const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.imageUrl)throw new Error(payload.error||"Image upload failed.");patch({coverImage:payload.imageUrl});}catch(reason){setError(reason instanceof Error?reason.message:"Image upload failed.");}finally{setUploading(false);}};
-  return <section className="space-y-6"><div className="admin-card flex flex-wrap items-end justify-between gap-4"><label className="min-w-72 font-semibold">Current edition<select className={input} value={selectedId} onChange={(event)=>setSelectedId(event.target.value)}>{settings.mailClubEditions.map((item)=><option key={item.id} value={item.id}>{item.internalName}{item.current?" · Current":""}</option>)}</select></label><div className="flex items-center gap-3"><span className="bg-ink/5 px-3 py-2 text-xs font-bold tracking-wider">{badge}</span><button className="button-primary" onClick={create}>New edition</button></div></div>
-    <div className="admin-card"><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Status</p><div className="mt-4 flex flex-wrap gap-7"> <label className="flex gap-2"><input type="checkbox" checked={edition.enabled} onChange={(e)=>patch({enabled:e.target.checked})}/>Enabled</label><label className="flex gap-2"><input type="checkbox" checked={edition.status==="published"} onChange={(e)=>patch({status:e.target.checked?"published":"draft"})}/>Published</label><label className="flex gap-2"><input type="checkbox" checked={edition.current} onChange={(e)=>patch({current:e.target.checked})}/>Current edition</label></div></div>
-    <div className="grid gap-6 lg:grid-cols-2"><div className="admin-card"><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Edition</p><div className="mt-4 grid gap-4 sm:grid-cols-2"><label>Month<select className={input} value={month} onChange={(e)=>{const next=Number(e.target.value);patch({monthYear:`${year}-${String(next+1).padStart(2,"0")}`,internalName:`${months[next]} ${year}`,title:`${months[next]} Mail Club`,titleTr:`${trMonths[next]} Mail Club`});}}>{months.map((name,index)=><option key={name} value={index}>{name}</option>)}</select></label><label>Year<input className={input} type="number" value={year} onChange={(e)=>patch({monthYear:`${e.target.value}-${monthString}`,internalName:`${months[month]} ${e.target.value}`})}/></label><label className="sm:col-span-2">Display title EN<input className={input} value={edition.title} onChange={(e)=>patch({title:e.target.value})}/></label><label className="sm:col-span-2">Display title TR<input className={input} value={edition.titleTr||""} onChange={(e)=>patch({titleTr:e.target.value})}/></label></div></div>
-    <div className="admin-card"><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Sales</p><div className="mt-4 grid gap-4 sm:grid-cols-2"><label>Price (TL)<input className={input} type="number" min="1" value={edition.priceMinor/100} onChange={(e)=>patch({priceMinor:Math.round(Number(e.target.value)*100)})}/></label><label>Stock / capacity<input className={input} type="number" min="0" value={edition.stock} onChange={(e)=>patch({stock:Number(e.target.value)})}/></label><label>Start date<input className={input} type="datetime-local" value={localValue(edition.availabilityStart)} onChange={(e)=>patch({availabilityStart:e.target.value?new Date(e.target.value).toISOString():undefined})}/></label><label>End date<input className={input} type="datetime-local" value={localValue(edition.availabilityEnd)} onChange={(e)=>patch({availabilityEnd:e.target.value?new Date(e.target.value).toISOString():undefined})}/></label></div></div></div>
-    <div className="grid gap-6 lg:grid-cols-2"><div className="admin-card"><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Media</p><div className="mt-4 flex gap-4">{edition.coverImage?<img src={edition.coverImage} alt="Edition preview" className="h-40 w-32 object-cover"/>:<span className="grid h-40 w-32 place-items-center bg-ink/5"><ImagePlus/></span>}<label className="inline-flex h-11 cursor-pointer items-center border border-ink/20 px-4 font-semibold">{uploading?"Uploading…":"Replace image"}<input type="file" className="sr-only" accept="image/jpeg,image/png,image/webp" onChange={(e)=>upload(e.target.files?.[0])}/></label></div>{error&&<p className="mt-2 text-coral">{error}</p>}<label className="mt-4 block">Image alt text EN<input className={input} value={edition.altText} onChange={(e)=>patch({altText:e.target.value})}/></label><label className="mt-4 block">Image alt text TR<input className={input} value={edition.altTextTr||""} onChange={(e)=>patch({altTextTr:e.target.value})}/></label></div><div className="admin-card"><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Content</p><label className="mt-4 block">Short description EN<textarea className={`${input} min-h-28 py-3`} value={edition.description} onChange={(e)=>patch({description:e.target.value})}/></label><label className="mt-4 block">Short description TR<textarea className={`${input} min-h-28 py-3`} value={edition.descriptionTr||""} onChange={(e)=>patch({descriptionTr:e.target.value})}/></label></div></div>
-  </section>;
+export default function MailClubAdmin({
+  settings,
+  onChange,
+}: {
+  settings: ShopSettings;
+  onChange: (settings: ShopSettings) => void;
+}) {
+  const [selectedId, setSelectedId] = useState(
+    settings.mailClubEditions.find((edition) => edition.current)?.id ||
+      settings.mailClubEditions[0]?.id ||
+      "",
+  );
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const edition = settings.mailClubEditions.find(
+    (item) => item.id === selectedId,
+  );
+  const patch = (changes: Partial<MailClubEdition>) => {
+    if (!edition) return;
+    onChange({
+      ...settings,
+      mailClubEditions: settings.mailClubEditions.map((item) =>
+        item.id === edition.id
+          ? {
+              ...item,
+              ...changes,
+              ...(changes.current ? { current: true } : {}),
+            }
+          : changes.current
+            ? { ...item, current: false }
+            : item,
+      ),
+    });
+  };
+  const create = () => {
+    const now = new Date();
+    const month = now.getMonth();
+    const id = crypto.randomUUID();
+    const next: MailClubEdition = {
+      id,
+      slug: `mail-club-${now.getFullYear()}-${month + 1}`,
+      internalName: `${months[month]} ${now.getFullYear()}`,
+      title: `${months[month]} Mail Club`,
+      titleTr: `${trMonths[month]} Mail Club`,
+      monthYear: `${now.getFullYear()}-${String(month + 1).padStart(2, "0")}`,
+      description:
+        "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.",
+      descriptionTr:
+        "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.",
+      coverImage: "",
+      altText: "",
+      altTextTr: "",
+      priceMinor: 49000,
+      stock: 20,
+      enabled: false,
+      status: "draft",
+      current: false,
+      timezone: "Europe/Istanbul",
+      createdAt: now.toISOString(),
+    };
+    onChange({
+      ...settings,
+      mailClubEditions: [...settings.mailClubEditions, next],
+    });
+    setSelectedId(id);
+  };
+  if (!edition)
+    return (
+      <section className="admin-card">
+        <button className="button-primary" onClick={create}>
+          New edition
+        </button>
+      </section>
+    );
+  const [year, monthString] = edition.monthYear.split("-");
+  const month = Math.max(0, Number(monthString) - 1);
+  const now = Date.now();
+  const start = edition.availabilityStart
+    ? Date.parse(edition.availabilityStart)
+    : null;
+  const end = edition.availabilityEnd
+    ? Date.parse(edition.availabilityEnd)
+    : null;
+  const badge =
+    !edition.enabled || edition.status === "draft"
+      ? "DRAFT"
+      : edition.stock === 0
+        ? "SOLD OUT"
+        : start && now < start
+          ? "SCHEDULED"
+          : end && now >= end
+            ? "ENDED"
+            : end && end - now < 3 * 86400000
+              ? "ENDING SOON"
+              : "LIVE";
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const body = new FormData();
+      body.append("image", file);
+      body.append("productId", edition.id);
+      const password =
+        sessionStorage.getItem("aida-admin-password") ||
+        import.meta.env.VITE_ADMIN_PASSWORD ||
+        "a0019280718";
+      const response = await fetch("/api/admin/product-media", {
+        method: "POST",
+        headers: { "x-admin-password": password },
+        body,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.imageUrl)
+        throw new Error(payload.error || "Image upload failed.");
+      patch({ coverImage: payload.imageUrl });
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Image upload failed.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+  return (
+    <section className="space-y-6">
+      <div className="admin-card flex flex-wrap items-end justify-between gap-4">
+        <label className="min-w-72 font-semibold">
+          Current edition
+          <select
+            className={input}
+            value={selectedId}
+            onChange={(event) => setSelectedId(event.target.value)}
+          >
+            {settings.mailClubEditions.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.internalName}
+                {item.current ? " · Current" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex items-center gap-3">
+          <span className="bg-ink/5 px-3 py-2 text-xs font-bold tracking-wider">
+            {badge}
+          </span>
+          <button className="button-primary" onClick={create}>
+            New edition
+          </button>
+        </div>
+      </div>
+      <div className="admin-card">
+        <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+          Status
+        </p>
+        <div className="mt-4 flex flex-wrap gap-7">
+          {" "}
+          <label className="flex gap-2">
+            <input
+              type="checkbox"
+              checked={edition.enabled}
+              onChange={(e) => patch({ enabled: e.target.checked })}
+            />
+            Enabled
+          </label>
+          <label className="flex gap-2">
+            <input
+              type="checkbox"
+              checked={edition.status === "published"}
+              onChange={(e) =>
+                patch({ status: e.target.checked ? "published" : "draft" })
+              }
+            />
+            Published
+          </label>
+          <label className="flex gap-2">
+            <input
+              type="checkbox"
+              checked={edition.current}
+              onChange={(e) => patch({ current: e.target.checked })}
+            />
+            Current edition
+          </label>
+        </div>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="admin-card">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+            Edition
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label>
+              Month
+              <select
+                className={input}
+                value={month}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  patch({
+                    monthYear: `${year}-${String(next + 1).padStart(2, "0")}`,
+                    internalName: `${months[next]} ${year}`,
+                    title: `${months[next]} Mail Club`,
+                    titleTr: `${trMonths[next]} Mail Club`,
+                  });
+                }}
+              >
+                {months.map((name, index) => (
+                  <option key={name} value={index}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Year
+              <input
+                className={input}
+                type="number"
+                value={year}
+                onChange={(e) =>
+                  patch({
+                    monthYear: `${e.target.value}-${monthString}`,
+                    internalName: `${months[month]} ${e.target.value}`,
+                  })
+                }
+              />
+            </label>
+            <label className="sm:col-span-2">
+              Display title EN
+              <input
+                className={input}
+                value={edition.title}
+                onChange={(e) => patch({ title: e.target.value })}
+              />
+            </label>
+            <label className="sm:col-span-2">
+              Display title TR
+              <input
+                className={input}
+                value={edition.titleTr || ""}
+                onChange={(e) => patch({ titleTr: e.target.value })}
+              />
+            </label>
+          </div>
+          <div className="mt-6">
+            <SaleEditor regularPriceMinor={edition.priceMinor} currency="TRY" sale={edition.sale} onChange={(sale) => patch({ sale })} />
+          </div>
+        </div>
+        <div className="admin-card">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+            Sales
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label>
+              Price (TL)
+              <input
+                className={input}
+                type="number"
+                min="1"
+                value={edition.priceMinor / 100}
+                onChange={(e) =>
+                  patch({
+                    priceMinor: Math.round(Number(e.target.value) * 100),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Stock / capacity
+              <input
+                className={input}
+                type="number"
+                min="0"
+                value={edition.stock}
+                onChange={(e) => patch({ stock: Number(e.target.value) })}
+              />
+            </label>
+            <label>
+              Start date
+              <input
+                className={input}
+                type="datetime-local"
+                value={localValue(edition.availabilityStart)}
+                onChange={(e) =>
+                  patch({
+                    availabilityStart: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : undefined,
+                  })
+                }
+              />
+            </label>
+            <label>
+              End date
+              <input
+                className={input}
+                type="datetime-local"
+                value={localValue(edition.availabilityEnd)}
+                onChange={(e) =>
+                  patch({
+                    availabilityEnd: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : undefined,
+                  })
+                }
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="admin-card">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+            Media
+          </p>
+          <div className="mt-4 flex gap-4">
+            {edition.coverImage ? (
+              <img
+                src={edition.coverImage}
+                alt="Edition preview"
+                className="h-40 w-32 object-cover"
+              />
+            ) : (
+              <span className="grid h-40 w-32 place-items-center bg-ink/5">
+                <ImagePlus />
+              </span>
+            )}
+            <label className="inline-flex h-11 cursor-pointer items-center border border-ink/20 px-4 font-semibold">
+              {uploading ? "Uploading…" : "Replace image"}
+              <input
+                type="file"
+                className="sr-only"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => upload(e.target.files?.[0])}
+              />
+            </label>
+          </div>
+          {error && <p className="mt-2 text-coral">{error}</p>}
+          <label className="mt-4 block">
+            Image alt text EN
+            <input
+              className={input}
+              value={edition.altText}
+              onChange={(e) => patch({ altText: e.target.value })}
+            />
+          </label>
+          <label className="mt-4 block">
+            Image alt text TR
+            <input
+              className={input}
+              value={edition.altTextTr || ""}
+              onChange={(e) => patch({ altTextTr: e.target.value })}
+            />
+          </label>
+        </div>
+        <div className="admin-card">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+            Content
+          </p>
+          <label className="mt-4 block">
+            Short description EN
+            <textarea
+              className={`${input} min-h-28 py-3`}
+              value={edition.description}
+              onChange={(e) => patch({ description: e.target.value })}
+            />
+          </label>
+          <label className="mt-4 block">
+            Short description TR
+            <textarea
+              className={`${input} min-h-28 py-3`}
+              value={edition.descriptionTr || ""}
+              onChange={(e) => patch({ descriptionTr: e.target.value })}
+            />
+          </label>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -1,4 +1,4 @@
-import Money from "@/components/Money";
+import ProductPrice from "@/components/ProductPrice";
 import { useInternationalProducts } from "@/hooks/use-international";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { getArtworkImage } from "@/lib/assets";
@@ -102,9 +102,11 @@ export default function RelatedProducts({
               cardVariant?.product?.price?.formatted ||
               linked?.price?.formatted;
             const price = !destination ? undefined : isTürkiye ? (
-              <Money
-                baseAmountUsdCents={localPrice}
-                canonicalCurrency={product.kind === "original" ? "USD" : "TRY"}
+              <ProductPrice
+                regularPriceMinor={localPrice}
+                currency={product.kind === "original" ? "USD" : "TRY"}
+                sale={product.sale}
+                compact
               />
             ) : cardVariant?.available && internationalPrice ? (
               internationalPrice

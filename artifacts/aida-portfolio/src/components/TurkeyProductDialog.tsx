@@ -15,6 +15,8 @@ import {
 } from "@/lib/turkiye-products";
 import { isSoldOut } from "@/lib/product-status";
 import { useLocale } from "@/lib/locale";
+import { calculateProductSale } from "@/lib/product-sale";
+import ProductPrice from "@/components/ProductPrice";
 
 export default function TurkeyProductDialog({
   product,
@@ -111,10 +113,11 @@ export default function TurkeyProductDialog({
     : [];
   const frameAdditional =
     product.printOptions?.framing.frameAdditionalPriceUsdCents || 0;
+  const baseSale = calculateProductSale(product.priceUsdCents, product.sale);
   const pricing =
     category === "print" && size && product.printOptions
       ? calculatePrintPrice({
-          basePriceCents: product.priceUsdCents,
+          basePriceCents: baseSale.finalPriceMinor,
           sizePriceDifferenceCents: size.additionalPriceUsdCents,
           finishPriceDifferenceCents: getFinishPriceDifference(
             product.printOptions,
@@ -123,8 +126,8 @@ export default function TurkeyProductDialog({
           quantity,
         })
       : {
-          unitPriceCents: product.priceUsdCents,
-          lineTotalCents: product.priceUsdCents * quantity,
+          unitPriceCents: baseSale.finalPriceMinor,
+          lineTotalCents: baseSale.finalPriceMinor * quantity,
         };
   const unitPrice = pricing.unitPriceCents;
   const maximum = Math.max(
@@ -185,10 +188,10 @@ export default function TurkeyProductDialog({
                 ? "Mug · White"
                 : product.stickerOptions?.formatDescription || "Sticker",
         imageUrl: product.imageUrl,
-        priceUsdCents: unitPrice,
+        priceUsdCents: product.priceUsdCents,
         market: "turkiye",
         canonicalCurrency: "TRY",
-        canonicalPriceMinor: unitPrice,
+        canonicalPriceMinor: product.priceUsdCents,
         displayCurrency: "TRY",
         quantity,
         maxQuantity: maximum,
@@ -508,6 +511,11 @@ export default function TurkeyProductDialog({
                 showBase
                 className="mt-1 block font-sans text-xl font-bold"
               />
+              {baseSale.status === "active" && (
+                <span className="mt-1 block text-xs text-coral">
+                  {baseSale.percentage}% off base price
+                </span>
+              )}
             </div>
           </section>
 
@@ -535,9 +543,11 @@ export default function TurkeyProductDialog({
                 <p className="flex justify-between">
                   <span>Base print</span>
                   <span>
-                    <Money
-                      baseAmountUsdCents={product.priceUsdCents}
-                      canonicalCurrency="TRY"
+                    <ProductPrice
+                      regularPriceMinor={product.priceUsdCents}
+                      currency="TRY"
+                      sale={product.sale}
+                      compact
                     />
                   </span>
                 </p>

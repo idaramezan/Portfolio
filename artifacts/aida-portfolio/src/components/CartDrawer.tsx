@@ -281,6 +281,7 @@ export default function CartDrawer({
                     </p>
                   )}
                   <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
+                  {x.priceChanged && <p role="status" className="mt-2 text-xs font-semibold text-coral">{locale === "tr" ? `${x.title} ürününün fiyatı sepete eklendiğinden beri değişti.` : `The price of ${x.title} has changed since it was added to your bag.`}</p>}
                   {x.kind !== "original" && x.kind !== "aceo" && (
                     <div
                       className="mt-2 inline-flex items-center border border-ink/15"

@@ -1244,6 +1244,12 @@
 .ready-palette strong { display: block; margin: 1rem 0; }
 .ready-palette button { min-height: 44px; background: #173f31; color: white; padding: .75rem 1rem; }
 .commerce-loading { min-height: 700px; background: linear-gradient(90deg, transparent, rgb(23 63 49 / .05), transparent); }
+.product-sale-price { display: inline-flex; flex-direction: column; gap: .2rem; color: inherit; }
+.product-sale-price > strong { color: #173f31; font-size: 1.08em; }
+.product-sale-price > span { color: rgb(23 63 49 / .58); font-size: .72rem; font-weight: 600; letter-spacing: .02em; }
+.product-sale-price del { text-decoration-thickness: 1px; }
+.product-sale-price--compact { gap: .1rem; }
+.product-sale-price--compact > span { white-space: nowrap; }
 .palette-order { padding-block: clamp(4rem, 8vw, 8rem); }
 .palette-order__intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, .8fr); gap: clamp(2rem, 6vw, 7rem); align-items: center; }
 .palette-order__intro img { width: 100%; max-height: 760px; object-fit: cover; }

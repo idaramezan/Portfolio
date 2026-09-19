@@ -10,6 +10,7 @@ import { useLocale } from "@/lib/locale";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import type { ManagedProduct } from "@/lib/store";
 import Money from "@/components/Money";
+import ProductPrice from "@/components/ProductPrice";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { trackAnalytics } from "@/lib/analytics";
 import { resolveProductPresentation } from "@/lib/product-presentation";
@@ -201,19 +202,30 @@ export default function UnifiedShop() {
               const href = `/shop/${original ? "originals" : aceo ? "aceos" : "prints"}/${product.slug || product.id}`;
               const price =
                 aceo && destination?.countryCode === "TR" ? (
-                  <Money
-                    baseAmountUsdCents={
+                  <ProductPrice
+                    regularPriceMinor={
                       product.priceMinor ?? product.priceUsdCents
                     }
-                    canonicalCurrency="TRY"
+                    currency="TRY"
+                    sale={product.sale}
+                    compact
                   />
                 ) : !aceo &&
                   presentation.amountMinor !== null &&
                   presentation.currency ? (
-                  <Money
-                    baseAmountUsdCents={presentation.amountMinor}
-                    canonicalCurrency={presentation.currency}
-                  />
+                  destination?.countryCode === "TR" ? (
+                    <ProductPrice
+                      regularPriceMinor={presentation.amountMinor}
+                      currency={presentation.currency}
+                      sale={product.sale}
+                      compact
+                    />
+                  ) : (
+                    <Money
+                      baseAmountUsdCents={presentation.amountMinor}
+                      canonicalCurrency={presentation.currency}
+                    />
+                  )
                 ) : !aceo && presentation.externalPrice ? (
                   presentation.externalPrice
                 ) : !aceo && presentation.availability === "loading" ? (

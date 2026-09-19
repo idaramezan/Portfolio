@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { useLocation } from "wouter";
-import Money from "@/components/Money";
+import ProductPrice from "@/components/ProductPrice";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { trackAnalytics } from "@/lib/analytics";
@@ -10,39 +10,382 @@ import { useShippingDestination } from "@/lib/shipping-destination";
 import { addItemToCart, type CustomPaletteTypeId } from "@/lib/store";
 
 const copy = {
-  en: { title: "Custom Watercolor Palette", description: "A handmade watercolor palette made for the way you paint.", made: "Made for the way you paint.", intro: "Choose the material and colours for your one-of-one palette.", step1: "STEP 01", choose: "Choose your palette", chooseHelp: "Choose the material you would like Aida to work with.", available: "Currently available", step2: "STEP 02", colours: "Choose your colours", coloursHelp: "Pick as many colours as you like, or leave the decision for the live session.", live: "I want to choose on live", liveHelp: "We can decide the colours together during your TikTok Live session.", step3: "STEP 03", tiktokTitle: "Your TikTok username", tiktokHelp: "Your palette may be made during a live session. Add your username so Aida can recognize you in the chat.", tiktok: "TikTok username", note: "Anything else?", noteHelp: "Optional. Add anything Aida should know before making your palette.", summary: "YOUR PALETTE", type: "Type", colorsLabel: "Colours", together: "Choosing together on TikTok Live", shipping: "Shipping", free: "Free", continue: "Continue to payment", only: "Currently available in Türkiye only.", pause: "Custom palettes are taking a short pause.", back: "Back to shop", requiredType: "Choose an available palette type.", requiredColors: "Choose at least one colour or choose together on live.", requiredTikTok: "Enter your TikTok username." },
-  tr: { title: "Kişiye Özel Suluboya Paleti", description: "Resim yapma şekline göre elde hazırlanan suluboya paleti.", made: "Resim yapma şekline göre hazırlanır.", intro: "Tek ve özgün paletin için malzeme ve renkleri seç.", step1: "ADIM 01", choose: "Paletini seç", chooseHelp: "Aida'nın hangi malzemeyle çalışmasını istediğini seç.", available: "Şu anda mevcut", step2: "ADIM 02", colours: "Renklerini seç", coloursHelp: "İstediğin kadar renk seçebilir veya kararı canlı yayına bırakabilirsin.", live: "Canlı yayında seçmek istiyorum", liveHelp: "Renkleri TikTok canlı yayınında birlikte seçebiliriz.", step3: "ADIM 03", tiktokTitle: "TikTok kullanıcı adın", tiktokHelp: "Paletin bir canlı yayın sırasında hazırlanabilir. Aida'nın seni sohbette tanıyabilmesi için kullanıcı adını ekle.", tiktok: "TikTok kullanıcı adı", note: "Eklemek istediğin bir şey var mı?", noteHelp: "İsteğe bağlı. Aida'nın paletini hazırlamadan önce bilmesini istediğin bir şey varsa ekleyebilirsin.", summary: "PALETİN", type: "Tür", colorsLabel: "Renkler", together: "TikTok canlı yayınında birlikte seçilecek", shipping: "Kargo", free: "Ücretsiz", continue: "Ödemeye devam et", only: "Şu anda yalnızca Türkiye'de mevcut.", pause: "Kişiye özel paletlere kısa bir ara verildi.", back: "Mağazaya dön", requiredType: "Mevcut bir palet türü seç.", requiredColors: "En az bir renk seç veya canlı yayında birlikte seçmeyi seç.", requiredTikTok: "TikTok kullanıcı adını gir." },
+  en: {
+    title: "Custom Watercolor Palette",
+    description: "A handmade watercolor palette made for the way you paint.",
+    made: "Made for the way you paint.",
+    intro: "Choose the material and colours for your one-of-one palette.",
+    step1: "STEP 01",
+    choose: "Choose your palette",
+    chooseHelp: "Choose the material you would like Aida to work with.",
+    available: "Currently available",
+    step2: "STEP 02",
+    colours: "Choose your colours",
+    coloursHelp:
+      "Pick as many colours as you like, or leave the decision for the live session.",
+    live: "I want to choose on live",
+    liveHelp:
+      "We can decide the colours together during your TikTok Live session.",
+    step3: "STEP 03",
+    tiktokTitle: "Your TikTok username",
+    tiktokHelp:
+      "Your palette may be made during a live session. Add your username so Aida can recognize you in the chat.",
+    tiktok: "TikTok username",
+    note: "Anything else?",
+    noteHelp:
+      "Optional. Add anything Aida should know before making your palette.",
+    summary: "YOUR PALETTE",
+    type: "Type",
+    colorsLabel: "Colours",
+    together: "Choosing together on TikTok Live",
+    shipping: "Shipping",
+    free: "Free",
+    continue: "Continue to payment",
+    only: "Currently available in Türkiye only.",
+    pause: "Custom palettes are taking a short pause.",
+    back: "Back to shop",
+    requiredType: "Choose an available palette type.",
+    requiredColors: "Choose at least one colour or choose together on live.",
+    requiredTikTok: "Enter your TikTok username.",
+  },
+  tr: {
+    title: "Kişiye Özel Suluboya Paleti",
+    description: "Resim yapma şekline göre elde hazırlanan suluboya paleti.",
+    made: "Resim yapma şekline göre hazırlanır.",
+    intro: "Tek ve özgün paletin için malzeme ve renkleri seç.",
+    step1: "ADIM 01",
+    choose: "Paletini seç",
+    chooseHelp: "Aida'nın hangi malzemeyle çalışmasını istediğini seç.",
+    available: "Şu anda mevcut",
+    step2: "ADIM 02",
+    colours: "Renklerini seç",
+    coloursHelp:
+      "İstediğin kadar renk seçebilir veya kararı canlı yayına bırakabilirsin.",
+    live: "Canlı yayında seçmek istiyorum",
+    liveHelp: "Renkleri TikTok canlı yayınında birlikte seçebiliriz.",
+    step3: "ADIM 03",
+    tiktokTitle: "TikTok kullanıcı adın",
+    tiktokHelp:
+      "Paletin bir canlı yayın sırasında hazırlanabilir. Aida'nın seni sohbette tanıyabilmesi için kullanıcı adını ekle.",
+    tiktok: "TikTok kullanıcı adı",
+    note: "Eklemek istediğin bir şey var mı?",
+    noteHelp:
+      "İsteğe bağlı. Aida'nın paletini hazırlamadan önce bilmesini istediğin bir şey varsa ekleyebilirsin.",
+    summary: "PALETİN",
+    type: "Tür",
+    colorsLabel: "Renkler",
+    together: "TikTok canlı yayınında birlikte seçilecek",
+    shipping: "Kargo",
+    free: "Ücretsiz",
+    continue: "Ödemeye devam et",
+    only: "Şu anda yalnızca Türkiye'de mevcut.",
+    pause: "Kişiye özel paletlere kısa bir ara verildi.",
+    back: "Mağazaya dön",
+    requiredType: "Mevcut bir palet türü seç.",
+    requiredColors:
+      "En az bir renk seç veya canlı yayında birlikte seçmeyi seç.",
+    requiredTikTok: "TikTok kullanıcı adını gir.",
+  },
 } as const;
 
 export default function CustomPalette() {
-  const { locale } = useLocale(); const t = copy[locale]; const settings = useShopSettings();
-  const { destination, loading } = useShippingDestination(); const [, navigate] = useLocation();
-  const availableTypes = settings.paletteSettings.types.filter((type) => type.enabled);
-  const [paletteType, setPaletteType] = useState<CustomPaletteTypeId | "">(() => availableTypes.length === 1 ? availableTypes[0].id : "");
-  const [selectedColorIds, setSelectedColorIds] = useState<string[]>([]); const [live, setLive] = useState(false);
-  const [tikTokUsername, setTikTokUsername] = useState(""); const [note, setNote] = useState(""); const [attempted, setAttempted] = useState(false);
+  const { locale } = useLocale();
+  const t = copy[locale];
+  const settings = useShopSettings();
+  const { destination, loading } = useShippingDestination();
+  const [, navigate] = useLocation();
+  const availableTypes = settings.paletteSettings.types.filter(
+    (type) => type.enabled,
+  );
+  const [paletteType, setPaletteType] = useState<CustomPaletteTypeId | "">(
+    () => (availableTypes.length === 1 ? availableTypes[0].id : ""),
+  );
+  const [selectedColorIds, setSelectedColorIds] = useState<string[]>([]);
+  const [live, setLive] = useState(false);
+  const [tikTokUsername, setTikTokUsername] = useState("");
+  const [note, setNote] = useState("");
+  const [attempted, setAttempted] = useState(false);
   useEffect(() => {
     if (availableTypes.length === 1 && paletteType !== availableTypes[0].id) {
-      setPaletteType(availableTypes[0].id); setSelectedColorIds([]); setLive(false);
-    } else if (paletteType && !availableTypes.some((type) => type.id === paletteType)) {
-      setPaletteType(""); setSelectedColorIds([]); setLive(false);
+      setPaletteType(availableTypes[0].id);
+      setSelectedColorIds([]);
+      setLive(false);
+    } else if (
+      paletteType &&
+      !availableTypes.some((type) => type.id === paletteType)
+    ) {
+      setPaletteType("");
+      setSelectedColorIds([]);
+      setLive(false);
     }
   }, [availableTypes.map((type) => type.id).join(","), paletteType]);
   usePageMeta(`${t.title} | Aeda Art`, t.description);
-  const colors = useMemo(() => settings.paletteSettings.colors.filter((color) => color.enabled && color.paletteType === paletteType).sort((a,b) => a.displayOrder-b.displayOrder), [settings.paletteSettings.colors, paletteType]);
-  if (loading && !destination) return <main className="palette-order section-shell"><div className="commerce-loading" /></main>;
-  if (destination?.countryCode !== "TR") return <main className="palette-unavailable section-shell"><h1>{t.only}</h1><a href="/shop">{t.back} →</a></main>;
-  if (!settings.paletteSettings.enabled || !availableTypes.length) return <main className="palette-unavailable section-shell"><h1>{t.pause}</h1><a href="/shop">{t.back} →</a></main>;
-  const username = tikTokUsername.trim().replace(/^@+/, "").replace(/\s+/g, "").slice(0, 30);
-  const valid = Boolean(paletteType && (live || selectedColorIds.length) && username);
-  const selectType = (id: CustomPaletteTypeId) => { setPaletteType(id); setSelectedColorIds([]); setLive(false); };
-  const toggleColor = (id: string) => { setLive(false); setSelectedColorIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); };
-  const selectedColors = colors.filter((color) => selectedColorIds.includes(color.id));
-  const submit = (event: React.FormEvent) => { event.preventDefault(); setAttempted(true); if (!valid) return; const selectedType = paletteType as CustomPaletteTypeId; const type = availableTypes.find((value) => value.id === selectedType)!; const result = addItemToCart({ id: "custom-palette", productId: "custom-palette", kind: "custom-palette", title: t.title, imageUrl: settings.paletteSettings.coverImage, priceUsdCents: settings.paletteSettings.priceMinor, canonicalCurrency: "TRY", canonicalPriceMinor: settings.paletteSettings.priceMinor, quantity: 1, metadata: { paletteType: selectedType, paletteTypeName: locale === "tr" ? type.nameTr : type.nameEn, colorSelectionMode: live ? "live" : "preselected", selectedColorIds: live ? [] : selectedColors.map((color) => color.id), selectedColorNames: live ? [] : selectedColors.map((color) => locale === "tr" ? color.nameTr : color.nameEn), tikTokUsername: username, customerNote: note.trim(), paletteNotes: note.trim() } }, 1, "TR"); if (result.ok) { trackAnalytics("custom_palette_checkout_started", { metadata: { locale, shippingCountry: "TR" } }); navigate("/checkout/turkiye"); } };
-  return <main className="palette-order section-shell"><div className="palette-order__intro"><img src={settings.paletteSettings.coverImage} alt="Blue and pink handmade watercolor palette"/><div><p className="eyebrow">CUSTOM WATERCOLOR PALETTE</p><h1>{t.title}</h1><strong><Money baseAmountUsdCents={settings.paletteSettings.priceMinor} canonicalCurrency="TRY" /></strong><span>{t.free}</span><h2>{t.made}</h2><p>{t.intro}</p></div></div><div className="palette-order__divider"/><form onSubmit={submit} className="palette-configurator">
-    <fieldset className="palette-step"><legend><span className="eyebrow">{t.step1}</span><strong>{t.choose}</strong><small>{t.chooseHelp}</small></legend><div className="palette-type-grid">{availableTypes.map((type) => <label key={type.id} className={paletteType === type.id ? "is-selected" : ""}><input type="radio" name="palette-type" checked={paletteType === type.id} onChange={() => selectType(type.id)}/><span className="palette-choice-check"><Check/></span><strong>{locale === "tr" ? type.nameTr : type.nameEn}</strong><small>{availableTypes.length === 1 ? t.available : locale === "tr" ? type.descriptionTr : type.descriptionEn}</small></label>)}</div>{attempted && !paletteType && <p className="palette-inline-error">{t.requiredType}</p>}</fieldset>
-    <fieldset className="palette-step" disabled={!paletteType}><legend><span className="eyebrow">{t.step2}</span><strong>{t.colours}</strong><small>{t.coloursHelp}</small></legend><div className="palette-swatches">{colors.map((color) => <label key={color.id} className={selectedColorIds.includes(color.id) ? "is-selected" : ""}><input type="checkbox" checked={selectedColorIds.includes(color.id)} onChange={() => toggleColor(color.id)}/><span className="palette-swatch" style={{ backgroundColor: color.hex }}/><span>{locale === "tr" ? color.nameTr : color.nameEn}</span><Check className="palette-swatch-check"/></label>)}</div><label className={`palette-live-choice ${live ? "is-selected" : ""}`}><input type="checkbox" checked={live} onChange={(event) => { setLive(event.target.checked); if (event.target.checked) setSelectedColorIds([]); }}/><span><strong>{t.live}</strong><small>{t.liveHelp}</small></span><Check/></label>{attempted && !live && !selectedColorIds.length && <p className="palette-inline-error">{t.requiredColors}</p>}</fieldset>
-    <section className="palette-step"><div className="palette-step__heading"><span className="eyebrow">{t.step3}</span><h2>{t.tiktokTitle}</h2><p>{t.tiktokHelp}</p></div><label className="palette-field">{t.tiktok}<input required maxLength={31} value={tikTokUsername} onChange={(event) => setTikTokUsername(event.target.value)} placeholder="@username"/></label>{attempted && !username && <p className="palette-inline-error">{t.requiredTikTok}</p>}<label className="palette-field palette-field--note">{t.note}<small>{t.noteHelp}</small><textarea maxLength={500} value={note} onChange={(event) => setNote(event.target.value)}/></label></section>
-    <section className="palette-summary"><p className="eyebrow">{t.summary}</p><dl><div><dt>{t.type}</dt><dd>{availableTypes.find((type) => type.id === paletteType)?.[locale === "tr" ? "nameTr" : "nameEn"] || "–"}</dd></div><div><dt>{t.colorsLabel}</dt><dd>{live ? t.together : selectedColors.map((color) => locale === "tr" ? color.nameTr : color.nameEn).join(" · ") || "–"}</dd></div><div><dt>TikTok</dt><dd>{username ? `@${username}` : "–"}</dd></div><div><dt>{locale === "tr" ? "Fiyat" : "Price"}</dt><dd><Money baseAmountUsdCents={settings.paletteSettings.priceMinor} canonicalCurrency="TRY" /></dd></div><div><dt>{t.shipping}</dt><dd>{t.free}</dd></div></dl><button className="home-green-button" disabled={!valid}>{t.continue}</button></section>
-  </form></main>;
+  const colors = useMemo(
+    () =>
+      settings.paletteSettings.colors
+        .filter((color) => color.enabled && color.paletteType === paletteType)
+        .sort((a, b) => a.displayOrder - b.displayOrder),
+    [settings.paletteSettings.colors, paletteType],
+  );
+  if (loading && !destination)
+    return (
+      <main className="palette-order section-shell">
+        <div className="commerce-loading" />
+      </main>
+    );
+  if (destination?.countryCode !== "TR")
+    return (
+      <main className="palette-unavailable section-shell">
+        <h1>{t.only}</h1>
+        <a href="/shop">{t.back} →</a>
+      </main>
+    );
+  if (!settings.paletteSettings.enabled || !availableTypes.length)
+    return (
+      <main className="palette-unavailable section-shell">
+        <h1>{t.pause}</h1>
+        <a href="/shop">{t.back} →</a>
+      </main>
+    );
+  const username = tikTokUsername
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/\s+/g, "")
+    .slice(0, 30);
+  const valid = Boolean(
+    paletteType && (live || selectedColorIds.length) && username,
+  );
+  const selectType = (id: CustomPaletteTypeId) => {
+    setPaletteType(id);
+    setSelectedColorIds([]);
+    setLive(false);
+  };
+  const toggleColor = (id: string) => {
+    setLive(false);
+    setSelectedColorIds((current) =>
+      current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id],
+    );
+  };
+  const selectedColors = colors.filter((color) =>
+    selectedColorIds.includes(color.id),
+  );
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setAttempted(true);
+    if (!valid) return;
+    const selectedType = paletteType as CustomPaletteTypeId;
+    const type = availableTypes.find((value) => value.id === selectedType)!;
+    const result = addItemToCart(
+      {
+        id: "custom-palette",
+        productId: "custom-palette",
+        kind: "custom-palette",
+        title: t.title,
+        imageUrl: settings.paletteSettings.coverImage,
+        priceUsdCents: settings.paletteSettings.priceMinor,
+        canonicalCurrency: "TRY",
+        canonicalPriceMinor: settings.paletteSettings.priceMinor,
+        quantity: 1,
+        metadata: {
+          paletteType: selectedType,
+          paletteTypeName: locale === "tr" ? type.nameTr : type.nameEn,
+          colorSelectionMode: live ? "live" : "preselected",
+          selectedColorIds: live ? [] : selectedColors.map((color) => color.id),
+          selectedColorNames: live
+            ? []
+            : selectedColors.map((color) =>
+                locale === "tr" ? color.nameTr : color.nameEn,
+              ),
+          tikTokUsername: username,
+          customerNote: note.trim(),
+          paletteNotes: note.trim(),
+        },
+      },
+      1,
+      "TR",
+    );
+    if (result.ok) {
+      trackAnalytics("custom_palette_checkout_started", {
+        metadata: { locale, shippingCountry: "TR" },
+      });
+      navigate("/checkout/turkiye");
+    }
+  };
+  return (
+    <main className="palette-order section-shell">
+      <div className="palette-order__intro">
+        <img
+          src={settings.paletteSettings.coverImage}
+          alt="Blue and pink handmade watercolor palette"
+        />
+        <div>
+          <p className="eyebrow">CUSTOM WATERCOLOR PALETTE</p>
+          <h1>{t.title}</h1>
+          <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
+          <span>{t.free}</span>
+          <h2>{t.made}</h2>
+          <p>{t.intro}</p>
+        </div>
+      </div>
+      <div className="palette-order__divider" />
+      <form onSubmit={submit} className="palette-configurator">
+        <fieldset className="palette-step">
+          <legend>
+            <span className="eyebrow">{t.step1}</span>
+            <strong>{t.choose}</strong>
+            <small>{t.chooseHelp}</small>
+          </legend>
+          <div className="palette-type-grid">
+            {availableTypes.map((type) => (
+              <label
+                key={type.id}
+                className={paletteType === type.id ? "is-selected" : ""}
+              >
+                <input
+                  type="radio"
+                  name="palette-type"
+                  checked={paletteType === type.id}
+                  onChange={() => selectType(type.id)}
+                />
+                <span className="palette-choice-check">
+                  <Check />
+                </span>
+                <strong>{locale === "tr" ? type.nameTr : type.nameEn}</strong>
+                <small>
+                  {availableTypes.length === 1
+                    ? t.available
+                    : locale === "tr"
+                      ? type.descriptionTr
+                      : type.descriptionEn}
+                </small>
+              </label>
+            ))}
+          </div>
+          {attempted && !paletteType && (
+            <p className="palette-inline-error">{t.requiredType}</p>
+          )}
+        </fieldset>
+        <fieldset className="palette-step" disabled={!paletteType}>
+          <legend>
+            <span className="eyebrow">{t.step2}</span>
+            <strong>{t.colours}</strong>
+            <small>{t.coloursHelp}</small>
+          </legend>
+          <div className="palette-swatches">
+            {colors.map((color) => (
+              <label
+                key={color.id}
+                className={
+                  selectedColorIds.includes(color.id) ? "is-selected" : ""
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedColorIds.includes(color.id)}
+                  onChange={() => toggleColor(color.id)}
+                />
+                <span
+                  className="palette-swatch"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span>{locale === "tr" ? color.nameTr : color.nameEn}</span>
+                <Check className="palette-swatch-check" />
+              </label>
+            ))}
+          </div>
+          <label className={`palette-live-choice ${live ? "is-selected" : ""}`}>
+            <input
+              type="checkbox"
+              checked={live}
+              onChange={(event) => {
+                setLive(event.target.checked);
+                if (event.target.checked) setSelectedColorIds([]);
+              }}
+            />
+            <span>
+              <strong>{t.live}</strong>
+              <small>{t.liveHelp}</small>
+            </span>
+            <Check />
+          </label>
+          {attempted && !live && !selectedColorIds.length && (
+            <p className="palette-inline-error">{t.requiredColors}</p>
+          )}
+        </fieldset>
+        <section className="palette-step">
+          <div className="palette-step__heading">
+            <span className="eyebrow">{t.step3}</span>
+            <h2>{t.tiktokTitle}</h2>
+            <p>{t.tiktokHelp}</p>
+          </div>
+          <label className="palette-field">
+            {t.tiktok}
+            <input
+              required
+              maxLength={31}
+              value={tikTokUsername}
+              onChange={(event) => setTikTokUsername(event.target.value)}
+              placeholder="@username"
+            />
+          </label>
+          {attempted && !username && (
+            <p className="palette-inline-error">{t.requiredTikTok}</p>
+          )}
+          <label className="palette-field palette-field--note">
+            {t.note}
+            <small>{t.noteHelp}</small>
+            <textarea
+              maxLength={500}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </label>
+        </section>
+        <section className="palette-summary">
+          <p className="eyebrow">{t.summary}</p>
+          <dl>
+            <div>
+              <dt>{t.type}</dt>
+              <dd>
+                {availableTypes.find((type) => type.id === paletteType)?.[
+                  locale === "tr" ? "nameTr" : "nameEn"
+                ] || "–"}
+              </dd>
+            </div>
+            <div>
+              <dt>{t.colorsLabel}</dt>
+              <dd>
+                {live
+                  ? t.together
+                  : selectedColors
+                      .map((color) =>
+                        locale === "tr" ? color.nameTr : color.nameEn,
+                      )
+                      .join(" · ") || "–"}
+              </dd>
+            </div>
+            <div>
+              <dt>TikTok</dt>
+              <dd>{username ? `@${username}` : "–"}</dd>
+            </div>
+            <div>
+              <dt>{locale === "tr" ? "Fiyat" : "Price"}</dt>
+              <dd>
+                <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t.shipping}</dt>
+              <dd>{t.free}</dd>
+            </div>
+          </dl>
+          <button className="home-green-button" disabled={!valid}>
+            {t.continue}
+          </button>
+        </section>
+      </form>
+    </main>
+  );
 }

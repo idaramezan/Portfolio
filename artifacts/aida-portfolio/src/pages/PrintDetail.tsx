@@ -17,7 +17,7 @@ import {
 import ProductImageLightbox from "@/components/ProductImageLightbox";
 import RelatedProducts from "@/components/RelatedProducts";
 import { getPrintStartingPrice, isAceoProduct } from "@/lib/turkiye-products";
-import Money from "@/components/Money";
+import ProductPrice from "@/components/ProductPrice";
 import InternationalFormatSelector from "@/components/InternationalFormatSelector";
 
 const detailCopy = {
@@ -193,13 +193,13 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
             <div className="print-story-detail__purchase-intro">
               <p className="eyebrow">{c.printInfo}</p>
               {destination && isTürkiye && !sold && (
-                <Money
-                  baseAmountUsdCents={getPrintStartingPrice(
+                <ProductPrice
+                  regularPriceMinor={getPrintStartingPrice(
                     product.priceUsdCents,
                     product.printOptions,
                   )}
-                  canonicalCurrency="TRY"
-                  className="product-detail__price"
+                  currency="TRY"
+                  sale={product.sale}
                 />
               )}
               <DestinationControl compact />

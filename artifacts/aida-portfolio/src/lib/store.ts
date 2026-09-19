@@ -26,6 +26,7 @@ import {
   type ArtworkSurface,
 } from "@/lib/artwork-surface";
 import type { CurrencyCode } from "@/lib/market";
+import { calculateProductSale } from "@/lib/product-sale";
 
 export interface PricingMigrationAudit {
   previousAmountMinor: number;
@@ -33,6 +34,13 @@ export interface PricingMigrationAudit {
   appliedConversionRate: number;
   conversionDate: string;
   newAmountMinor: number;
+}
+export interface ProductSale {
+  enabled: boolean;
+  percentage: number;
+  startsAt?: string;
+  endsAt?: string;
+  allowDiscountCodes: boolean;
 }
 
 export type ProductCategory = "Prints" | "T-shirts" | "Mugs" | "Stickers";
@@ -63,6 +71,7 @@ export interface ReadyMadePalette {
   status: "draft" | "available" | "sold" | "archived";
   createdAt: string;
   publishedAt?: string;
+  sale?: ProductSale;
 }
 
 export type CustomPaletteTypeId = "resin" | "stone";
@@ -108,6 +117,7 @@ export interface MailClubEdition {
   timezone?: string;
   createdAt: string;
   publishedAt?: string;
+  sale?: ProductSale;
 }
 
 export type FourthwallVariantType = "poster" | "framed" | (string & {});
@@ -170,6 +180,7 @@ export interface ManagedProduct {
   isHundredWindowsProduct?: boolean;
   paintedLive?: boolean;
   createdAt?: string;
+  sale?: ProductSale;
 }
 
 export type ShoppingRegion = "TR" | "INTERNATIONAL";
@@ -229,6 +240,7 @@ export interface ShopSettings {
     coverImage: string;
     types: CustomPaletteTypeOption[];
     colors: PaletteColorOption[];
+    sale?: ProductSale;
   };
   readyMadePalettes: ReadyMadePalette[];
   mailClubEditions: MailClubEdition[];
@@ -334,6 +346,7 @@ export interface CartItem {
     selectedColorNames?: string[];
     customerNote?: string;
   };
+  priceChanged?: boolean;
 }
 
 const SETTINGS_STORAGE_KEY = "aida-shop-settings-v2";
@@ -1045,22 +1058,39 @@ export function getCanonicalCartItemPricing(
   item: CartItem,
   settings: ShopSettings = loadShopSettings(),
 ) {
-  if (["custom-palette", "ready-palette", "mail-club"].includes(item.kind))
+  if (["custom-palette", "ready-palette", "mail-club"].includes(item.kind)) {
+    const sale = item.kind === "custom-palette"
+      ? settings.paletteSettings.sale
+      : item.kind === "ready-palette"
+        ? settings.readyMadePalettes.find((entry) => entry.id === item.productId)?.sale
+        : settings.mailClubEditions.find((entry) => entry.id === item.productId)?.sale;
+    const regular = item.canonicalPriceMinor ?? item.priceUsdCents;
+    const final = calculateProductSale(regular, sale).finalPriceMinor;
     return {
-      unitPriceCents: item.canonicalPriceMinor ?? item.priceUsdCents,
-      lineTotalCents:
-        (item.canonicalPriceMinor ?? item.priceUsdCents) * item.quantity,
+      unitPriceCents: final,
+      lineTotalCents: final * item.quantity,
     };
-  if (item.convertedUnitPriceMinor != null && item.displayCurrency === "TRY")
+  }
+  if (item.convertedUnitPriceMinor != null && item.displayCurrency === "TRY") {
+    const originalId = item.productId || item.id.split(":")[0].replace(/^original-/, "");
+    const sale = settings.originalProducts.find((entry) => entry.id === originalId)?.sale;
+    const final = calculateProductSale(item.convertedUnitPriceMinor, sale).finalPriceMinor;
     return {
-      unitPriceCents: item.convertedUnitPriceMinor,
-      lineTotalCents: item.convertedUnitPriceMinor * item.quantity,
+      unitPriceCents: final,
+      lineTotalCents: final * item.quantity,
     };
-  if (!item.printConfiguration)
+  }
+  if (!item.printConfiguration) {
+    const baseId = item.id.split(":")[0];
+    const product = item.kind === "original"
+      ? settings.originalProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^original-/, "")))
+      : settings.printProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^print-product-/, "").replace(/^product-/, "").replace(/^aceo-/, "")));
+    const final = calculateProductSale(item.priceUsdCents, product?.sale).finalPriceMinor;
     return {
-      unitPriceCents: item.priceUsdCents,
-      lineTotalCents: item.priceUsdCents * item.quantity,
+      unitPriceCents: final,
+      lineTotalCents: final * item.quantity,
     };
+  }
 
   const productId =
     item.productId ||
@@ -1084,7 +1114,7 @@ export function getCanonicalCartItemPricing(
     return null;
 
   return calculatePrintPrice({
-    basePriceCents: product.priceUsdCents,
+    basePriceCents: calculateProductSale(product.priceUsdCents, product.sale).finalPriceMinor,
     sizePriceDifferenceCents: size.additionalPriceUsdCents,
     finishPriceDifferenceCents: getFinishPriceDifference(
       product.printOptions,
@@ -1137,6 +1167,9 @@ export function loadCart(
       if (!pricing) return refreshed;
       return {
         ...refreshed,
+        priceChanged:
+          item.calculatedUnitPriceUsdCents != null &&
+          item.calculatedUnitPriceUsdCents !== pricing.unitPriceCents,
         priceUsdCents: pricing.unitPriceCents,
         calculatedUnitPriceUsdCents: pricing.unitPriceCents,
         calculatedLineTotalUsdCents: pricing.lineTotalCents,

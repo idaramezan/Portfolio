@@ -161,6 +161,25 @@ function validFourthwallConnections(settings: Record<string, unknown>) {
     }
   });
 }
+function validProductSales(settings: Record<string, any>) {
+  const sales = [
+    ...(settings.printProducts || []).map((item: any) => item.sale),
+    ...(settings.originalProducts || []).map((item: any) => item.sale),
+    ...(settings.readyMadePalettes || []).map((item: any) => item.sale),
+    ...(settings.mailClubEditions || []).map((item: any) => item.sale),
+    settings.paletteSettings?.sale,
+  ].filter(Boolean);
+  return sales.every((sale: any) =>
+    typeof sale.enabled === "boolean" &&
+    Number.isFinite(Number(sale.percentage)) &&
+    Number(sale.percentage) >= 1 &&
+    Number(sale.percentage) <= 100 &&
+    typeof sale.allowDiscountCodes === "boolean" &&
+    (!sale.startsAt || Number.isFinite(Date.parse(sale.startsAt))) &&
+    (!sale.endsAt || Number.isFinite(Date.parse(sale.endsAt))) &&
+    (!sale.startsAt || !sale.endsAt || Date.parse(sale.startsAt) < Date.parse(sale.endsAt)),
+  );
+}
 
 function normalizeAceos(settings: Record<string, any>) {
   const products = Array.isArray(settings.printProducts)
@@ -322,6 +341,8 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
     return response
       .status(400)
       .json({ error: "Social links must be valid HTTPS URLs" });
+  if (!validProductSales(request.body.settings))
+    return response.status(400).json({ error: "Product sale settings are invalid." });
   const currentMailEditions = Array.isArray(request.body.settings.mailClubEditions)
     ? request.body.settings.mailClubEditions.filter((edition: any) => edition?.current)
     : [];

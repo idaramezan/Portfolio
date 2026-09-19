@@ -2,23 +2,279 @@ import { useMemo, useState } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import AdminLayout from "@/components/admin/AdminLayout";
+import SaleEditor from "@/components/admin/SaleEditor";
 import { isPermanentProductImage } from "@/lib/productRepository";
-import { loadShopSettings, saveShopSettingsAndWait, type ReadyMadePalette } from "@/lib/store";
+import {
+  loadShopSettings,
+  saveShopSettingsAndWait,
+  type ReadyMadePalette,
+} from "@/lib/store";
 
-const field = "mt-2 min-h-12 w-full border border-ink/20 bg-paper px-3 outline-none focus:border-coral focus:ring-2 focus:ring-coral/15";
+const field =
+  "mt-2 min-h-12 w-full border border-ink/20 bg-paper px-3 outline-none focus:border-coral focus:ring-2 focus:ring-coral/15";
 
 export default function PaletteEditor({ id }: { id: string }) {
   const [, navigate] = useLocation();
   const settings = useMemo(() => loadShopSettings(), []);
-  const existing = settings.readyMadePalettes.find((palette) => palette.id === id);
+  const existing = settings.readyMadePalettes.find(
+    (palette) => palette.id === id,
+  );
   const isNew = id === "new";
   const generatedId = useMemo(() => crypto.randomUUID(), []);
-  const [draft, setDraft] = useState<ReadyMadePalette>(() => existing || { id: generatedId, slug: `palette-${Date.now()}`, internalName: "", name: "", colors: "", description: "", note: "", imageUrl: "", altText: "", priceMinor: 95000, stock: 1, status: "available", createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() });
+  const [draft, setDraft] = useState<ReadyMadePalette>(
+    () =>
+      existing || {
+        id: generatedId,
+        slug: `palette-${Date.now()}`,
+        internalName: "",
+        name: "",
+        colors: "",
+        description: "",
+        note: "",
+        imageUrl: "",
+        altText: "",
+        priceMinor: 95000,
+        stock: 1,
+        status: "available",
+        createdAt: new Date().toISOString(),
+        publishedAt: new Date().toISOString(),
+      },
+  );
   const [pendingImage, setPendingImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState(""); const [saving, setSaving] = useState(false); const [error, setError] = useState("");
-  if (!isNew && !existing) return <AdminLayout title="Palette not found"><p>This palette no longer exists.</p></AdminLayout>;
-  const chooseImage = (file?: File) => { if (!file) return; if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) { setError("Choose a JPG, PNG or WebP image under 10 MB."); return; } if (preview) URL.revokeObjectURL(preview); setPendingImage(file); setPreview(URL.createObjectURL(file)); setError(""); };
-  const upload = async () => { if (!pendingImage) return draft.imageUrl; const body = new FormData(); body.append("image", pendingImage); body.append("productId", draft.id); const password = sessionStorage.getItem("aida-admin-password") || import.meta.env.VITE_ADMIN_PASSWORD || "a0019280718"; const response = await fetch("/api/admin/product-media", { method: "POST", headers: { "x-admin-password": password }, body }); const payload = await response.json().catch(() => ({})); if (!response.ok || !isPermanentProductImage(payload.imageUrl || "")) throw new Error(payload.error || "The palette image could not be uploaded."); return String(payload.imageUrl); };
-  const save = async (event: React.FormEvent) => { event.preventDefault(); if (!draft.name.trim() || !draft.colors.trim() || !Number.isInteger(draft.priceMinor) || draft.priceMinor <= 0 || (!draft.imageUrl && !pendingImage)) { setError("Add a name, colors, valid price and palette image."); return; } setSaving(true); setError(""); try { const imageUrl = await upload(); const saved = { ...draft, internalName: draft.name.trim(), name: draft.name.trim(), colors: draft.colors.trim(), description: draft.colors.trim(), note: draft.note?.trim() || "", imageUrl, altText: `${draft.name.trim()} handmade watercolor palette`, stock: draft.status === "sold" ? 0 : Math.max(1, draft.stock), status: draft.status === "sold" ? "sold" as const : "available" as const, publishedAt: draft.publishedAt || new Date().toISOString() }; const readyMadePalettes = isNew ? [...settings.readyMadePalettes, saved] : settings.readyMadePalettes.map((palette) => palette.id === id ? saved : palette); await saveShopSettingsAndWait({ ...settings, readyMadePalettes }); navigate("/admin/palettes"); } catch (reason) { setError(reason instanceof Error ? reason.message : "The palette could not be saved."); } finally { setSaving(false); } };
-  return <AdminLayout title={isNew ? "Add ready-made palette" : "Edit ready-made palette"}><form onSubmit={save} className="mx-auto max-w-5xl"><div className="mb-6 flex items-center justify-between border-b border-ink/10 pb-5"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-coral">Ready-made palette</p><p className="mt-1 text-sm text-ink/60">Only the details customers need.</p></div><div className="flex gap-2"><button type="button" className="min-h-11 px-4 font-semibold" onClick={() => navigate("/admin/palettes")}>Cancel</button><button className="button-primary min-h-11 px-5" disabled={saving}>{saving ? "Saving…" : "Save palette"}</button></div></div>{error && <div role="alert" className="mb-5 border border-coral/30 bg-coral/5 p-4 font-semibold text-coral">{error}</div>}<div className="grid gap-6 lg:grid-cols-[1fr_360px]"><section className="admin-card space-y-5"><label className="block font-semibold">Name<input autoFocus className={field} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Handmade Watercolor Palette"/></label><label className="block font-semibold">Colors<input className={field} value={draft.colors} onChange={(e) => setDraft({ ...draft, colors: e.target.value })} placeholder="Ultramarine blue, dusty rose, warm ochre"/><span className="mt-1 block text-xs font-normal text-ink/50">List the main colors customers will see in the palette.</span></label><label className="block font-semibold">Price (TL)<div className="relative"><input className={`${field} pr-12`} type="number" min="1" step="1" value={draft.priceMinor / 100} onChange={(e) => setDraft({ ...draft, priceMinor: Math.round(Number(e.target.value) * 100) })}/><span className="absolute right-3 top-1/2 mt-1 -translate-y-1/2 text-sm font-bold text-ink/45">TL</span></div></label><label className="block font-semibold">Note <span className="font-normal text-ink/45">(optional)</span><textarea className={`${field} min-h-32 py-3`} value={draft.note || ""} onChange={(e) => setDraft({ ...draft, note: e.target.value })} placeholder="A short detail about this palette"/></label></section><section className="admin-card self-start"><h2 className="font-serif text-xl">Palette image</h2><p className="mt-1 text-sm text-ink/55">Use a clear photograph with the palette filling most of the frame.</p><div className="mt-5 aspect-[4/5] overflow-hidden bg-ink/5">{preview || draft.imageUrl ? <img src={preview || draft.imageUrl} alt="Palette preview" className="h-full w-full object-cover"/> : <div className="grid h-full place-items-center text-ink/30"><ImagePlus size={36}/></div>}</div><div className="mt-4 flex items-center gap-2"><label className="inline-flex min-h-11 cursor-pointer items-center border border-ink/20 px-4 text-sm font-semibold">{preview || draft.imageUrl ? "Replace image" : "Upload image"}<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => chooseImage(e.target.files?.[0])}/></label>{(preview || draft.imageUrl) && <button type="button" className="grid h-11 w-11 place-items-center text-coral" aria-label="Remove image" onClick={() => { if (preview) URL.revokeObjectURL(preview); setPreview(""); setPendingImage(null); setDraft({ ...draft, imageUrl: "" }); }}><Trash2 size={18}/></button>}</div><p className="mt-3 text-xs text-ink/45">JPG, PNG or WebP. Maximum 10 MB.</p></section></div></form></AdminLayout>;
+  const [preview, setPreview] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  if (!isNew && !existing)
+    return (
+      <AdminLayout title="Palette not found">
+        <p>This palette no longer exists.</p>
+      </AdminLayout>
+    );
+  const chooseImage = (file?: File) => {
+    if (!file) return;
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 10 * 1024 * 1024
+    ) {
+      setError("Choose a JPG, PNG or WebP image under 10 MB.");
+      return;
+    }
+    if (preview) URL.revokeObjectURL(preview);
+    setPendingImage(file);
+    setPreview(URL.createObjectURL(file));
+    setError("");
+  };
+  const upload = async () => {
+    if (!pendingImage) return draft.imageUrl;
+    const body = new FormData();
+    body.append("image", pendingImage);
+    body.append("productId", draft.id);
+    const password =
+      sessionStorage.getItem("aida-admin-password") ||
+      import.meta.env.VITE_ADMIN_PASSWORD ||
+      "a0019280718";
+    const response = await fetch("/api/admin/product-media", {
+      method: "POST",
+      headers: { "x-admin-password": password },
+      body,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !isPermanentProductImage(payload.imageUrl || ""))
+      throw new Error(
+        payload.error || "The palette image could not be uploaded.",
+      );
+    return String(payload.imageUrl);
+  };
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (
+      !draft.name.trim() ||
+      !draft.colors.trim() ||
+      !Number.isInteger(draft.priceMinor) ||
+      draft.priceMinor <= 0 ||
+      (!draft.imageUrl && !pendingImage)
+    ) {
+      setError("Add a name, colors, valid price and palette image.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const imageUrl = await upload();
+      const saved = {
+        ...draft,
+        internalName: draft.name.trim(),
+        name: draft.name.trim(),
+        colors: draft.colors.trim(),
+        description: draft.colors.trim(),
+        note: draft.note?.trim() || "",
+        imageUrl,
+        altText: `${draft.name.trim()} handmade watercolor palette`,
+        stock: draft.status === "sold" ? 0 : Math.max(1, draft.stock),
+        status:
+          draft.status === "sold" ? ("sold" as const) : ("available" as const),
+        publishedAt: draft.publishedAt || new Date().toISOString(),
+      };
+      const readyMadePalettes = isNew
+        ? [...settings.readyMadePalettes, saved]
+        : settings.readyMadePalettes.map((palette) =>
+            palette.id === id ? saved : palette,
+          );
+      await saveShopSettingsAndWait({ ...settings, readyMadePalettes });
+      navigate("/admin/palettes");
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "The palette could not be saved.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <AdminLayout
+      title={isNew ? "Add ready-made palette" : "Edit ready-made palette"}
+    >
+      <form onSubmit={save} className="mx-auto max-w-5xl">
+        <div className="mb-6 flex items-center justify-between border-b border-ink/10 pb-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+              Ready-made palette
+            </p>
+            <p className="mt-1 text-sm text-ink/60">
+              Only the details customers need.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="min-h-11 px-4 font-semibold"
+              onClick={() => navigate("/admin/palettes")}
+            >
+              Cancel
+            </button>
+            <button className="button-primary min-h-11 px-5" disabled={saving}>
+              {saving ? "Saving…" : "Save palette"}
+            </button>
+          </div>
+        </div>
+        {error && (
+          <div
+            role="alert"
+            className="mb-5 border border-coral/30 bg-coral/5 p-4 font-semibold text-coral"
+          >
+            {error}
+          </div>
+        )}
+        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <section className="admin-card space-y-5">
+            <label className="block font-semibold">
+              Name
+              <input
+                autoFocus
+                className={field}
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                placeholder="Handmade Watercolor Palette"
+              />
+            </label>
+            <label className="block font-semibold">
+              Colors
+              <input
+                className={field}
+                value={draft.colors}
+                onChange={(e) => setDraft({ ...draft, colors: e.target.value })}
+                placeholder="Ultramarine blue, dusty rose, warm ochre"
+              />
+              <span className="mt-1 block text-xs font-normal text-ink/50">
+                List the main colors customers will see in the palette.
+              </span>
+            </label>
+            <label className="block font-semibold">
+              Price (TL)
+              <div className="relative">
+                <input
+                  className={`${field} pr-12`}
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={draft.priceMinor / 100}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      priceMinor: Math.round(Number(e.target.value) * 100),
+                    })
+                  }
+                />
+                <span className="absolute right-3 top-1/2 mt-1 -translate-y-1/2 text-sm font-bold text-ink/45">
+                  TL
+                </span>
+              </div>
+            </label>
+            <label className="block font-semibold">
+              Note <span className="font-normal text-ink/45">(optional)</span>
+              <textarea
+                className={`${field} min-h-32 py-3`}
+                value={draft.note || ""}
+                onChange={(e) => setDraft({ ...draft, note: e.target.value })}
+                placeholder="A short detail about this palette"
+              />
+            </label>
+          </section>
+          <section className="admin-card self-start">
+            <h2 className="font-serif text-xl">Palette image</h2>
+            <p className="mt-1 text-sm text-ink/55">
+              Use a clear photograph with the palette filling most of the frame.
+            </p>
+            <div className="mt-5 aspect-[4/5] overflow-hidden bg-ink/5">
+              {preview || draft.imageUrl ? (
+                <img
+                  src={preview || draft.imageUrl}
+                  alt="Palette preview"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="grid h-full place-items-center text-ink/30">
+                  <ImagePlus size={36} />
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <label className="inline-flex min-h-11 cursor-pointer items-center border border-ink/20 px-4 text-sm font-semibold">
+                {preview || draft.imageUrl ? "Replace image" : "Upload image"}
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => chooseImage(e.target.files?.[0])}
+                />
+              </label>
+              {(preview || draft.imageUrl) && (
+                <button
+                  type="button"
+                  className="grid h-11 w-11 place-items-center text-coral"
+                  aria-label="Remove image"
+                  onClick={() => {
+                    if (preview) URL.revokeObjectURL(preview);
+                    setPreview("");
+                    setPendingImage(null);
+                    setDraft({ ...draft, imageUrl: "" });
+                  }}
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
+            </div>
+            <p className="mt-3 text-xs text-ink/45">
+              JPG, PNG or WebP. Maximum 10 MB.
+            </p>
+          </section>
+        </div>
+        <div className="admin-card mt-6">
+          <SaleEditor regularPriceMinor={draft.priceMinor} currency="TRY" sale={draft.sale} onChange={(sale) => setDraft({ ...draft, sale })} />
+        </div>
+      </form>
+    </AdminLayout>
+  );
 }

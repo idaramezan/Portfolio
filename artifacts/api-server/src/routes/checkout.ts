@@ -80,6 +80,11 @@ const formatMoney = (minor: number, currency: string) =>
     style: "currency",
     currency,
   }).format(minor / 100);
+function productSale(regularPriceMinor: number, sale: any, now = Date.now()) {
+  const percentage = sale?.enabled && Number(sale.percentage) > 0 && Number(sale.percentage) <= 100 && (!sale.startsAt || now >= Date.parse(sale.startsAt)) && (!sale.endsAt || now < Date.parse(sale.endsAt)) ? Number(sale.percentage) : 0;
+  const discountAmountMinor = Math.round(regularPriceMinor * percentage / 100);
+  return { regularPriceMinor, discountPercentage: percentage, discountAmountMinor, finalPriceMinor: regularPriceMinor - discountAmountMinor, discountCodeEligible: percentage === 0 || sale?.allowDiscountCodes !== false };
+}
 
 class DiscountCodeError extends Error {
   constructor(
@@ -135,9 +140,10 @@ function applyDiscount(
   discount: any | null,
 ) {
   const totalBeforeDiscountMinor = quote.subtotalMinor + quote.shippingMinor;
+  const discountEligibleMinor = quote.discountCodeEligibleSubtotalMinor + quote.shippingMinor;
   const discountPercent = discount ? Number(discount.discount_percent) : 0;
   const calculated = discount
-    ? calculatePercentageDiscount(totalBeforeDiscountMinor, discountPercent)
+    ? calculatePercentageDiscount(discountEligibleMinor, discountPercent)
     : { discountAmountMinor: 0, finalTotalMinor: totalBeforeDiscountMinor };
   return {
     ...quote,
@@ -145,7 +151,7 @@ function applyDiscount(
     discountCode: discount?.code || null,
     discountPercent,
     discountAmountMinor: calculated.discountAmountMinor,
-    grandTotalMinor: calculated.finalTotalMinor,
+    grandTotalMinor: totalBeforeDiscountMinor - calculated.discountAmountMinor,
   };
 }
 
@@ -177,6 +183,9 @@ async function ensureSchema() {
   );
   await pool.query(
     `CREATE TABLE IF NOT EXISTS checkout_order_items (id UUID PRIMARY KEY, order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE, product_id TEXT NOT NULL, product_type TEXT NOT NULL, product_name TEXT NOT NULL, selected_options JSONB NOT NULL DEFAULT '{}'::jsonb, quantity INTEGER NOT NULL, unit_price_minor INTEGER NOT NULL, line_total_minor INTEGER NOT NULL, currency TEXT NOT NULL, image_snapshot TEXT, sku TEXT)`,
+  );
+  await pool.query(
+    `ALTER TABLE checkout_order_items ADD COLUMN IF NOT EXISTS regular_unit_price_minor INTEGER, ADD COLUMN IF NOT EXISTS product_discount_percentage NUMERIC(6,2) NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS product_discount_amount_minor INTEGER NOT NULL DEFAULT 0`,
   );
   await pool.query(
     `CREATE TABLE IF NOT EXISTS checkout_order_status_history (id UUID PRIMARY KEY, order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE, previous_status TEXT, new_status TEXT NOT NULL, changed_by_admin_id TEXT, internal_note TEXT, customer_notified BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
@@ -325,6 +334,8 @@ async function calculate(body: any) {
         throw new Error("The TRY exchange rate is temporarily unavailable.");
       unit = Math.round(Number(product.priceUsdCents) * fx.rate);
     }
+    const salePricing = productSale(unit, kind === "custom-palette" ? settings.paletteSettings.sale : product.sale);
+    unit = salePricing.finalPriceMinor;
     if (
       kind === "print" &&
       product.printOptions &&
@@ -364,10 +375,18 @@ async function calculate(body: any) {
       selectedOptions: { ...(input.selectedOptions || {}), ...(input.metadata || {}), ...(kind === "mail-club" ? { editionId: product.id, editionTitle: product.title, editionMonth: product.monthYear, editionContents: ["Exclusive print", "Personal letter", "Sticker sheet", "Habit tracker", "Bookmark", "One surprise"] } : {}) },
       image: product.imageUrl || null,
       sku: product.sku || null,
+      regularUnitPriceMinor: salePricing.regularPriceMinor,
+      productDiscountPercentage: salePricing.discountPercentage,
+      productDiscountAmountMinor: salePricing.discountAmountMinor,
+      discountCodeEligible: salePricing.discountCodeEligible,
     });
   }
   const subtotalMinor = items.reduce(
     (sum, item) => sum + item.lineTotalMinor,
+    0,
+  );
+  const discountCodeEligibleSubtotalMinor = items.reduce(
+    (sum, item) => sum + (item.discountCodeEligible ? item.lineTotalMinor : 0),
     0,
   );
   const shippingMinor = calculateCheckoutShipping({
@@ -385,6 +404,7 @@ async function calculate(body: any) {
     printQuantity,
     framedQuantity,
     originalQuantity,
+    discountCodeEligibleSubtotalMinor,
   };
 }
 
@@ -641,7 +661,7 @@ publicRouter.post(
       ).rows[0];
       for (const item of quote.items)
         await client.query(
-          `INSERT INTO checkout_order_items(id,order_id,product_id,product_type,product_name,selected_options,quantity,unit_price_minor,line_total_minor,currency,image_snapshot,sku) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12)`,
+          `INSERT INTO checkout_order_items(id,order_id,product_id,product_type,product_name,selected_options,quantity,unit_price_minor,line_total_minor,currency,image_snapshot,sku,regular_unit_price_minor,product_discount_percentage,product_discount_amount_minor) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
           [
             randomUUID(),
             orderId,
@@ -655,6 +675,9 @@ publicRouter.post(
             quote.currency,
             item.image,
             item.sku,
+            item.regularUnitPriceMinor,
+            item.productDiscountPercentage,
+            item.productDiscountAmountMinor,
           ],
         );
       await client.query(

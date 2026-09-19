@@ -31,7 +31,7 @@ assert.ok(
 
 assert.ok(server.includes('publicRouter.post("/discount/validate"'));
 assert.ok(
-  server.includes("calculatePercentageDiscount(totalBeforeDiscountMinor"),
+  server.includes("calculatePercentageDiscount(discountEligibleMinor"),
 );
 assert.ok(
   server.includes("usage_count=usage_count+1") &&
