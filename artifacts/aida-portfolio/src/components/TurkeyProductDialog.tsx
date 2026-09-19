@@ -10,13 +10,13 @@ import {
   formatPrintSize,
   getFinishPriceDifference,
   getPrintConfigurationKey,
+  TURKIYE_FLAT_SHIPPING_MINOR,
   type PrintFraming,
   type TshirtColor,
 } from "@/lib/turkiye-products";
 import { isSoldOut } from "@/lib/product-status";
 import { useLocale } from "@/lib/locale";
 import { calculateProductSale } from "@/lib/product-sale";
-import ProductPrice from "@/components/ProductPrice";
 
 export default function TurkeyProductDialog({
   product,
@@ -55,10 +55,9 @@ export default function TurkeyProductDialog({
         "",
     );
     setFraming(
-      product.printOptions?.framing.defaultFinish ||
-        (product.printOptions?.framing.unframedAvailable
-          ? "unframed"
-          : "framed"),
+      product.printOptions?.framing.unframedAvailable
+        ? "unframed"
+        : "framed",
     );
     setColor(product.tshirtOptions?.availableColors[0] || "black");
     setQuantity(1);
@@ -114,6 +113,10 @@ export default function TurkeyProductDialog({
   const frameAdditional =
     product.printOptions?.framing.frameAdditionalPriceUsdCents || 0;
   const baseSale = calculateProductSale(product.priceUsdCents, product.sale);
+  const sizeAdditional = size?.additionalPriceUsdCents || 0;
+  const originalPrintUnit = product.priceUsdCents + sizeAdditional;
+  const discountedPrintUnit = baseSale.finalPriceMinor + sizeAdditional;
+  const productSavings = baseSale.discountAmountMinor * quantity;
   const pricing =
     category === "print" && size && product.printOptions
       ? calculatePrintPrice({
@@ -150,6 +153,11 @@ export default function TurkeyProductDialog({
   const formattedSize = size ? formatPrintSize(size) : null;
   const shipping = calculateTurkiyeOrderShipping(pricing.lineTotalCents);
   const orderTotal = pricing.lineTotalCents + shipping;
+  const shippingSavings =
+    pricing.lineTotalCents > 0 && shipping === 0
+      ? TURKIYE_FLAT_SHIPPING_MINOR
+      : 0;
+  const totalSavings = productSavings + shippingSavings;
   const supportsFramedPreview =
     category === "print" &&
     Boolean(product.printOptions?.framing.framedAvailable);
@@ -233,7 +241,7 @@ export default function TurkeyProductDialog({
 
   const categoryLabel =
     category === "print"
-      ? "Signed print"
+      ? locale === "tr" ? "İmzalı baskı" : "Signed print"
       : category === "tshirt"
         ? "T-shirt"
         : category === "mug"
@@ -312,7 +320,7 @@ export default function TurkeyProductDialog({
               <section className="mt-5">
                 {availableSizes.length > 1 ? (
                   <fieldset>
-                    <legend className="font-semibold">Choose a size</legend>
+                    <legend className="font-semibold">{locale === "tr" ? "Boyut seç" : "Choose a size"}</legend>
                     <div className="mt-3 grid gap-2">
                       {availableSizes.map((option) => {
                         const label = formatPrintSize(option);
@@ -344,7 +352,7 @@ export default function TurkeyProductDialog({
                   </fieldset>
                 ) : availableSizes.length === 1 ? (
                   <div>
-                    <p className="eyebrow">Size</p>
+                    <p className="eyebrow">{locale === "tr" ? "BOYUT" : "SIZE"}</p>
                     <p className="mt-2 font-semibold">
                       {formattedSize?.primary}
                     </p>
@@ -364,54 +372,50 @@ export default function TurkeyProductDialog({
                 )}
               </section>
 
-              {size && framingOptions.length > 0 && (
+              {size && (
                 <section className="mt-5">
-                  {framingOptions.length > 1 ? (
-                    <fieldset>
-                      <legend className="font-semibold">Choose a finish</legend>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        {framingOptions.map((option) => {
-                          const selected = framing === option;
-                          return (
-                            <label
-                              key={option}
-                              className={`cursor-pointer border p-3 focus-within:ring-2 focus-within:ring-coral ${selected ? "border-coral bg-coral/5" : "border-ink/15"}`}
-                            >
-                              <span className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name="finish"
-                                  value={option}
-                                  checked={selected}
-                                  onChange={() => setFraming(option)}
-                                />
-                                <strong>
-                                  {option === "framed" ? "Framed" : "Unframed"}
-                                </strong>
-                              </span>
-                              <span className="mt-2 block text-xs text-ink/50">
-                                {option === "framed"
-                                  ? "Prepared in a frame before delivery."
-                                  : "Print only, carefully packed flat."}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </fieldset>
-                  ) : (
-                    <div>
-                      <p className="eyebrow">Finish</p>
-                      <p className="mt-2 font-semibold">
-                        {framingOptions[0] === "framed" ? "Framed" : "Unframed"}
-                      </p>
-                      <p className="mt-1 text-sm text-ink/50">
-                        {framingOptions[0] === "framed"
-                          ? "Prepared in a frame before delivery."
-                          : "This edition is currently offered unframed."}
+                  <p className="eyebrow">{locale === "tr" ? "FİYAT" : "PRICE"}</p>
+                  {baseSale.status === "active" ? (
+                    <div className="mt-2">
+                      <Money baseAmountUsdCents={originalPrintUnit} canonicalCurrency="TRY" className="block text-sm text-ink/45 line-through" />
+                      <Money baseAmountUsdCents={discountedPrintUnit} canonicalCurrency="TRY" className="mt-1 block font-sans text-2xl font-bold text-green" />
+                      <p className="mt-1 text-sm font-semibold text-coral">
+                        {baseSale.percentage}% {locale === "tr" ? "indirim" : "off"} · {locale === "tr" ? "Tasarruf" : "Save"}{" "}
+                        <Money baseAmountUsdCents={baseSale.discountAmountMinor} canonicalCurrency="TRY" />
                       </p>
                     </div>
+                  ) : (
+                    <Money baseAmountUsdCents={discountedPrintUnit} canonicalCurrency="TRY" className="mt-2 block font-sans text-2xl font-bold" />
                   )}
+                </section>
+              )}
+
+              {size &&
+                product.printOptions.framing.unframedAvailable &&
+                product.printOptions.framing.framedAvailable && (
+                <section className="mt-5">
+                  <fieldset>
+                    <legend className="eyebrow">{locale === "tr" ? "ÇERÇEVE" : "FRAMING"}</legend>
+                    <label className={`mt-3 flex min-h-16 cursor-pointer items-center gap-3 border p-4 transition-colors focus-within:ring-2 focus-within:ring-coral ${framing === "framed" ? "border-green bg-green/5" : "border-ink/15 bg-paper"}`}>
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={framing === "framed"}
+                        onChange={(event) => setFraming(event.target.checked ? "framed" : "unframed")}
+                        aria-describedby="frame-option-description"
+                      />
+                      <span className={`grid h-6 w-6 shrink-0 place-items-center border ${framing === "framed" ? "border-green bg-green text-paper" : "border-ink/30"}`} aria-hidden="true">
+                        {framing === "framed" && <Check size={15} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <strong className="block">{locale === "tr" ? "Siyah çerçeve ekle" : "Add a black frame"}</strong>
+                        <span id="frame-option-description" className="mt-1 block text-xs text-ink/50">
+                          {locale === "tr" ? "Teslimattan önce siyah çerçeveyle hazırlanır." : "Prepared in a black frame before delivery."}
+                        </span>
+                      </span>
+                      <strong className="shrink-0 text-sm">+<Money baseAmountUsdCents={frameAdditional} canonicalCurrency="TRY" /></strong>
+                    </label>
+                  </fieldset>
                 </section>
               )}
             </>
@@ -456,7 +460,7 @@ export default function TurkeyProductDialog({
 
           <section className="mt-5 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="font-semibold">Quantity</p>
+              <p className="font-semibold">{locale === "tr" ? "Adet" : "Quantity"}</p>
               <div className="mt-2 flex items-center border border-ink/15">
                 <button
                   type="button"
@@ -496,7 +500,7 @@ export default function TurkeyProductDialog({
                 </button>
               </div>
             </div>
-            <div className="text-right">
+            {category !== "print" && <div className="text-right">
               <p className="text-xs uppercase tracking-wider text-ink/45">
                 Unit price
               </p>
@@ -511,11 +515,11 @@ export default function TurkeyProductDialog({
                   {baseSale.percentage}% off base price
                 </span>
               )}
-            </div>
+            </div>}
           </section>
 
           <section className="mt-5 bg-card p-4" aria-live="polite">
-            <p className="eyebrow">Order summary</p>
+            <p className="eyebrow">{locale === "tr" ? "SİPARİŞ ÖZETİ" : "ORDER SUMMARY"}</p>
             {formattedSize && (
               <p className="mt-3 text-sm">
                 {formattedSize.primary}
@@ -528,53 +532,35 @@ export default function TurkeyProductDialog({
             )}
             {category === "print" && (
               <p className="mt-2 text-sm">
-                {framing === "framed" ? "Framed" : "Unframed"}
+                {framing === "framed"
+                  ? locale === "tr" ? "Siyah çerçeve" : "Black frame"
+                  : locale === "tr" ? "Çerçevesiz" : "Unframed"}
               </p>
             )}
-            <p className="mt-2 text-sm">Quantity {quantity}</p>
-            {size?.additionalPriceUsdCents ||
-            (framing === "framed" && frameAdditional) ? (
-              <div className="mt-4 space-y-1 border-t border-ink/10 pt-3 text-xs text-ink/60">
-                <p className="flex justify-between">
-                  <span>Base print</span>
-                  <span>
-                    <ProductPrice
-                      regularPriceMinor={product.priceUsdCents}
-                      currency="TRY"
-                      sale={product.sale}
-                      compact
-                    />
-                  </span>
+            <p className="mt-2 text-sm">{locale === "tr" ? "Adet" : "Quantity"} {quantity}</p>
+            {category === "print" && (
+              <div className="mt-4 space-y-2 border-t border-ink/10 pt-3 text-sm">
+                <p className="flex justify-between gap-4">
+                  <span>{baseSale.status === "active" ? locale === "tr" ? "Baskının normal fiyatı" : "Original print" : locale === "tr" ? "Baskı" : "Print"}</span>
+                  <Money baseAmountUsdCents={(baseSale.status === "active" ? originalPrintUnit : discountedPrintUnit) * quantity} canonicalCurrency="TRY" />
                 </p>
-                {Boolean(size?.additionalPriceUsdCents) && (
-                  <p className="flex justify-between">
-                    <span>{formattedSize?.primary} size upgrade</span>
-                    <span>
-                      +
-                      <Money
-                        baseAmountUsdCents={size!.additionalPriceUsdCents}
-                        canonicalCurrency="TRY"
-                      />
-                    </span>
+                {baseSale.status === "active" && (
+                  <p className="flex justify-between gap-4 text-green">
+                    <span>{baseSale.percentage}% {locale === "tr" ? "indirim" : "discount"}</span>
+                    <strong>−<Money baseAmountUsdCents={productSavings} canonicalCurrency="TRY" /></strong>
                   </p>
                 )}
                 {framing === "framed" && frameAdditional > 0 && (
-                  <p className="flex justify-between">
-                    <span>Framed finish</span>
-                    <span>
-                      +
-                      <Money
-                        baseAmountUsdCents={frameAdditional}
-                        canonicalCurrency="TRY"
-                      />
-                    </span>
+                  <p className="flex justify-between gap-4">
+                    <span>{locale === "tr" ? "Siyah çerçeve" : "Black frame"}</span>
+                    <span>+<Money baseAmountUsdCents={frameAdditional * quantity} canonicalCurrency="TRY" /></span>
                   </p>
                 )}
               </div>
-            ) : null}
+            )}
             <div className="mt-4 space-y-2 border-t border-ink/10 pt-4 text-sm">
               <p className="flex items-center justify-between">
-                <span>Subtotal</span>
+                <span>{locale === "tr" ? "Ara toplam" : "Subtotal"}</span>
                 <Money
                   baseAmountUsdCents={pricing.lineTotalCents}
                   canonicalCurrency="TRY"
@@ -583,15 +569,18 @@ export default function TurkeyProductDialog({
               </p>
               <p className="flex items-center justify-between">
                 <span>{locale === "tr" ? "Kargo" : "Shipping"}</span>
-                <Money
-                  baseAmountUsdCents={shipping}
-                  canonicalCurrency="TRY"
-                  showBase
-                />
+                {shippingSavings > 0 ? (
+                  <span className="flex items-baseline gap-2">
+                    <Money baseAmountUsdCents={TURKIYE_FLAT_SHIPPING_MINOR} canonicalCurrency="TRY" className="text-ink/45 line-through" />
+                    <strong className="text-green">{locale === "tr" ? "ÜCRETSİZ" : "FREE"}</strong>
+                  </span>
+                ) : (
+                  <Money baseAmountUsdCents={shipping} canonicalCurrency="TRY" showBase />
+                )}
               </p>
             </div>
             <div className="mt-3 flex items-end justify-between border-t border-ink/10 pt-3">
-              <strong>TOTAL</strong>
+              <strong>{locale === "tr" ? "TOPLAM" : "TOTAL"}</strong>
               <Money
                 baseAmountUsdCents={orderTotal}
                 canonicalCurrency="TRY"
@@ -599,6 +588,18 @@ export default function TurkeyProductDialog({
                 className="font-sans text-2xl font-bold"
               />
             </div>
+            {totalSavings > 0 && (
+              <div className="mt-4 border-l-2 border-green bg-green/5 px-3 py-2 text-green">
+                <p className="text-xs font-bold uppercase tracking-wider">{locale === "tr" ? "TASARRUFUNUZ" : "YOU SAVE"}</p>
+                <Money baseAmountUsdCents={totalSavings} canonicalCurrency="TRY" className="mt-1 block font-sans text-xl font-bold" />
+                <p className="mt-1 text-xs text-ink/55">
+                  {[
+                    productSavings > 0 ? `${locale === "tr" ? "Ürün indirimi" : "Product discount"} ${(productSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
+                    shippingSavings > 0 ? `${locale === "tr" ? "Kargo" : "Delivery"} 50 TL` : "",
+                  ].filter(Boolean).join(" · ")}
+                </p>
+              </div>
+            )}
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <PackageCheck size={17} aria-hidden="true" />
               {locale === "tr"

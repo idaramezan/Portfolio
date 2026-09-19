@@ -1065,19 +1065,27 @@ export function getCanonicalCartItemPricing(
         ? settings.readyMadePalettes.find((entry) => entry.id === item.productId)?.sale
         : settings.mailClubEditions.find((entry) => entry.id === item.productId)?.sale;
     const regular = item.canonicalPriceMinor ?? item.priceUsdCents;
-    const final = calculateProductSale(regular, sale).finalPriceMinor;
+    const salePricing = calculateProductSale(regular, sale);
+    const final = salePricing.finalPriceMinor;
     return {
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
+      regularUnitPriceCents: regular,
+      productDiscountPercentage: salePricing.percentage,
+      productDiscountAmountCents: salePricing.discountAmountMinor,
     };
   }
   if (item.convertedUnitPriceMinor != null && item.displayCurrency === "TRY") {
     const originalId = item.productId || item.id.split(":")[0].replace(/^original-/, "");
     const sale = settings.originalProducts.find((entry) => entry.id === originalId)?.sale;
-    const final = calculateProductSale(item.convertedUnitPriceMinor, sale).finalPriceMinor;
+    const salePricing = calculateProductSale(item.convertedUnitPriceMinor, sale);
+    const final = salePricing.finalPriceMinor;
     return {
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
+      regularUnitPriceCents: item.convertedUnitPriceMinor,
+      productDiscountPercentage: salePricing.percentage,
+      productDiscountAmountCents: salePricing.discountAmountMinor,
     };
   }
   if (!item.printConfiguration) {
@@ -1085,10 +1093,15 @@ export function getCanonicalCartItemPricing(
     const product = item.kind === "original"
       ? settings.originalProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^original-/, "")))
       : settings.printProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^print-product-/, "").replace(/^product-/, "").replace(/^aceo-/, "")));
-    const final = calculateProductSale(item.priceUsdCents, product?.sale).finalPriceMinor;
+    const regular = product?.priceUsdCents ?? item.canonicalPriceMinor ?? item.priceUsdCents;
+    const salePricing = calculateProductSale(regular, product?.sale);
+    const final = salePricing.finalPriceMinor;
     return {
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
+      regularUnitPriceCents: regular,
+      productDiscountPercentage: salePricing.percentage,
+      productDiscountAmountCents: salePricing.discountAmountMinor,
     };
   }
 
@@ -1113,8 +1126,9 @@ export function getCanonicalCartItemPricing(
   )
     return null;
 
-  return calculatePrintPrice({
-    basePriceCents: calculateProductSale(product.priceUsdCents, product.sale).finalPriceMinor,
+  const salePricing = calculateProductSale(product.priceUsdCents, product.sale);
+  const pricing = calculatePrintPrice({
+    basePriceCents: salePricing.finalPriceMinor,
     sizePriceDifferenceCents: size.additionalPriceUsdCents,
     finishPriceDifferenceCents: getFinishPriceDifference(
       product.printOptions,
@@ -1122,6 +1136,15 @@ export function getCanonicalCartItemPricing(
     ),
     quantity: item.quantity,
   });
+  return {
+    ...pricing,
+    regularUnitPriceCents:
+      product.priceUsdCents +
+      size.additionalPriceUsdCents +
+      getFinishPriceDifference(product.printOptions, finish),
+    productDiscountPercentage: salePricing.percentage,
+    productDiscountAmountCents: salePricing.discountAmountMinor,
+  };
 }
 
 export function loadCart(

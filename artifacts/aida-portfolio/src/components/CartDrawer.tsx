@@ -174,6 +174,8 @@ export default function CartDrawer({
   const canonicalUnitPrice = (item: (typeof cart)[number]) =>
     getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
     item.priceUsdCents;
+  const canonicalPricing = (item: (typeof cart)[number]) =>
+    getCanonicalCartItemPricing(item, settings);
   const subtotal = cart.reduce(
     (total, item) =>
       total +
@@ -183,6 +185,11 @@ export default function CartDrawer({
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
+  const originalProductValue = cart.reduce((total, item) => {
+    const pricing = canonicalPricing(item);
+    return total + (pricing?.regularUnitPriceCents ?? canonicalUnitPrice(item)) * item.quantity;
+  }, 0);
+  const productDiscountSavings = Math.max(0, originalProductValue - subtotal);
   const shipping =
     region === "TR"
       ? calculateTurkiyeOrderShipping(subtotal)
@@ -204,6 +211,12 @@ export default function CartDrawer({
     region === "TR" &&
     displayedShipping === 0 &&
     displayedSubtotal >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR;
+  const shippingSavings = thresholdFreeShipping
+    ? TURKIYE_FLAT_SHIPPING_MINOR
+    : 0;
+  const discountCodeSavings = coupon?.discountAmountMinor ?? 0;
+  const totalSavings =
+    productDiscountSavings + discountCodeSavings + shippingSavings;
   const hasCatalogRecord = (item: (typeof cart)[number]) => {
     const baseId = item.id.split(":")[0];
     if (item.kind === "original")
@@ -311,9 +324,27 @@ export default function CartDrawer({
                   {x.metadata?.paletteTypeName && <p className="mt-1 text-xs text-ink/55">{x.metadata.paletteTypeName}</p>}
                   {x.metadata?.selectedColorNames?.length ? <p className="mt-1 text-xs text-ink/55">{locale === "tr" ? "Renkler" : "Colours"}: {x.metadata.selectedColorNames.join(", ")}</p> : null}
                   {x.metadata?.editionMonth && <p className="mt-1 text-xs text-ink/55">{x.metadata.editionMonth}</p>}
-                  <p className="mt-3 text-sm text-ink/60">
-                    <Money baseAmountUsdCents={canonicalUnitPrice(x)} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-ink" /> {locale === "tr" ? "adet" : "each"}
-                  </p>
+                  {(() => {
+                    const itemPricing = canonicalPricing(x);
+                    const itemSavings = itemPricing?.productDiscountAmountCents || 0;
+                    return itemSavings > 0 ? (
+                      <div className="mt-3 text-sm">
+                        <p className="flex flex-wrap items-baseline gap-2">
+                          <Money baseAmountUsdCents={itemPricing!.regularUnitPriceCents} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="text-ink/45 line-through" />
+                          <Money baseAmountUsdCents={itemPricing!.unitPriceCents} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-green" />
+                          <span className="text-xs text-coral">{itemPricing!.productDiscountPercentage}% {locale === "tr" ? "indirim" : "off"}</span>
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-green">
+                          {locale === "tr" ? "Tasarrufunuz" : "You save"}{" "}
+                          <Money baseAmountUsdCents={itemSavings * x.quantity} canonicalCurrency={x.canonicalCurrency || basketCurrency} />
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-ink/60">
+                        <Money baseAmountUsdCents={canonicalUnitPrice(x)} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-ink" /> {locale === "tr" ? "adet" : "each"}
+                      </p>
+                    );
+                  })()}
                   {x.priceChanged && <p role="status" className="mt-2 text-xs font-semibold text-coral">{locale === "tr" ? `${x.title} ürününün fiyatı sepete eklendiğinden beri değişti.` : `The price of ${x.title} has changed since it was added to your bag.`}</p>}
                   {x.kind !== "original" && x.kind !== "aceo" && (
                     <div
@@ -495,14 +526,36 @@ export default function CartDrawer({
             </div>
           )}
           <p className="eyebrow mb-3">{locale === "tr" ? "SİPARİŞ ÖZETİ" : "ORDER SUMMARY"}</p>
-          <div className="flex justify-between">
-            <span>{locale === "tr" ? "Ürünler" : "Products"}</span>
+          {productDiscountSavings > 0 && (
+            <>
+              <div className="flex justify-between gap-4">
+                <span>{locale === "tr" ? "İndirimsiz toplam" : "Original value"}</span>
+                <Money baseAmountUsdCents={originalProductValue} canonicalCurrency={basketCurrency} className="font-semibold" />
+              </div>
+              <div className="mt-2 flex justify-between gap-4 text-green">
+                <span>{locale === "tr" ? "Ürün indirimleri" : "Product discounts"}</span>
+                <strong>−<Money baseAmountUsdCents={productDiscountSavings} canonicalCurrency={basketCurrency} /></strong>
+              </div>
+            </>
+          )}
+          <div className={`${productDiscountSavings > 0 ? "mt-2" : ""} flex justify-between`}>
+            <span>{productDiscountSavings > 0 ? locale === "tr" ? "İndirimli ürün toplamı" : "Products today" : locale === "tr" ? "Ürünler" : "Products"}</span>
             <Money
               baseAmountUsdCents={displayedSubtotal}
               canonicalCurrency={basketCurrency}
               className="font-bold"
             />
           </div>
+          {coupon && (
+            <div className="mt-2 flex justify-between gap-3 text-coral">
+              <span>
+                {locale === "tr" ? "İndirim kodu" : "Discount code"} · {coupon.discountCode}
+              </span>
+              <strong>
+                −<Money baseAmountUsdCents={coupon.discountAmountMinor} canonicalCurrency="TRY" />
+              </strong>
+            </div>
+          )}
           <div className="mt-2 flex justify-between" aria-live="polite">
             <span>{locale === "tr" ? "Kargo" : "Shipping"}</span>
             {thresholdFreeShipping ? (
@@ -524,29 +577,27 @@ export default function CartDrawer({
               />
             )}
           </div>
-          {coupon && (
-            <div className="mt-2 flex justify-between gap-3 text-coral">
-              <span>
-                {couponText.discount} · {coupon.discountCode} ·{" "}
-                {coupon.discountPercent}%
-              </span>
-              <strong>
-                −
-                <Money
-                  baseAmountUsdCents={coupon.discountAmountMinor}
-                  canonicalCurrency="TRY"
-                />
-              </strong>
-            </div>
-          )}
           <div className="mt-3 flex justify-between border-t border-ink/15 pt-3 text-lg">
-            <strong>{locale === "tr" ? "Toplam" : "Total"}</strong>
+            <strong>{totalSavings > 0 ? locale === "tr" ? "Bugünkü toplam" : "Total today" : locale === "tr" ? "Toplam" : "Total"}</strong>
             <Money
               baseAmountUsdCents={orderTotal}
               canonicalCurrency={basketCurrency}
               className="font-bold"
             />
           </div>
+          {totalSavings > 0 && (
+            <div className="mt-5 border-l-2 border-green bg-green/5 px-4 py-3 text-green">
+              <p className="text-xs font-bold uppercase tracking-[.14em]">{locale === "tr" ? "TOPLAM TASARRUF" : "YOU SAVED"}</p>
+              <Money baseAmountUsdCents={totalSavings} canonicalCurrency={basketCurrency} className="mt-1 block font-sans text-2xl font-bold" />
+              <p className="mt-1 text-xs text-ink/60">
+                {[
+                  productDiscountSavings > 0 ? `${locale === "tr" ? "Ürünlerde" : "Products"} ${(productDiscountSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
+                  discountCodeSavings > 0 ? `${locale === "tr" ? "İndirim kodu" : "Discount code"} ${(discountCodeSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
+                  shippingSavings > 0 ? `${locale === "tr" ? "Kargoda" : "Delivery"} 50 TL` : "",
+                ].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          )}
           {region === "TR" ? (
             <div className="mt-4 border-t border-ink/10 pt-4">
               <div className="flex items-start gap-2 text-sm text-green">
