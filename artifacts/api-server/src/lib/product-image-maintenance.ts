@@ -5,6 +5,7 @@ export const productImageMaintenanceStatus: {
   state: "pending" | "running" | "complete" | "failed";
   compacted?: number;
   deleted?: number;
+  error?: string;
 } = { state: "pending" };
 
 const IMAGE_PATTERN = /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z0-9]+)?$/i;
@@ -108,7 +109,13 @@ export async function compactProductImageStorage() {
       deleted,
     });
   } catch (error) {
-    productImageMaintenanceStatus.state = "failed";
+    Object.assign(productImageMaintenanceStatus, {
+      state: "failed",
+      error:
+        error instanceof Error
+          ? error.message.replace(/(?:postgres(?:ql)?:\/\/)[^\s]+/gi, "[database]").slice(0, 240)
+          : "Unknown database error",
+    });
     logger.error(
       { error, operation: "product-image-compaction" },
       "Product image storage compaction could not run",
