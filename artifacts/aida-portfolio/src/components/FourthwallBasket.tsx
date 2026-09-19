@@ -7,7 +7,6 @@ import {
   loadFourthwallCart,
   removeFourthwallCartItem,
   updateFourthwallCartItem,
-  validateFourthwallCart,
 } from "@/lib/fourthwall-cart";
 
 const copy = {
@@ -74,9 +73,6 @@ export default function FourthwallBasket({
   }, []);
   useEffect(() => {
     if (!open || !cart.cartId) return;
-    void validateFourthwallCart().catch((reason) =>
-      setError(reason instanceof Error ? reason.message : text.updateError),
-    );
     trackAnalytics("basket_opened", { metadata: { basketType: "fourthwall" } });
   }, [open]);
   if (!cart.items.length) return null;

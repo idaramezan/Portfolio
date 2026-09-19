@@ -208,7 +208,6 @@ export async function validateFourthwallCart() {
 }
 
 export async function getFourthwallCheckoutUrl() {
-  await validateFourthwallCart();
   const cart = loadFourthwallCart();
   if (!cart.cartId || !cart.items.length)
     throw new Error("Your basket is empty.");
