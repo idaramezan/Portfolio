@@ -122,9 +122,9 @@ router.post(
           mimeType,
           derivative.length,
           derivative,
-          request.file.mimetype,
-          request.file.size,
-          request.file.buffer,
+          null,
+          null,
+          null,
         ],
       );
       request.log.info(
