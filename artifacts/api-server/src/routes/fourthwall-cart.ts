@@ -251,4 +251,28 @@ router.get("/fourthwall/cart/:cartId/checkout", (req, res) => {
   return res.json({ checkoutUrl: url.toString() });
 });
 
+router.post("/fourthwall/checkout", (req, res) => {
+  const normalized = items(req.body);
+  if (!normalized)
+    return res.status(400).json({ error: "Invalid basket item." });
+  const origin = checkoutOrigin();
+  if (!origin)
+    return res
+      .status(503)
+      .json({ error: "Checkout is temporarily unavailable." });
+  const selectedCurrency = currency(req.body?.currency);
+  const url = new URL("/cart/checkout", origin);
+  url.searchParams.set(
+    "products",
+    normalized
+      .map(
+        (item: { variantId: string; quantity: number }) =>
+          `${item.variantId}:${item.quantity}`,
+      )
+      .join(","),
+  );
+  url.searchParams.set("currency", selectedCurrency);
+  return res.json({ checkoutUrl: url.toString() });
+});
+
 export default router;

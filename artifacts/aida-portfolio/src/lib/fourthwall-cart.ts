@@ -18,6 +18,7 @@ type PersistedCart = {
 };
 
 const STORAGE_KEY = "aeda-fourthwall-cart-v1";
+const DIRECT_CART_ID = "direct-cart";
 
 export function loadFourthwallCart(): PersistedCart {
   if (typeof window === "undefined")
@@ -68,10 +69,20 @@ async function ensureCart(
 ) {
   const current = loadFourthwallCart();
   if (current.cartId) return { cart: current, createdWithItem: false };
-  const created = await request("/api/fourthwall/cart", {
-    method: "POST",
-    body: JSON.stringify({ currency, items: [firstItem] }),
-  });
+  let created: any;
+  try {
+    created = await request("/api/fourthwall/cart", {
+      method: "POST",
+      body: JSON.stringify({ currency, items: [firstItem] }),
+    });
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      error.message !== "This basket has expired."
+    )
+      throw error;
+    created = { id: DIRECT_CART_ID };
+  }
   const next = { cartId: String(created.id || ""), currency, items: [] };
   if (!next.cartId)
     throw new Error("We couldn't start your basket. Please try again.");
@@ -92,6 +103,19 @@ export async function addFourthwallCartItem(item: FourthwallCartItem) {
   try {
     if (ensured.createdWithItem) {
       save({ ...cart, items: [...cart.items, item] });
+      return;
+    }
+    if (cart.cartId === DIRECT_CART_ID) {
+      save({
+        ...cart,
+        items: existing
+          ? cart.items.map((entry) =>
+              entry.variantId === item.variantId
+                ? { ...entry, ...item, quantity }
+                : entry,
+            )
+          : [...cart.items, item],
+      });
       return;
     }
     await request(
@@ -144,6 +168,15 @@ export async function updateFourthwallCartItem(
   const cart = loadFourthwallCart();
   if (!cart.cartId) return;
   if (quantity <= 0) return removeFourthwallCartItem(variantId);
+  if (cart.cartId === DIRECT_CART_ID) {
+    save({
+      ...cart,
+      items: cart.items.map((item) =>
+        item.variantId === variantId ? { ...item, quantity } : item,
+      ),
+    });
+    return;
+  }
   await request(
     `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/change?currency=${encodeURIComponent(cart.currency)}`,
     {
@@ -163,6 +196,13 @@ export async function removeFourthwallCartItem(variantId: string) {
   const cart = loadFourthwallCart();
   if (!cart.cartId) return;
   const item = cart.items.find((entry) => entry.variantId === variantId);
+  if (cart.cartId === DIRECT_CART_ID) {
+    save({
+      ...cart,
+      items: cart.items.filter((entry) => entry.variantId !== variantId),
+    });
+    return;
+  }
   await request(
     `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/remove?currency=${encodeURIComponent(cart.currency)}`,
     {
@@ -211,6 +251,19 @@ export async function getFourthwallCheckoutUrl() {
   const cart = loadFourthwallCart();
   if (!cart.cartId || !cart.items.length)
     throw new Error("Your basket is empty.");
+  if (cart.cartId === DIRECT_CART_ID) {
+    const result = await request("/api/fourthwall/checkout", {
+      method: "POST",
+      body: JSON.stringify({
+        currency: cart.currency,
+        items: cart.items.map((item) => ({
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
+      }),
+    });
+    return String(result.checkoutUrl || "");
+  }
   const result = await request(
     `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/checkout?currency=${encodeURIComponent(cart.currency)}`,
   );
