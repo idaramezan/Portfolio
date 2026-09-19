@@ -67,17 +67,7 @@ async function ensureCart(
   firstItem: { variantId: string; quantity: number },
 ) {
   const current = loadFourthwallCart();
-  if (current.cartId) {
-    try {
-      await request(
-        `/api/fourthwall/cart/${encodeURIComponent(current.cartId)}`,
-      );
-      return { cart: current, createdWithItem: false };
-    } catch {
-      if (loadFourthwallCart().cartId)
-        throw new Error("We couldn't refresh your basket. Please try again.");
-    }
-  }
+  if (current.cartId) return { cart: current, createdWithItem: false };
   const created = await request("/api/fourthwall/cart", {
     method: "POST",
     body: JSON.stringify({ currency, items: [firstItem] }),
@@ -105,7 +95,7 @@ export async function addFourthwallCartItem(item: FourthwallCartItem) {
       return;
     }
     await request(
-      `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add`,
+      `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add?currency=${encodeURIComponent(cart.currency)}`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -120,16 +110,19 @@ export async function addFourthwallCartItem(item: FourthwallCartItem) {
         quantity: item.quantity,
       });
       cart = ensured.cart;
-      if (!ensured.createdWithItem)
-        await request(
-          `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              items: [{ variantId: item.variantId, quantity: item.quantity }],
-            }),
-          },
-        );
+      if (ensured.createdWithItem) {
+        save({ ...cart, items: [item] });
+        return;
+      }
+      await request(
+        `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add?currency=${encodeURIComponent(cart.currency)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            items: [{ variantId: item.variantId, quantity: item.quantity }],
+          }),
+        },
+      );
     } else throw error;
   }
   save({
@@ -152,7 +145,7 @@ export async function updateFourthwallCartItem(
   if (!cart.cartId) return;
   if (quantity <= 0) return removeFourthwallCartItem(variantId);
   await request(
-    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/change`,
+    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/change?currency=${encodeURIComponent(cart.currency)}`,
     {
       method: "POST",
       body: JSON.stringify({ items: [{ variantId, quantity }] }),
@@ -171,7 +164,7 @@ export async function removeFourthwallCartItem(variantId: string) {
   if (!cart.cartId) return;
   const item = cart.items.find((entry) => entry.variantId === variantId);
   await request(
-    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/remove`,
+    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/remove?currency=${encodeURIComponent(cart.currency)}`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -189,7 +182,7 @@ export async function validateFourthwallCart() {
   const cart = loadFourthwallCart();
   if (!cart.cartId) return;
   const remote = await request(
-    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}`,
+    `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}?currency=${encodeURIComponent(cart.currency)}`,
   );
   if (!Array.isArray(remote?.items)) return;
   const refreshed = cart.items.flatMap((item) => {

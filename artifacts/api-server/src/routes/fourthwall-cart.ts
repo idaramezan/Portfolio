@@ -11,6 +11,14 @@ function validId(value: unknown) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{8,160}$/.test(value);
 }
 
+function currency(value: unknown) {
+  return /^[A-Z]{3}$/.test(String(value || "")) ? String(value) : "USD";
+}
+
+function cartPath(path: string, value: unknown) {
+  return `${path}?currency=${encodeURIComponent(currency(value))}`;
+}
+
 function checkoutOrigin() {
   const configured = String(
     process.env.FOURTHWALL_CHECKOUT_DOMAIN || "",
@@ -143,15 +151,13 @@ function reply(
 }
 
 router.post("/fourthwall/cart", async (req, res) => {
-  const currency = /^[A-Z]{3}$/.test(String(req.body?.currency || ""))
-    ? String(req.body.currency)
-    : "USD";
+  const selectedCurrency = currency(req.body?.currency);
   const normalized = items(req.body);
   if (!normalized)
     return res.status(400).json({ error: "Invalid basket item." });
   return reply(
     res,
-    await provider(`/carts?currency=${encodeURIComponent(currency)}`, {
+    await provider(`/carts?currency=${encodeURIComponent(selectedCurrency)}`, {
       method: "POST",
       body: JSON.stringify({ items: normalized }),
     }),
@@ -164,7 +170,12 @@ router.get("/fourthwall/cart/:cartId", async (req, res) => {
     return res.status(400).json({ error: "Invalid basket." });
   return reply(
     res,
-    await provider(`/carts/${encodeURIComponent(req.params.cartId)}`),
+    await provider(
+      cartPath(
+        `/carts/${encodeURIComponent(req.params.cartId)}`,
+        req.query.currency,
+      ),
+    ),
     "We couldn't refresh your basket. Please try again.",
   );
 });
@@ -179,7 +190,10 @@ for (const action of ["add", "change", "remove"] as const) {
     return reply(
       res,
       await provider(
-        `/carts/${encodeURIComponent(req.params.cartId)}/${action}`,
+        cartPath(
+          `/carts/${encodeURIComponent(req.params.cartId)}/${action}`,
+          req.query.currency,
+        ),
         {
           method: "POST",
           body: JSON.stringify({
