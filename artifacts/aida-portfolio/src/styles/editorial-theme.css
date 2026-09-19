@@ -1203,16 +1203,22 @@
   text-transform: uppercase;
 }
 [data-public-site] .international-formats [role="radiogroup"] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: 0.5rem;
-  border-bottom: 1px solid var(--border-soft);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 [data-public-site] .international-formats [role="radio"] {
   position: relative;
-  min-height: 48px;
-  color: var(--text-tertiary);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 92px;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border-medium);
+  padding: 1rem;
+  color: var(--forest-950);
+  text-align: left;
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.1em;
@@ -1225,19 +1231,33 @@
   letter-spacing: 0.04em;
 }
 [data-public-site] .international-formats [role="radio"][aria-checked="true"] {
+  border: 2px solid var(--forest-950);
+  background: color-mix(in srgb, var(--amber-100) 35%, var(--ivory-50));
   color: var(--forest-950);
 }
-[data-public-site]
-  .international-formats
-  [role="radio"][aria-checked="true"]::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: var(--amber-500);
-  content: "";
-}
+[data-public-site] .international-formats [role="radio"]:disabled { cursor: not-allowed; opacity: .45; }
+[data-public-site] .international-formats__radio { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid var(--border-medium); border-radius: 50%; }
+[data-public-site] .international-formats [aria-checked="true"] .international-formats__radio { background: var(--forest-950); color: var(--ivory-50); }
+[data-public-site] .international-formats__options { margin-top: 1.5rem; }
+[data-public-site] .international-formats__options > div { display: grid; gap: .5rem; margin-top: .65rem; }
+[data-public-site] .international-formats__options label { display: flex; min-height: 52px; cursor: pointer; align-items: center; gap: .75rem; border: 1px solid var(--border-soft); padding: .75rem; }
+[data-public-site] .international-formats__options label.is-selected { border-color: var(--forest-950); background: color-mix(in srgb, var(--sage-100) 35%, transparent); }
+[data-public-site] .international-formats__options label span { display: flex; flex: 1; justify-content: space-between; gap: 1rem; }
+[data-public-site] .international-formats__selection { margin-top: .45rem; color: var(--text-tertiary); font-size: .82rem; }
+[data-public-site] .international-formats__quantity { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; border-top: 1px solid var(--border-soft); padding-top: 1.25rem; font-size: .72rem; font-weight: 700; letter-spacing: .1em; }
+[data-public-site] .international-formats__quantity > div { display: inline-flex; align-items: center; border: 1px solid var(--border-soft); }
+[data-public-site] .international-formats__quantity button, [data-public-site] .international-formats__quantity strong { display: grid; min-width: 44px; min-height: 44px; place-items: center; }
+[data-public-site] .international-formats__quantity strong { border-inline: 1px solid var(--border-soft); }
+[data-public-site] .international-formats__error { margin-top: .75rem; color: #9b432e; font-size: .86rem; font-weight: 650; }
+@media (max-width: 480px) { [data-public-site] .international-formats [role="radiogroup"] { grid-template-columns: 1fr; } }
+.standalone-fourthwall-purchase { margin-top: 2rem; }
+.standalone-fourthwall-purchase fieldset { border: 0; padding: 0; }
+.standalone-fourthwall-purchase legend { color: var(--text-tertiary); font-size: .7rem; font-weight: 700; letter-spacing: .12em; }
+.standalone-fourthwall-purchase fieldset > div { display: grid; gap: .55rem; margin-top: .75rem; }
+.standalone-fourthwall-purchase label { display: flex; min-height: 54px; cursor: pointer; align-items: center; gap: .75rem; border: 1px solid var(--border-soft); padding: .8rem; }
+.standalone-fourthwall-purchase label.is-selected { border: 2px solid var(--forest-950); background: color-mix(in srgb, var(--sage-100) 35%, transparent); }
+.standalone-fourthwall-purchase label span { display: flex; flex: 1; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.standalone-fourthwall-purchase__price { display: block; margin-top: 1.5rem; color: var(--forest-950); font-size: 1.65rem; }
 [data-public-site] .international-formats__preview {
   width: min(100%, 230px);
   max-height: 210px;

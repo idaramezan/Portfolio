@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
 import EditorialProductCard from "@/components/EditorialProductCard";
 import InternationalProductCard from "@/components/InternationalProductCard";
@@ -531,11 +530,9 @@ export default function UnifiedShop() {
             {merch.map((product) => (
               <a
                 key={product.id}
-                href={product.externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/shop/fourthwall/${product.slug}`}
                 className="shop-merch-card"
-                aria-label={`${product.name}, ${t.external} (${locale === "tr" ? "yeni sekmede açılır" : "opens in a new tab"})`}
+                aria-label={`${product.name}, ${t.external}`}
                 onClick={() =>
                   trackAnalytics("animation_merch_clicked", {
                     entityId: product.id,
@@ -556,8 +553,7 @@ export default function UnifiedShop() {
                   <span>{product.price.formatted}</span>
                 </div>
                 <p>
-                  {t.labels["animation-merch"]} · {t.external}{" "}
-                  <ExternalLink size={14} aria-hidden="true" />
+                  {t.labels["animation-merch"]} · {t.external} →
                 </p>
               </a>
             ))}

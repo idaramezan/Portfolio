@@ -13,8 +13,7 @@ export default function InternationalProductCard({
   );
   return (
     <EditorialProductCard
-      href={product.externalUrl}
-      external
+      href={`/shop/fourthwall/${product.slug}`}
       image={product.primaryImage?.url}
       alt={product.primaryImage?.alt || product.name}
       title={product.name}

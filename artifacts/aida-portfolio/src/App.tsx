@@ -25,6 +25,7 @@ import EventDetail from "@/pages/EventDetail";
 import EventReview from "@/pages/EventReview";
 import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
+import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
 import { GALLERY_PREVIEW_PATH } from "@/lib/visual-gallery";
 import CustomPalette from "@/pages/CustomPalette";
@@ -120,6 +121,10 @@ function Router() {
               {() => <PrintDetail market="turkiye" />}
             </Route>
             <Route path="/shop/palettes/custom" component={CustomPalette} />
+            <Route
+              path="/shop/fourthwall/:slug"
+              component={FourthwallProductDetail}
+            />
             <Route path="/shop/mystery-mail">
               <RedirectTo to="/shop" />
             </Route>

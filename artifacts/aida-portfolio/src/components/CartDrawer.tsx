@@ -26,6 +26,8 @@ import {
   loadAppliedDiscountCode,
   saveAppliedDiscountCode,
 } from "@/lib/checkout-cart";
+import FourthwallBasket from "@/components/FourthwallBasket";
+import { getFourthwallCartCount } from "@/lib/fourthwall-cart";
 
 type DiscountQuote = {
   discountCode: string;
@@ -100,6 +102,9 @@ export default function CartDrawer({
   region?: "TR" | "INTERNATIONAL";
 }) {
   const [cart, setCart] = useState(loadCart(region));
+  const [fourthwallCount, setFourthwallCount] = useState(
+    getFourthwallCartCount,
+  );
   const settings = useShopSettings();
   const { destination, openDestination } = useShippingDestination();
   const { locale } = useLocale();
@@ -115,6 +120,11 @@ export default function CartDrawer({
     window.addEventListener("cart:updated", sync);
     return () => window.removeEventListener("cart:updated", sync);
   }, [region]);
+  useEffect(() => {
+    const sync = () => setFourthwallCount(getFourthwallCartCount());
+    window.addEventListener("fourthwall-cart:updated", sync);
+    return () => window.removeEventListener("fourthwall-cart:updated", sync);
+  }, []);
   useEffect(() => {
     if (open) setCart(loadCart(region));
     if (open) trackAnalytics("basket_opened");
@@ -188,7 +198,11 @@ export default function CartDrawer({
   const basketCurrency = region === "TR" ? "TRY" : "USD";
   const originalProductValue = cart.reduce((total, item) => {
     const pricing = canonicalPricing(item);
-    return total + (pricing?.regularUnitPriceCents ?? canonicalUnitPrice(item)) * item.quantity;
+    return (
+      total +
+      (pricing?.regularUnitPriceCents ?? canonicalUnitPrice(item)) *
+        item.quantity
+    );
   }, 0);
   const productDiscountSavings = Math.max(0, originalProductValue - subtotal);
   const shipping =
@@ -245,9 +259,28 @@ export default function CartDrawer({
       !isCartItemAvailable(item, settings, now, region),
   );
   const itemType = (item: (typeof cart)[number]) => {
-    const labels = locale === "tr"
-      ? { print: "İmzalı baskı", original: "Orijinal eser", aceo: "ACEO orijinal", product: "Sanat ürünü", "custom-palette": "Kişiye özel palet", "ready-palette": "Hazır palet", "mail-club": "Mail Club", "studio-mail": "Mystery Mail" }
-      : { print: "Signed print", original: "Original artwork", aceo: "ACEO original", product: "Art good", "custom-palette": "Custom palette", "ready-palette": "Ready-made palette", "mail-club": "Mail Club", "studio-mail": "Mystery Mail" };
+    const labels =
+      locale === "tr"
+        ? {
+            print: "İmzalı baskı",
+            original: "Orijinal eser",
+            aceo: "ACEO orijinal",
+            product: "Sanat ürünü",
+            "custom-palette": "Kişiye özel palet",
+            "ready-palette": "Hazır palet",
+            "mail-club": "Mail Club",
+            "studio-mail": "Mystery Mail",
+          }
+        : {
+            print: "Signed print",
+            original: "Original artwork",
+            aceo: "ACEO original",
+            product: "Art good",
+            "custom-palette": "Custom palette",
+            "ready-palette": "Ready-made palette",
+            "mail-club": "Mail Club",
+            "studio-mail": "Mystery Mail",
+          };
     return labels[item.kind] || item.subtitle || "";
   };
   return (
@@ -277,7 +310,9 @@ export default function CartDrawer({
             <p className="eyebrow">
               {region === "TR" ? "Türkiye" : "International originals"}
             </p>
-            <h2 className="text-3xl">Collection Basket</h2>
+            <h2 className="text-3xl">
+              {locale === "tr" ? "Koleksiyon Sepeti" : "Collection Basket"}
+            </h2>
           </div>
           <button
             onClick={() => onOpenChange(false)}
@@ -288,8 +323,10 @@ export default function CartDrawer({
           </button>
         </header>
         <div className="px-6 py-5">
-          <p className="eyebrow mb-4">{locale === "tr" ? "ÜRÜNLER" : "ITEMS"}</p>
-          {cart.length === 0 ? (
+          <p className="eyebrow mb-4">
+            {locale === "tr" ? "ÜRÜNLER" : "ITEMS"}
+          </p>
+          {cart.length === 0 && fourthwallCount === 0 ? (
             <p className="py-12 text-center text-ink/60">
               Your collection basket is waiting.
             </p>
@@ -306,13 +343,20 @@ export default function CartDrawer({
                     className="h-24 w-20 bg-ink/5 object-cover sm:w-24"
                   />
                 ) : (
-                  <div className="grid h-24 w-20 place-items-center bg-ink/5 font-serif text-2xl text-ink/25 sm:w-24" aria-hidden="true">
+                  <div
+                    className="grid h-24 w-20 place-items-center bg-ink/5 font-serif text-2xl text-ink/25 sm:w-24"
+                    aria-hidden="true"
+                  >
                     {x.title.slice(0, 1)}
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h3 className="text-xl leading-tight">{getCartItemDisplayName(x)}</h3>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-[.12em] text-ink/50">{itemType(x)}</p>
+                  <h3 className="text-xl leading-tight">
+                    {getCartItemDisplayName(x)}
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-[.12em] text-ink/50">
+                    {itemType(x)}
+                  </p>
                   {x.printConfiguration && (
                     <p className="mt-1 text-xs text-ink/55">
                       {x.printConfiguration.sizeLabel}
@@ -322,31 +366,83 @@ export default function CartDrawer({
                       {` · ${x.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`}
                     </p>
                   )}
-                  {x.metadata?.paletteTypeName && <p className="mt-1 text-xs text-ink/55">{x.metadata.paletteTypeName}</p>}
-                  {x.metadata?.selectedColorNames?.length ? <p className="mt-1 text-xs text-ink/55">{locale === "tr" ? "Renkler" : "Colours"}: {x.metadata.selectedColorNames.join(", ")}</p> : null}
-                  {x.metadata?.editionMonth && <p className="mt-1 text-xs text-ink/55">{x.metadata.editionMonth}</p>}
+                  {x.metadata?.paletteTypeName && (
+                    <p className="mt-1 text-xs text-ink/55">
+                      {x.metadata.paletteTypeName}
+                    </p>
+                  )}
+                  {x.metadata?.selectedColorNames?.length ? (
+                    <p className="mt-1 text-xs text-ink/55">
+                      {locale === "tr" ? "Renkler" : "Colours"}:{" "}
+                      {x.metadata.selectedColorNames.join(", ")}
+                    </p>
+                  ) : null}
+                  {x.metadata?.editionMonth && (
+                    <p className="mt-1 text-xs text-ink/55">
+                      {x.metadata.editionMonth}
+                    </p>
+                  )}
                   {(() => {
                     const itemPricing = canonicalPricing(x);
-                    const itemSavings = itemPricing?.productDiscountAmountCents || 0;
+                    const itemSavings =
+                      itemPricing?.productDiscountAmountCents || 0;
                     return itemSavings > 0 ? (
                       <div className="mt-3 text-sm">
                         <p className="flex flex-wrap items-baseline gap-2">
-                          <Money baseAmountUsdCents={itemPricing!.regularUnitPriceCents} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="text-ink/45 line-through" />
-                          <Money baseAmountUsdCents={itemPricing!.unitPriceCents} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-green" />
-                          <span className="text-xs text-coral">{itemPricing!.productDiscountPercentage}% {locale === "tr" ? "indirim" : "off"}</span>
+                          <Money
+                            baseAmountUsdCents={
+                              itemPricing!.regularUnitPriceCents
+                            }
+                            canonicalCurrency={
+                              x.canonicalCurrency || basketCurrency
+                            }
+                            className="text-ink/45 line-through"
+                          />
+                          <Money
+                            baseAmountUsdCents={itemPricing!.unitPriceCents}
+                            canonicalCurrency={
+                              x.canonicalCurrency || basketCurrency
+                            }
+                            className="font-semibold text-green"
+                          />
+                          <span className="text-xs text-coral">
+                            {itemPricing!.productDiscountPercentage}%{" "}
+                            {locale === "tr" ? "indirim" : "off"}
+                          </span>
                         </p>
                         <p className="mt-1 text-xs font-semibold text-green">
                           {locale === "tr" ? "Tasarrufunuz" : "You save"}{" "}
-                          <Money baseAmountUsdCents={itemSavings * x.quantity} canonicalCurrency={x.canonicalCurrency || basketCurrency} />
+                          <Money
+                            baseAmountUsdCents={itemSavings * x.quantity}
+                            canonicalCurrency={
+                              x.canonicalCurrency || basketCurrency
+                            }
+                          />
                         </p>
                       </div>
                     ) : (
                       <p className="mt-3 text-sm text-ink/60">
-                        <Money baseAmountUsdCents={canonicalUnitPrice(x)} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-ink" /> {locale === "tr" ? "adet" : "each"}
+                        <Money
+                          baseAmountUsdCents={canonicalUnitPrice(x)}
+                          canonicalCurrency={
+                            x.canonicalCurrency || basketCurrency
+                          }
+                          className="font-semibold text-ink"
+                        />{" "}
+                        {locale === "tr" ? "adet" : "each"}
                       </p>
                     );
                   })()}
-                  {x.priceChanged && <p role="status" className="mt-2 text-xs font-semibold text-coral">{locale === "tr" ? `${x.title} ürününün fiyatı sepete eklendiğinden beri değişti.` : `The price of ${x.title} has changed since it was added to your bag.`}</p>}
+                  {x.priceChanged && (
+                    <p
+                      role="status"
+                      className="mt-2 text-xs font-semibold text-coral"
+                    >
+                      {locale === "tr"
+                        ? `${x.title} ürününün fiyatı sepete eklendiğinden beri değişti.`
+                        : `The price of ${x.title} has changed since it was added to your bag.`}
+                    </p>
+                  )}
                   {x.kind !== "original" && x.kind !== "aceo" && (
                     <div
                       className="mt-2 inline-flex items-center border border-ink/15"
@@ -406,7 +502,9 @@ export default function CartDrawer({
                   )}
                   {!(x.kind === "aceo" && region === "INTERNATIONAL") && (
                     <p className="mt-3 text-sm">
-                      <span className="text-ink/55">{locale === "tr" ? "Ürün toplamı" : "Line total"}: </span>
+                      <span className="text-ink/55">
+                        {locale === "tr" ? "Ürün toplamı" : "Line total"}:{" "}
+                      </span>
                       <Money
                         baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
                         canonicalCurrency={
@@ -427,7 +525,12 @@ export default function CartDrawer({
             ))
           )}
         </div>
-        <footer className="border-t border-ink/10 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8">
+        <footer
+          className={cn(
+            "border-t border-ink/10 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8",
+            cart.length === 0 && "hidden",
+          )}
+        >
           {region === "TR" && cart.length > 0 && (
             <div className="mb-7 border-y border-ink/10 py-3">
               {coupon ? (
@@ -526,16 +629,32 @@ export default function CartDrawer({
               )}
             </div>
           )}
-          <p className="eyebrow mb-3">{locale === "tr" ? "SİPARİŞ ÖZETİ" : "ORDER SUMMARY"}</p>
+          <p className="eyebrow mb-3">
+            {locale === "tr" ? "SİPARİŞ ÖZETİ" : "ORDER SUMMARY"}
+          </p>
           {productDiscountSavings > 0 && (
             <>
               <div className="flex justify-between gap-4">
-                <span>{locale === "tr" ? "İndirimsiz toplam" : "Original value"}</span>
-                <Money baseAmountUsdCents={originalProductValue} canonicalCurrency={basketCurrency} className="font-semibold" />
+                <span>
+                  {locale === "tr" ? "İndirimsiz toplam" : "Original value"}
+                </span>
+                <Money
+                  baseAmountUsdCents={originalProductValue}
+                  canonicalCurrency={basketCurrency}
+                  className="font-semibold"
+                />
               </div>
               <div className="mt-2 flex justify-between gap-4 text-green">
-                <span>{locale === "tr" ? "Ürün indirimleri" : "Product discounts"}</span>
-                <strong>−<Money baseAmountUsdCents={productDiscountSavings} canonicalCurrency={basketCurrency} /></strong>
+                <span>
+                  {locale === "tr" ? "Ürün indirimleri" : "Product discounts"}
+                </span>
+                <strong>
+                  −
+                  <Money
+                    baseAmountUsdCents={productDiscountSavings}
+                    canonicalCurrency={basketCurrency}
+                  />
+                </strong>
               </div>
             </>
           )}
@@ -552,10 +671,15 @@ export default function CartDrawer({
           {coupon && (
             <div className="mt-2 flex justify-between gap-3 text-coral">
               <span>
-                {locale === "tr" ? "İndirim kodu" : "Discount code"} · {coupon.discountCode}
+                {locale === "tr" ? "İndirim kodu" : "Discount code"} ·{" "}
+                {coupon.discountCode}
               </span>
               <strong>
-                −<Money baseAmountUsdCents={coupon.discountAmountMinor} canonicalCurrency="TRY" />
+                −
+                <Money
+                  baseAmountUsdCents={coupon.discountAmountMinor}
+                  canonicalCurrency="TRY"
+                />
               </strong>
             </div>
           )}
@@ -583,20 +707,36 @@ export default function CartDrawer({
           {totalSavings > 0 && (
             <div className="mt-4 border-y border-ink/10 py-3 text-green">
               <div className="flex items-baseline justify-between gap-4">
-                <p className="text-xs font-bold uppercase tracking-[.14em]">{locale === "tr" ? "TOPLAM TASARRUF" : "YOU SAVED"}</p>
-                <Money baseAmountUsdCents={totalSavings} canonicalCurrency={basketCurrency} className="font-sans text-base font-semibold" />
+                <p className="text-xs font-bold uppercase tracking-[.14em]">
+                  {locale === "tr" ? "TOPLAM TASARRUF" : "YOU SAVED"}
+                </p>
+                <Money
+                  baseAmountUsdCents={totalSavings}
+                  canonicalCurrency={basketCurrency}
+                  className="font-sans text-base font-semibold"
+                />
               </div>
               <p className="mt-1 text-xs text-ink/60">
                 {[
-                  productDiscountSavings > 0 ? `${locale === "tr" ? "Ürünlerde" : "Products"} ${(productDiscountSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
-                  discountCodeSavings > 0 ? `${locale === "tr" ? "İndirim kodu" : "Discount code"} ${(discountCodeSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
-                  shippingSavings > 0 ? `${locale === "tr" ? "Kargoda" : "Delivery"} 50 TL` : "",
-                ].filter(Boolean).join(" · ")}
+                  productDiscountSavings > 0
+                    ? `${locale === "tr" ? "Ürünlerde" : "Products"} ${(productDiscountSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL`
+                    : "",
+                  discountCodeSavings > 0
+                    ? `${locale === "tr" ? "İndirim kodu" : "Discount code"} ${(discountCodeSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL`
+                    : "",
+                  shippingSavings > 0
+                    ? `${locale === "tr" ? "Kargoda" : "Delivery"} 50 TL`
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             </div>
           )}
           <div className="mt-5 border-t border-ink/20 pt-5">
-            <strong className="block text-xs uppercase tracking-[.16em] text-ink/60">{locale === "tr" ? "TOPLAM" : "TOTAL"}</strong>
+            <strong className="block text-xs uppercase tracking-[.16em] text-ink/60">
+              {locale === "tr" ? "TOPLAM" : "TOTAL"}
+            </strong>
             <Money
               baseAmountUsdCents={orderTotal}
               canonicalCurrency={basketCurrency}
@@ -648,9 +788,15 @@ export default function CartDrawer({
           {region === "TR" ? (
             <div className="mt-4 pt-2">
               <div className="flex items-start gap-2 text-sm text-green">
-                <PackageCheck className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
+                <PackageCheck
+                  className="mt-0.5 shrink-0"
+                  size={17}
+                  aria-hidden="true"
+                />
                 {thresholdFreeShipping ? (
-                  <strong className="block">{couponText.shippingUnlocked}</strong>
+                  <strong className="block">
+                    {couponText.shippingUnlocked}
+                  </strong>
                 ) : (
                   <strong>
                     <Money
@@ -667,7 +813,10 @@ export default function CartDrawer({
                 aria-label={couponText.shippingUnlocked}
                 aria-valuemin={0}
                 aria-valuemax={TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR}
-                aria-valuenow={Math.min(displayedSubtotal, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR)}
+                aria-valuenow={Math.min(
+                  displayedSubtotal,
+                  TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
+                )}
               >
                 <div
                   className="h-full rounded-full bg-green transition-[width] duration-300"
@@ -691,6 +840,7 @@ export default function CartDrawer({
               : "Your basket does not reserve artwork or change inventory."}
           </p>
         </footer>
+        <FourthwallBasket open={open} hasLocalItems={cart.length > 0} />
       </aside>
     </div>
   );

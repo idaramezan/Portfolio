@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import CartDrawer from "@/components/CartDrawer";
 import ShippingProgressTracker from "@/components/ShippingProgressTracker";
 import { getCartCount, loadShopSettings } from "@/lib/store";
+import { getFourthwallCartCount } from "@/lib/fourthwall-cart";
 import { useLocale } from "@/lib/locale";
 import { StudioWordmark } from "@/components/ui/playful-studio";
 import { trackAnalytics } from "@/lib/analytics";
@@ -27,9 +28,7 @@ const NAV_LINKS = [
   { href: "/about", en: "About", tr: "Hakkında" },
 ];
 
-const INFORMATION_LINKS = [
-  { href: "/about", label: "About" },
-];
+const INFORMATION_LINKS = [{ href: "/about", label: "About" }];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -46,7 +45,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [languageOpen, setLanguageOpen] = useState(false);
   const { isTürkiye } = useShippingDestination();
   const activeRegion = isTürkiye ? "TR" : "INTERNATIONAL";
-  const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
+  const [cartCount, setCartCount] = useState(
+    () => getCartCount(activeRegion) + getFourthwallCartCount(),
+  );
   const isBasketEmpty = cartCount === 0;
   const isBasketDisabled = isBasketEmpty || isMobileMenuOpen;
   const { locale, setLocale } = useLocale();
@@ -82,10 +83,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const sync = () => setCartCount(getCartCount(activeRegion));
+    const sync = () =>
+      setCartCount(getCartCount(activeRegion) + getFourthwallCartCount());
     sync();
     window.addEventListener("cart:updated", sync);
-    return () => window.removeEventListener("cart:updated", sync);
+    window.addEventListener("fourthwall-cart:updated", sync);
+    return () => {
+      window.removeEventListener("cart:updated", sync);
+      window.removeEventListener("fourthwall-cart:updated", sync);
+    };
   }, [activeRegion]);
 
   useEffect(() => {
@@ -245,7 +251,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       languagePickerRef.current?.querySelectorAll<HTMLButtonElement>(
                         '[role="menuitemradio"]',
                       );
-                    options?.[event.key === "ArrowUp" ? options.length - 1 : 0]?.focus();
+                    options?.[
+                      event.key === "ArrowUp" ? options.length - 1 : 0
+                    ]?.focus();
                   });
                 }}
               >
@@ -259,7 +267,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 aria-label={locale === "tr" ? "Dil seç" : "Choose language"}
                 aria-hidden={!languageOpen}
                 onKeyDown={(event) => {
-                  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key))
+                  if (
+                    !["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+                  )
                     return;
                   event.preventDefault();
                   const options = Array.from(
@@ -267,20 +277,27 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       '[role="menuitemradio"]',
                     ),
                   );
-                  const current = options.indexOf(document.activeElement as HTMLButtonElement);
+                  const current = options.indexOf(
+                    document.activeElement as HTMLButtonElement,
+                  );
                   const next =
                     event.key === "Home"
                       ? 0
                       : event.key === "End"
                         ? options.length - 1
-                        : (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+                        : (current +
+                            (event.key === "ArrowDown" ? 1 : -1) +
+                            options.length) %
+                          options.length;
                   options[next]?.focus();
                 }}
               >
-                {([
-                  ["en", "English"],
-                  ["tr", "Türkçe"],
-                ] as const).map(([code, label]) => (
+                {(
+                  [
+                    ["en", "English"],
+                    ["tr", "Türkçe"],
+                  ] as const
+                ).map(([code, label]) => (
                   <button
                     key={code}
                     type="button"
@@ -293,40 +310,41 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       languageTriggerRef.current?.focus();
                     }}
                   >
-                    <span className="header-language__indicator" aria-hidden="true" />
+                    <span
+                      className="header-language__indicator"
+                      aria-hidden="true"
+                    />
                     {label}
                   </button>
                 ))}
               </div>
             </div>
-            {isTürkiye && (
-              <button
-                type="button"
-                onClick={isBasketEmpty ? undefined : () => setCartOpen(true)}
-                disabled={isBasketDisabled}
-                aria-disabled={isBasketDisabled}
-                className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
-                aria-label={
-                  isBasketEmpty
-                    ? locale === "tr"
-                      ? "Sepet, boş"
-                      : "Basket, empty"
-                    : locale === "tr"
-                      ? `Sepet, ${cartCount} ürün`
-                      : `Basket, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
-                }
+            <button
+              type="button"
+              onClick={isBasketEmpty ? undefined : () => setCartOpen(true)}
+              disabled={isBasketDisabled}
+              aria-disabled={isBasketDisabled}
+              className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
+              aria-label={
+                isBasketEmpty
+                  ? locale === "tr"
+                    ? "Sepet, boş"
+                    : "Basket, empty"
+                  : locale === "tr"
+                    ? `Sepet, ${cartCount} ürün`
+                    : `Basket, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
+              }
+            >
+              <ShoppingBag size={20} />
+              <span className="hidden lg:inline text-sm font-semibold">
+                {locale === "tr" ? "Sepet" : "Basket"}
+              </span>
+              <span
+                className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
               >
-                <ShoppingBag size={20} />
-                <span className="hidden lg:inline text-sm font-semibold">
-                  {locale === "tr" ? "Sepet" : "Basket"}
-                </span>
-                <span
-                  className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
-                >
-                  {cartCount}
-                </span>
-              </button>
-            )}
+                {cartCount}
+              </span>
+            </button>
             <button
               ref={menuButtonRef}
               className="md:hidden z-50 min-h-11 min-w-11 p-2 text-ink hover:text-coral focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
@@ -421,7 +439,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     </span>
                   </span>
                   {isOpen ? (
-                    <Minus className="mobile-menu__chevron" aria-hidden="true" />
+                    <Minus
+                      className="mobile-menu__chevron"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <Plus className="mobile-menu__chevron" aria-hidden="true" />
                   )}
@@ -603,9 +624,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </nav>
             <div className="site-footer__nav footer-mobile-links">
               <details className="site-footer__nav-group">
-                <summary className="site-footer__nav-trigger">
-                  Shop
-                </summary>
+                <summary className="site-footer__nav-trigger">Shop</summary>
                 <div className="site-footer__nav-links">
                   <Link href="/shop?category=prints">Prints</Link>
                   {isTürkiye && (
@@ -633,13 +652,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {isTürkiye && (
-        <CartDrawer
-          open={cartOpen}
-          onOpenChange={setCartOpen}
-          region={activeRegion}
-        />
-      )}
+      <CartDrawer
+        open={cartOpen}
+        onOpenChange={setCartOpen}
+        region={activeRegion}
+      />
     </div>
   );
 }
