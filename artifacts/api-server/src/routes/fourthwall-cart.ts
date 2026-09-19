@@ -47,12 +47,23 @@ function items(body: any) {
 
 function safeProviderError(data: any) {
   if (!data || typeof data !== "object") return null;
+  const details = [
+    ...(Array.isArray(data) ? data : []),
+    data.detail,
+    data.title,
+    data.errors,
+  ]
+    .filter((value) => value !== undefined)
+    .map((value) => (typeof value === "string" ? value : JSON.stringify(value)))
+    .join(" | ")
+    .slice(0, 500);
   return {
     code: typeof data.code === "string" ? data.code.slice(0, 120) : undefined,
     message:
       typeof data.message === "string" ? data.message.slice(0, 300) : undefined,
     error:
       typeof data.error === "string" ? data.error.slice(0, 300) : undefined,
+    details: details || undefined,
   };
 }
 
@@ -96,6 +107,8 @@ async function provider(path: string, init?: RequestInit) {
       status: response.status,
       data,
       providerCode: providerError?.code || providerError?.error || undefined,
+      providerDetails:
+        providerError?.message || providerError?.details || undefined,
     };
   } catch (error) {
     console.error("[fourthwall-cart] provider request failed", {
@@ -126,6 +139,9 @@ function reply(
     invalidCart: invalid,
     providerStatus: result.status,
     ...(result.providerCode ? { providerCode: result.providerCode } : {}),
+    ...(result.providerDetails
+      ? { providerDetails: result.providerDetails }
+      : {}),
   });
 }
 
