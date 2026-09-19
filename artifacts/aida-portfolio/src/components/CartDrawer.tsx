@@ -211,6 +211,12 @@ export default function CartDrawer({
       hasCatalogRecord(item) &&
       !isCartItemAvailable(item, settings, now, region),
   );
+  const itemType = (item: (typeof cart)[number]) => {
+    const labels = locale === "tr"
+      ? { print: "İmzalı baskı", original: "Orijinal eser", aceo: "ACEO orijinal", product: "Sanat ürünü", "custom-palette": "Kişiye özel palet", "ready-palette": "Hazır palet", "mail-club": "Mail Club", "studio-mail": "Mystery Mail" }
+      : { print: "Signed print", original: "Original artwork", aceo: "ACEO original", product: "Art good", "custom-palette": "Custom palette", "ready-palette": "Ready-made palette", "mail-club": "Mail Club", "studio-mail": "Mystery Mail" };
+    return labels[item.kind] || item.subtitle || "";
+  };
   return (
     <div
       className={cn(
@@ -233,7 +239,7 @@ export default function CartDrawer({
           open ? "translate-x-0" : "translate-x-full",
         )}
       >
-        <header className="flex items-center justify-between border-b border-ink/10 p-6">
+        <header className="flex items-center justify-between border-b border-ink/10 px-6 py-5">
           <div>
             <p className="eyebrow">
               {region === "TR" ? "Türkiye" : "International originals"}
@@ -248,31 +254,34 @@ export default function CartDrawer({
             <X className="mx-auto" />
           </button>
         </header>
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
-          <p className="border border-ink/10 bg-ochre/10 p-4 text-sm">
-            Every collection is confirmed personally with Aida before purchase.
-          </p>
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <p className="eyebrow mb-4">{locale === "tr" ? "ÜRÜNLER" : "ITEMS"}</p>
           {cart.length === 0 ? (
             <p className="py-12 text-center text-ink/60">
               Your collection basket is waiting.
             </p>
           ) : (
             cart.map((x) => (
-              <div
+              <article
                 key={x.id}
-                className="flex gap-4 border-b border-ink/10 pb-4"
+                className="grid grid-cols-[80px_minmax(0,1fr)] gap-4 border-b border-ink/10 py-5 first:pt-0 sm:grid-cols-[96px_minmax(0,1fr)]"
               >
-                {x.imageUrl && (
+                {x.imageUrl ? (
                   <img
                     src={x.imageUrl}
                     alt=""
-                    className="h-20 w-20 object-cover"
+                    className="h-24 w-20 bg-ink/5 object-cover sm:w-24"
                   />
+                ) : (
+                  <div className="grid h-24 w-20 place-items-center bg-ink/5 font-serif text-2xl text-ink/25 sm:w-24" aria-hidden="true">
+                    {x.title.slice(0, 1)}
+                  </div>
                 )}
-                <div className="flex-1">
-                  <h3 className="text-xl">{x.title}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-xl leading-tight">{x.title}</h3>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-[.12em] text-ink/50">{itemType(x)}</p>
                   {x.printConfiguration && (
-                    <p className="text-xs text-ink/55">
+                    <p className="mt-1 text-xs text-ink/55">
                       {x.printConfiguration.sizeLabel}
                       {x.printConfiguration.sizeSecondaryLabel
                         ? ` · ${x.printConfiguration.sizeSecondaryLabel}`
@@ -280,7 +289,12 @@ export default function CartDrawer({
                       {` · ${x.printConfiguration.framing === "framed" ? "Framed" : "Unframed"}`}
                     </p>
                   )}
-                  <p className="text-xs text-ink/55">Quantity {x.quantity}</p>
+                  {x.metadata?.paletteTypeName && <p className="mt-1 text-xs text-ink/55">{x.metadata.paletteTypeName}</p>}
+                  {x.metadata?.selectedColorNames?.length ? <p className="mt-1 text-xs text-ink/55">{locale === "tr" ? "Renkler" : "Colours"}: {x.metadata.selectedColorNames.join(", ")}</p> : null}
+                  {x.metadata?.editionMonth && <p className="mt-1 text-xs text-ink/55">{x.metadata.editionMonth}</p>}
+                  <p className="mt-3 text-sm text-ink/60">
+                    <Money baseAmountUsdCents={canonicalUnitPrice(x)} canonicalCurrency={x.canonicalCurrency || basketCurrency} className="font-semibold text-ink" /> {locale === "tr" ? "adet" : "each"}
+                  </p>
                   {x.priceChanged && <p role="status" className="mt-2 text-xs font-semibold text-coral">{locale === "tr" ? `${x.title} ürününün fiyatı sepete eklendiğinden beri değişti.` : `The price of ${x.title} has changed since it was added to your bag.`}</p>}
                   {x.kind !== "original" && x.kind !== "aceo" && (
                     <div
@@ -293,6 +307,7 @@ export default function CartDrawer({
                         onClick={() =>
                           updateCartItemQuantity(x.id, x.quantity - 1, region)
                         }
+                        disabled={x.quantity <= 1}
                         aria-label={`Decrease ${x.title} quantity`}
                       >
                         <Minus size={15} aria-hidden="true" />
@@ -339,8 +354,8 @@ export default function CartDrawer({
                     </div>
                   )}
                   {!(x.kind === "aceo" && region === "INTERNATIONAL") && (
-                    <p className="mt-2 text-sm">
-                      <span className="text-ink/55">Line total: </span>
+                    <p className="mt-3 text-sm">
+                      <span className="text-ink/55">{locale === "tr" ? "Ürün toplamı" : "Line total"}: </span>
                       <Money
                         baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
                         canonicalCurrency={
@@ -350,14 +365,14 @@ export default function CartDrawer({
                       />
                     </p>
                   )}
+                  <button
+                    onClick={() => removeCartItem(x.id, region)}
+                    className="mt-3 min-h-8 text-sm font-semibold text-coral underline underline-offset-4"
+                  >
+                    {locale === "tr" ? "Kaldır" : "Remove"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => removeCartItem(x.id, region)}
-                  className="text-sm text-coral"
-                >
-                  Remove
-                </button>
-              </div>
+              </article>
             ))
           )}
         </div>
@@ -581,7 +596,9 @@ export default function CartDrawer({
             </div>
           )}
           <p className="mt-3 text-xs text-ink/55">
-            Your basket does not reserve artwork or change inventory.
+            {locale === "tr"
+              ? "Sepetiniz ürünleri ayırmaz veya stok durumunu değiştirmez."
+              : "Your basket does not reserve artwork or change inventory."}
           </p>
         </footer>
       </aside>

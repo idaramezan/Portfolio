@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CartDrawer from "@/components/CartDrawer";
+import ShippingProgressTracker from "@/components/ShippingProgressTracker";
 import { getCartCount, loadShopSettings } from "@/lib/store";
 import { useLocale } from "@/lib/locale";
 import { StudioWordmark } from "@/components/ui/playful-studio";
@@ -534,6 +535,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </footer>
       </nav>
 
+      {isTürkiye && <ShippingProgressTracker region={activeRegion} />}
       <main className="flex-1 w-full">{children}</main>
 
       <footer className="site-footer public-footer">

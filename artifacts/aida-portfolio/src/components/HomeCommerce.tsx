@@ -11,6 +11,7 @@ import { useShippingDestination } from "@/lib/shipping-destination";
 import { addItemToCart } from "@/lib/store";
 import { isPubliclyVisible } from "@/lib/product-status";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import { useToast } from "@/hooks/use-toast";
 
 const words = {
   en: {
@@ -123,6 +124,7 @@ const words = {
 
 export default function HomeCommerce() {
   const { locale } = useLocale();
+  const { toast } = useToast();
   const t = words[locale];
   const settings = useShopSettings();
   const international = useInternationalProducts();
@@ -165,9 +167,17 @@ export default function HomeCommerce() {
       p.available &&
       p.externalUrl,
   );
-  const add = (item: Parameters<typeof addItemToCart>[0], max = 1) => {
+  const add = (item: Parameters<typeof addItemToCart>[0], max = 1, confirm = false) => {
     const result = addItemToCart(item, max, "TR");
-    if (result.ok) window.dispatchEvent(new Event("cart:open"));
+    if (result.ok) {
+      if (confirm) toast({
+        title: locale === "tr" ? "Sepete eklendi" : "Added to the basket",
+        description: item.title,
+        duration: 3000,
+        className: "border-green/30 bg-[#edf6ed] text-ink",
+      });
+      window.dispatchEvent(new Event("cart:open"));
+    }
   };
   return (
     <>
@@ -247,7 +257,6 @@ export default function HomeCommerce() {
             <p>{t.paletteBody}</p>
             <p>{t.live}</p>
             <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
-            <span>{t.shipping}</span>
             {paletteAvailable ? (
               <Link
                 href="/shop/palettes/custom"
@@ -350,6 +359,7 @@ export default function HomeCommerce() {
                   },
                 },
                 currentMail.stock,
+                true,
               )
             }
           />
@@ -450,7 +460,6 @@ function MailClubPanel({
         </div>
       )}
       <ProductPrice regularPriceMinor={edition.priceMinor} currency="TRY" sale={edition.sale} />
-      <span>{text.shipping}</span>
       {open ? (
         <button onClick={onAdd}>{text.mailAdd}</button>
       ) : (
