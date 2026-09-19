@@ -47,6 +47,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const { isTürkiye } = useShippingDestination();
   const activeRegion = isTürkiye ? "TR" : "INTERNATIONAL";
   const [cartCount, setCartCount] = useState(getCartCount(activeRegion));
+  const isBasketEmpty = cartCount === 0;
+  const isBasketDisabled = isBasketEmpty || isMobileMenuOpen;
   const { locale, setLocale } = useLocale();
   const siteLinks = loadShopSettings().siteLinks;
   const socialLinks = [
@@ -81,6 +83,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const sync = () => setCartCount(getCartCount(activeRegion));
+    sync();
     window.addEventListener("cart:updated", sync);
     return () => window.removeEventListener("cart:updated", sync);
   }, [activeRegion]);
@@ -298,13 +301,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             </div>
             {isTürkiye && (
               <button
-                onClick={() => setCartOpen(true)}
-                disabled={isMobileMenuOpen}
+                type="button"
+                onClick={isBasketEmpty ? undefined : () => setCartOpen(true)}
+                disabled={isBasketDisabled}
+                aria-disabled={isBasketDisabled}
                 className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
                 aria-label={
-                  locale === "tr"
-                    ? `Koleksiyon sepetini aç, ${cartCount} ürün`
-                    : `Open collection basket, ${cartCount} items`
+                  isBasketEmpty
+                    ? locale === "tr"
+                      ? "Sepet, boş"
+                      : "Basket, empty"
+                    : locale === "tr"
+                      ? `Sepet, ${cartCount} ürün`
+                      : `Basket, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
                 }
               >
                 <ShoppingBag size={20} />

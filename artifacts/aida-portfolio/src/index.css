@@ -1952,6 +1952,16 @@
 .header-basket:hover {
   background: #edb5c930;
 }
+.header-basket:disabled {
+  cursor: default;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+  opacity: 0.58;
+}
+.header-basket:disabled:hover {
+  background: transparent;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+  transform: none;
+}
 
 /* Editorial continuation on product details */
 .related-products {
