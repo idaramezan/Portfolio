@@ -12,6 +12,10 @@ import { addItemToCart } from "@/lib/store";
 import { isPubliclyVisible } from "@/lib/product-status";
 import { isAceoProduct } from "@/lib/turkiye-products";
 import { useToast } from "@/hooks/use-toast";
+import {
+  getFourthwallVariants,
+  getLowestFourthwallVariant,
+} from "@/lib/fourthwall-variants";
 
 const words = {
   en: {
@@ -167,15 +171,20 @@ export default function HomeCommerce() {
       p.available &&
       p.externalUrl,
   );
-  const add = (item: Parameters<typeof addItemToCart>[0], max = 1, confirm = false) => {
+  const add = (
+    item: Parameters<typeof addItemToCart>[0],
+    max = 1,
+    confirm = false,
+  ) => {
     const result = addItemToCart(item, max, "TR");
     if (result.ok) {
-      if (confirm) toast({
-        title: locale === "tr" ? "Sepete eklendi" : "Added to the basket",
-        description: item.title,
-        duration: 3000,
-        className: "border-green/30 bg-[#edf6ed] text-ink",
-      });
+      if (confirm)
+        toast({
+          title: locale === "tr" ? "Sepete eklendi" : "Added to the basket",
+          description: item.title,
+          duration: 3000,
+          className: "border-green/30 bg-[#edf6ed] text-ink",
+        });
       window.dispatchEvent(new Event("cart:open"));
     }
   };
@@ -189,8 +198,14 @@ export default function HomeCommerce() {
         href="/shop?category=prints"
       >
         {prints.map((p) => {
-          const linked = international.products.find(
-            (item) => item.id === p.fourthwallProductId,
+          const linkedFormats = getFourthwallVariants(
+            p,
+            international.products,
+            international.shopUrl,
+          );
+          const linked = getLowestFourthwallVariant(linkedFormats)?.product;
+          const availableInternational = linkedFormats.some(
+            (format) => format.available && format.product?.available,
           );
           return (
             <EditorialProductCard
@@ -201,16 +216,25 @@ export default function HomeCommerce() {
               title={p.name}
               price={
                 local ? (
-                  <ProductPrice regularPriceMinor={p.priceMinor ?? p.priceUsdCents} currency="TRY" sale={p.sale} compact />
+                  <ProductPrice
+                    regularPriceMinor={p.priceMinor ?? p.priceUsdCents}
+                    currency="TRY"
+                    sale={p.sale}
+                    compact
+                  />
                 ) : (
                   linked?.price.formatted
                 )
               }
               metadata={locale === "tr" ? "BASKI" : "PRINT"}
               status={
-                p.status === "sold_out" || (!local && linked?.soldOut)
+                p.status === "sold_out" ||
+                (!local &&
+                  linkedFormats.length > 0 &&
+                  !international.loading &&
+                  !availableInternational)
                   ? "sold"
-                  : linked || local
+                  : availableInternational || local
                     ? "available"
                     : "loading"
               }
@@ -234,7 +258,12 @@ export default function HomeCommerce() {
               alt={p.altText || p.name}
               title={p.name}
               price={
-                <ProductPrice regularPriceMinor={p.priceUsdCents} currency="USD" sale={p.sale} compact />
+                <ProductPrice
+                  regularPriceMinor={p.priceUsdCents}
+                  currency="USD"
+                  sale={p.sale}
+                  compact
+                />
               }
               metadata={locale === "tr" ? "ORİJİNAL" : "ORIGINAL"}
               status="available"
@@ -256,7 +285,11 @@ export default function HomeCommerce() {
             <h2>{t.palette}</h2>
             <p>{t.paletteBody}</p>
             <p>{t.live}</p>
-            <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
+            <ProductPrice
+              regularPriceMinor={settings.paletteSettings.priceMinor}
+              currency="TRY"
+              sale={settings.paletteSettings.sale}
+            />
             {paletteAvailable ? (
               <Link
                 href="/shop/palettes/custom"
@@ -297,7 +330,11 @@ export default function HomeCommerce() {
                       : p.description)}
                 </p>
                 {p.note && <p>{p.note}</p>}
-                <ProductPrice regularPriceMinor={p.priceMinor} currency="TRY" sale={p.sale} />
+                <ProductPrice
+                  regularPriceMinor={p.priceMinor}
+                  currency="TRY"
+                  sale={p.sale}
+                />
                 <span>{t.shipping}</span>
                 <button
                   onClick={() =>
@@ -459,7 +496,11 @@ function MailClubPanel({
           </strong>
         </div>
       )}
-      <ProductPrice regularPriceMinor={edition.priceMinor} currency="TRY" sale={edition.sale} />
+      <ProductPrice
+        regularPriceMinor={edition.priceMinor}
+        currency="TRY"
+        sale={edition.sale}
+      />
       {open ? (
         <button onClick={onAdd}>{text.mailAdd}</button>
       ) : (
