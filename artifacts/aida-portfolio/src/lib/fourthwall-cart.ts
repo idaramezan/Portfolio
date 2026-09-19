@@ -62,14 +62,17 @@ async function request(path: string, init?: RequestInit) {
   return result;
 }
 
-async function ensureCart(currency: string) {
+async function ensureCart(
+  currency: string,
+  firstItem: { variantId: string; quantity: number },
+) {
   const current = loadFourthwallCart();
   if (current.cartId) {
     try {
       await request(
         `/api/fourthwall/cart/${encodeURIComponent(current.cartId)}`,
       );
-      return current;
+      return { cart: current, createdWithItem: false };
     } catch {
       if (loadFourthwallCart().cartId)
         throw new Error("We couldn't refresh your basket. Please try again.");
@@ -77,22 +80,30 @@ async function ensureCart(currency: string) {
   }
   const created = await request("/api/fourthwall/cart", {
     method: "POST",
-    body: JSON.stringify({ currency }),
+    body: JSON.stringify({ currency, items: [firstItem] }),
   });
   const next = { cartId: String(created.id || ""), currency, items: [] };
   if (!next.cartId)
     throw new Error("We couldn't start your basket. Please try again.");
   save(next);
-  return next;
+  return { cart: next, createdWithItem: true };
 }
 
 export async function addFourthwallCartItem(item: FourthwallCartItem) {
-  let cart = await ensureCart(item.currency);
+  let ensured = await ensureCart(item.currency, {
+    variantId: item.variantId,
+    quantity: item.quantity,
+  });
+  let cart = ensured.cart;
   const existing = cart.items.find(
     (entry) => entry.variantId === item.variantId,
   );
   const quantity = (existing?.quantity || 0) + item.quantity;
   try {
+    if (ensured.createdWithItem) {
+      save({ ...cart, items: [...cart.items, item] });
+      return;
+    }
     await request(
       `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add`,
       {
@@ -104,16 +115,21 @@ export async function addFourthwallCartItem(item: FourthwallCartItem) {
     );
   } catch (error) {
     if (!loadFourthwallCart().cartId) {
-      cart = await ensureCart(item.currency);
-      await request(
-        `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            items: [{ variantId: item.variantId, quantity: item.quantity }],
-          }),
-        },
-      );
+      ensured = await ensureCart(item.currency, {
+        variantId: item.variantId,
+        quantity: item.quantity,
+      });
+      cart = ensured.cart;
+      if (!ensured.createdWithItem)
+        await request(
+          `/api/fourthwall/cart/${encodeURIComponent(cart.cartId)}/add`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              items: [{ variantId: item.variantId, quantity: item.quantity }],
+            }),
+          },
+        );
     } else throw error;
   }
   save({

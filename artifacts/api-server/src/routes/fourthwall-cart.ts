@@ -149,11 +149,14 @@ router.post("/fourthwall/cart", async (req, res) => {
   const currency = /^[A-Z]{3}$/.test(String(req.body?.currency || ""))
     ? String(req.body.currency)
     : "USD";
+  const normalized = items(req.body);
+  if (!normalized)
+    return res.status(400).json({ error: "Invalid basket item." });
   return reply(
     res,
     await provider("/carts", {
       method: "POST",
-      body: JSON.stringify({ currency }),
+      body: JSON.stringify({ currency, items: normalized }),
     }),
     "We couldn't start your basket. Please try again.",
   );
