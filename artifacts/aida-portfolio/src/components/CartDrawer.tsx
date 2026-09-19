@@ -13,7 +13,10 @@ import { cn } from "@/lib/utils";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
-import { calculateTurkiyeProductShipping } from "@/lib/turkiye-products";
+import {
+  calculateTurkiyeOrderShipping,
+  TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
+} from "@/lib/turkiye-products";
 import { useShippingDestination } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
 import {
@@ -51,6 +54,9 @@ const discountCopy = {
     not_turkiye:
       "Discount codes are currently available for Türkiye orders only.",
     network: "We couldn't check that code right now. Please try again.",
+    shippingRemaining: "more for free shipping",
+    shippingUnlocked: "You've unlocked free shipping.",
+    shippingRule: "Flat 50 TL shipping · Free from 1,500 TL",
   },
   tr: {
     prompt: "İndirim kodun var mı?",
@@ -71,6 +77,9 @@ const discountCopy = {
     not_turkiye:
       "İndirim kodları şu anda yalnızca Türkiye siparişlerinde kullanılabilir.",
     network: "Bu kodu şu anda kontrol edemedik. Lütfen tekrar dene.",
+    shippingRemaining: "daha ekle, kargon ücretsiz olsun",
+    shippingUnlocked: "Ücretsiz kargo kazandın.",
+    shippingRule: "Sabit 50 TL kargo · 1.500 TL'den itibaren ücretsiz",
   },
 } as const;
 export default function CartDrawer({
@@ -159,32 +168,23 @@ export default function CartDrawer({
     0,
   );
   const basketCurrency = region === "TR" ? "TRY" : "USD";
-  const totalProductQuantity = cart.reduce(
-    (total, item) =>
-      total + (["print", "product"].includes(item.kind) ? item.quantity : 0),
-    0,
-  );
-  const framedProductQuantity = cart.reduce(
-    (total, item) =>
-      total +
-      (item.kind === "print" &&
-      item.printConfiguration?.framing === "framed"
-        ? item.quantity
-        : 0),
-    0,
-  );
   const shipping =
     region === "TR"
-      ? calculateTurkiyeProductShipping(
-          totalProductQuantity,
-          framedProductQuantity,
-        )
+      ? calculateTurkiyeOrderShipping(subtotal)
       : cart.length
         ? 10_000
         : 0;
   const displayedSubtotal = coupon?.subtotalMinor ?? subtotal;
   const displayedShipping = coupon?.shippingMinor ?? shipping;
   const orderTotal = coupon?.grandTotalMinor ?? subtotal + shipping;
+  const freeShippingRemaining = Math.max(
+    0,
+    TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR - displayedSubtotal,
+  );
+  const freeShippingProgress = Math.min(
+    100,
+    (displayedSubtotal / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100,
+  );
   const hasCatalogRecord = (item: (typeof cart)[number]) => {
     const baseId = item.id.split(":")[0];
     if (item.kind === "original")
@@ -501,12 +501,38 @@ export default function CartDrawer({
             />
           </div>
           {region === "TR" ? (
-            <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green">
-              <PackageCheck size={17} aria-hidden="true" />
-              {totalProductQuantity > 0
-                ? "Unframed delivery starts at 200 TL and framed delivery at 350 TL. Additional framed pieces are 150 TL each; additional unframed pieces are 50 TL each. Originals ship free."
-                : "Free shipping within Türkiye"}
-            </p>
+            <div className="mt-4 border-t border-ink/10 pt-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-green">
+                <PackageCheck size={17} aria-hidden="true" />
+                {freeShippingRemaining === 0 ? (
+                  couponText.shippingUnlocked
+                ) : (
+                  <>
+                    <Money
+                      baseAmountUsdCents={freeShippingRemaining}
+                      canonicalCurrency="TRY"
+                    />{" "}
+                    {couponText.shippingRemaining}
+                  </>
+                )}
+              </p>
+              <div
+                className="mt-2 h-2 overflow-hidden rounded-full bg-ink/10"
+                role="progressbar"
+                aria-label={couponText.shippingUnlocked}
+                aria-valuemin={0}
+                aria-valuemax={TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR}
+                aria-valuenow={Math.min(displayedSubtotal, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR)}
+              >
+                <div
+                  className="h-full rounded-full bg-green transition-[width] duration-300"
+                  style={{ width: `${freeShippingProgress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs font-semibold text-ink/60">
+                {couponText.shippingRule}
+              </p>
+            </div>
           ) : (
             <p className="mt-3 text-sm font-semibold">
               International original delivery: 100 USD per order

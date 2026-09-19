@@ -39,7 +39,7 @@ const copy = {
     colorsLabel: "Colours",
     together: "Choosing together on TikTok Live",
     shipping: "Shipping",
-    free: "Free",
+    shippingPrice: "50 TL · Free from 1,500 TL",
     continue: "Continue to payment",
     only: "Currently available in Türkiye only.",
     pause: "Custom palettes are taking a short pause.",
@@ -76,7 +76,7 @@ const copy = {
     colorsLabel: "Renkler",
     together: "TikTok canlı yayınında birlikte seçilecek",
     shipping: "Kargo",
-    free: "Ücretsiz",
+    shippingPrice: "50 TL · 1.500 TL'den itibaren ücretsiz",
     continue: "Ödemeye devam et",
     only: "Şu anda yalnızca Türkiye'de mevcut.",
     pause: "Kişiye özel paletlere kısa bir ara verildi.",
@@ -224,7 +224,7 @@ export default function CustomPalette() {
           <p className="eyebrow">CUSTOM WATERCOLOR PALETTE</p>
           <h1>{t.title}</h1>
           <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
-          <span>{t.free}</span>
+          <span>{t.shippingPrice}</span>
           <h2>{t.made}</h2>
           <p>{t.intro}</p>
         </div>
@@ -378,7 +378,7 @@ export default function CustomPalette() {
             </div>
             <div>
               <dt>{t.shipping}</dt>
-              <dd>{t.free}</dd>
+              <dd>{t.shippingPrice}</dd>
             </div>
           </dl>
           <button className="home-green-button" disabled={!valid}>

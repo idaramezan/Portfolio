@@ -6,7 +6,7 @@ const event = readFileSync(new URL("../artifacts/aida-portfolio/src/components/I
 const styles = readFileSync(new URL("../artifacts/aida-portfolio/src/index.css", import.meta.url), "utf8");
 
 assert.ok(landing.includes('if (tr) return <TurkiyeCatalogue />'), "Türkiye must use its focused catalogue while preserving the international landing");
-assert.ok(landing.includes("Art available in Türkiye") && landing.includes("with free delivery across Türkiye"), "compact shop introduction must use the requested copy");
+assert.ok(landing.includes("Art available in Türkiye") && landing.includes("Shipping is 50 TL across Türkiye and free from 1,500 TL"), "compact shop introduction must show the current shipping rule");
 assert.ok(landing.includes('type TurkiyeCategory = "all"') && landing.includes('"mystery-mail"') && landing.includes('URLSearchParams(window.location.search)'), "categories and sorting must use direct URL state");
 assert.ok(landing.includes("availableCategories") && landing.includes("product.category === \"sticker\"") && landing.includes("product.category === \"tshirt\" || product.category === \"mug\""), "catalogue controls must reflect actual available normalized categories");
 assert.ok(landing.includes("activeMystery(settings, now)") && landing.includes("<CompactMysteryFeature"), "only the active configured Mystery Mail should receive a compact feature");

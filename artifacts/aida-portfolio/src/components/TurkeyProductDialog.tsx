@@ -5,7 +5,7 @@ import Money from "@/components/Money";
 import { useToast } from "@/hooks/use-toast";
 import { addItemToCart, type ManagedProduct } from "@/lib/store";
 import {
-  calculateTurkiyeProductShipping,
+  calculateTurkiyeOrderShipping,
   calculatePrintPrice,
   formatPrintSize,
   getFinishPriceDifference,
@@ -148,12 +148,7 @@ export default function TurkeyProductDialog({
   const selectedColor =
     category === "tshirt" ? color : category === "mug" ? "white" : undefined;
   const formattedSize = size ? formatPrintSize(size) : null;
-  // This dialog only handles non-original Türkiye products. Framed prints use
-  // the same finish-aware delivery calculation as the basket and checkout.
-  const shipping = calculateTurkiyeProductShipping(
-    quantity,
-    category === "print" && framing === "framed" ? quantity : 0,
-  );
+  const shipping = calculateTurkiyeOrderShipping(pricing.lineTotalCents);
   const orderTotal = pricing.lineTotalCents + shipping;
   const supportsFramedPreview =
     category === "print" &&
@@ -607,8 +602,8 @@ export default function TurkeyProductDialog({
             <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink/60">
               <PackageCheck size={17} aria-hidden="true" />
               {locale === "tr"
-                ? "Çerçevesiz gönderim 200 TL'den, çerçeveli gönderim 350 TL'den başlar. Ek çerçeveli eser +150 TL, ek çerçevesiz eser +50 TL'dir. Orijinal eserlerde kargo ücretsizdir."
-                : "Unframed delivery starts at 200 TL and framed delivery at 350 TL. Each additional framed piece is 150 TL; each additional unframed piece is 50 TL. Originals ship free."}
+                ? "Türkiye içi kargo sabit 50 TL'dir. 1.500 TL ve üzeri siparişlerde kargo ücretsizdir."
+                : "Shipping is a flat 50 TL within Türkiye. Orders of 1,500 TL or more ship free."}
             </p>
           </section>
 

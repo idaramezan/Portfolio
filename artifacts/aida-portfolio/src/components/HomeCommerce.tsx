@@ -29,7 +29,7 @@ const words = {
       "Tell Aida how you like to paint and she will create a handmade watercolor palette around your preferences.",
     live: "Your palette can be made during one of Aida's TikTok Live painting sessions, so you can watch it take shape.",
     custom: "CUSTOM PALETTE · 1,200 TL",
-    free: "FREE SHIPPING",
+    shipping: "50 TL SHIPPING · FREE FROM 1,500 TL",
     design: "Design your custom palette",
     available: "AVAILABLE NOW",
     ready: "Ready-made palettes",
@@ -78,7 +78,7 @@ const words = {
       "Nasıl resim yaptığını ve paletinden ne beklediğini anlat. Aida, tercihlerin doğrultusunda sana özel bir suluboya paleti hazırlasın.",
     live: "Paletin Aida'nın TikTok canlı yayınlarından birinde hazırlanabilir. Böylece yapım sürecini canlı olarak izleyebilirsin.",
     custom: "KİŞİYE ÖZEL PALET · 1.200 TL",
-    free: "ÜCRETSİZ KARGO",
+    shipping: "50 TL KARGO · 1.500 TL'DEN İTİBAREN ÜCRETSİZ",
     design: "Kendi paletini tasarla",
     available: "ŞU ANDA MEVCUT",
     ready: "Hazır paletler",
@@ -247,7 +247,7 @@ export default function HomeCommerce() {
             <p>{t.paletteBody}</p>
             <p>{t.live}</p>
             <ProductPrice regularPriceMinor={settings.paletteSettings.priceMinor} currency="TRY" sale={settings.paletteSettings.sale} />
-            <span>{t.free}</span>
+            <span>{t.shipping}</span>
             {paletteAvailable ? (
               <Link
                 href="/shop/palettes/custom"
@@ -289,6 +289,7 @@ export default function HomeCommerce() {
                 </p>
                 {p.note && <p>{p.note}</p>}
                 <ProductPrice regularPriceMinor={p.priceMinor} currency="TRY" sale={p.sale} />
+                <span>{t.shipping}</span>
                 <button
                   onClick={() =>
                     add(
@@ -449,7 +450,7 @@ function MailClubPanel({
         </div>
       )}
       <ProductPrice regularPriceMinor={edition.priceMinor} currency="TRY" sale={edition.sale} />
-      <span>{text.free}</span>
+      <span>{text.shipping}</span>
       {open ? (
         <button onClick={onAdd}>{text.mailAdd}</button>
       ) : (

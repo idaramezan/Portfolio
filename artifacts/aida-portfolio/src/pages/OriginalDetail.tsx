@@ -182,8 +182,8 @@ export default function OriginalDetail({
                 <ManagedProductCard product={product} region="TR" hideImage />
                 <p className="mt-4 text-sm font-semibold text-green">
                   {locale === "tr"
-                    ? "Türkiye içinde ücretsiz kargo"
-                    : "Free shipping within Türkiye"}
+                    ? "Türkiye içi kargo 50 TL · 1.500 TL'den itibaren ücretsiz"
+                    : "Türkiye shipping is 50 TL · Free from 1,500 TL"}
                 </p>
               </>
             ) : unavailableUS ? (

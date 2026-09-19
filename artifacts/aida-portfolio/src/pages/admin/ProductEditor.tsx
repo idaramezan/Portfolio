@@ -1905,7 +1905,7 @@ export default function ProductEditor({
               </strong>
               <p className="mt-1 text-ink/55">
                 {isAceoProduct(draft)
-                  ? "One-of-one ACEO originals are sold directly in Türkiye with free shipping."
+                  ? "One-of-one ACEO originals are sold directly in Türkiye. Shipping is 50 TL and free from 1,500 TL."
                   : "Local signed prints are available only through the Türkiye shop."}
               </p>
             </div>

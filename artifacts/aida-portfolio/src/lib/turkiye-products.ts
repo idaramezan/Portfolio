@@ -10,6 +10,18 @@ export function isAceoProduct(product: { category?: string | null }) {
 export type PrintFraming = "framed" | "unframed";
 export type TshirtColor = "black" | "white";
 
+export const TURKIYE_FLAT_SHIPPING_MINOR = 5_000;
+export const TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR = 150_000;
+
+export function calculateTurkiyeOrderShipping(subtotalMinor: number) {
+  if (!Number.isInteger(subtotalMinor) || subtotalMinor < 0)
+    throw new Error("Order subtotal must be a non-negative integer.");
+  if (subtotalMinor === 0) return 0;
+  return subtotalMinor >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR
+    ? 0
+    : TURKIYE_FLAT_SHIPPING_MINOR;
+}
+
 export function calculateTurkiyeProductShipping(
   productQuantity: number,
   framedQuantity = 0,

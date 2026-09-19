@@ -33,9 +33,7 @@ const orders = readFileSync(
   "utf8",
 );
 assert.ok(
-  pricing.includes(
-    "input.printQuantity === 0 ? 0 : 20_000 + (input.printQuantity - 1) * 2_000",
-  ),
+  pricing.includes("input.subtotalMinor >= 150_000 ? 0 : 5_000"),
 );
 assert.ok(
   pricing.includes('input.market === "international_original"') &&
@@ -63,8 +61,9 @@ assert.ok(
   ) && !cart.includes("wa.me/"),
 );
 assert.ok(
-  cart.includes("calculateTurkiyeProductShipping") &&
-    cart.includes('["print", "product"].includes(item.kind)'),
+  cart.includes("calculateTurkiyeOrderShipping(subtotal)") &&
+    cart.includes("TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR") &&
+    cart.includes('role="progressbar"'),
 );
 assert.ok(
   checkout.includes("Upload your completed bank-transfer receipt") &&

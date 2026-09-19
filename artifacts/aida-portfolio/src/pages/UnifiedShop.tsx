@@ -80,7 +80,7 @@ const copy = {
     aceoBody:
       "Her ACEO, Aida'nın atölyesinde canlı yayında boyadığı minik ve tamamen orijinal bir eserdir. Yalnızca 6,4 × 8,9 cm boyutundaki bu çalışmalar, koleksiyonuna daha küçük bir format ve daha ulaşılabilir bir başlangıç fiyatıyla özgün bir eser eklemek isteyenler için.",
     aceoMeta:
-      "Tek ve özgün · Canlı yayında boyandı · 6,4 × 8,9 cm · Türkiye'de ücretsiz teslimat",
+      "Tek ve özgün · Canlı yayında boyandı · 6,4 × 8,9 cm · Kargo 50 TL, 1.500 TL'den itibaren ücretsiz",
     aceoOnlyTitle: "ACEO'lar şu anda yalnızca Türkiye'de satışta.",
     aceoOnlyBody:
       "Koleksiyonu dünyanın her yerinden inceleyebilirsin. Bu tek ve özgün eserler için satın alma şu anda yalnızca Türkiye teslimat adreslerinde kullanılabilir.",

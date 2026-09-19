@@ -471,7 +471,7 @@ export default function StickerDropExperience() {
                   </p>
                   {market === "turkiye" && product.freeShippingInTurkiye && (
                     <p className="mt-2 text-sm text-ink/60">
-                      Free shipping within Türkiye
+                      Türkiye shipping is 50 TL · Free from 1,500 TL
                     </p>
                   )}
                   {market === "international" && (

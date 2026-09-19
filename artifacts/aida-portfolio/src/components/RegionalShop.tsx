@@ -77,9 +77,7 @@ export function ShopPageHeader({
           <PackageCheck aria-hidden="true" />
           <p>
             <strong>
-              {category === "prints"
-                ? "Türkiye shipping from 200 TL"
-                : "Free shipping within Türkiye"}
+              Türkiye shipping is 50 TL · Free from 1,500 TL
             </strong>
             <br />
             Add your chosen pieces to the Collection Basket, then review your
@@ -191,7 +189,7 @@ function LocalProductCard({
         {region === "TR" ? (
           <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-green">
             <PackageCheck size={17} aria-hidden="true" />
-            Free shipping within Türkiye
+            Türkiye shipping is 50 TL · Free from 1,500 TL
           </p>
         ) : (
           <p className="mt-4 text-sm font-semibold text-ink/60">

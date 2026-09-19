@@ -28,7 +28,7 @@ import StudioLetterSignup from "@/components/StudioLetterSignup";
 
 const TITLE = "Mystery Mail Art Package in Türkiye | Aeda Art";
 const DESCRIPTION =
-  "Order Aeda Art’s limited Mystery Mail in Türkiye, featuring an exclusive art postcard, studio stickers and surprise art objects with free shipping.";
+  "Order Aeda Art’s limited Mystery Mail in Türkiye, featuring an exclusive art postcard, studio stickers and surprise art objects. Shipping is 50 TL and free from 1,500 TL.";
 const CANONICAL_PATH = "/shop/mystery-mail";
 const EMPTY_TITLE = "Mystery Mail Art Editions | Aeda Art";
 const EMPTY_DESCRIPTION =
@@ -364,7 +364,7 @@ export default function MysteryMail() {
         quantity: 1,
         maxQuantity: current.maximumQuantity || current.inventory,
         expiresAt: current.expiresAt,
-        shippingRestriction: "Free shipping within Türkiye",
+        shippingRestriction: "50 TL shipping · Free from 1,500 TL",
       },
       current.maximumQuantity || current.inventory,
       "TR",
@@ -392,7 +392,7 @@ export default function MysteryMail() {
       ],
       [
         "Where is Mystery Mail delivered?",
-        "Mystery Mail is currently available only within Türkiye, with free shipping.",
+        "Mystery Mail is currently available only within Türkiye. Shipping is 50 TL and free from 1,500 TL.",
       ],
       [
         "What happens when the timer ends?",
@@ -571,7 +571,7 @@ export default function MysteryMail() {
                   </div>
                   <p className="flex items-center gap-2 text-sm font-semibold text-paper">
                     <PackageCheck size={18} className="text-coral" />
-                    Free Türkiye shipping
+                    Türkiye shipping 50 TL · Free from 1,500 TL
                   </p>
                 </div>
                 {active && <CompactCountdown remaining={remaining} />}
@@ -643,7 +643,7 @@ export default function MysteryMail() {
             [ShieldCheck, "A few mystery objects selected from the studio"],
             [
               PackageCheck,
-              "Protective packaging and free delivery within Türkiye",
+              "Protective packaging and 50 TL delivery within Türkiye, free from 1,500 TL",
             ],
           ].map(([Icon, label]) => {
             const ItemIcon = Icon as typeof Check;

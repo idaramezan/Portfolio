@@ -194,9 +194,7 @@ export default function ManagedProductCard({
           {region === "TR" ? (
             <span className="flex items-center gap-2">
               <PackageCheck size={17} aria-hidden="true" />
-              {original
-                ? "Free shipping within Türkiye"
-                : "Türkiye shipping from 200 TL"}
+              Türkiye shipping is 50 TL · Free from 1,500 TL
             </span>
           ) : (
             "International shipping is calculated separately."

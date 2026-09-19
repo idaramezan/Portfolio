@@ -123,11 +123,8 @@ const CHECKOUT_COPY = {
     nothingToPayDescription:
       "Your discount covers the full order. No bank transfer or payment receipt is required.",
     calculating: "Calculating authoritative prices…",
-    printShipping: (_quantity: number, framedQuantity: number) =>
-      framedQuantity > 0
-        ? "Framed delivery starts at 350 TL. Each additional framed piece is 150 TL; each unframed piece is 50 TL. Originals ship free."
-        : "Unframed delivery is 200 TL for the first piece, then 50 TL for each additional piece. Originals ship free.",
-    originalsFree: "Original paintings ship free within Türkiye.",
+    turkiyeShipping:
+      "Shipping is a flat 50 TL within Türkiye. Orders of 1,500 TL or more ship free.",
     internationalShipping:
       "Fixed international original shipping: 100 USD per order.",
     empty: "Your basket is empty",
@@ -217,11 +214,8 @@ const CHECKOUT_COPY = {
     nothingToPayDescription:
       "İndirimin sipariş tutarının tamamını karşılıyor. Banka havalesi veya ödeme dekontu gerekmiyor.",
     calculating: "Fiyatlar hesaplanıyor…",
-    printShipping: (_quantity: number, framedQuantity: number) =>
-      framedQuantity > 0
-        ? "Çerçeveli gönderim 350 TL'den başlar. Her ek çerçeveli eser 150 TL, her çerçevesiz eser 50 TL'dir. Orijinal eserlerde kargo ücretsizdir."
-        : "Çerçevesiz gönderimde ilk eser 200 TL, her ek eser 50 TL'dir. Orijinal eserlerde kargo ücretsizdir.",
-    originalsFree: "Orijinal eserlerin Türkiye içi kargosu ücretsizdir.",
+    turkiyeShipping:
+      "Türkiye içi kargo sabit 50 TL'dir. 1.500 TL ve üzeri siparişlerde kargo ücretsizdir.",
     internationalShipping:
       "Uluslararası orijinal eser kargosu sipariş başına sabit 100 USD'dir.",
     empty: "Sepetiniz boş",
@@ -762,12 +756,7 @@ export default function Checkout({
               </dl>
               <p className="checkout-shipping-copy">
                 {market === "turkiye"
-                  ? quote.printQuantity
-                    ? copyText.printShipping(
-                        quote.printQuantity,
-                        quote.framedQuantity || 0,
-                      )
-                    : copyText.originalsFree
+                  ? copyText.turkiyeShipping
                   : copyText.internationalShipping}
               </p>
             </>

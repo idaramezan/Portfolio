@@ -8,7 +8,7 @@ export const MARKET_CONFIG = {
     originalsRoute: "/shop/turkiye/originals",
     printsRoute: "/shop/turkiye/prints",
     basketRegion: "TR" as const,
-    shipping: "Free shipping within Türkiye",
+    shipping: "Türkiye shipping is 50 TL · Free from 1,500 TL",
   },
   international: {
     currency: "USD" as const,

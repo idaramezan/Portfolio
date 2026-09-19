@@ -393,6 +393,7 @@ async function calculate(body: any) {
     market,
     printQuantity,
     framedQuantity,
+    subtotalMinor,
   });
   return {
     market,

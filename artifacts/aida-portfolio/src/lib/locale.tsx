@@ -30,16 +30,16 @@ const TR: Record<string, string> = {
     "Aida’nın atölyesinden sanat eserleri, Türkiye’nin her yerine teslim.",
   "Collect Aida’s work wherever you are.":
     "Nerede olursanız olun Aida’nın eserlerini koleksiyonunuza katın.",
-  "Discover one-of-a-kind original paintings, signed prints, art goods and limited Mystery Mail editions. Every order is prepared personally by Aida, with free shipping within Türkiye.":
-    "Benzersiz orijinal resimleri, imzalı baskıları, sanat ürünlerini ve sınırlı Gizemli Posta edisyonlarını keşfedin. Her sipariş Aida tarafından özenle hazırlanır ve Türkiye içi kargo ücretsizdir.",
+  "Discover one-of-a-kind original paintings, signed prints, art goods and limited Mystery Mail editions. Every order is prepared personally by Aida, with 50 TL shipping within Türkiye and free shipping from 1,500 TL.":
+    "Benzersiz orijinal resimleri, imzalı baskıları, sanat ürünlerini ve sınırlı Gizemli Posta edisyonlarını keşfedin. Her sipariş Aida tarafından özenle hazırlanır; Türkiye içi kargo 50 TL, 1.500 TL'den itibaren ücretsizdir.",
   "Explore original oil pastel paintings available for international delivery, or shop prints and art goods through Aida’s international Fourthwall store.":
     "Uluslararası teslimata uygun orijinal yağlı pastel resimleri keşfedin veya Aida’nın uluslararası Fourthwall mağazasından baskı ve sanat ürünleri satın alın.",
   "Explore original paintings": "Orijinal resimleri keşfet",
   "Browse prints & goods": "Baskı ve ürünlere göz at",
   "Shop prints & goods": "Baskı ve ürünleri incele",
   "See the current Mystery Mail →": "Güncel Gizemli Posta’yı gör →",
-  "Free Türkiye shipping · Personally confirmed on WhatsApp · Packed by the artist":
-    "Türkiye içi ücretsiz kargo · WhatsApp’tan kişisel onay · Sanatçı tarafından paketlenir",
+  "50 TL Türkiye shipping · Free from 1,500 TL · Packed by the artist":
+    "50 TL Türkiye içi kargo · 1.500 TL'den itibaren ücretsiz · Sanatçı tarafından paketlenir",
   "Originals confirmed personally · International shipping calculated separately · Prints fulfilled through Fourthwall":
     "Orijinaller kişisel olarak onaylanır · Uluslararası kargo ayrıca hesaplanır · Baskılar Fourthwall tarafından gönderilir",
   "New from the studio": "Stüdyodan yeni",
@@ -68,7 +68,8 @@ const TR: Record<string, string> = {
   "Find something made for you.": "Sizin için yapılmış bir eser bulun.",
   "Choose how you would like to collect.":
     "Nasıl koleksiyon yapmak istediğinizi seçin.",
-  "Free shipping within Türkiye": "Türkiye içi ücretsiz kargo",
+  "Türkiye shipping is 50 TL · Free from 1,500 TL":
+    "Türkiye içi kargo 50 TL · 1.500 TL'den itibaren ücretsiz",
   Available: "Mevcut",
   Unavailable: "Mevcut değil",
   "Sold out": "Tükendi",
@@ -216,8 +217,8 @@ const TR: Record<string, string> = {
   "No. Each Mystery Mail is a separate one-time edition.":
     "Hayır. Her Gizemli Posta tek seferlik ayrı bir edisyondur.",
   "Where is Mystery Mail delivered?": "Gizemli Posta nereye teslim edilir?",
-  "Mystery Mail is currently available only within Türkiye, with free shipping.":
-    "Gizemli Posta şu anda yalnızca Türkiye’de ücretsiz kargoyla sunulmaktadır.",
+  "Mystery Mail is currently available only within Türkiye. Shipping is 50 TL and free from 1,500 TL.":
+    "Gizemli Posta şu anda yalnızca Türkiye’de sunulmaktadır. Kargo 50 TL, 1.500 TL'den itibaren ücretsizdir.",
   "What happens when the timer ends?": "Sayaç sona erdiğinde ne olur?",
   "The edition closes and can no longer be added to the basket.":
     "Edisyon kapanır ve artık sepete eklenemez.",
