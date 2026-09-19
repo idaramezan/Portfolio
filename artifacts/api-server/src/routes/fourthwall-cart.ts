@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 const router = Router();
-const API_ORIGIN = "https://storefront-api.fourthwall.com/v1";
+const API_ORIGIN = "https://storefront-api.fourthwall.com/api/public/v1.0";
 
 function token() {
   return String(process.env.FOURTHWALL_STOREFRONT_TOKEN || "").trim();
@@ -154,9 +154,9 @@ router.post("/fourthwall/cart", async (req, res) => {
     return res.status(400).json({ error: "Invalid basket item." });
   return reply(
     res,
-    await provider("/carts", {
+    await provider(`/carts?currency=${encodeURIComponent(currency)}`, {
       method: "POST",
-      body: JSON.stringify({ currency, items: normalized }),
+      body: JSON.stringify({ items: normalized }),
     }),
     "We couldn't start your basket. Please try again.",
   );
