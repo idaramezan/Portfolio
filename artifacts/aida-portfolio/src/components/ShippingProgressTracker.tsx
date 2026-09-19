@@ -54,7 +54,9 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
           <PackageCheck size={18} aria-hidden="true" />
           <div className="shipping-progress-strip__copy">
             <strong>{status}</strong>
-            {!unlocked && (
+            {unlocked ? (
+              <span>{locale === "tr" ? "Kargoda 50 TL tasarruf ettiniz." : "You saved 50 TL on delivery."}</span>
+            ) : (
               <span>
                 <Money baseAmountUsdCents={remaining} canonicalCurrency="TRY" />{" "}
                 {locale === "tr" ? "daha ekle" : "to go"}
@@ -70,7 +72,11 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
           >
             <span style={{ width: `${progress}%` }} />
           </div>
-          <span className="shipping-progress-strip__goal">1.500 TL</span>
+          <span className="shipping-progress-strip__goal">
+            {unlocked
+              ? locale === "tr" ? "1.500 TL ve üzeri ücretsiz kargo" : "Free shipping from 1,500 TL"
+              : locale === "tr" ? "50 TL kargo · 1.500 TL üzeri ücretsiz" : "50 TL shipping · Free from 1,500 TL"}
+          </span>
           <button
             type="button"
             className="shipping-progress-strip__close"
@@ -92,7 +98,7 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
           <span className="free-shipping-celebration__icon"><Check size={30} /></span>
           <p>{locale === "tr" ? "HARİKA!" : "WONDERFUL!"}</p>
           <h2 id="free-shipping-title">{locale === "tr" ? "Ücretsiz kargo kazandın" : "Free shipping unlocked"}</h2>
-          <span>{locale === "tr" ? "Bu siparişin kargosu bizden." : "Shipping is on us for this order."}</span>
+          <span>{locale === "tr" ? "Kargoda 50 TL tasarruf ettiniz." : "You saved 50 TL on delivery."}</span>
         </div>
       )}
     </>

@@ -15,6 +15,7 @@ import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
 import {
   calculateTurkiyeOrderShipping,
+  TURKIYE_FLAT_SHIPPING_MINOR,
   TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
 } from "@/lib/turkiye-products";
 import { useShippingDestination } from "@/lib/shipping-destination";
@@ -55,8 +56,11 @@ const discountCopy = {
       "Discount codes are currently available for Türkiye orders only.",
     network: "We couldn't check that code right now. Please try again.",
     shippingRemaining: "more for free shipping",
-    shippingUnlocked: "You've unlocked free shipping.",
+    shippingUnlocked: "Free shipping unlocked",
+    shippingSaved: "You saved 50 TL on delivery.",
     shippingRule: "Flat 50 TL shipping · Free from 1,500 TL",
+    shippingUnlockedRule: "Free shipping from 1,500 TL",
+    free: "FREE",
   },
   tr: {
     prompt: "İndirim kodun var mı?",
@@ -78,8 +82,11 @@ const discountCopy = {
       "İndirim kodları şu anda yalnızca Türkiye siparişlerinde kullanılabilir.",
     network: "Bu kodu şu anda kontrol edemedik. Lütfen tekrar dene.",
     shippingRemaining: "daha ekle, kargon ücretsiz olsun",
-    shippingUnlocked: "Ücretsiz kargo kazandın.",
+    shippingUnlocked: "Ücretsiz kargo kazandınız",
+    shippingSaved: "Kargoda 50 TL tasarruf ettiniz.",
     shippingRule: "Sabit 50 TL kargo · 1.500 TL'den itibaren ücretsiz",
+    shippingUnlockedRule: "1.500 TL ve üzeri ücretsiz kargo",
+    free: "ÜCRETSİZ",
   },
 } as const;
 export default function CartDrawer({
@@ -193,6 +200,10 @@ export default function CartDrawer({
     100,
     (displayedSubtotal / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100,
   );
+  const thresholdFreeShipping =
+    region === "TR" &&
+    displayedShipping === 0 &&
+    displayedSubtotal >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR;
   const hasCatalogRecord = (item: (typeof cart)[number]) => {
     const baseId = item.id.split(":")[0];
     if (item.kind === "original")
@@ -483,9 +494,9 @@ export default function CartDrawer({
               )}
             </div>
           )}
-          <p className="eyebrow mb-3">Order summary</p>
+          <p className="eyebrow mb-3">{locale === "tr" ? "SİPARİŞ ÖZETİ" : "ORDER SUMMARY"}</p>
           <div className="flex justify-between">
-            <span>Products</span>
+            <span>{locale === "tr" ? "Ürünler" : "Products"}</span>
             <Money
               baseAmountUsdCents={displayedSubtotal}
               canonicalCurrency={basketCurrency}
@@ -493,12 +504,25 @@ export default function CartDrawer({
             />
           </div>
           <div className="mt-2 flex justify-between" aria-live="polite">
-            <span>Shipping</span>
-            <Money
-              baseAmountUsdCents={displayedShipping}
-              canonicalCurrency={basketCurrency}
-              className="font-bold"
-            />
+            <span>{locale === "tr" ? "Kargo" : "Shipping"}</span>
+            {thresholdFreeShipping ? (
+              <span className="flex items-baseline gap-2">
+                <Money
+                  baseAmountUsdCents={TURKIYE_FLAT_SHIPPING_MINOR}
+                  canonicalCurrency="TRY"
+                  className="font-normal text-ink/45 line-through"
+                />
+                <strong className="text-green">{couponText.free}</strong>
+              </span>
+            ) : displayedShipping === 0 && region === "TR" ? (
+              <strong className="text-green">{couponText.free}</strong>
+            ) : (
+              <Money
+                baseAmountUsdCents={displayedShipping}
+                canonicalCurrency={basketCurrency}
+                className="font-bold"
+              />
+            )}
           </div>
           {coupon && (
             <div className="mt-2 flex justify-between gap-3 text-coral">
@@ -516,7 +540,7 @@ export default function CartDrawer({
             </div>
           )}
           <div className="mt-3 flex justify-between border-t border-ink/15 pt-3 text-lg">
-            <strong>Total</strong>
+            <strong>{locale === "tr" ? "Toplam" : "Total"}</strong>
             <Money
               baseAmountUsdCents={orderTotal}
               canonicalCurrency={basketCurrency}
@@ -525,20 +549,23 @@ export default function CartDrawer({
           </div>
           {region === "TR" ? (
             <div className="mt-4 border-t border-ink/10 pt-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-green">
-                <PackageCheck size={17} aria-hidden="true" />
-                {freeShippingRemaining === 0 ? (
-                  couponText.shippingUnlocked
+              <div className="flex items-start gap-2 text-sm text-green">
+                <PackageCheck className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
+                {thresholdFreeShipping ? (
+                  <div>
+                    <strong className="block">{couponText.shippingUnlocked}</strong>
+                    <span className="mt-0.5 block text-ink/60">{couponText.shippingSaved}</span>
+                  </div>
                 ) : (
-                  <>
+                  <strong>
                     <Money
                       baseAmountUsdCents={freeShippingRemaining}
                       canonicalCurrency="TRY"
                     />{" "}
                     {couponText.shippingRemaining}
-                  </>
+                  </strong>
                 )}
-              </p>
+              </div>
               <div
                 className="mt-2 h-2 overflow-hidden rounded-full bg-ink/10"
                 role="progressbar"
@@ -553,7 +580,9 @@ export default function CartDrawer({
                 />
               </div>
               <p className="mt-2 text-xs font-semibold text-ink/60">
-                {couponText.shippingRule}
+                {thresholdFreeShipping
+                  ? couponText.shippingUnlockedRule
+                  : couponText.shippingRule}
               </p>
             </div>
           ) : (
