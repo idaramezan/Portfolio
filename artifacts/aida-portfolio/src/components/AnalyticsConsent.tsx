@@ -54,7 +54,7 @@ export default function AnalyticsConsent() {
                 {showDetails && (
                   <p className="analytics-sheet__details">
                     You can accept or decline now and change your choice later
-                    from Privacy choices in the footer or mobile menu.
+                    by clearing this site's saved preferences in your browser.
                   </p>
                 )}
               </div>

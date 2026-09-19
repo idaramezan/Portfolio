@@ -65,6 +65,27 @@ export interface ReadyMadePalette {
   publishedAt?: string;
 }
 
+export type CustomPaletteTypeId = "resin" | "stone";
+export interface CustomPaletteTypeOption {
+  id: CustomPaletteTypeId;
+  enabled: boolean;
+  nameEn: string;
+  nameTr: string;
+  descriptionEn: string;
+  descriptionTr: string;
+}
+export interface PaletteColorOption {
+  id: string;
+  paletteType: CustomPaletteTypeId;
+  nameEn: string;
+  nameTr: string;
+  hex: string;
+  enabled: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MailClubEdition {
   id: string;
   slug: string;
@@ -76,6 +97,7 @@ export interface MailClubEdition {
   descriptionTr?: string;
   coverImage: string;
   altText: string;
+  altTextTr?: string;
   priceMinor: number;
   stock: number;
   enabled: boolean;
@@ -83,6 +105,7 @@ export interface MailClubEdition {
   current: boolean;
   availabilityStart?: string;
   availabilityEnd?: string;
+  timezone?: string;
   createdAt: string;
   publishedAt?: string;
 }
@@ -204,6 +227,8 @@ export interface ShopSettings {
     enabled: boolean;
     priceMinor: number;
     coverImage: string;
+    types: CustomPaletteTypeOption[];
+    colors: PaletteColorOption[];
   };
   readyMadePalettes: ReadyMadePalette[];
   mailClubEditions: MailClubEdition[];
@@ -302,6 +327,12 @@ export interface CartItem {
     tikTokUsername?: string;
     editionTitle?: string;
     editionMonth?: string;
+    paletteType?: CustomPaletteTypeId;
+    paletteTypeName?: string;
+    colorSelectionMode?: "preselected" | "live";
+    selectedColorIds?: string[];
+    selectedColorNames?: string[];
+    customerNote?: string;
   };
 }
 
@@ -378,6 +409,16 @@ export function getDefaultSettings(): ShopSettings {
       enabled: true,
       priceMinor: 120000,
       coverImage: "/assets/custom-watercolor-palette.jpg",
+      types: [
+        { id: "resin", enabled: true, nameEn: "Resin", nameTr: "Reçine", descriptionEn: "Smooth, translucent and full of flowing colour.", descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu." },
+        { id: "stone", enabled: true, nameEn: "Stone", nameTr: "Taş", descriptionEn: "Textured, weighty and naturally one of a kind.", descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz." },
+      ],
+      colors: [
+        ["dusty-rose", "Dusty Rose", "Pudra Gülü", "#c98f91"],
+        ["sky-blue", "Sky Blue", "Gök Mavisi", "#78bddd"],
+        ["sage", "Sage", "Adaçayı", "#9ca98c"],
+        ["lavender", "Lavender", "Lavanta", "#a99abd"],
+      ].flatMap(([id, nameEn, nameTr, hex], colorIndex) => (["resin", "stone"] as const).map((paletteType, typeIndex) => ({ id: `${paletteType}-${id}`, paletteType, nameEn, nameTr, hex, enabled: true, displayOrder: colorIndex, createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex)).toISOString(), updatedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex)).toISOString() }))),
     },
     readyMadePalettes: [],
     mailClubEditions: [
@@ -388,8 +429,8 @@ export function getDefaultSettings(): ShopSettings {
         title: "October Mail Club",
         titleTr: "Ekim Mail Club",
         monthYear: "2026-10",
-        description: "A little envelope of art, notes and surprises made for this month's Mail Club.",
-        descriptionTr: "Bu ayın Mail Club'ı için hazırlanan küçük bir sanat, not ve sürpriz paketi.",
+        description: "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.",
+        descriptionTr: "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.",
         coverImage: "/assets/mail-club-october.jpg",
         altText: "October Mail Club print, letter, stickers, bookmark and habit tracker",
         priceMinor: 49000,
@@ -583,6 +624,12 @@ export function loadShopSettings(): ShopSettings {
         paletteSettings: {
           ...defaults.paletteSettings,
           ...(saved.paletteSettings || {}),
+          types: Array.isArray(saved.paletteSettings?.types)
+            ? saved.paletteSettings.types
+            : defaults.paletteSettings.types,
+          colors: Array.isArray(saved.paletteSettings?.colors)
+            ? saved.paletteSettings.colors
+            : defaults.paletteSettings.colors,
         },
         readyMadePalettes: Array.isArray(saved.readyMadePalettes)
           ? saved.readyMadePalettes.map((palette: ReadyMadePalette) => ({

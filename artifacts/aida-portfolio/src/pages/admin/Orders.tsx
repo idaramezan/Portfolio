@@ -77,13 +77,22 @@ const money = (minor: number, currency: string) =>
 const dateTime = (value?: string | null) =>
   value ? new Date(value).toLocaleString() : "Not provided";
 
-const optionText = (options?: Record<string, unknown>) =>
-  Object.entries(options || {})
+const optionText = (options?: Record<string, unknown>) => {
+  if (options?.paletteType) {
+    const colours = options.colorSelectionMode === "live"
+      ? "To be chosen during TikTok Live"
+      : Array.isArray(options.selectedColorNames)
+        ? options.selectedColorNames.join(", ")
+        : "Not provided";
+    return `CUSTOM PALETTE · Palette type: ${options.paletteTypeName || options.paletteType} · Colour selection: ${colours} · TikTok: @${options.tikTokUsername || "Not provided"}${options.customerNote ? ` · Customer note: ${options.customerNote}` : ""}`;
+  }
+  return Object.entries(options || {})
     .filter(([, value]) => value !== "" && value != null)
     .map(
       ([key, value]) => `${key.replace(/([A-Z])/g, " $1")}: ${String(value)}`,
     )
     .join(" · ");
+};
 
 function DetailField({
   label,

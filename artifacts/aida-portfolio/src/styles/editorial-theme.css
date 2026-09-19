@@ -1351,6 +1351,7 @@
   line-height: 1.08;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  min-height: 2.16em;
   transition: color 260ms ease-out;
 }
 [data-public-site]

@@ -211,7 +211,37 @@ router.get("/shop-settings", async (request, response) => {
     const settings = result.rows[0].payload;
     let upgraded = false;
     if (!settings.paletteSettings) {
-      settings.paletteSettings = { enabled: true, priceMinor: 120000, coverImage: "/assets/custom-watercolor-palette.jpg" };
+      settings.paletteSettings = { enabled: true, priceMinor: 120000, coverImage: "/assets/custom-watercolor-palette.jpg", types: [], colors: [] };
+      upgraded = true;
+    }
+    if (!Array.isArray(settings.paletteSettings.types)) {
+      settings.paletteSettings.types = [
+        { id: "resin", enabled: true, nameEn: "Resin", nameTr: "Reçine", descriptionEn: "Smooth, translucent and full of flowing colour.", descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu." },
+        { id: "stone", enabled: true, nameEn: "Stone", nameTr: "Taş", descriptionEn: "Textured, weighty and naturally one of a kind.", descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz." },
+      ];
+      upgraded = true;
+    }
+    if (!Array.isArray(settings.paletteSettings.colors)) {
+      const defaults = [
+        ["dusty-rose", "Dusty Rose", "Pudra Gülü", "#c98f91"],
+        ["sky-blue", "Sky Blue", "Gök Mavisi", "#78bddd"],
+        ["sage", "Sage", "Adaçayı", "#9ca98c"],
+        ["lavender", "Lavender", "Lavanta", "#a99abd"],
+      ];
+      settings.paletteSettings.colors = defaults.flatMap(
+        ([id, nameEn, nameTr, hex], displayOrder) =>
+          ["resin", "stone"].map((paletteType) => ({
+            id: `${paletteType}-${id}`,
+            paletteType,
+            nameEn,
+            nameTr,
+            hex,
+            enabled: true,
+            displayOrder,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })),
+      );
       upgraded = true;
     }
     if (!Array.isArray(settings.readyMadePalettes)) {
@@ -225,7 +255,7 @@ router.get("/shop-settings", async (request, response) => {
       });
     }
     if (!Array.isArray(settings.mailClubEditions)) {
-      settings.mailClubEditions = [{ id: "mail-club-october", slug: "october-mail-club", internalName: "October Mail Club", title: "October Mail Club", titleTr: "Ekim Mail Club", monthYear: "2026-10", description: "A little envelope of art, notes and surprises made for this month's Mail Club.", descriptionTr: "Bu ayın Mail Club'ı için hazırlanan küçük bir sanat, not ve sürpriz paketi.", coverImage: "/assets/mail-club-october.jpg", altText: "October Mail Club contents", priceMinor: 49000, stock: 20, enabled: true, status: "published", current: true, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() }];
+      settings.mailClubEditions = [{ id: "mail-club-october", slug: "october-mail-club", internalName: "October Mail Club", title: "October Mail Club", titleTr: "Ekim Mail Club", monthYear: "2026-10", description: "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.", descriptionTr: "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.", coverImage: "/assets/mail-club-october.jpg", altText: "October Mail Club contents", priceMinor: 49000, stock: 20, enabled: true, status: "published", current: true, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() }];
       upgraded = true;
     }
     if (!Array.isArray(settings.animationMerchProductIds)) {

@@ -267,6 +267,24 @@ async function calculate(body: any) {
       throw new Error("This palette was just collected.");
     if (kind === "mail-club" && (!product.enabled || !product.current || product.status !== "published" || Number(product.stock) < quantity))
       throw new Error("This Mail Club edition is no longer available.");
+    if (kind === "mail-club") {
+      const now = Date.now();
+      if ((product.availabilityStart && now < Date.parse(product.availabilityStart)) || (product.availabilityEnd && now >= Date.parse(product.availabilityEnd)))
+        throw new Error("This Mail Club edition is closed.");
+    }
+    if (kind === "custom-palette") {
+      const metadata = input.metadata || {};
+      const paletteType = settings.paletteSettings.types?.find((entry: any) => entry.id === metadata.paletteType && entry.enabled);
+      const username = clean(metadata.tikTokUsername, 30).replace(/^@+/, "");
+      if (!paletteType || !/^[A-Za-z0-9._]{1,30}$/.test(username))
+        throw new Error("Your custom palette configuration is no longer valid.");
+      const live = metadata.colorSelectionMode === "live";
+      const colorIds = Array.isArray(metadata.selectedColorIds) ? [...new Set(metadata.selectedColorIds.map((value: unknown) => clean(value, 100)))] : [];
+      const validColors = (settings.paletteSettings.colors || []).filter((entry: any) => entry.enabled && entry.paletteType === paletteType.id && colorIds.includes(entry.id));
+      if ((!live && (!colorIds.length || validColors.length !== colorIds.length)) || (live && colorIds.length))
+        throw new Error("A selected palette colour is no longer available.");
+      input.metadata = { paletteType: paletteType.id, paletteTypeName: paletteType.nameEn, colorSelectionMode: live ? "live" : "preselected", selectedColorIds: live ? [] : validColors.map((entry: any) => entry.id), selectedColorNames: live ? [] : validColors.map((entry: any) => entry.nameEn), tikTokUsername: username, customerNote: clean(metadata.customerNote, 500), paletteNotes: clean(metadata.customerNote, 500) };
+    }
     if (
       (product.category === "aceo" && kind !== "aceo") ||
       (kind === "aceo" && product.category !== "aceo")
@@ -343,7 +361,7 @@ async function calculate(body: any) {
       quantity,
       unitPriceMinor: unit,
       lineTotalMinor: unit * quantity,
-      selectedOptions: { ...(input.selectedOptions || {}), ...(input.metadata || {}), ...(kind === "mail-club" ? { editionTitle: product.title, editionMonth: product.monthYear } : {}) },
+      selectedOptions: { ...(input.selectedOptions || {}), ...(input.metadata || {}), ...(kind === "mail-club" ? { editionId: product.id, editionTitle: product.title, editionMonth: product.monthYear, editionContents: ["Exclusive print", "Personal letter", "Sticker sheet", "Habit tracker", "Bookmark", "One surprise"] } : {}) },
       image: product.imageUrl || null,
       sku: product.sku || null,
     });
@@ -563,9 +581,17 @@ publicRouter.post(
         const product = list?.find((entry: any) => entry.id === item.productId);
         const active = item.kind === "ready-palette"
           ? product?.status === "available"
-          : product?.enabled && product?.current && product?.status === "published";
+          : product?.enabled && product?.current && product?.status === "published" && (!product.availabilityStart || Date.now() >= Date.parse(product.availabilityStart)) && (!product.availabilityEnd || Date.now() < Date.parse(product.availabilityEnd));
         if (!product || !active || Number(product.stock) < item.quantity)
           throw new Error(item.kind === "ready-palette" ? "This palette was just collected. Someone completed their order before you." : "This Mail Club edition has just sold out.");
+      }
+      for (const item of quote.items.filter((entry) => entry.kind === "custom-palette")) {
+        const configuration = item.selectedOptions || {};
+        const type = lockedSettings?.paletteSettings?.types?.find((entry: any) => entry.id === configuration.paletteType && entry.enabled);
+        const colorIds = Array.isArray(configuration.selectedColorIds) ? configuration.selectedColorIds : [];
+        const validColors = (lockedSettings?.paletteSettings?.colors || []).filter((entry: any) => entry.enabled && entry.paletteType === type?.id && colorIds.includes(entry.id));
+        if (!lockedSettings?.paletteSettings?.enabled || !type || (configuration.colorSelectionMode !== "live" && (!colorIds.length || validColors.length !== colorIds.length)) || (configuration.colorSelectionMode === "live" && colorIds.length))
+          throw new Error("Your custom palette options changed. Return to the palette page and choose again.");
       }
       const seq = await client.query(
         "SELECT nextval('checkout_order_number_seq') AS value",
@@ -682,7 +708,7 @@ publicRouter.post(
       }
       await client.query("COMMIT");
       const rows = quote.items
-        .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}${i.selectedOptions?.paletteNotes ? `<br><strong>Palette notes:</strong> ${escapeHtml(String(i.selectedOptions.paletteNotes))}` : ""}${i.selectedOptions?.tikTokUsername ? `<br><strong>TikTok:</strong> @${escapeHtml(String(i.selectedOptions.tikTokUsername))}` : ""}${i.selectedOptions?.editionTitle ? `<br><strong>Edition:</strong> ${escapeHtml(String(i.selectedOptions.editionTitle))}` : ""}</li>`)
+        .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}${i.selectedOptions?.paletteTypeName ? `<br><strong>Palette type:</strong> ${escapeHtml(String(i.selectedOptions.paletteTypeName))}` : ""}${i.selectedOptions?.colorSelectionMode ? `<br><strong>Colour selection:</strong> ${i.selectedOptions.colorSelectionMode === "live" ? "To be chosen during TikTok Live" : escapeHtml((i.selectedOptions.selectedColorNames || []).join(", "))}` : ""}${i.selectedOptions?.paletteNotes ? `<br><strong>Customer note:</strong> ${escapeHtml(String(i.selectedOptions.paletteNotes))}` : ""}${i.selectedOptions?.tikTokUsername ? `<br><strong>TikTok:</strong> @${escapeHtml(String(i.selectedOptions.tikTokUsername))}` : ""}${i.selectedOptions?.editionTitle ? `<br><strong>Edition:</strong> ${escapeHtml(String(i.selectedOptions.editionTitle))}` : ""}</li>`)
         .join("");
       const total = formatMoney(
         savedOrder.grand_total_minor,

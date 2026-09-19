@@ -65,8 +65,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     if (platform === "discord")
       trackAnalytics("discord_join_click", { metadata: { location } });
   };
-  const manageAnalytics = () =>
-    window.dispatchEvent(new CustomEvent("analytics:manage"));
   const closeMobileMenu = (restoreFocus = false) => {
     setIsMobileMenuOpen(false);
     if (restoreFocus)
@@ -533,13 +531,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </a>
             ))}
           </div>
-          <button
-            type="button"
-            className="mobile-menu__privacy"
-            onClick={manageAnalytics}
-          >
-            {locale === "tr" ? "Gizlilik seçenekleri" : "Privacy choices"}
-          </button>
         </footer>
       </nav>
 
@@ -627,9 +618,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Aeda Art</span>
             <span>Made by Aida</span>
-            <button type="button" onClick={manageAnalytics}>
-              Manage analytics
-            </button>
           </div>
         </div>
       </footer>
