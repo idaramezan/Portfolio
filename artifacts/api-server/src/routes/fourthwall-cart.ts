@@ -139,9 +139,6 @@ function reply(
     invalidCart: invalid,
     providerStatus: result.status,
     ...(result.providerCode ? { providerCode: result.providerCode } : {}),
-    ...(result.providerDetails
-      ? { providerDetails: result.providerDetails }
-      : {}),
   });
 }
 
