@@ -1,7 +1,9 @@
 import { Router } from "express";
 
 const router = Router();
-const API_ORIGIN = "https://storefront-api.fourthwall.com/api/public/v1.0";
+const LEGACY_API_ORIGIN =
+  "https://storefront-api.fourthwall.com/api/public/v1.0";
+const CURRENT_API_ORIGIN = "https://storefront-api.fourthwall.com/v1";
 
 function token() {
   return String(process.env.FOURTHWALL_STOREFRONT_TOKEN || "").trim();
@@ -75,7 +77,11 @@ function safeProviderError(data: any) {
   };
 }
 
-async function provider(path: string, init?: RequestInit) {
+async function provider(
+  path: string,
+  init?: RequestInit,
+  origin = LEGACY_API_ORIGIN,
+) {
   const storefrontToken = token();
   if (!storefrontToken) {
     console.error("[fourthwall-cart] configuration missing", {
@@ -88,7 +94,7 @@ async function provider(path: string, init?: RequestInit) {
       providerCode: "TOKEN_MISSING",
     };
   }
-  const url = new URL(`${API_ORIGIN}${path}`);
+  const url = new URL(`${origin}${path}`);
   url.searchParams.set("storefront_token", storefrontToken);
   try {
     const response = await fetch(url, {
@@ -135,6 +141,12 @@ async function provider(path: string, init?: RequestInit) {
   }
 }
 
+async function compatibleProvider(path: string, init?: RequestInit) {
+  const legacy = await provider(path, init);
+  if (legacy.status !== 404) return legacy;
+  return provider(path, init, CURRENT_API_ORIGIN);
+}
+
 function reply(
   res: any,
   result: Awaited<ReturnType<typeof provider>>,
@@ -155,14 +167,23 @@ router.post("/fourthwall/cart", async (req, res) => {
   const normalized = items(req.body);
   if (!normalized)
     return res.status(400).json({ error: "Invalid basket item." });
-  return reply(
-    res,
-    await provider(`/carts?currency=${encodeURIComponent(selectedCurrency)}`, {
+  let result = await provider(
+    `/carts?currency=${encodeURIComponent(selectedCurrency)}`,
+    {
       method: "POST",
       body: JSON.stringify({ items: normalized }),
-    }),
-    "We couldn't start your basket. Please try again.",
+    },
   );
+  if (result.status === 404)
+    result = await provider(
+      "/carts",
+      {
+        method: "POST",
+        body: JSON.stringify({ currency: selectedCurrency, items: normalized }),
+      },
+      CURRENT_API_ORIGIN,
+    );
+  return reply(res, result, "We couldn't start your basket. Please try again.");
 });
 
 router.get("/fourthwall/cart/:cartId", async (req, res) => {
@@ -170,7 +191,7 @@ router.get("/fourthwall/cart/:cartId", async (req, res) => {
     return res.status(400).json({ error: "Invalid basket." });
   return reply(
     res,
-    await provider(
+    await compatibleProvider(
       cartPath(
         `/carts/${encodeURIComponent(req.params.cartId)}`,
         req.query.currency,
@@ -189,7 +210,7 @@ for (const action of ["add", "change", "remove"] as const) {
       return res.status(400).json({ error: "Invalid basket item." });
     return reply(
       res,
-      await provider(
+      await compatibleProvider(
         cartPath(
           `/carts/${encodeURIComponent(req.params.cartId)}/${action}`,
           req.query.currency,
