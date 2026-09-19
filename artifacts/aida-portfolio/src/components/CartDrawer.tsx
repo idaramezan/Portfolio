@@ -539,14 +539,16 @@ export default function CartDrawer({
               </div>
             </>
           )}
-          <div className={`${productDiscountSavings > 0 ? "mt-2" : ""} flex justify-between`}>
-            <span>{productDiscountSavings > 0 ? locale === "tr" ? "İndirimli ürün toplamı" : "Products today" : locale === "tr" ? "Ürünler" : "Products"}</span>
-            <Money
-              baseAmountUsdCents={displayedSubtotal}
-              canonicalCurrency={basketCurrency}
-              className="font-bold"
-            />
-          </div>
+          {productDiscountSavings === 0 && (
+            <div className="flex justify-between">
+              <span>{locale === "tr" ? "Ürünler" : "Products"}</span>
+              <Money
+                baseAmountUsdCents={displayedSubtotal}
+                canonicalCurrency={basketCurrency}
+                className="font-bold"
+              />
+            </div>
+          )}
           {coupon && (
             <div className="mt-2 flex justify-between gap-3 text-coral">
               <span>
@@ -578,18 +580,12 @@ export default function CartDrawer({
               />
             )}
           </div>
-          <div className="mt-3 flex justify-between border-t border-ink/15 pt-3 text-lg">
-            <strong>{totalSavings > 0 ? locale === "tr" ? "Bugünkü toplam" : "Total today" : locale === "tr" ? "Toplam" : "Total"}</strong>
-            <Money
-              baseAmountUsdCents={orderTotal}
-              canonicalCurrency={basketCurrency}
-              className="font-bold"
-            />
-          </div>
           {totalSavings > 0 && (
-            <div className="mt-5 border-l-2 border-green bg-green/5 px-4 py-3 text-green">
-              <p className="text-xs font-bold uppercase tracking-[.14em]">{locale === "tr" ? "TOPLAM TASARRUF" : "YOU SAVED"}</p>
-              <Money baseAmountUsdCents={totalSavings} canonicalCurrency={basketCurrency} className="mt-1 block font-sans text-2xl font-bold" />
+            <div className="mt-4 border-y border-ink/10 py-3 text-green">
+              <div className="flex items-baseline justify-between gap-4">
+                <p className="text-xs font-bold uppercase tracking-[.14em]">{locale === "tr" ? "TOPLAM TASARRUF" : "YOU SAVED"}</p>
+                <Money baseAmountUsdCents={totalSavings} canonicalCurrency={basketCurrency} className="font-sans text-base font-semibold" />
+              </div>
               <p className="mt-1 text-xs text-ink/60">
                 {[
                   productDiscountSavings > 0 ? `${locale === "tr" ? "Ürünlerde" : "Products"} ${(productDiscountSavings / 100).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")} TL` : "",
@@ -599,15 +595,62 @@ export default function CartDrawer({
               </p>
             </div>
           )}
+          <div className="mt-5 border-t border-ink/20 pt-5">
+            <strong className="block text-xs uppercase tracking-[.16em] text-ink/60">{locale === "tr" ? "TOPLAM" : "TOTAL"}</strong>
+            <Money
+              baseAmountUsdCents={orderTotal}
+              canonicalCurrency={basketCurrency}
+              className="mt-1 block font-sans text-4xl font-bold leading-none text-green"
+            />
+          </div>
+          {cart.length > 0 &&
+          unavailableItems.length === 0 &&
+          !cart.some((item) => item.kind === "studio-mail") ? (
+            <Link
+              href={
+                region === "TR"
+                  ? "/checkout/turkiye"
+                  : "/checkout/international-originals"
+              }
+              onClick={() => {
+                trackAnalytics("checkout_started", {
+                  metadata: {
+                    quantity: cart.reduce(
+                      (sum, item) => sum + item.quantity,
+                      0,
+                    ),
+                    currency: basketCurrency,
+                    total: subtotal,
+                  },
+                });
+                onOpenChange(false);
+              }}
+              className="button-primary mt-5 w-full"
+            >
+              {locale === "tr" ? "Ödemeye devam et" : "Continue to checkout"}
+            </Link>
+          ) : (
+            <div>
+              <button
+                type="button"
+                disabled
+                className="button-primary mt-5 w-full opacity-45"
+              >
+                {locale === "tr" ? "Ödemeye devam et" : "Continue to checkout"}
+              </button>
+              {cart.length > 0 && unavailableItems.length === 0 && (
+                <p role="status" className="mt-2 text-xs text-ink/60">
+                  Remove unavailable or unsupported items before checkout.
+                </p>
+              )}
+            </div>
+          )}
           {region === "TR" ? (
-            <div className="mt-4 border-t border-ink/10 pt-4">
+            <div className="mt-4 pt-2">
               <div className="flex items-start gap-2 text-sm text-green">
                 <PackageCheck className="mt-0.5 shrink-0" size={17} aria-hidden="true" />
                 {thresholdFreeShipping ? (
-                  <div>
-                    <strong className="block">{couponText.shippingUnlocked}</strong>
-                    <span className="mt-0.5 block text-ink/60">{couponText.shippingSaved}</span>
-                  </div>
+                  <strong className="block">{couponText.shippingUnlocked}</strong>
                 ) : (
                   <strong>
                     <Money
@@ -641,48 +684,6 @@ export default function CartDrawer({
             <p className="mt-3 text-sm font-semibold">
               International original delivery: 100 USD per order
             </p>
-          )}
-          {cart.length > 0 &&
-          unavailableItems.length === 0 &&
-          !cart.some((item) => item.kind === "studio-mail") ? (
-            <Link
-              href={
-                region === "TR"
-                  ? "/checkout/turkiye"
-                  : "/checkout/international-originals"
-              }
-              onClick={() => {
-                trackAnalytics("checkout_started", {
-                  metadata: {
-                    quantity: cart.reduce(
-                      (sum, item) => sum + item.quantity,
-                      0,
-                    ),
-                    currency: basketCurrency,
-                    total: subtotal,
-                  },
-                });
-                onOpenChange(false);
-              }}
-              className="button-primary mt-6 w-full"
-            >
-              Continue to checkout
-            </Link>
-          ) : (
-            <div>
-              <button
-                type="button"
-                disabled
-                className="button-primary mt-6 w-full opacity-45"
-              >
-                Continue to checkout
-              </button>
-              {cart.length > 0 && unavailableItems.length === 0 && (
-                <p role="status" className="mt-2 text-xs text-ink/60">
-                  Remove unavailable or unsupported items before checkout.
-                </p>
-              )}
-            </div>
           )}
           <p className="mt-3 text-xs text-ink/55">
             {locale === "tr"

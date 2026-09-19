@@ -6730,17 +6730,34 @@
   background: #fffaf2;
   box-shadow: 10px 11px 0 rgb(23 60 50 / 12%);
 }
-.print-story-detail__media .print-detail-preview,
+.print-story-detail__media .print-detail-preview {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 0;
+  padding: clamp(12px, 2vw, 24px);
+  overflow: visible;
+}
 .print-story-detail__media .artwork-finish-preview__frame,
 .print-story-detail__media .artwork-finish-preview__mat {
-  width: 100%;
-  height: auto;
+  box-sizing: border-box;
+  width: fit-content;
+  height: fit-content;
+  max-width: 100%;
+  max-height: none;
+}
+.print-story-detail__media .artwork-finish-preview .product-image-trigger {
+  width: auto;
+  max-width: 100%;
 }
 .print-story-detail__media .artwork-finish-preview img {
+  width: auto;
+  max-width: 100%;
   max-height: 650px;
+  object-fit: contain;
 }
 .print-story-detail__media .artwork-finish-preview--framed .artwork-finish-preview__frame {
-  width: auto;
+  max-width: 100%;
+  max-height: none;
 }
 .print-story-detail__media img {
   width: 100%;
