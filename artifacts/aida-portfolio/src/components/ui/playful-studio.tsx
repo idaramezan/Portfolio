@@ -23,10 +23,11 @@ export function PaperTag({
   as?: ElementType;
   className?: string;
 }) {
+  const Tag = Component as any;
   return (
-    <Component className={cn("paper-tag", `paper-tag--${tone}`, className)}>
+    <Tag className={cn("paper-tag", `paper-tag--${tone}`, className)}>
       {children}
-    </Component>
+    </Tag>
   );
 }
 

@@ -12,6 +12,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import {
   saveShopSettingsAndWait,
   type ManagedProduct,
+  type ProductFourthwallVariant,
   type StudioMailPackage,
 } from "@/lib/store";
 import { DEFAULT_MYSTERY_MAIL_EMPTY_STATE } from "@/lib/store";
@@ -300,8 +301,8 @@ export default function ProductEditor({
       if (optionErrors.length) next.options = optionErrors[0];
     }
     if (publishing && draft.fourthwallVariantGroupEnabled) {
-      const enabled = (draft.fourthwallVariants || []).filter(
-        (variant) => variant.enabled,
+      const enabled: ProductFourthwallVariant[] = (draft.fourthwallVariants || []).filter(
+        (variant: ProductFourthwallVariant) => variant.enabled,
       );
       if (!enabled.length || enabled.some((variant) => !variant.fourthwallProductId))
         next.fourthwall =

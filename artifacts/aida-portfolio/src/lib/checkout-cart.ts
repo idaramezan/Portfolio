@@ -21,6 +21,7 @@ export function checkoutItems(cart: CartItem[]) {
             ? "print"
             : item.kind,
     quantity: item.quantity,
+    metadata: item.metadata,
     selectedOptions: item.printConfiguration
       ? {
           sizeId: item.printConfiguration.sizeId,

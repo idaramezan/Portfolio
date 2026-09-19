@@ -21,6 +21,7 @@ import DiscountCodes from "@/pages/admin/DiscountCodes";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 import VisualGalleryAdmin from "@/pages/admin/VisualGallery";
+import CommerceCollections from "@/pages/admin/CommerceCollections";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -149,6 +150,9 @@ export default function Admin() {
   if (location === "/admin/mystery-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
+  if (location === "/admin/palettes") return <CommerceCollections section="palettes" />;
+  if (location === "/admin/mail-club") return <CommerceCollections section="mail-club" />;
+  if (location === "/admin/animation-merch") return <CommerceCollections section="animation-merch" />;
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/discount-codes") return <DiscountCodes />;
   if (location === "/admin/original-requests") return <OriginalRequests />;

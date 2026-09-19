@@ -38,11 +38,12 @@ const groups = [
     [
       ["/admin/originals", "Originals", PanelsTopLeft],
       ["/admin/prints", "Prints & Goods", Images],
+      ["/admin/palettes", "Palettes", PackageOpen],
       ["/admin/mystery-mail", "Mystery Mail", PackageOpen],
       ["/admin/media", "Media Library", Images],
     ],
   ],
-  ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2]]],
+  ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2], ["/admin/animation-merch", "Animation Merch", ShoppingBag]]],
   [
     "Store management",
     [
@@ -56,6 +57,7 @@ const groups = [
     "Marketing",
     [
       ["/admin/events", "Events", CalendarDays],
+      ["/admin/mail-club", "Mail Club", Mails],
       ["/admin/marketing/100-windows", "100 Windows", Images],
       ["/admin/marketing/visual-gallery", "Visual Gallery", PanelsTopLeft],
       ["/admin/marketing/event-banner", "Homepage Event Feature", CalendarDays],

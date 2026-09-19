@@ -20,6 +20,7 @@ import {
   getFourthwallVariants,
   getLowestFourthwallVariant,
 } from "@/lib/fourthwall-variants";
+import HomeCommerce from "@/components/HomeCommerce";
 
 const HERO_IMAGE = "/assets/aida-green-gallery-hero.png";
 type HomeFilter = "originals" | "prints";
@@ -324,7 +325,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="collection" className="home-green-collection section-shell">
+      <div id="collection">
+        <HomeCommerce />
+      </div>
+      {false && <section className="home-green-collection section-shell">
         <header>
           <div>
             <p className="eyebrow">{text.available}</p>
@@ -409,7 +413,7 @@ export default function Home() {
           )}
           <Link href="/shop">{text.fullShop} →</Link>
         </footer>
-      </section>
+      </section>}
 
       <section className="home-green-notes">
         <div className="section-shell">

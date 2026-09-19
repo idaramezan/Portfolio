@@ -27,6 +27,7 @@ import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
 import AceoDetail from "@/pages/AceoDetail";
 import { GALLERY_PREVIEW_PATH } from "@/lib/visual-gallery";
+import CustomPalette from "@/pages/CustomPalette";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -118,6 +119,7 @@ function Router() {
             <Route path="/shop/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>
+            <Route path="/shop/palettes/custom" component={CustomPalette} />
             <Route path="/shop/mystery-mail">
               <RedirectTo to="/shop" />
             </Route>

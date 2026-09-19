@@ -210,6 +210,22 @@ router.get("/shop-settings", async (request, response) => {
     if (!result.rows[0]) return response.status(204).end();
     const settings = result.rows[0].payload;
     let upgraded = false;
+    if (!settings.paletteSettings) {
+      settings.paletteSettings = { enabled: true, priceMinor: 120000, coverImage: "/assets/custom-watercolor-palette.jpg" };
+      upgraded = true;
+    }
+    if (!Array.isArray(settings.readyMadePalettes)) {
+      settings.readyMadePalettes = [];
+      upgraded = true;
+    }
+    if (!Array.isArray(settings.mailClubEditions)) {
+      settings.mailClubEditions = [{ id: "mail-club-october", slug: "october-mail-club", internalName: "October Mail Club", title: "October Mail Club", titleTr: "Ekim Mail Club", monthYear: "2026-10", description: "A little envelope of art, notes and surprises made for this month's Mail Club.", descriptionTr: "Bu ayın Mail Club'ı için hazırlanan küçük bir sanat, not ve sürpriz paketi.", coverImage: "/assets/mail-club-october.jpg", altText: "October Mail Club contents", priceMinor: 49000, stock: 20, enabled: true, status: "published", current: true, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() }];
+      upgraded = true;
+    }
+    if (!Array.isArray(settings.animationMerchProductIds)) {
+      settings.animationMerchProductIds = [];
+      upgraded = true;
+    }
     if (!settings.hundredWindows) {
       settings.hundredWindows = {
         currentDay: 1,
@@ -270,6 +286,11 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
     return response
       .status(400)
       .json({ error: "Social links must be valid HTTPS URLs" });
+  const currentMailEditions = Array.isArray(request.body.settings.mailClubEditions)
+    ? request.body.settings.mailClubEditions.filter((edition: any) => edition?.current)
+    : [];
+  if (currentMailEditions.length > 1)
+    return response.status(400).json({ error: "Only one Mail Club edition can be current." });
   const aceoError = normalizeAceos(request.body.settings);
   if (aceoError) return response.status(400).json({ error: aceoError });
   if (!validFourthwallConnections(request.body.settings))

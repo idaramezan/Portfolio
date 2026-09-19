@@ -37,7 +37,54 @@ export interface PricingMigrationAudit {
 
 export type ProductCategory = "Prints" | "T-shirts" | "Mugs" | "Stickers";
 export type ProductKind =
-  "original" | "aceo" | "print" | "studio-mail" | "product";
+  | "original"
+  | "aceo"
+  | "print"
+  | "studio-mail"
+  | "custom-palette"
+  | "ready-palette"
+  | "mail-club"
+  | "product";
+
+export interface ReadyMadePalette {
+  id: string;
+  slug: string;
+  internalName: string;
+  name: string;
+  nameTr?: string;
+  description: string;
+  descriptionTr?: string;
+  note?: string;
+  imageUrl: string;
+  altText: string;
+  priceMinor: number;
+  stock: number;
+  status: "draft" | "available" | "sold" | "archived";
+  createdAt: string;
+  publishedAt?: string;
+}
+
+export interface MailClubEdition {
+  id: string;
+  slug: string;
+  internalName: string;
+  title: string;
+  titleTr?: string;
+  monthYear: string;
+  description: string;
+  descriptionTr?: string;
+  coverImage: string;
+  altText: string;
+  priceMinor: number;
+  stock: number;
+  enabled: boolean;
+  status: "draft" | "published" | "sold_out" | "archived";
+  current: boolean;
+  availabilityStart?: string;
+  availabilityEnd?: string;
+  createdAt: string;
+  publishedAt?: string;
+}
 
 export type FourthwallVariantType = "poster" | "framed" | (string & {});
 
@@ -152,6 +199,14 @@ export interface ShopSettings {
   originalProducts: ManagedProduct[];
   studioMailPackages: StudioMailPackage[];
   mysteryMail: MysteryMailSettings;
+  paletteSettings: {
+    enabled: boolean;
+    priceMinor: number;
+    coverImage: string;
+  };
+  readyMadePalettes: ReadyMadePalette[];
+  mailClubEditions: MailClubEdition[];
+  animationMerchProductIds: string[];
   siteLinks: {
     instagramUrl: string;
     tiktokUrl: string;
@@ -241,6 +296,12 @@ export interface CartItem {
   selectedFinishId?: PrintFraming;
   selectedColor?: TshirtColor | "white";
   expiresAt?: string;
+  metadata?: {
+    paletteNotes?: string;
+    tikTokUsername?: string;
+    editionTitle?: string;
+    editionMonth?: string;
+  };
 }
 
 const SETTINGS_STORAGE_KEY = "aida-shop-settings-v2";
@@ -312,6 +373,34 @@ export function getDefaultSettings(): ShopSettings {
       referencePrefix: "AR",
       shippingNote: "Shipping is not included and will be confirmed directly.",
     },
+    paletteSettings: {
+      enabled: true,
+      priceMinor: 120000,
+      coverImage: "/assets/custom-watercolor-palette.jpg",
+    },
+    readyMadePalettes: [],
+    mailClubEditions: [
+      {
+        id: "mail-club-october",
+        slug: "october-mail-club",
+        internalName: "October Mail Club",
+        title: "October Mail Club",
+        titleTr: "Ekim Mail Club",
+        monthYear: "2026-10",
+        description: "A little envelope of art, notes and surprises made for this month's Mail Club.",
+        descriptionTr: "Bu ayın Mail Club'ı için hazırlanan küçük bir sanat, not ve sürpriz paketi.",
+        coverImage: "/assets/mail-club-october.jpg",
+        altText: "October Mail Club print, letter, stickers, bookmark and habit tracker",
+        priceMinor: 49000,
+        stock: 20,
+        enabled: true,
+        status: "published",
+        current: true,
+        createdAt: new Date().toISOString(),
+        publishedAt: new Date().toISOString(),
+      },
+    ],
+    animationMerchProductIds: [],
     printProducts: [
       {
         id: "print-1",
@@ -490,6 +579,19 @@ export function loadShopSettings(): ShopSettings {
       const normalized: ShopSettings = {
         ...defaults,
         ...saved,
+        paletteSettings: {
+          ...defaults.paletteSettings,
+          ...(saved.paletteSettings || {}),
+        },
+        readyMadePalettes: Array.isArray(saved.readyMadePalettes)
+          ? saved.readyMadePalettes
+          : defaults.readyMadePalettes,
+        mailClubEditions: Array.isArray(saved.mailClubEditions)
+          ? saved.mailClubEditions
+          : defaults.mailClubEditions,
+        animationMerchProductIds: Array.isArray(saved.animationMerchProductIds)
+          ? saved.animationMerchProductIds
+          : [],
         mysteryMail: {
           ...defaults.mysteryMail,
           ...(saved.mysteryMail || {}),
@@ -892,6 +994,12 @@ export function getCanonicalCartItemPricing(
   item: CartItem,
   settings: ShopSettings = loadShopSettings(),
 ) {
+  if (["custom-palette", "ready-palette", "mail-club"].includes(item.kind))
+    return {
+      unitPriceCents: item.canonicalPriceMinor ?? item.priceUsdCents,
+      lineTotalCents:
+        (item.canonicalPriceMinor ?? item.priceUsdCents) * item.quantity,
+    };
   if (item.convertedUnitPriceMinor != null && item.displayCurrency === "TRY")
     return {
       unitPriceCents: item.convertedUnitPriceMinor,
@@ -1069,9 +1177,13 @@ export function addItemToCart(
     });
   saveCart(cart, region);
   trackAnalytics(
-    item.kind === "studio-mail"
-      ? "mystery_mail_added_to_basket"
-      : "add_to_basket",
+    item.kind === "mail-club"
+      ? "mail_club_added_to_basket"
+      : item.kind === "ready-palette"
+        ? "ready_palette_added_to_basket"
+        : item.kind === "studio-mail"
+          ? "mystery_mail_added_to_basket"
+          : "add_to_basket",
     {
       entityType: item.kind,
       entityId: item.id.split(":")[0],
@@ -1114,6 +1226,34 @@ export function isCartItemAvailable(
   now = Date.now(),
   region: ShoppingRegion = getActiveShoppingRegion(),
 ) {
+  if (item.kind === "custom-palette")
+    return region === "TR" && settings.paletteSettings.enabled;
+  if (item.kind === "ready-palette") {
+    const product = settings.readyMadePalettes.find(
+      (entry) => entry.id === item.productId,
+    );
+    return Boolean(
+      region === "TR" &&
+        product &&
+        product.status === "available" &&
+        product.stock >= item.quantity,
+    );
+  }
+  if (item.kind === "mail-club") {
+    const edition = settings.mailClubEditions.find(
+      (entry) => entry.id === item.productId,
+    );
+    const nowIso = new Date(now).toISOString();
+    return Boolean(
+      region === "TR" &&
+        edition?.enabled &&
+        edition.current &&
+        edition.status === "published" &&
+        edition.stock >= item.quantity &&
+        (!edition.availabilityStart || edition.availabilityStart <= nowIso) &&
+        (!edition.availabilityEnd || edition.availabilityEnd >= nowIso),
+    );
+  }
   if (item.kind === "studio-mail")
     return isMysteryMailCartItemAvailable(item, settings, now);
 

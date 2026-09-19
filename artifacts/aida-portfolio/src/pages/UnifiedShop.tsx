@@ -129,8 +129,6 @@ export default function UnifiedShop() {
       .filter(isPubliclyVisible)
       .sort(newestFirst);
     if (filter === "originals") return originals;
-    if (filter === "originals" && destination.countryCode === "TR")
-      return originals;
     return prints.filter((product) => !isAceoProduct(product));
   }, [settings.originalProducts, settings.printProducts, filter, destination]);
 

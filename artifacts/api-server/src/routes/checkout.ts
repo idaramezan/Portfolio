@@ -230,22 +230,43 @@ async function calculate(body: any) {
           ? "aceo"
           : input.kind === "print"
             ? "print"
+            : input.kind === "custom-palette"
+              ? "custom-palette"
+              : input.kind === "ready-palette"
+                ? "ready-palette"
+                : input.kind === "mail-club"
+                  ? "mail-club"
             : "";
+    if (["custom-palette", "ready-palette", "mail-club"].includes(kind) && market !== "turkiye")
+      throw new Error("This item is currently available in Türkiye only.");
     if (kind === "aceo" && market !== "turkiye")
       throw new Error(
         "ACEO originals are currently available for delivery within Türkiye only.",
       );
     if (!kind || (market === "international_original" && kind !== "original"))
       throw new Error("This item is not eligible for internal checkout.");
-    const catalog =
-      kind === "original" ? settings.originalProducts : settings.printProducts;
-    const product = catalog?.find((x: any) => x.id === input.productId);
+    const catalog = kind === "original"
+      ? settings.originalProducts
+      : kind === "ready-palette"
+        ? settings.readyMadePalettes
+        : kind === "mail-club"
+          ? settings.mailClubEditions
+          : settings.printProducts;
+    const product = kind === "custom-palette"
+      ? settings.paletteSettings?.enabled
+        ? { id: "custom-palette", name: "Custom Watercolor Palette", status: "published", available: true, priceMinor: settings.paletteSettings.priceMinor, imageUrl: settings.paletteSettings.coverImage }
+        : null
+      : catalog?.find((x: any) => x.id === input.productId);
     if (
       !product ||
       ["sold", "sold_out", "archived", "draft"].includes(product.status) ||
       product.available === false
     )
       throw new Error("A selected item is no longer available.");
+    if (kind === "ready-palette" && (product.status !== "available" || Number(product.stock) < quantity))
+      throw new Error("This palette was just collected.");
+    if (kind === "mail-club" && (!product.enabled || !product.current || product.status !== "published" || Number(product.stock) < quantity))
+      throw new Error("This Mail Club edition is no longer available.");
     if (
       (product.category === "aceo" && kind !== "aceo") ||
       (kind === "aceo" && product.category !== "aceo")
@@ -314,7 +335,7 @@ async function calculate(body: any) {
       )
         framedQuantity += quantity;
     }
-    else originalQuantity += quantity;
+    else if (kind === "original") originalQuantity += quantity;
     items.push({
       productId: product.id,
       kind,
@@ -322,7 +343,7 @@ async function calculate(body: any) {
       quantity,
       unitPriceMinor: unit,
       lineTotalMinor: unit * quantity,
-      selectedOptions: input.selectedOptions || {},
+      selectedOptions: { ...(input.selectedOptions || {}), ...(input.metadata || {}), ...(kind === "mail-club" ? { editionTitle: product.title, editionMonth: product.monthYear } : {}) },
       image: product.imageUrl || null,
       sku: product.sku || null,
     });
@@ -537,6 +558,15 @@ publicRouter.post(
             "This piece was just collected. Someone completed their order before you.",
           );
       }
+      for (const item of quote.items.filter((entry) => ["ready-palette", "mail-club"].includes(entry.kind))) {
+        const list = item.kind === "ready-palette" ? lockedSettings?.readyMadePalettes : lockedSettings?.mailClubEditions;
+        const product = list?.find((entry: any) => entry.id === item.productId);
+        const active = item.kind === "ready-palette"
+          ? product?.status === "available"
+          : product?.enabled && product?.current && product?.status === "published";
+        if (!product || !active || Number(product.stock) < item.quantity)
+          throw new Error(item.kind === "ready-palette" ? "This palette was just collected. Someone completed their order before you." : "This Mail Club edition has just sold out.");
+      }
       const seq = await client.query(
         "SELECT nextval('checkout_order_number_seq') AS value",
       );
@@ -605,7 +635,7 @@ publicRouter.post(
         "INSERT INTO checkout_order_status_history(id,order_id,new_status,customer_notified) VALUES($1,$2,'pending',FALSE)",
         [randomUUID(), orderId],
       );
-      if (quote.originalQuantity) {
+      if (quote.items.some((item) => ["original", "aceo", "ready-palette", "mail-club"].includes(item.kind))) {
         const originalIds = new Set(
           quote.items
             .filter((x) => x.kind === "original")
@@ -637,6 +667,14 @@ publicRouter.post(
                 }
               : p,
         );
+        for (const item of quote.items.filter((entry) => ["ready-palette", "mail-club"].includes(entry.kind))) {
+          const key = item.kind === "ready-palette" ? "readyMadePalettes" : "mailClubEditions";
+          lockedSettings[key] = lockedSettings[key].map((product: any) => {
+            if (product.id !== item.productId) return product;
+            const stock = product.stock - item.quantity;
+            return { ...product, stock, ...(stock === 0 ? { status: item.kind === "ready-palette" ? "sold" : "sold_out" } : {}) };
+          });
+        }
         await client.query(
           "UPDATE shop_settings SET payload=$1::jsonb,updated_at=NOW() WHERE id='primary'",
           [JSON.stringify(lockedSettings)],
@@ -644,7 +682,7 @@ publicRouter.post(
       }
       await client.query("COMMIT");
       const rows = quote.items
-        .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}</li>`)
+        .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}${i.selectedOptions?.paletteNotes ? `<br><strong>Palette notes:</strong> ${escapeHtml(String(i.selectedOptions.paletteNotes))}` : ""}${i.selectedOptions?.tikTokUsername ? `<br><strong>TikTok:</strong> @${escapeHtml(String(i.selectedOptions.tikTokUsername))}` : ""}${i.selectedOptions?.editionTitle ? `<br><strong>Edition:</strong> ${escapeHtml(String(i.selectedOptions.editionTitle))}` : ""}</li>`)
         .join("");
       const total = formatMoney(
         savedOrder.grand_total_minor,
@@ -666,21 +704,24 @@ publicRouter.post(
         ? `<p>Discount (${escapeHtml(savedOrder.discount_code)}, ${savedOrder.discount_percent}%): <strong>−${escapeHtml(discountAmount)}</strong></p>`
         : "";
       const paymentBreakdown = `<p>Order subtotal: ${escapeHtml(subtotal)}</p><p>Shipping: ${escapeHtml(shipping)}</p>${discountSummary}<p><strong>Order total: ${escapeHtml(total)}</strong></p>`;
+      const customPaletteOrder = quote.items.some((item) => item.kind === "custom-palette");
       void sendEmail({
         to: email,
-        subject: `We received your Aeda Art order — ${number}`,
+        subject: customPaletteOrder ? `Your custom palette order is in · ${number}` : `We received your Aeda Art order · ${number}`,
         html: emailShell(
-          `<h1>Your order has been received</h1><p><strong>${number}</strong> ${savedOrder.grand_total_minor === 0 ? "is fully discounted. No payment is required." : "is awaiting payment verification."}</p><ul>${rows}</ul>${paymentBreakdown}<p>${savedOrder.grand_total_minor === 0 ? "Aida can begin preparing your order." : "Aida will review your transfer receipt before preparing the order."}</p>`,
+          `<h1>${customPaletteOrder ? "Your custom palette order is in." : "Your order has been received"}</h1><p><strong>${number}</strong> ${savedOrder.grand_total_minor === 0 ? "is fully discounted. No payment is required." : "is awaiting payment verification."}</p><ul>${rows}</ul>${paymentBreakdown}<p>${customPaletteOrder ? "Thank you. Aida will review your request and begin preparing your palette after the payment review." : savedOrder.grand_total_minor === 0 ? "Aida can begin preparing your order." : "Aida will review your transfer receipt before preparing the order."}</p>`,
         ),
       }).catch((err) => req.log.error({ err, number }, "Order email failed"));
       void sendEmail({
         to: process.env.ORDER_NOTIFICATION_EMAIL || OWNER_EMAIL,
         subject:
-          savedOrder.grand_total_minor === 0
+          customPaletteOrder
+            ? `NEW CUSTOM PALETTE ORDER · ${number}`
+            : savedOrder.grand_total_minor === 0
             ? `New zero-total order — ${number}`
             : `New order awaiting review — ${number}`,
         html: emailShell(
-          `<h1>${savedOrder.grand_total_minor === 0 ? "New zero-total order" : "New order awaiting review"}</h1><p>${escapeHtml(fullName)} · ${escapeHtml(email)} · ${escapeHtml(phone)}</p><p>${escapeHtml(clean(body.address, 1000))}</p><ul>${rows}</ul>${paymentBreakdown}<p><a href="${escapeHtml((process.env.PUBLIC_SITE_URL || "https://www.aedaart.com") + `/admin/orders`)}">Open secure admin orders</a></p>`,
+          `<h1>${customPaletteOrder ? "NEW CUSTOM PALETTE ORDER" : savedOrder.grand_total_minor === 0 ? "New zero-total order" : "New order awaiting review"}</h1><p>${escapeHtml(fullName)} · ${escapeHtml(email)} · ${escapeHtml(phone)}</p><p>${escapeHtml(clean(body.address, 1000))}</p><ul>${rows}</ul>${paymentBreakdown}<p><a href="${escapeHtml((process.env.PUBLIC_SITE_URL || "https://www.aedaart.com") + `/admin/orders`)}">Open secure admin orders</a></p>`,
         ),
       }).catch((err) =>
         req.log.error({ err, number }, "Owner order email failed"),
