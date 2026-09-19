@@ -1236,6 +1236,7 @@
 .shipping-progress-strip__track { height: 5px; overflow: hidden; background: rgba(23,60,50,.13); }
 .shipping-progress-strip__track span { display: block; height: 100%; background: #b98223; transition: width .45s ease; }
 .shipping-progress-strip__close { display: grid; width: 36px; height: 36px; place-items: center; color: #173c32; }
+.basket-drawer-panel { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .free-shipping-celebration { position: fixed; z-index: 100; left: 50%; top: 50%; width: min(calc(100% - 2rem), 420px); transform: translate(-50%,-50%); overflow: hidden; border: 1px solid rgba(23,60,50,.18); background: #f7f4ec; padding: 3.5rem 2rem 3rem; text-align: center; color: #173c32; box-shadow: 0 28px 90px rgba(32,25,25,.25); animation: free-shipping-arrive .55s cubic-bezier(.2,.9,.25,1.15) both; }
 .free-shipping-celebration > button { position: absolute; right: .8rem; top: .8rem; display: grid; width: 38px; height: 38px; place-items: center; }
 .free-shipping-celebration__icon { position: relative; z-index: 2; display: grid; width: 68px; height: 68px; margin: 0 auto 1.25rem; place-items: center; border-radius: 50%; background: #173c32; color: #f7f4ec; animation: free-shipping-icon .7s .25s cubic-bezier(.2,.9,.25,1.3) both; }

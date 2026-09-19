@@ -111,6 +111,14 @@ export default function CartDrawer({
     if (open) setCart(loadCart(region));
     if (open) trackAnalytics("basket_opened");
   }, [open, region]);
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
   const validateCoupon = async (code: string, quiet = false) => {
     if (!code.trim()) {
       if (!quiet) setCouponError(couponText.blank);
@@ -235,11 +243,11 @@ export default function CartDrawer({
       <aside
         aria-label={`${region === "TR" ? "Türkiye" : "International originals"} collection basket`}
         className={cn(
-          "absolute right-0 top-0 flex h-full w-full flex-col border-l border-ink/10 bg-paper shadow-2xl transition-transform sm:w-[480px]",
+          "basket-drawer-panel absolute right-0 top-0 h-full w-full overflow-y-auto border-l border-ink/10 bg-paper shadow-2xl transition-transform sm:w-[480px]",
           open ? "translate-x-0" : "translate-x-full",
         )}
       >
-        <header className="flex items-center justify-between border-b border-ink/10 px-6 py-5">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-ink/10 bg-paper px-6 pb-5 pt-[calc(1.25rem+env(safe-area-inset-top))]">
           <div>
             <p className="eyebrow">
               {region === "TR" ? "Türkiye" : "International originals"}
@@ -254,7 +262,7 @@ export default function CartDrawer({
             <X className="mx-auto" />
           </button>
         </header>
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="px-6 py-5">
           <p className="eyebrow mb-4">{locale === "tr" ? "ÜRÜNLER" : "ITEMS"}</p>
           {cart.length === 0 ? (
             <p className="py-12 text-center text-ink/60">
@@ -376,9 +384,9 @@ export default function CartDrawer({
             ))
           )}
         </div>
-        <footer className="border-t border-ink/10 p-6">
+        <footer className="border-t border-ink/10 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-8">
           {region === "TR" && cart.length > 0 && (
-            <div className="mb-5 border border-coral/30 bg-[#fff8ee] p-4 shadow-[2px_3px_0_rgba(116,47,74,.08)]">
+            <div className="mb-7 border-y border-ink/10 py-3">
               {coupon ? (
                 <div role="status" aria-live="polite">
                   <div className="flex items-start gap-3">
