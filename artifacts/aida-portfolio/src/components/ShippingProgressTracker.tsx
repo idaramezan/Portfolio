@@ -11,6 +11,7 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
   const { locale } = useLocale();
   const [cart, setCart] = useState(() => loadCart(region));
   const [celebrating, setCelebrating] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const subtotal = cart.reduce((sum, item) => {
     const unitPrice = getCanonicalCartItemPricing(item, settings)?.unitPriceCents ?? item.priceUsdCents;
     return sum + unitPrice * item.quantity;
@@ -35,6 +36,10 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
     return () => window.clearTimeout(timer);
   }, [celebrating]);
 
+  useEffect(() => {
+    if (cart.length === 0) setDismissed(false);
+  }, [cart.length]);
+
   if (region !== "TR" || cart.length === 0) return null;
   const remaining = Math.max(0, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR - subtotal);
   const progress = Math.min(100, (subtotal / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100);
@@ -44,7 +49,7 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
 
   return (
     <>
-      <section className="shipping-progress-strip" aria-label={status}>
+      {!dismissed && <section className="shipping-progress-strip" aria-label={status}>
         <div className="shipping-progress-strip__inner">
           <PackageCheck size={18} aria-hidden="true" />
           <div className="shipping-progress-strip__copy">
@@ -66,8 +71,16 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
             <span style={{ width: `${progress}%` }} />
           </div>
           <span className="shipping-progress-strip__goal">1.500 TL</span>
+          <button
+            type="button"
+            className="shipping-progress-strip__close"
+            onClick={() => setDismissed(true)}
+            aria-label={locale === "tr" ? "Kargo ilerlemesini kapat" : "Close shipping progress"}
+          >
+            <X size={17} aria-hidden="true" />
+          </button>
         </div>
-      </section>
+      </section>}
       {celebrating && (
         <div className="free-shipping-celebration" role="dialog" aria-modal="true" aria-labelledby="free-shipping-title">
           <button type="button" aria-label={locale === "tr" ? "Kapat" : "Close"} onClick={() => setCelebrating(false)}>
