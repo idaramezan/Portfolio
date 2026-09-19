@@ -34,7 +34,7 @@ if (
   !detail.includes("fourthwallProductId") ||
   !detail.includes("International edition coming soon") ||
   !detail.includes("internationalHref") ||
-  !detail.includes('target="_blank"')
+  !detail.includes("InternationalFormatSelector")
 )
   throw new Error(
     "Existing Fourthwall mapping or missing-link state is not reused",
@@ -51,7 +51,8 @@ if (
 if (
   !detail.includes("product.fullDescription || product.description") ||
   !detail.includes("Where should we send your print?") ||
-  !detail.includes("setSelected(product)")
+  !detail.includes("addConfiguredPrint") ||
+  detail.includes("Choose size & finish")
 )
   throw new Error(
     "Existing story data or destination purchase flow is missing",

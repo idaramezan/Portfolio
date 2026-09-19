@@ -70,6 +70,12 @@ assert.ok(
     checkout.includes("Submit order for payment review"),
 );
 assert.ok(
+  server.includes("checkoutItemName(product, kind, input)") &&
+    server.includes("product?.name || product?.title") &&
+    server.includes('if (kind === "mail-club") return "Mail Club"'),
+  "checkout lines must snapshot configured names with type-specific fallbacks",
+);
+assert.ok(
   checkout.includes("useToast") && /variant:\s*"destructive"/.test(checkout),
   "checkout errors must appear in a visible toast",
 );

@@ -73,6 +73,19 @@ function signatureOkay(file: Express.Multer.File) {
 }
 const clean = (value: unknown, max = 500) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
+const checkoutItemName = (product: any, kind: string, input: any) => {
+  const configured = clean(
+    product?.name || product?.title || input?.metadata?.editionTitle,
+    200,
+  );
+  if (configured) return configured;
+  if (kind === "mail-club") return "Mail Club";
+  if (kind === "custom-palette") return "Custom Palette";
+  if (kind === "ready-palette") return "Watercolour Palette";
+  if (kind === "original") return "Original Artwork";
+  if (kind === "aceo") return "ACEO Original";
+  return "Art Print";
+};
 const emailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const phoneValid = (v: string) => /^\+[1-9]\d{7,14}$/.test(v);
 const formatMoney = (minor: number, currency: string) =>
@@ -368,7 +381,7 @@ async function calculate(body: any) {
     items.push({
       productId: product.id,
       kind,
-      name: product.name,
+      name: checkoutItemName(product, kind, input),
       quantity,
       unitPriceMinor: unit,
       lineTotalMinor: unit * quantity,

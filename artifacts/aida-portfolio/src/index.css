@@ -6728,7 +6728,19 @@
   place-items: center;
   padding: clamp(0.7rem, 1.5vw, 1.2rem);
   background: #fffaf2;
-  box-shadow: 10px 11px 0 #edb5c9;
+  box-shadow: 10px 11px 0 rgb(23 60 50 / 12%);
+}
+.print-story-detail__media .print-detail-preview,
+.print-story-detail__media .artwork-finish-preview__frame,
+.print-story-detail__media .artwork-finish-preview__mat {
+  width: 100%;
+  height: auto;
+}
+.print-story-detail__media .artwork-finish-preview img {
+  max-height: 650px;
+}
+.print-story-detail__media .artwork-finish-preview--framed .artwork-finish-preview__frame {
+  width: auto;
 }
 .print-story-detail__media img {
   width: 100%;

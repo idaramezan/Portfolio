@@ -8,10 +8,12 @@ export default function ProductImageLightbox({
   images,
   initialIndex = 0,
   imageClassName = "",
+  framedPreview = false,
 }: {
   images: LightboxImage[];
   initialIndex?: number;
   imageClassName?: string;
+  framedPreview?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(initialIndex);
@@ -76,23 +78,32 @@ export default function ProductImageLightbox({
   }, [open, multiple, images.length]);
 
   if (!image) return null;
+  const imageTrigger = (
+    <button
+      ref={triggerRef}
+      type="button"
+      className="product-image-trigger"
+      onClick={() => {
+        setFailed(false);
+        setOpen(true);
+      }}
+      aria-label={`Enlarge image of ${image.alt}`}
+    >
+      <img src={image.src} alt={image.alt} className={imageClassName} />
+      <span className="product-image-trigger__hint" aria-hidden="true">
+        <Expand /> <span>View larger</span>
+      </span>
+    </button>
+  );
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="product-image-trigger"
-        onClick={() => {
-          setFailed(false);
-          setOpen(true);
-        }}
-        aria-label={`Enlarge image of ${image.alt}`}
-      >
-        <img src={image.src} alt={image.alt} className={imageClassName} />
-        <span className="product-image-trigger__hint" aria-hidden="true">
-          <Expand /> <span>View larger</span>
-        </span>
-      </button>
+      {framedPreview ? (
+        <div className="print-detail-preview artwork-finish-preview artwork-finish-preview--framed">
+          <div className="artwork-finish-preview__frame">
+            <div className="artwork-finish-preview__mat">{imageTrigger}</div>
+          </div>
+        </div>
+      ) : imageTrigger}
       {multiple && (
         <div className="product-image-thumbnails" aria-label="Product images">
           {images.map((candidate, candidateIndex) => (

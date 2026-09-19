@@ -349,6 +349,20 @@ export interface CartItem {
   priceChanged?: boolean;
 }
 
+export function getCartItemDisplayName(
+  item: Pick<CartItem, "kind" | "title" | "metadata">,
+) {
+  const configured = item.title?.trim() || item.metadata?.editionTitle?.trim();
+  if (configured) return configured;
+  if (item.kind === "mail-club" || item.kind === "studio-mail") return "Mail Club";
+  if (item.kind === "custom-palette") return "Custom Palette";
+  if (item.kind === "ready-palette") return "Watercolour Palette";
+  if (item.kind === "original") return "Original Artwork";
+  if (item.kind === "aceo") return "ACEO Original";
+  if (item.kind === "print") return "Art Print";
+  return "Art Product";
+}
+
 const SETTINGS_STORAGE_KEY = "aida-shop-settings-v2";
 const LEGACY_SETTINGS_KEY = "aida-shop-settings";
 const LEGACY_CART_STORAGE_KEY = "aida-shop-cart-v2";
@@ -1172,17 +1186,23 @@ export function loadCart(
       const aceoId = baseItemId.startsWith("aceo-")
         ? baseItemId.slice("aceo-".length)
         : null;
-      const product = originalId
-        ? settings.originalProducts.find((entry) => entry.id === originalId)
-        : printId || aceoId
-          ? settings.printProducts.find(
-              (entry) => entry.id === (printId || aceoId),
-            )
-          : settings.studioMailPackages.find((entry) => entry.id === item.id);
+      const product = item.kind === "mail-club"
+        ? settings.mailClubEditions.find((entry) => entry.id === item.productId)
+        : item.kind === "ready-palette"
+          ? settings.readyMadePalettes.find((entry) => entry.id === item.productId)
+          : originalId
+            ? settings.originalProducts.find((entry) => entry.id === originalId)
+            : printId || aceoId
+              ? settings.printProducts.find(
+                  (entry) => entry.id === (printId || aceoId),
+                )
+              : settings.studioMailPackages.find((entry) => entry.id === item.id);
       if (!product) return item;
       const refreshed = {
         ...item,
-        title: "name" in product ? product.name : product.title,
+        title:
+          ("name" in product ? product.name : product.title) ||
+          getCartItemDisplayName(item),
         imageUrl:
           "imageUrl" in product ? product.imageUrl : mysteryMailCoverImage,
       };

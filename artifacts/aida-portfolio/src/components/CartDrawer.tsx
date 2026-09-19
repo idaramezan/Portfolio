@@ -3,6 +3,7 @@ import { Check, Minus, PackageCheck, Plus, Ticket, X } from "lucide-react";
 import { Link } from "wouter";
 import {
   getCanonicalCartItemPricing,
+  getCartItemDisplayName,
   isCartItemAvailable,
   loadCart,
   removeCartItem,
@@ -310,7 +311,7 @@ export default function CartDrawer({
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h3 className="text-xl leading-tight">{x.title}</h3>
+                  <h3 className="text-xl leading-tight">{getCartItemDisplayName(x)}</h3>
                   <p className="mt-1 text-xs font-semibold uppercase tracking-[.12em] text-ink/50">{itemType(x)}</p>
                   {x.printConfiguration && (
                     <p className="mt-1 text-xs text-ink/55">
