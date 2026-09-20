@@ -83,6 +83,45 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const watched = new WeakSet<HTMLImageElement>();
+    const mark = (image: HTMLImageElement) => {
+      if (image.dataset.noShimmer !== undefined) return;
+      image.dataset.imageState =
+        image.complete && image.naturalWidth > 0 ? "loaded" : "loading";
+      if (!watched.has(image)) {
+        watched.add(image);
+        image.addEventListener("load", () => {
+          image.dataset.imageState = "loaded";
+        });
+        image.addEventListener("error", () => {
+          image.dataset.imageState = "error";
+        });
+      }
+    };
+    const scan = (root: ParentNode) => {
+      if (root instanceof HTMLImageElement) mark(root);
+      root.querySelectorAll?.("img").forEach((image) => mark(image));
+    };
+    scan(document);
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === "attributes")
+          mark(record.target as HTMLImageElement);
+        record.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) scan(node);
+        });
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["src", "srcset"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const sync = () =>
       setCartCount(getCartCount(activeRegion) + getFourthwallCartCount());
     sync();
