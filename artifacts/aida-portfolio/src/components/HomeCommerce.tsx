@@ -188,8 +188,50 @@ export default function HomeCommerce() {
       window.dispatchEvent(new Event("cart:open"));
     }
   };
+  const mailClubSection = local && currentMail && (
+    <section className="commerce-feature commerce-feature--mail section-shell">
+      <img
+        src={currentMail.coverImage}
+        alt={
+          locale === "tr" && currentMail.altTextTr
+            ? currentMail.altTextTr
+            : currentMail.altText
+        }
+        width="1355"
+        height="1824"
+        loading="lazy"
+      />
+      <MailClubPanel
+        edition={currentMail}
+        locale={locale}
+        text={t}
+        onAdd={() =>
+          add(
+            {
+              id: `mail-club-${currentMail.id}`,
+              productId: currentMail.id,
+              kind: "mail-club",
+              title: currentMail.title,
+              imageUrl: currentMail.coverImage,
+              priceUsdCents: currentMail.priceMinor,
+              canonicalCurrency: "TRY",
+              canonicalPriceMinor: currentMail.priceMinor,
+              quantity: 1,
+              metadata: {
+                editionTitle: currentMail.title,
+                editionMonth: currentMail.monthYear,
+              },
+            },
+            currentMail.stock,
+            true,
+          )
+        }
+      />
+    </section>
+  );
   return (
     <>
+      {mailClubSection}
       <ProductSection
         eyebrow={t.printsEye}
         title={t.prints}
@@ -360,47 +402,6 @@ export default function HomeCommerce() {
             </article>
           ))}
         </ProductSection>
-      )}
-      {local && currentMail && (
-        <section className="commerce-feature commerce-feature--mail section-shell">
-          <img
-            src={currentMail.coverImage}
-            alt={
-              locale === "tr" && currentMail.altTextTr
-                ? currentMail.altTextTr
-                : currentMail.altText
-            }
-            width="1355"
-            height="1824"
-            loading="lazy"
-          />
-          <MailClubPanel
-            edition={currentMail}
-            locale={locale}
-            text={t}
-            onAdd={() =>
-              add(
-                {
-                  id: `mail-club-${currentMail.id}`,
-                  productId: currentMail.id,
-                  kind: "mail-club",
-                  title: currentMail.title,
-                  imageUrl: currentMail.coverImage,
-                  priceUsdCents: currentMail.priceMinor,
-                  canonicalCurrency: "TRY",
-                  canonicalPriceMinor: currentMail.priceMinor,
-                  quantity: 1,
-                  metadata: {
-                    editionTitle: currentMail.title,
-                    editionMonth: currentMail.monthYear,
-                  },
-                },
-                currentMail.stock,
-                true,
-              )
-            }
-          />
-        </section>
       )}
       <ProductSection eyebrow={t.merchEye} title={t.merch} body={t.merchBody}>
         {merch.map((p) => (

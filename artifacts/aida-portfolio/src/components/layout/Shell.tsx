@@ -446,6 +446,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   ? "Baskılar ve orijinal eserler"
                   : "Prints and original works",
               links: [
+                ...(isTürkiye
+                  ? [["/shop?category=mail-club", "Mail Club"]]
+                  : []),
                 [
                   "/shop?category=prints",
                   locale === "tr" ? "Baskılar" : "Prints",
