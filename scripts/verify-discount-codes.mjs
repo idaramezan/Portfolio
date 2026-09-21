@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const migration = read("../lib/db/migrations/0014_discount_codes.sql");
+const scopedMigration = read(
+  "../lib/db/migrations/0018_product_scoped_discount_codes.sql",
+);
 const server = read("../artifacts/api-server/src/routes/checkout.ts");
 const cart = read("../artifacts/aida-portfolio/src/components/CartDrawer.tsx");
 const checkout = read("../artifacts/aida-portfolio/src/pages/Checkout.tsx");
@@ -28,10 +31,22 @@ assert.ok(
   migration.includes("discount_amount_minor") &&
     migration.includes("total_before_discount_minor"),
 );
+assert.ok(
+  scopedMigration.includes("scope") && scopedMigration.includes("product_ids"),
+);
 
 assert.ok(server.includes('publicRouter.post("/discount/validate"'));
+assert.ok(server.includes("calculatePercentageDiscount(discountEligibleMinor"));
 assert.ok(
-  server.includes("calculatePercentageDiscount(discountEligibleMinor"),
+  server.includes('discount?.scope === "products"') &&
+    server.includes("selectedProductIds.has(item.productId)"),
+  "product-scoped codes must only discount selected product lines",
+);
+assert.ok(
+  !server.includes(
+    "quote.discountCodeEligibleSubtotalMinor + quote.shippingMinor",
+  ),
+  "shipping must never be included in discount eligibility",
 );
 assert.ok(
   server.includes("usage_count=usage_count+1") &&
@@ -67,6 +82,10 @@ assert.ok(checkout.includes("result.discountInvalid"));
 assert.ok(/quote\??\.grandTotalMinor === 0/.test(checkout));
 
 assert.ok(admin.includes("Maximum uses") && admin.includes("No expiration"));
+assert.ok(
+  admin.includes("Selected products") &&
+    admin.includes("Shipping is never discounted"),
+);
 assert.ok(admin.includes("usageCount") && admin.includes("effectiveStatus"));
 assert.ok(
   orders.includes("discount_code") && orders.includes("discount_amount_minor"),

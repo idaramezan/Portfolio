@@ -13,6 +13,14 @@ type DiscountCode = {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  scope: "order" | "products";
+  product_ids: string[];
+};
+
+type DiscountProduct = {
+  id: string;
+  name: string;
+  kind: string;
 };
 
 type FormState = {
@@ -25,6 +33,8 @@ type FormState = {
   expiresAt: string;
   isActive: boolean;
   usageCount: number;
+  scope: "order" | "products";
+  productIds: string[];
 };
 
 const emptyForm: FormState = {
@@ -37,6 +47,8 @@ const emptyForm: FormState = {
   expiresAt: "",
   isActive: true,
   usageCount: 0,
+  scope: "order",
+  productIds: [],
 };
 
 const dateInputValue = (value: string | null) =>
@@ -62,6 +74,7 @@ export default function DiscountCodes() {
     "x-admin-password": password,
   };
   const [codes, setCodes] = useState<DiscountCode[]>([]);
+  const [products, setProducts] = useState<DiscountProduct[]>([]);
   const [form, setForm] = useState<FormState | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -75,6 +88,7 @@ export default function DiscountCodes() {
     if (!response.ok)
       throw new Error(result.error || "Discount codes could not be loaded.");
     setCodes(result.discountCodes);
+    setProducts(result.products || []);
   };
 
   useEffect(() => {
@@ -92,6 +106,8 @@ export default function DiscountCodes() {
       expiresAt: dateInputValue(code.expires_at),
       isActive: code.is_active,
       usageCount: code.usage_count,
+      scope: code.scope === "products" ? "products" : "order",
+      productIds: Array.isArray(code.product_ids) ? code.product_ids : [],
     });
 
   const save = async (event: React.FormEvent) => {
@@ -123,6 +139,8 @@ export default function DiscountCodes() {
           maxUses: form.limited ? Number(form.maxUses) : null,
           expiresAt: form.expiring ? form.expiresAt : null,
           isActive: form.isActive,
+          scope: form.scope,
+          productIds: form.scope === "products" ? form.productIds : [],
         }),
       },
     );
@@ -173,8 +191,8 @@ export default function DiscountCodes() {
     >
       <div className="space-y-6">
         <p className="max-w-2xl text-ink/65">
-          Create percentage discounts for orders placed through the Türkiye
-          shop.
+          Create percentage discounts for all eligible merchandise or selected
+          products in the Türkiye shop. Shipping is never discounted.
         </p>
         {message && (
           <p role="status" className="border border-green/25 bg-green/10 p-3">
@@ -256,6 +274,90 @@ export default function DiscountCodes() {
                     <strong>%</strong>
                   </span>
                 </label>
+              </section>
+              <section className="lg:col-span-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-ink/45">
+                  Applies to
+                </h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="flex min-h-11 items-start gap-3 border border-ink/15 p-4">
+                    <input
+                      className="mt-1"
+                      type="radio"
+                      name="discount-scope"
+                      checked={form.scope === "order"}
+                      onChange={() => setForm({ ...form, scope: "order" })}
+                    />
+                    <span>
+                      <strong className="block">
+                        Entire merchandise order
+                      </strong>
+                      <span className="mt-1 block text-xs text-ink/55">
+                        Applies to every eligible product, excluding shipping.
+                      </span>
+                    </span>
+                  </label>
+                  <label className="flex min-h-11 items-start gap-3 border border-ink/15 p-4">
+                    <input
+                      className="mt-1"
+                      type="radio"
+                      name="discount-scope"
+                      checked={form.scope === "products"}
+                      onChange={() => setForm({ ...form, scope: "products" })}
+                    />
+                    <span>
+                      <strong className="block">Selected products</strong>
+                      <span className="mt-1 block text-xs text-ink/55">
+                        Only the selected merchandise lines receive the
+                        discount.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+                {form.scope === "products" && (
+                  <fieldset className="mt-4 max-h-72 overflow-y-auto border border-ink/15 bg-cream/30 p-4">
+                    <legend className="px-2 text-sm font-semibold">
+                      Select products ({form.productIds.length} selected)
+                    </legend>
+                    {products.length ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {products.map((product) => (
+                          <label
+                            key={product.id}
+                            className="flex min-h-11 items-center gap-3 border border-transparent px-2 py-1 hover:border-ink/10"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={form.productIds.includes(product.id)}
+                              onChange={(event) =>
+                                setForm({
+                                  ...form,
+                                  productIds: event.target.checked
+                                    ? [...form.productIds, product.id]
+                                    : form.productIds.filter(
+                                        (id) => id !== product.id,
+                                      ),
+                                })
+                              }
+                            />
+                            <span>
+                              <span className="block font-semibold">
+                                {product.name}
+                              </span>
+                              <span className="text-xs uppercase tracking-wide text-ink/45">
+                                {product.kind}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-ink/60">
+                        No products are available to select.
+                      </p>
+                    )}
+                  </fieldset>
+                )}
               </section>
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-ink/45">
@@ -393,6 +495,7 @@ export default function DiscountCodes() {
                 <tr className="border-b border-ink/10 text-xs uppercase tracking-wider text-ink/45">
                   <th className="p-4">Code</th>
                   <th className="p-4">Discount</th>
+                  <th className="p-4">Applies to</th>
                   <th className="p-4">Usage</th>
                   <th className="p-4">Expiration</th>
                   <th className="p-4">Status</th>
@@ -404,6 +507,11 @@ export default function DiscountCodes() {
                   <tr key={code.id} className="border-b border-ink/10">
                     <td className="p-4 font-bold">{code.code}</td>
                     <td className="p-4">{code.discount_percent}%</td>
+                    <td className="p-4">
+                      {code.scope === "products"
+                        ? `${code.product_ids?.length || 0} selected product${code.product_ids?.length === 1 ? "" : "s"}`
+                        : "Entire merchandise order"}
+                    </td>
                     <td className="p-4">
                       {code.usage_count} / {code.max_uses ?? "Unlimited"}
                     </td>

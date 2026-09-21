@@ -102,7 +102,7 @@ function productSale(regularPriceMinor: number, sale: any, now = Date.now()) {
 class DiscountCodeError extends Error {
   constructor(
     public reason:
-      "not_found" | "inactive" | "expired" | "limit_reached" | "not_turkiye",
+      "not_found" | "inactive" | "expired" | "limit_reached" | "not_turkiye" | "not_applicable",
     message: string,
   ) {
     super(message);
@@ -116,7 +116,13 @@ const discountMessages = {
   limit_reached: "That discount code has reached its usage limit.",
   not_turkiye:
     "Discount codes are currently available for Türkiye orders only.",
+  not_applicable: "This discount code doesn't apply to items in your basket.",
 } as const;
+
+const discountProductIds = (discount: any): string[] =>
+  Array.isArray(discount?.product_ids)
+    ? discount.product_ids.filter((value: unknown) => typeof value === "string")
+    : [];
 
 async function getValidDiscount(
   codeInput: unknown,
@@ -153,7 +159,13 @@ function applyDiscount(
   discount: any | null,
 ) {
   const totalBeforeDiscountMinor = quote.subtotalMinor + quote.shippingMinor;
-  const discountEligibleMinor = quote.discountCodeEligibleSubtotalMinor + quote.shippingMinor;
+  const selectedProductIds = discount?.scope === "products" ? new Set(discountProductIds(discount)) : null;
+  const discountEligibleMinor = quote.items.reduce(
+    (sum, item) => sum + (item.discountCodeEligible && (!selectedProductIds || selectedProductIds.has(item.productId)) ? item.lineTotalMinor : 0),
+    0,
+  );
+  if (discount && discountEligibleMinor <= 0)
+    throw new DiscountCodeError("not_applicable", discountMessages.not_applicable);
   const discountPercent = discount ? Number(discount.discount_percent) : 0;
   const calculated = discount
     ? calculatePercentageDiscount(discountEligibleMinor, discountPercent)
@@ -184,6 +196,9 @@ async function ensureSchema() {
   );
   await pool.query(
     `CREATE UNIQUE INDEX IF NOT EXISTS discount_codes_code_upper_unique ON discount_codes(UPPER(code))`,
+  );
+  await pool.query(
+    `ALTER TABLE discount_codes ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT 'order', ADD COLUMN IF NOT EXISTS product_ids JSONB NOT NULL DEFAULT '[]'::jsonb`,
   );
   await pool.query(
     `ALTER TABLE checkout_orders ADD COLUMN IF NOT EXISTS discount_code_id UUID REFERENCES discount_codes(id) ON DELETE SET NULL, ADD COLUMN IF NOT EXISTS discount_code TEXT, ADD COLUMN IF NOT EXISTS discount_percent INTEGER, ADD COLUMN IF NOT EXISTS discount_amount_minor INTEGER NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS total_before_discount_minor INTEGER`,
@@ -1028,10 +1043,19 @@ publicRouter.post("/events/:id/applications", limited, async (req, res) => {
 adminCheckoutRouter.use(requireAdmin);
 adminCheckoutRouter.get("/discount-codes", async (_req, res) => {
   await ensureSchema();
-  const result = await pool.query(
-    "SELECT * FROM discount_codes WHERE archived_at IS NULL ORDER BY created_at DESC",
-  );
-  return res.json({ discountCodes: result.rows });
+  const [result, settingsResult] = await Promise.all([
+    pool.query("SELECT * FROM discount_codes WHERE archived_at IS NULL ORDER BY created_at DESC"),
+    pool.query("SELECT payload FROM shop_settings WHERE id='primary'"),
+  ]);
+  const settings = settingsResult.rows[0]?.payload || {};
+  const products = [
+    ...(settings.printProducts || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Untitled print", kind: product.category === "aceo" ? "ACEO" : "Print" })),
+    ...(settings.originalProducts || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Untitled original", kind: "Original" })),
+    ...(settings.readyMadePalettes || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Watercolour palette", kind: "Ready-made palette" })),
+    ...(settings.mailClubEditions || []).map((product: any) => ({ id: product.id, name: product.title || product.name || "Mail Club", kind: "Mail Club" })),
+    ...(settings.paletteSettings?.enabled ? [{ id: "custom-palette", name: "Custom Watercolor Palette", kind: "Custom palette" }] : []),
+  ];
+  return res.json({ discountCodes: result.rows, products });
 });
 adminCheckoutRouter.post("/discount-codes", async (req, res) => {
   await ensureSchema();
@@ -1041,6 +1065,10 @@ adminCheckoutRouter.post("/discount-codes", async (req, res) => {
     req.body?.maxUses === null || req.body?.maxUses === ""
       ? null
       : Number(req.body?.maxUses);
+  const scope = req.body?.scope === "products" ? "products" : "order";
+  const productIds = Array.isArray(req.body?.productIds)
+    ? [...new Set(req.body.productIds.map((value: unknown) => clean(value, 200)).filter(Boolean))]
+    : [];
   if (!code || !isDiscountCodeFormatValid(code))
     return res.status(400).json({
       error: "Use only letters, numbers and hyphens in the discount code.",
@@ -1057,12 +1085,14 @@ adminCheckoutRouter.post("/discount-codes", async (req, res) => {
     return res
       .status(400)
       .json({ error: "Maximum uses must be a positive whole number." });
+  if (scope === "products" && !productIds.length)
+    return res.status(400).json({ error: "Select at least one product for this discount code." });
   const expiresAt = req.body?.expiresAt
     ? `${clean(req.body.expiresAt, 10)}T23:59:59+03:00`
     : null;
   try {
     const result = await pool.query(
-      `INSERT INTO discount_codes(id,code,discount_percent,is_active,max_uses,expires_at) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
+      `INSERT INTO discount_codes(id,code,discount_percent,is_active,max_uses,expires_at,scope,product_ids) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb) RETURNING *`,
       [
         randomUUID(),
         code,
@@ -1070,6 +1100,8 @@ adminCheckoutRouter.post("/discount-codes", async (req, res) => {
         req.body?.isActive !== false,
         maxUses,
         expiresAt,
+        scope,
+        JSON.stringify(scope === "products" ? productIds : []),
       ],
     );
     return res.status(201).json({ discountCode: result.rows[0] });
@@ -1095,6 +1127,10 @@ adminCheckoutRouter.put("/discount-codes/:id", async (req, res) => {
     req.body?.maxUses === null || req.body?.maxUses === ""
       ? null
       : Number(req.body?.maxUses);
+  const scope = req.body?.scope === "products" ? "products" : "order";
+  const productIds = Array.isArray(req.body?.productIds)
+    ? [...new Set(req.body.productIds.map((value: unknown) => clean(value, 200)).filter(Boolean))]
+    : [];
   if (
     !Number.isInteger(discountPercent) ||
     discountPercent < 1 ||
@@ -1110,16 +1146,20 @@ adminCheckoutRouter.put("/discount-codes/:id", async (req, res) => {
     return res.status(400).json({
       error: `This code has already been used ${current.usage_count} times. The usage limit cannot be lower than ${current.usage_count}.`,
     });
+  if (scope === "products" && !productIds.length)
+    return res.status(400).json({ error: "Select at least one product for this discount code." });
   const expiresAt = req.body?.expiresAt
     ? `${clean(req.body.expiresAt, 10)}T23:59:59+03:00`
     : null;
   const result = await pool.query(
-    `UPDATE discount_codes SET discount_percent=$1,is_active=$2,max_uses=$3,expires_at=$4,updated_at=NOW() WHERE id=$5 RETURNING *`,
+    `UPDATE discount_codes SET discount_percent=$1,is_active=$2,max_uses=$3,expires_at=$4,scope=$5,product_ids=$6::jsonb,updated_at=NOW() WHERE id=$7 RETURNING *`,
     [
       discountPercent,
       Boolean(req.body?.isActive),
       maxUses,
       expiresAt,
+      scope,
+      JSON.stringify(scope === "products" ? productIds : []),
       req.params.id,
     ],
   );
