@@ -24,6 +24,7 @@ import {
 } from "@/lib/shipping-destination";
 import { addItemToCart, type ManagedProduct } from "@/lib/store";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import { compareProductDisplayOrder } from "@/lib/product-order";
 
 type Category =
   "prints" | "originals" | "palettes" | "mail-club" | "animation-merch";
@@ -330,7 +331,7 @@ export default function UnifiedShop() {
               (product) =>
                 isPubliclyVisible(product) && !isAceoProduct(product),
             )
-            .sort(newestFirst)}
+            .sort(compareProductDisplayOrder)}
           kind="prints"
           destination={destination!}
           locale={locale}

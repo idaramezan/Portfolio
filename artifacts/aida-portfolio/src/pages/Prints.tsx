@@ -7,6 +7,7 @@ import {
   type ManagedProduct,
 } from "@/lib/store";
 import Money from "@/components/Money";
+import { compareProductDisplayOrder } from "@/lib/product-order";
 
 export default function Prints() {
   const [settings, setSettings] = useState(loadShopSettings());
@@ -20,9 +21,9 @@ export default function Prints() {
     return () => window.removeEventListener("shop-settings:updated", sync);
   }, []);
 
-  const printProducts = settings.printProducts.filter(
-    (product) => product.available,
-  );
+  const printProducts = settings.printProducts
+    .filter((product) => product.available)
+    .sort(compareProductDisplayOrder);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24">

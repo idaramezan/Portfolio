@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { MoreHorizontal, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, MoreHorizontal, Search } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { EmptyState, StatusBadge } from "@/components/admin/AdminUI";
 import { formatCurrencyMinor } from "@/lib/currency";
 import { saveShopSettingsAndWait, type ManagedProduct } from "@/lib/store";
 import { productRepository } from "@/lib/productRepository";
+import { compareProductDisplayOrder } from "@/lib/product-order";
 export default function Catalog({
   kind,
 }: {
@@ -20,7 +21,9 @@ export default function Catalog({
   const [category, setCategory] = useState(
     () => new URLSearchParams(window.location.search).get("category") || "all",
   );
-  const [sort, setSort] = useState("title");
+  const [sort, setSort] = useState(kind === "prints" ? "display" : "title");
+  const [orderBusy, setOrderBusy] = useState(false);
+  const [orderMessage, setOrderMessage] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const isMail = kind === "studio-mail";
   const raw: any[] = isMail
@@ -42,14 +45,56 @@ export default function Catalog({
               (x.category || "print") === category),
         )
         .sort((a, b) =>
-          sort === "price"
-            ? a.priceUsdCents - b.priceUsdCents
-            : String(a.title || a.name).localeCompare(
-                String(b.title || b.name),
-              ),
+          sort === "display"
+            ? compareProductDisplayOrder(a, b)
+            : sort === "price"
+              ? a.priceUsdCents - b.priceUsdCents
+              : String(a.title || a.name).localeCompare(
+                  String(b.title || b.name),
+                ),
         ),
     [raw, search, status, featured, category, sort],
   );
+  const orderedPrints = useMemo(
+    () => [...settings.printProducts].sort(compareProductDisplayOrder),
+    [settings.printProducts],
+  );
+  const movePrint = async (id: string, direction: -1 | 1) => {
+    const currentIndex = orderedPrints.findIndex(
+      (product) => product.id === id,
+    );
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= orderedPrints.length)
+      return;
+    const reordered = [...orderedPrints];
+    [reordered[currentIndex], reordered[nextIndex]] = [
+      reordered[nextIndex],
+      reordered[currentIndex],
+    ];
+    const next = {
+      ...settings,
+      printProducts: reordered.map((product, index) => ({
+        ...product,
+        displayOrder: index + 1,
+      })),
+    };
+    setOrderBusy(true);
+    setOrderMessage("");
+    try {
+      await saveShopSettingsAndWait(next);
+      setSettings(next);
+      setSort("display");
+      setOrderMessage("Storefront print order saved.");
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Print order could not be saved.",
+      );
+    } finally {
+      setOrderBusy(false);
+    }
+  };
   useEffect(() => {
     const params = new URLSearchParams();
     if (status !== "all") params.set("status", status);
@@ -152,7 +197,9 @@ export default function Catalog({
       }
     } catch (error) {
       window.alert(
-        error instanceof Error ? error.message : "Products could not be deleted.",
+        error instanceof Error
+          ? error.message
+          : "Products could not be deleted.",
       );
     }
   };
@@ -236,10 +283,23 @@ export default function Catalog({
           onChange={(e) => setSort(e.target.value)}
           className="h-11 border border-ink/15 bg-paper px-3"
         >
+          {kind === "prints" && (
+            <option value="display">Storefront order</option>
+          )}
           <option value="title">Title A–Z</option>
           <option value="price">Price low to high</option>
         </select>
       </div>
+      {kind === "prints" && (
+        <p className="mb-4 text-sm text-ink/60">
+          Use the arrow buttons to set the print order on the homepage and shop.
+          {orderMessage && (
+            <span className="ml-2 font-semibold text-green" role="status">
+              {orderMessage}
+            </span>
+          )}
+        </p>
+      )}
       {selected.length > 0 && (
         <div className="mb-3 flex items-center gap-3 bg-ink p-3 text-paper">
           <span className="text-sm font-semibold">
@@ -258,7 +318,7 @@ export default function Catalog({
       )}
       {rows.length ? (
         <div className="overflow-hidden border border-ink/10 bg-paper">
-          <div className="hidden grid-cols-[40px_64px_1fr_110px_120px_110px_80px] gap-3 border-b border-ink/10 bg-ink/5 px-4 py-3 text-xs font-bold uppercase tracking-wider text-ink/50 md:grid">
+          <div className="hidden grid-cols-[40px_64px_1fr_110px_120px_110px_160px] gap-3 border-b border-ink/10 bg-ink/5 px-4 py-3 text-xs font-bold uppercase tracking-wider text-ink/50 md:grid">
             <input
               type="checkbox"
               checked={
@@ -291,7 +351,7 @@ export default function Catalog({
             return (
               <article
                 key={x.id}
-                className="grid gap-3 border-b border-ink/10 p-4 last:border-0 md:grid-cols-[40px_64px_1fr_110px_120px_110px_80px] md:items-center"
+                className="grid gap-3 border-b border-ink/10 p-4 last:border-0 md:grid-cols-[40px_64px_1fr_110px_120px_110px_160px] md:items-center"
               >
                 <input
                   type="checkbox"
@@ -343,6 +403,41 @@ export default function Catalog({
                       : "Unavailable"}
                 </span>
                 <div className="flex gap-2">
+                  {kind === "prints" && (
+                    <div className="flex" aria-label={`Reorder ${title}`}>
+                      <button
+                        type="button"
+                        disabled={
+                          orderBusy ||
+                          orderedPrints.findIndex(
+                            (item) => item.id === x.id,
+                          ) === 0
+                        }
+                        onClick={() => void movePrint(x.id, -1)}
+                        className="grid min-h-10 min-w-9 place-items-center disabled:cursor-not-allowed disabled:opacity-25"
+                        aria-label={`Move ${title} earlier`}
+                        title="Move earlier"
+                      >
+                        <ArrowUp size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={
+                          orderBusy ||
+                          orderedPrints.findIndex(
+                            (item) => item.id === x.id,
+                          ) ===
+                            orderedPrints.length - 1
+                        }
+                        onClick={() => void movePrint(x.id, 1)}
+                        className="grid min-h-10 min-w-9 place-items-center disabled:cursor-not-allowed disabled:opacity-25"
+                        aria-label={`Move ${title} later`}
+                        title="Move later"
+                      >
+                        <ArrowDown size={16} />
+                      </button>
+                    </div>
+                  )}
                   <Link
                     href={`/admin/${isMail ? "mystery-mail" : kind}/${x.id}`}
                     className="min-h-10 px-2 py-2 text-sm font-semibold underline"

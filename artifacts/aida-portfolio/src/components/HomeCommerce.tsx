@@ -11,6 +11,7 @@ import { useShippingDestination } from "@/lib/shipping-destination";
 import { addItemToCart } from "@/lib/store";
 import { isPubliclyVisible } from "@/lib/product-status";
 import { isAceoProduct } from "@/lib/turkiye-products";
+import { compareProductDisplayOrder } from "@/lib/product-order";
 import { useToast } from "@/hooks/use-toast";
 import {
   getFourthwallVariants,
@@ -148,11 +149,10 @@ export default function HomeCommerce() {
           Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""),
       )
       .slice(0, 4);
-  const prints = newest(
-    settings.printProducts.filter(
-      (p) => isPubliclyVisible(p) && !isAceoProduct(p),
-    ),
-  );
+  const prints = [...settings.printProducts]
+    .filter((p) => isPubliclyVisible(p) && !isAceoProduct(p))
+    .sort(compareProductDisplayOrder)
+    .slice(0, 4);
   const originals = newest(settings.originalProducts.filter(isPubliclyVisible));
   const currentMail = settings.mailClubEditions.find(
     (e) => e.current && e.enabled,
