@@ -1282,6 +1282,15 @@
 .mail-club-note p { margin-top: .5rem !important; font-size: .88rem; }
 .mail-club-countdown { display: flex; flex-direction: column; margin-top: 1.25rem; padding-block: 1rem; border-block: 1px solid rgb(245 240 229 / .2); }
 .mail-club-countdown strong { margin-top: .3rem; font-family: var(--font-serif); font-size: 1.35rem; }
+.mail-club-price-block { margin-top: 1.35rem; }
+.mail-club-price-block > p { margin-top: .35rem; color: rgb(245 240 229 / .82); font-size: .84rem; letter-spacing: .01em; }
+.commerce-feature__panel .mail-club-price { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .75rem; margin: 0; color: #f5f0e5; font-family: var(--font-sans); font-size: clamp(1.5rem, 2.3vw, 2rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.2; }
+.commerce-feature__panel .mail-club-price > strong { margin: 0; color: #f5f0e5; font: inherit; letter-spacing: inherit; }
+.commerce-feature__panel .mail-club-price > span { margin: 0; color: inherit; font: inherit; letter-spacing: inherit; }
+.commerce-feature__panel .mail-club-price > strong > span, .commerce-feature__panel .mail-club-price del > span { margin: 0; color: inherit; font: inherit; letter-spacing: inherit; }
+.commerce-feature__panel .mail-club-price--sale > span { display: inline-flex; align-items: baseline; gap: .35rem; color: #e9a74f; font-size: clamp(.95rem, 1.3vw, 1.1rem); font-weight: 650; letter-spacing: 0; white-space: nowrap; }
+.commerce-feature__panel .mail-club-price del { color: rgb(245 240 229 / .7); font-size: clamp(1rem, 1.55vw, 1.25rem); font-weight: 500; text-decoration-color: currentColor; text-decoration-thickness: 1.5px; }
+.mail-club-price-block + button { margin-top: .85rem; }
 .commerce-feature--mail > img { object-position: center top; }
 .ready-palette { grid-column: span 2; display: grid; grid-template-columns: 1.15fr .85fr; gap: 2rem; align-items: center; }
 .ready-palette img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }

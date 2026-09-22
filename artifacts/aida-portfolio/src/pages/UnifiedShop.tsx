@@ -93,6 +93,7 @@ const copy = {
     hours: "HOURS",
     minutes: "MIN",
     mailAdd: "Add this edition to basket",
+    mailShipping: "Free shipping in Türkiye",
   },
   tr: {
     heroEye: "AIDA'NIN ATÖLYESİNDEN",
@@ -154,6 +155,7 @@ const copy = {
     hours: "SAAT",
     minutes: "DK",
     mailAdd: "Bu edisyonu sepete ekle",
+    mailShipping: "Türkiye'de ücretsiz kargo",
   },
 } as const;
 
@@ -491,11 +493,15 @@ export default function UnifiedShop() {
               now={now}
               text={t}
             />
-            <ProductPrice
-              regularPriceMinor={currentMail.priceMinor}
-              currency="TRY"
-              sale={currentMail.sale}
-            />
+            <div className="mail-club-price-block">
+              <ProductPrice
+                regularPriceMinor={currentMail.priceMinor}
+                currency="TRY"
+                sale={currentMail.sale}
+                presentation="mail-club"
+              />
+              <p>{t.mailShipping}</p>
+            </div>
             <button
               type="button"
               onClick={() =>

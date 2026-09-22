@@ -9,20 +9,26 @@ export default function ProductPrice({
   currency,
   sale,
   compact = false,
+  presentation = "default",
 }: {
   regularPriceMinor: number;
   currency: CurrencyCode;
   sale?: ProductSale;
   compact?: boolean;
+  presentation?: "default" | "mail-club";
 }) {
   const { locale } = useLocale();
   const pricing = calculateProductSale(regularPriceMinor, sale);
   if (pricing.status !== "active")
     return (
-      <Money
-        baseAmountUsdCents={regularPriceMinor}
-        canonicalCurrency={currency}
-      />
+      <span
+        className={presentation === "mail-club" ? "mail-club-price" : undefined}
+      >
+        <Money
+          baseAmountUsdCents={regularPriceMinor}
+          canonicalCurrency={currency}
+        />
+      </span>
     );
   const off =
     locale === "tr"
@@ -30,7 +36,7 @@ export default function ProductPrice({
       : `${pricing.percentage}% off`;
   return (
     <span
-      className={`product-sale-price ${compact ? "product-sale-price--compact" : ""}`}
+      className={`product-sale-price ${compact ? "product-sale-price--compact" : ""} ${presentation === "mail-club" ? "mail-club-price mail-club-price--sale" : ""}`}
       aria-label={`${locale === "tr" ? "İndirimli fiyat" : "Sale price"} ${pricing.finalPriceMinor / 100} ${currency}. ${locale === "tr" ? "Normal fiyat" : "Original price"} ${pricing.regularPriceMinor / 100} ${currency}. ${off}.`}
     >
       <strong>

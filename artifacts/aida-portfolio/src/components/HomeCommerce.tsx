@@ -51,6 +51,7 @@ const words = {
       "The pieces inside each Mail Club are created for that edition only. I do not plan to repeat them in future months or add them to the regular shop. Mail Club is my way of keeping a smaller circle around the work. Little pieces of what I am making, thinking about and living through, shared with the people who choose to keep them.",
     closed: "This edition has closed.",
     until: "Available only until",
+    mailShipping: "Free shipping in Türkiye",
     contents: [
       [
         "Exclusive print",
@@ -100,6 +101,7 @@ const words = {
       "Her Mail Club'ın içindeki parçalar yalnızca o aya özel hazırlanır. Gelecek aylarda tekrar etmeyi veya normal mağazaya eklemeyi planlamıyorum. Mail Club, yaptıklarımı, düşündüklerimi ve hayatımdan küçük parçaları daha küçük bir çevreyle paylaşma şeklim. Onları saklamak isteyen insanlara ait küçük parçalar.",
     closed: "Bu edisyon sona erdi.",
     until: "Yalnızca şu tarihe kadar mevcut:",
+    mailShipping: "Türkiye'de ücretsiz kargo",
     contents: [
       [
         "Özel baskı",
@@ -497,11 +499,15 @@ function MailClubPanel({
           </strong>
         </div>
       )}
-      <ProductPrice
-        regularPriceMinor={edition.priceMinor}
-        currency="TRY"
-        sale={edition.sale}
-      />
+      <div className="mail-club-price-block">
+        <ProductPrice
+          regularPriceMinor={edition.priceMinor}
+          currency="TRY"
+          sale={edition.sale}
+          presentation="mail-club"
+        />
+        <p>{text.mailShipping}</p>
+      </div>
       {open ? (
         <button onClick={onAdd}>{text.mailAdd}</button>
       ) : (
