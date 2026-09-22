@@ -7,6 +7,9 @@ const scopedMigration = read(
   "../lib/db/migrations/0018_product_scoped_discount_codes.sql",
 );
 const server = read("../artifacts/api-server/src/routes/checkout.ts");
+const eligibility = read(
+  "../artifacts/api-server/src/lib/discount-eligibility.ts",
+);
 const cart = read("../artifacts/aida-portfolio/src/components/CartDrawer.tsx");
 const checkout = read("../artifacts/aida-portfolio/src/pages/Checkout.tsx");
 const admin = read(
@@ -39,8 +42,13 @@ assert.ok(server.includes('publicRouter.post("/discount/validate"'));
 assert.ok(server.includes("calculatePercentageDiscount(discountEligibleMinor"));
 assert.ok(
   server.includes('discount?.scope === "products"') &&
-    server.includes("selectedProductIds.has(item.productId)"),
+    server.includes("discountCodeAppliesToItem"),
   "product-scoped codes must only discount selected product lines",
+);
+assert.ok(
+  eligibility.includes("discountProductRef") &&
+    eligibility.includes("selectedRefs.has(item.productId)"),
+  "typed product identities must retain legacy raw-ID compatibility",
 );
 assert.ok(
   !server.includes(
@@ -77,6 +85,7 @@ assert.ok(cart.includes("/api/checkout/discount/validate"));
 assert.ok(cart.includes("saveAppliedDiscountCode(null)"));
 assert.ok(cart.includes("coupon.discountAmountMinor"));
 assert.ok(cart.includes("Bu indirim kodunun kullanım sınırına ulaşıldı."));
+assert.ok(cart.includes("not_applicable"));
 assert.ok(checkout.includes("discountCode: discountCode || undefined"));
 assert.ok(checkout.includes("result.discountInvalid"));
 assert.ok(/quote\??\.grandTotalMinor === 0/.test(checkout));

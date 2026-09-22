@@ -19,6 +19,8 @@ type DiscountCode = {
 
 type DiscountProduct = {
   id: string;
+  selectionId: string;
+  entityType: string;
   name: string;
   kind: string;
 };
@@ -323,19 +325,29 @@ export default function DiscountCodes() {
                       <div className="grid gap-2 sm:grid-cols-2">
                         {products.map((product) => (
                           <label
-                            key={product.id}
+                            key={product.selectionId}
                             className="flex min-h-11 items-center gap-3 border border-transparent px-2 py-1 hover:border-ink/10"
                           >
                             <input
                               type="checkbox"
-                              checked={form.productIds.includes(product.id)}
+                              checked={
+                                form.productIds.includes(product.selectionId) ||
+                                form.productIds.includes(product.id)
+                              }
                               onChange={(event) =>
                                 setForm({
                                   ...form,
                                   productIds: event.target.checked
-                                    ? [...form.productIds, product.id]
+                                    ? [
+                                        ...form.productIds.filter(
+                                          (id) => id !== product.id,
+                                        ),
+                                        product.selectionId,
+                                      ]
                                     : form.productIds.filter(
-                                        (id) => id !== product.id,
+                                        (id) =>
+                                          id !== product.id &&
+                                          id !== product.selectionId,
                                       ),
                                 })
                               }

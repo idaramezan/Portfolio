@@ -17,6 +17,7 @@ import {
   isDiscountCodeFormatValid,
   normalizeDiscountCode,
 } from "../lib/discounts";
+import { discountCodeAppliesToItem, discountProductRef } from "../lib/discount-eligibility";
 
 const publicRouter = Router();
 export const adminCheckoutRouter = Router();
@@ -159,9 +160,11 @@ function applyDiscount(
   discount: any | null,
 ) {
   const totalBeforeDiscountMinor = quote.subtotalMinor + quote.shippingMinor;
-  const selectedProductIds = discount?.scope === "products" ? new Set(discountProductIds(discount)) : null;
+  const selectedProductIds = new Set(discountProductIds(discount));
+  const productScope = discount?.scope === "products";
+  const eligibleItems = quote.items.filter((item) => discountCodeAppliesToItem({ scope: discount?.scope || "order", selectedRefs: selectedProductIds, item, automaticSaleAllowsCodes: item.discountCodeEligible }));
   const discountEligibleMinor = quote.items.reduce(
-    (sum, item) => sum + (item.discountCodeEligible && (!selectedProductIds || selectedProductIds.has(item.productId)) ? item.lineTotalMinor : 0),
+    (sum, item) => sum + (eligibleItems.includes(item) ? item.lineTotalMinor : 0),
     0,
   );
   if (discount && discountEligibleMinor <= 0)
@@ -176,6 +179,8 @@ function applyDiscount(
     discountCode: discount?.code || null,
     discountPercent,
     discountAmountMinor: calculated.discountAmountMinor,
+    eligibleSubtotalMinor: discountEligibleMinor,
+    eligibleItems: productScope ? eligibleItems.map((item) => ({ itemType: item.kind.replaceAll("-", "_"), itemId: item.productId, quantity: item.quantity })) : [],
     grandTotalMinor: totalBeforeDiscountMinor - calculated.discountAmountMinor,
   };
 }
@@ -413,12 +418,9 @@ async function calculate(body: any) {
     (sum, item) => sum + (item.discountCodeEligible ? item.lineTotalMinor : 0),
     0,
   );
-  const shippingMinor = calculateCheckoutShipping({
-    market,
-    printQuantity,
-    framedQuantity,
-    subtotalMinor,
-  });
+  const shippingMinor = items.some((item) => item.kind === "mail-club")
+    ? 0
+    : calculateCheckoutShipping({ market, printQuantity, framedQuantity, subtotalMinor });
   return {
     market,
     currency,
@@ -956,11 +958,11 @@ adminCheckoutRouter.get("/discount-codes", async (_req, res) => {
   ]);
   const settings = settingsResult.rows[0]?.payload || {};
   const products = [
-    ...(settings.printProducts || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Untitled print", kind: product.category === "aceo" ? "ACEO" : "Print" })),
-    ...(settings.originalProducts || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Untitled original", kind: "Original" })),
-    ...(settings.readyMadePalettes || []).map((product: any) => ({ id: product.id, name: product.name || product.title || "Watercolour palette", kind: "Ready-made palette" })),
-    ...(settings.mailClubEditions || []).map((product: any) => ({ id: product.id, name: product.title || product.name || "Mail Club", kind: "Mail Club" })),
-    ...(settings.paletteSettings?.enabled ? [{ id: "custom-palette", name: "Custom Watercolor Palette", kind: "Custom palette" }] : []),
+    ...(settings.printProducts || []).map((product: any) => ({ id: product.id, selectionId: discountProductRef(product.category === "aceo" ? "aceo" : "print", product.id), entityType: product.category === "aceo" ? "aceo" : "print", name: product.name || product.title || "Untitled print", kind: product.category === "aceo" ? "ACEO" : "Print" })),
+    ...(settings.originalProducts || []).map((product: any) => ({ id: product.id, selectionId: discountProductRef("original", product.id), entityType: "original", name: product.name || product.title || "Untitled original", kind: "Original" })),
+    ...(settings.readyMadePalettes || []).map((product: any) => ({ id: product.id, selectionId: discountProductRef("ready-palette", product.id), entityType: "ready_palette", name: product.name || product.title || "Watercolour palette", kind: "Ready-made palette" })),
+    ...(settings.mailClubEditions || []).map((product: any) => ({ id: product.id, selectionId: discountProductRef("mail-club", product.id), entityType: "mail_club", name: product.title || product.name || "Mail Club", kind: "Mail Club" })),
+    ...(settings.paletteSettings?.enabled ? [{ id: "custom-palette", selectionId: discountProductRef("custom-palette", "custom-palette"), entityType: "custom_palette", name: "Custom Watercolor Palette", kind: "Custom palette" }] : []),
   ];
   return res.json({ discountCodes: result.rows, products });
 });

@@ -57,6 +57,8 @@ const discountCopy = {
     limit_reached: "That discount code has reached its usage limit.",
     not_turkiye:
       "Discount codes are currently available for Türkiye orders only.",
+    not_applicable:
+      "This code doesn't apply to the items currently in your basket.",
     network: "We couldn't check that code right now. Please try again.",
     shippingRemaining: "more for free shipping",
     shippingUnlocked: "Free shipping unlocked",
@@ -83,6 +85,7 @@ const discountCopy = {
     limit_reached: "Bu indirim kodunun kullanım sınırına ulaşıldı.",
     not_turkiye:
       "İndirim kodları şu anda yalnızca Türkiye siparişlerinde kullanılabilir.",
+    not_applicable: "Bu kod sepetindeki ürünler için geçerli değil.",
     network: "Bu kodu şu anda kontrol edemedik. Lütfen tekrar dene.",
     shippingRemaining: "daha ekle, kargon ücretsiz olsun",
     shippingUnlocked: "Ücretsiz kargo kazandınız",
@@ -205,9 +208,12 @@ export default function CartDrawer({
     );
   }, 0);
   const productDiscountSavings = Math.max(0, originalProductValue - subtotal);
+  const includesMailClub = cart.some((item) => item.kind === "mail-club");
   const shipping =
     region === "TR"
-      ? calculateTurkiyeOrderShipping(subtotal)
+      ? includesMailClub
+        ? 0
+        : calculateTurkiyeOrderShipping(subtotal)
       : cart.length
         ? 10_000
         : 0;
@@ -737,8 +743,7 @@ export default function CartDrawer({
               className="mt-1 block font-sans text-4xl font-bold leading-none text-green"
             />
           </div>
-          {cart.length > 0 &&
-          unavailableItems.length === 0 ? (
+          {cart.length > 0 && unavailableItems.length === 0 ? (
             <Link
               href={
                 region === "TR"
