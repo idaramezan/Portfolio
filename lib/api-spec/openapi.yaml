@@ -477,7 +477,7 @@ components:
         source:
           type: string
           enum:
-            [homepage, turkiye-shop, international-shop, mystery-mail, footer]
+            [homepage, turkiye-shop, international-shop, footer]
         subscribedAt:
           type: string
           format: date-time

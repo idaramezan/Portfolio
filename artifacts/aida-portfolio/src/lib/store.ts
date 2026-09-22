@@ -1,4 +1,4 @@
-import { assetImages, mysteryMailCoverImage } from "@/lib/assets";
+import { assetImages } from "@/lib/assets";
 import { trackAnalytics } from "@/lib/analytics";
 import {
   ACEO_DIMENSION,
@@ -48,7 +48,6 @@ export type ProductKind =
   | "original"
   | "aceo"
   | "print"
-  | "studio-mail"
   | "custom-palette"
   | "ready-palette"
   | "mail-club"
@@ -354,7 +353,7 @@ export function getCartItemDisplayName(
 ) {
   const configured = item.title?.trim() || item.metadata?.editionTitle?.trim();
   if (configured) return configured;
-  if (item.kind === "mail-club" || item.kind === "studio-mail") return "Mail Club";
+  if (item.kind === "mail-club") return "Mail Club";
   if (item.kind === "custom-palette") return "Custom Palette";
   if (item.kind === "ready-palette") return "Watercolour Palette";
   if (item.kind === "original") return "Original Artwork";
@@ -379,46 +378,6 @@ const STATUS_MIGRATION_BACKUP_KEY =
 const PRINT_PRICING_BACKUP_KEY =
   "aida-shop-settings-backup-before-print-pricing-v4";
 const PRINT_PRICING_REPORT_KEY = "aida-print-pricing-migration-report-v4";
-
-const defaultMail: StudioMailPackage = {
-  id: "studio-mail-first-edition",
-  slug: "first-edition",
-  title: "Mystery Mail: First Edition",
-  titleTr: "Gizemli Posta: İlk Edisyon",
-  theme: "Studio Notes",
-  shortDescription:
-    "A limited themed parcel with an art postcard, handwritten note, stickers, and studio keepsakes.",
-  shortDescriptionTr:
-    "Sanat kartı, el yazısı not, çıkartmalar ve stüdyo hatıraları içeren sınırlı temalı bir paket.",
-  fullDescription:
-    "A small collection of paper pieces prepared and packed by Aida in the studio.",
-  coverImage: assetImages[13],
-  galleryImages: [assetImages[13], assetImages[14]],
-  contents: [
-    "One art postcard",
-    "One handwritten note",
-    "Studio stickers",
-    "Small curated extras",
-  ],
-  priceUsdCents: 70000,
-  priceCurrency: "TRY",
-  priceMinor: 70000,
-  inventory: 8,
-  lowStockThreshold: 4,
-  showExactInventory: true,
-  status: "published",
-  featured: true,
-  displayOrder: 1,
-  shippingCountries: ["TR"],
-  shippingNote: "Delivery within Türkiye only",
-  dispatchTime: "Confirmed after order review",
-  expiresAt: "2026-12-31T20:59:00.000Z",
-  timezone: "Europe/Istanbul",
-  maximumQuantity: 2,
-  includesExclusivePrint: true,
-  includesStickers: true,
-  mysteryItemsNote: "Other mystery studio items",
-};
 
 export function getDefaultSettings(): ShopSettings {
   return {
@@ -563,10 +522,9 @@ export function getDefaultSettings(): ShopSettings {
         availableInternationally: true,
       },
     ],
-    studioMailPackages: [defaultMail],
+    studioMailPackages: [],
     mysteryMail: {
-      storefrontMode: "active-edition",
-      activeEditionId: defaultMail.id,
+      storefrontMode: "not-available-yet",
       emptyState: DEFAULT_MYSTERY_MAIL_EMPTY_STATE,
     },
     siteLinks: {
@@ -1171,7 +1129,12 @@ export function loadCart(
       raw = localStorage.getItem(LEGACY_CART_STORAGE_KEY);
       if (raw) localStorage.setItem(CART_STORAGE_KEYS.TR, raw);
     }
-    const cart: CartItem[] = raw ? JSON.parse(raw) : [];
+    const storedItems = raw
+      ? (JSON.parse(raw) as Array<Record<string, unknown>>)
+      : [];
+    const cart = storedItems.filter(
+      (item) => item.kind !== "studio-mail",
+    ) as unknown as CartItem[];
     const settings = loadShopSettings();
     return cart.map((item) => {
       const originalId = item.id.startsWith("original-")
@@ -1196,7 +1159,7 @@ export function loadCart(
               ? settings.printProducts.find(
                   (entry) => entry.id === (printId || aceoId),
                 )
-              : settings.studioMailPackages.find((entry) => entry.id === item.id);
+              : undefined;
       if (!product) return item;
       const refreshed = {
         ...item,
@@ -1204,7 +1167,7 @@ export function loadCart(
           ("name" in product ? product.name : product.title) ||
           getCartItemDisplayName(item),
         imageUrl:
-          "imageUrl" in product ? product.imageUrl : mysteryMailCoverImage,
+          "imageUrl" in product ? product.imageUrl : product.coverImage,
       };
       const pricing = getCanonicalCartItemPricing(refreshed, settings);
       if (!pricing) return refreshed;
@@ -1308,9 +1271,7 @@ export function addItemToCart(
       ? "mail_club_added_to_basket"
       : item.kind === "ready-palette"
         ? "ready_palette_added_to_basket"
-        : item.kind === "studio-mail"
-          ? "mystery_mail_added_to_basket"
-          : "add_to_basket",
+        : "add_to_basket",
     {
       entityType: item.kind,
       entityId: item.id.split(":")[0],
@@ -1324,27 +1285,6 @@ export function addItemToCart(
     },
   );
   return { ok: true };
-}
-
-export function isMysteryMailCartItemAvailable(
-  item: CartItem,
-  settings: ShopSettings = loadShopSettings(),
-  now = Date.now(),
-) {
-  if (item.kind !== "studio-mail") return true;
-  const editionId = item.id.split(":")[0];
-  const edition = settings.studioMailPackages.find(
-    (entry) => entry.id === editionId,
-  );
-  return Boolean(
-    settings.mysteryMail.storefrontMode === "active-edition" &&
-    settings.mysteryMail.activeEditionId === editionId &&
-    edition &&
-    isPurchasable(edition) &&
-    edition.inventory > 0 &&
-    edition.expiresAt &&
-    now < Date.parse(edition.expiresAt),
-  );
 }
 
 export function isCartItemAvailable(
@@ -1381,9 +1321,6 @@ export function isCartItemAvailable(
         (!edition.availabilityEnd || edition.availabilityEnd >= nowIso),
     );
   }
-  if (item.kind === "studio-mail")
-    return isMysteryMailCartItemAvailable(item, settings, now);
-
   const baseItemId = item.id.split(":")[0];
   if (item.kind === "original") {
     const id = baseItemId.replace(/^original-/, "");

@@ -219,10 +219,6 @@ async function ensureSchema() {
     `CREATE TABLE IF NOT EXISTS checkout_order_status_history (id UUID PRIMARY KEY, order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE, previous_status TEXT, new_status TEXT NOT NULL, changed_by_admin_id TEXT, internal_note TEXT, customer_notified BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
   );
   await pool.query(
-    `CREATE TABLE IF NOT EXISTS international_original_requests (id UUID PRIMARY KEY, request_number TEXT UNIQUE NOT NULL, product_id TEXT NOT NULL, product_name TEXT NOT NULL, customer_name TEXT NOT NULL, customer_email TEXT NOT NULL, country_code TEXT NOT NULL, country_name TEXT NOT NULL, city TEXT NOT NULL, phone TEXT, message TEXT, status TEXT NOT NULL DEFAULT 'new', admin_note TEXT, customer_language TEXT NOT NULL DEFAULT 'en', submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
-  );
-  await pool.query(`CREATE SEQUENCE IF NOT EXISTS original_request_number_seq`);
-  await pool.query(
     `CREATE SEQUENCE IF NOT EXISTS event_application_number_seq`,
   );
   await pool.query(
@@ -848,95 +844,6 @@ publicRouter.get("/orders/:number", limited, async (req, res) => {
     return res.status(500).json({ error: "Order could not be loaded" });
   }
 });
-publicRouter.post("/original-requests", limited, async (req, res) => {
-  try {
-    await ensureSchema();
-    const b = req.body || {},
-      productId = clean(b.productId, 120),
-      name = clean(b.fullName, 120),
-      email = clean(b.email, 254).toLowerCase(),
-      countryCode = clean(b.countryCode, 2).toUpperCase(),
-      countryName = clean(b.countryName, 120),
-      city = clean(b.city, 120),
-      phone = clean(b.phone, 30),
-      message = clean(b.message, 2000);
-    if (
-      !productId ||
-      !name ||
-      !emailValid(email) ||
-      !countryCode ||
-      !countryName ||
-      !city
-    )
-      return res
-        .status(400)
-        .json({ error: "Complete all required delivery request fields." });
-    if (countryCode === "TR" || countryCode === "US")
-      return res.status(400).json({
-        error:
-          "International delivery requests are not available for this destination.",
-      });
-    const settings = (
-      await pool.query("SELECT payload FROM shop_settings WHERE id='primary'")
-    ).rows[0]?.payload;
-    const product = settings?.originalProducts?.find(
-      (item: any) => item.id === productId,
-    );
-    if (
-      !product ||
-      ["sold", "sold_out", "archived", "draft"].includes(product.status) ||
-      product.available === false
-    )
-      return res
-        .status(409)
-        .json({ error: "This original is no longer available." });
-    const sequence = await pool.query(
-        "SELECT nextval('original_request_number_seq') value",
-      ),
-      number = `OR-${new Date().getFullYear()}-${String(sequence.rows[0].value).padStart(6, "0")}`,
-      id = randomUUID();
-    await pool.query(
-      `INSERT INTO international_original_requests(id,request_number,product_id,product_name,customer_name,customer_email,country_code,country_name,city,phone,message,customer_language) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-      [
-        id,
-        number,
-        product.id,
-        product.name,
-        name,
-        email,
-        countryCode,
-        countryName,
-        city,
-        phone || null,
-        message || null,
-        b.language === "tr" ? "tr" : "en",
-      ],
-    );
-    void sendEmail({
-      to: email,
-      subject: `We received your original delivery request | ${number}`,
-      html: emailShell(
-        `<h1>Your request is in</h1><p>Aida will confirm availability and delivery details for <strong>${escapeHtml(product.name)}</strong> by email before you make any payment.</p><p>Request: ${escapeHtml(number)}</p>`,
-      ),
-    }).catch(() => {});
-    void sendEmail({
-      to: process.env.ORDER_NOTIFICATION_EMAIL || OWNER_EMAIL,
-      subject: `New original delivery request | ${number}`,
-      html: emailShell(
-        `<h1>New original request</h1><p><strong>${escapeHtml(product.name)}</strong></p><p>${escapeHtml(name)} · ${escapeHtml(email)} · ${escapeHtml(countryName)} · ${escapeHtml(city)}</p><p>${escapeHtml(message)}</p><p><a href="${escapeHtml((process.env.PUBLIC_SITE_URL || "https://www.aedaart.com") + "/admin/original-requests")}">Open Original Requests</a></p>`,
-      ),
-    }).catch(() => {});
-    return res.status(201).json({ requestNumber: number });
-  } catch (error) {
-    return res.status(400).json({
-      error:
-        error instanceof Error
-          ? error.message
-          : "Delivery request could not be sent.",
-    });
-  }
-});
-
 publicRouter.get("/events/:id", limited, async (req, res) => {
   await ensureSchema();
   const result = await pool.query(
@@ -1190,31 +1097,6 @@ adminCheckoutRouter.get("/orders", async (_req, res) => {
     `SELECT o.*,COALESCE(json_agg(i.*) FILTER (WHERE i.id IS NOT NULL),'[]') items FROM checkout_orders o LEFT JOIN checkout_order_items i ON i.order_id=o.id GROUP BY o.id ORDER BY o.created_at DESC`,
   );
   res.json({ orders: result.rows });
-});
-adminCheckoutRouter.get("/original-requests", async (_req, res) => {
-  await ensureSchema();
-  res.json({
-    requests: (
-      await pool.query(
-        "SELECT * FROM international_original_requests ORDER BY submitted_at DESC",
-      )
-    ).rows,
-  });
-});
-adminCheckoutRouter.patch("/original-requests/:id", async (req, res) => {
-  await ensureSchema();
-  const status = clean(req.body?.status, 20);
-  if (
-    !["new", "contacted", "approved", "completed", "declined"].includes(status)
-  )
-    return res.status(400).json({ error: "Invalid request status" });
-  const result = await pool.query(
-    "UPDATE international_original_requests SET status=$1,admin_note=$2,updated_at=NOW() WHERE id=$3 RETURNING *",
-    [status, clean(req.body?.adminNote, 1000) || null, req.params.id],
-  );
-  if (!result.rows[0])
-    return res.status(404).json({ error: "Request not found" });
-  return res.json({ request: result.rows[0] });
 });
 adminCheckoutRouter.get("/orders/:id/receipt", async (req, res) => {
   const result = await pool.query(

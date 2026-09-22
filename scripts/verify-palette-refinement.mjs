@@ -30,13 +30,6 @@ const consent = readFileSync(
   ),
   "utf8",
 );
-const video = readFileSync(
-  new URL(
-    "../artifacts/aida-portfolio/src/components/OriginalCollectorExperience.tsx",
-    import.meta.url,
-  ),
-  "utf8",
-);
 
 for (const [token, value] of [
   ["--page-bg", "#fbf6ec"],
@@ -70,13 +63,9 @@ assert.ok(
 );
 assert.ok(
   home.includes('href="/shop"') &&
-    home.includes('href="/100-windows"') &&
-    home.includes("home-category-link__content") &&
-    home.includes("originalsCoverImage") &&
-    home.includes("printsCoverImage") &&
-    !home.includes("studioMailCoverImage") &&
+    home.includes("<HomeCommerce />") &&
     !home.includes("hasActiveShoppingRegionPreference"),
-  "homepage must provide one shop path and image-led category navigation once",
+  "homepage must provide the unified shop path and commerce sections",
 );
 assert.ok(
   !home.includes("home-turkiye-flag.jpg") &&
@@ -105,13 +94,6 @@ assert.ok(
   "event CTA, image, and short title must remain visible",
 );
 assert.ok(
-  home.includes('title: "Original Art"') &&
-    home.includes('title: "100 Windows"') &&
-    home.includes("home-category-link__number") &&
-    !home.includes("Studio collection"),
-  "category navigation must provide compact image-led paths",
-);
-assert.ok(
   !baseCss.includes(".home-market-action span {\n  grid-column: 1") &&
     !baseCss.includes(".home-market-action svg {\n  position: absolute") &&
     css.includes("grid-template-columns: 112px minmax(0, 1fr) 28px"),
@@ -122,10 +104,6 @@ assert.ok(
     css.includes(".international-product-card") &&
     css.includes("margin-top: auto"),
   "product cards must have defined equal-height surfaces and bottom-aligned actions",
-);
-assert.ok(
-  video.includes("video.pause()") && video.includes("mediaInView"),
-  "native packaging video must pause off-screen",
 );
 assert.ok(
   css.includes('[id^="smartlook-feedback"]'),

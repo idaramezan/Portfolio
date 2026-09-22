@@ -207,14 +207,6 @@ export default function CampaignComposer() {
   const products = [
     ...shopSettings.originalProducts,
     ...shopSettings.printProducts,
-    ...shopSettings.studioMailPackages.map((product) => ({
-      ...product,
-      name: product.title,
-      description: product.shortDescription,
-      imageUrl: product.coverImage,
-      available: product.status === "published" && product.inventory > 0,
-      kind: "studio-mail" as const,
-    })),
   ].filter((product) => !["draft", "archived"].includes(product.status));
   const password = sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
   const [subject, setSubject] = useState("A note from Aida’s studio");

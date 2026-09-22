@@ -244,10 +244,6 @@ export default function CartDrawer({
           product.category === "aceo" &&
           product.id === baseId.replace(/^aceo-/, ""),
       );
-    if (item.kind === "studio-mail")
-      return settings.studioMailPackages.some(
-        (edition) => edition.id === baseId,
-      );
     const productId = baseId
       .replace(/^print-product-/, "")
       .replace(/^product-/, "");
@@ -269,7 +265,6 @@ export default function CartDrawer({
             "custom-palette": "Kişiye özel palet",
             "ready-palette": "Hazır palet",
             "mail-club": "Mail Club",
-            "studio-mail": "Mystery Mail",
           }
         : {
             print: "Signed print",
@@ -279,7 +274,6 @@ export default function CartDrawer({
             "custom-palette": "Custom palette",
             "ready-palette": "Ready-made palette",
             "mail-club": "Mail Club",
-            "studio-mail": "Mystery Mail",
           };
     return labels[item.kind] || item.subtitle || "";
   };
@@ -744,8 +738,7 @@ export default function CartDrawer({
             />
           </div>
           {cart.length > 0 &&
-          unavailableItems.length === 0 &&
-          !cart.some((item) => item.kind === "studio-mail") ? (
+          unavailableItems.length === 0 ? (
             <Link
               href={
                 region === "TR"

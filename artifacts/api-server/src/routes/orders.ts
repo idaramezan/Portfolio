@@ -7,7 +7,7 @@ const ORDER_STATUSES = ["order_placed", "packing", "shipping", "cancelled", "ret
 const SHIPPING_STATUSES = ["customer_side", "customer_in_order", "paid_by_me"] as const;
 
 type OrderStatus = (typeof ORDER_STATUSES)[number];
-type RequestedItem = { productId: string; kind: "original" | "print" | "studio-mail"; quantity: number };
+type RequestedItem = { productId: string; kind: "original" | "print"; quantity: number };
 type StoredItem = RequestedItem & { name: string; unitPriceMinor: number; currency: string; lineTotalMinor: number };
 
 async function ensureTable() {
@@ -99,7 +99,6 @@ router.post("/", async (request, response) => {
     const catalogs = {
       original: settings.originalProducts ?? [],
       print: settings.printProducts ?? [],
-      "studio-mail": settings.studioMailPackages ?? [],
     } as Record<string, any[]>;
     const seenOriginals = new Set<string>();
     const items: StoredItem[] = requestedItems.map((requested) => {

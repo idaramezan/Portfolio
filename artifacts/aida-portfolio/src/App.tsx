@@ -9,7 +9,6 @@ import Shell from "@/components/layout/Shell";
 import Home from "@/pages/Home";
 import Gallery from "@/pages/Gallery";
 import About from "@/pages/About";
-import HowToCollect from "@/pages/HowToCollect";
 import { CurrencyProvider } from "@/lib/currency";
 import { LocaleProvider } from "@/lib/locale";
 import Links from "@/pages/Links";
@@ -27,26 +26,10 @@ import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
 import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
-import { GALLERY_PREVIEW_PATH } from "@/lib/visual-gallery";
 import CustomPalette from "@/pages/CustomPalette";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
-const VisualGallery = lazy(() => import("@/pages/VisualGallery"));
-
-function GalleryPreviewRoute() {
-  return (
-    <Suspense
-      fallback={
-        <main className="gallery-3d-shell gallery-3d-empty">
-          Preparing the room…
-        </main>
-      }
-    >
-      <VisualGallery />
-    </Suspense>
-  );
-}
 
 function AdminRoute() {
   return (
@@ -74,7 +57,6 @@ function Router() {
       <Route path="/admin/*" component={AdminRoute} />
       <Route path="/admin" component={AdminRoute} />
       <Route path="/links" component={Links} />
-      <Route path={GALLERY_PREVIEW_PATH} component={GalleryPreviewRoute} />
       <Route>
         <Shell>
           <Switch>
@@ -91,12 +73,6 @@ function Router() {
             </Route>
             <Route path="/shop/turkiye/prints">
               <RedirectTo to="/shop?category=prints" />
-            </Route>
-            <Route path="/shop/turkiye/mystery-mail">
-              <RedirectTo to="/shop" />
-            </Route>
-            <Route path="/shop/turkiye/studio-mail">
-              <RedirectTo to="/shop" />
             </Route>
             <Route path="/shop/turkiye">
               <RedirectTo to="/shop" />
@@ -125,9 +101,6 @@ function Router() {
               path="/shop/fourthwall/:slug"
               component={FourthwallProductDetail}
             />
-            <Route path="/shop/mystery-mail">
-              <RedirectTo to="/shop" />
-            </Route>
             <Route path="/originals">
               <RedirectTo to="/shop?category=originals" />
             </Route>
@@ -136,12 +109,6 @@ function Router() {
             </Route>
             <Route path="/prints">
               <RedirectTo to="/shop?category=prints" />
-            </Route>
-            <Route path="/studio-mail">
-              <RedirectTo to="/" />
-            </Route>
-            <Route path="/studio-mail/:slug">
-              <RedirectTo to="/shop" />
             </Route>
             <Route path="/basket/turkiye">
               <RedirectTo to="/shop/turkiye" />
@@ -155,7 +122,6 @@ function Router() {
             <Route path="/cart">
               <RedirectTo to="/shop/turkiye" />
             </Route>
-            <Route path="/how-to-collect" component={HowToCollect} />
             <Route path="/about" component={About} />
             <Route path="/newsletter">
               <RedirectTo to="/" />

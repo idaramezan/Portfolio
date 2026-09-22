@@ -14,13 +14,10 @@ import EventRegistrations from "@/pages/admin/EventRegistrations";
 import EventBanner from "@/pages/admin/EventBanner";
 import EventsAdmin, { EventReviewsAdmin } from "@/pages/admin/Events";
 import HundredWindowsAdmin from "@/pages/admin/HundredWindows";
-import OriginalRequests from "@/pages/admin/OriginalRequests";
-import CollectorExperience from "@/pages/admin/CollectorExperience";
 import Analytics from "@/pages/admin/Analytics";
 import DiscountCodes from "@/pages/admin/DiscountCodes";
 import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
-import VisualGalleryAdmin from "@/pages/admin/VisualGallery";
 import CommerceCollections from "@/pages/admin/CommerceCollections";
 import PaletteEditor from "@/pages/admin/PaletteEditor";
 
@@ -134,22 +131,17 @@ export default function Admin() {
       </main>
     );
   const editor = location.match(
-    /^\/admin\/(originals|prints|studio-mail|mystery-mail)\/(new|[^/]+)$/,
+    /^\/admin\/(originals|prints)\/(new|[^/]+)$/,
   );
   if (editor)
     return (
       <ProductEditor
-        kind={
-          (editor[1] === "mystery-mail" ? "studio-mail" : editor[1]) as
-            "originals" | "prints" | "studio-mail"
-        }
+        kind={editor[1] as "originals" | "prints"}
       />
     );
   if (location === "/admin/originals") return <Catalog kind="originals" />;
   if (location === "/admin/prints") return <Catalog kind="prints" />;
   if (location === "/admin/products") return <Catalog kind="prints" />;
-  if (location === "/admin/mystery-mail") return <Catalog kind="studio-mail" />;
-  if (location === "/admin/studio-mail") return <Catalog kind="studio-mail" />;
   if (location === "/admin/inventory") return <Inventory />;
   const paletteEditor = location.match(/^\/admin\/palettes\/(new|[^/]+)$/);
   if (paletteEditor) return <PaletteEditor id={paletteEditor[1]} />;
@@ -158,7 +150,6 @@ export default function Admin() {
   if (location === "/admin/animation-merch") return <CommerceCollections section="animation-merch" />;
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/discount-codes") return <DiscountCodes />;
-  if (location === "/admin/original-requests") return <OriginalRequests />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;
   if (location === "/admin/subscribers/featured-letter")
     return <FeaturedStudioLetter />;
@@ -170,10 +161,6 @@ export default function Admin() {
   if (location === "/admin/marketing/event-banner") return <EventBanner />;
   if (location === "/admin/marketing/100-windows")
     return <HundredWindowsAdmin />;
-  if (location === "/admin/marketing/visual-gallery")
-    return <VisualGalleryAdmin />;
-  if (location === "/admin/marketing/collector-experience")
-    return <CollectorExperience />;
   if (location === "/admin/sticker-drop") return <StickerDropList />;
   const stickerDrop = location.match(/^\/admin\/sticker-drop\/(new|[^/]+)$/);
   if (stickerDrop) return <StickerDropEditor id={stickerDrop[1]} />;

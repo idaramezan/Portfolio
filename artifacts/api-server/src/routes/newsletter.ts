@@ -430,7 +430,6 @@ async function productCatalog() {
   return [
     ...(settings.originalProducts || []),
     ...(settings.printProducts || []),
-    ...(settings.studioMailPackages || []),
   ];
 }
 
@@ -1768,7 +1767,6 @@ router.post("/", async (req, res) => {
       "homepage",
       "turkiye-shop",
       "international-shop",
-      "mystery-mail",
       "newsletter-page",
       "studio-letter-page",
       "istanbul-painting-day-august-2026",

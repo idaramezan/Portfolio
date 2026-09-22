@@ -14,7 +14,6 @@ export interface NewsletterInput {
     | "homepage"
     | "turkiye-shop"
     | "international-shop"
-    | "mystery-mail"
     | "footer";
   subscribedAt?: string;
 }

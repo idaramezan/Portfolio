@@ -25,7 +25,7 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 
-app.get(["/studio-letter", "/studio-mail"], (request, response) => {
+app.get("/studio-letter", (request, response) => {
   const queryIndex = request.originalUrl.indexOf("?");
   const query = queryIndex >= 0 ? request.originalUrl.slice(queryIndex) : "";
   return response.redirect(301, `/newsletter${query}`);

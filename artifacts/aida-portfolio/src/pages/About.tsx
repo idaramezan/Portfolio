@@ -207,9 +207,6 @@ export default function About() {
                 View available originals <ArrowRight size={16} />
               </Link>
             )}
-            <Link href="/how-to-collect" className="button-secondary">
-              How to start a collection <ArrowRight size={16} />
-            </Link>
           </div>
         </div>
       </section>

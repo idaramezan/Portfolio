@@ -15,12 +15,8 @@ import img0299 from "@assets/optimized/IMG_0299_1784324425757-1400.jpg";
 import img0592 from "@assets/optimized/IMG_0592_1784393730538-1400.jpg";
 import img0593 from "@assets/optimized/IMG_0593_1784393730539-1400.jpg";
 import img0594 from "@assets/optimized/IMG_0594_1784393730539-1400.jpg";
-import studioMailPacking from "@assets/optimized/studio-mail-packing-1400.jpg";
-import studioMailPackingSmall from "@assets/optimized/studio-mail-packing-800.jpg";
 import originalsSharedCover from "@assets/optimized/originals-shared-cover-1400.jpg";
 import originalsSharedCoverSmall from "@assets/optimized/originals-shared-cover-800.jpg";
-import homeStudioMailPackaging from "@assets/optimized/home-studio-mail-packaging-1400.jpg";
-import homeStudioMailPackagingSmall from "@assets/optimized/home-studio-mail-packaging-800.jpg";
 import homeAboutArtist from "@assets/optimized/home-about-artist-1400.jpg";
 import homeAboutArtistSmall from "@assets/optimized/home-about-artist-800.jpg";
 import aboutPaintingVideo from "@assets/about-painting-process.m4v?url";
@@ -30,18 +26,13 @@ import sharedArtistHero from "@assets/optimized/shared-artist-hero-1400.jpg";
 import sharedArtistHeroSmall from "@assets/optimized/shared-artist-hero-800.jpg";
 import homeSignedPrints from "@assets/optimized/home-signed-prints-1400.jpg";
 import homeSignedPrintsSmall from "@assets/optimized/home-signed-prints-800.jpg";
-import mysteryMailCover from "@assets/optimized/mystery-mail-cover-1400.jpg";
-import mysteryMailCoverSmall from "@assets/optimized/mystery-mail-cover-800.jpg";
 
 const responsiveSources = new Map<string, string>([
-  [studioMailPacking, `${studioMailPackingSmall} 800w, ${studioMailPacking} 1400w`],
   [originalsSharedCover, `${originalsSharedCoverSmall} 800w, ${originalsSharedCover} 1400w`],
-  [homeStudioMailPackaging, `${homeStudioMailPackagingSmall} 800w, ${homeStudioMailPackaging} 1400w`],
   [homeAboutArtist, `${homeAboutArtistSmall} 800w, ${homeAboutArtist} 1400w`],
   [aboutPaintingVideoPoster, `${aboutPaintingVideoPosterSmall} 800w, ${aboutPaintingVideoPoster} 1400w`],
   [sharedArtistHero, `${sharedArtistHeroSmall} 800w, ${sharedArtistHero} 1400w`],
   [homeSignedPrints, `${homeSignedPrintsSmall} 800w, ${homeSignedPrints} 1400w`],
-  [mysteryMailCover, `${mysteryMailCoverSmall} 800w, ${mysteryMailCover} 1400w`],
 ]);
 
 export const getResponsiveImageSrcSet = (src: string) => responsiveSources.get(src);
@@ -87,12 +78,9 @@ export const getArtworkImage = (artwork: any, index: number): string => {
 
 export const heroImage = img0556;
 export const portrait = aidaPortrait;
-export const studioMailImage = studioMailPacking;
 export const originalsCoverImage = originalsSharedCover;
 export const printsCoverImage = homeSignedPrints;
-export const studioMailCoverImage = homeStudioMailPackaging;
 export const homeAboutImage = homeAboutArtist;
 export const paintingVideo = aboutPaintingVideo;
 export const paintingVideoPoster = aboutPaintingVideoPoster;
 export const heroPortrait = sharedArtistHero;
-export const mysteryMailCoverImage = mysteryMailCover;

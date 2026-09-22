@@ -10,7 +10,7 @@ import { compareProductDisplayOrder } from "@/lib/product-order";
 export default function Catalog({
   kind,
 }: {
-  kind: "originals" | "prints" | "studio-mail";
+  kind: "originals" | "prints";
 }) {
   const [settings, setSettings] = useState(productRepository.getSettings());
   const [search, setSearch] = useState("");
@@ -25,12 +25,8 @@ export default function Catalog({
   const [orderBusy, setOrderBusy] = useState(false);
   const [orderMessage, setOrderMessage] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
-  const isMail = kind === "studio-mail";
-  const raw: any[] = isMail
-    ? settings.studioMailPackages
-    : kind === "prints"
-      ? settings.printProducts
-      : settings.originalProducts;
+  const raw: any[] =
+    kind === "prints" ? settings.printProducts : settings.originalProducts;
   const rows = useMemo(
     () =>
       raw
@@ -116,25 +112,18 @@ export default function Catalog({
     };
   }, []);
   const archive = (id: string) => {
-    const next = isMail
-      ? {
-          ...settings,
-          studioMailPackages: settings.studioMailPackages.map((x) =>
-            x.id === id ? { ...x, status: "archived" as const } : x,
-          ),
-        }
-      : {
-          ...settings,
-          [kind === "prints" ? "printProducts" : "originalProducts"]: (kind ===
-          "prints"
-            ? settings.printProducts
-            : settings.originalProducts
-          ).map((x) =>
-            x.id === id
-              ? { ...x, status: "archived" as const, available: false }
-              : x,
-          ),
-        };
+    const next = {
+      ...settings,
+      [kind === "prints" ? "printProducts" : "originalProducts"]: (kind ===
+      "prints"
+        ? settings.printProducts
+        : settings.originalProducts
+      ).map((x) =>
+        x.id === id
+          ? { ...x, status: "archived" as const, available: false }
+          : x,
+      ),
+    };
     setSettings(next);
     productRepository.replaceSettings(next);
   };
@@ -205,16 +194,10 @@ export default function Catalog({
   };
   return (
     <AdminLayout
-      title={
-        isMail
-          ? "Mystery Mail"
-          : kind === "prints"
-            ? "Prints & Goods"
-            : "Originals"
-      }
+      title={kind === "prints" ? "Prints & Goods" : "Originals"}
       actions={
         <Link
-          href={`/admin/${isMail ? "mystery-mail" : kind}/new`}
+          href={`/admin/${kind}/new`}
           className="button-primary"
         >
           Add new
@@ -342,7 +325,7 @@ export default function Catalog({
             <span>Product</span>
             <span>Status</span>
             <span>{kind === "originals" ? "USD price" : "TRY price"}</span>
-            <span>{isMail ? "Inventory" : "Availability"}</span>
+            <span>Availability</span>
             <span>Actions</span>
           </div>
           {rows.map((x) => {
@@ -377,9 +360,7 @@ export default function Catalog({
                 <div>
                   <h2 className="font-semibold">{title}</h2>
                   <p className="text-xs text-ink/45">
-                    {isMail
-                      ? x.theme
-                      : kind === "prints"
+                    {kind === "prints"
                         ? x.category === "aceo"
                           ? `ACEO · ${x.inventory > 0 ? "1 available" : "SOLD"}`
                           : `${x.category === "tshirt" ? "T-shirt" : x.category === "mug" ? "Mug" : x.category === "sticker" ? "Sticker" : "Print"} · ${x.category === "tshirt" ? (x.tshirtOptions?.availableColors || []).map((color: string) => color[0].toUpperCase() + color.slice(1)).join(", ") : x.category === "mug" ? "White" : x.category === "sticker" ? x.stickerOptions?.formatDescription || "Single configuration" : `${x.printOptions?.sizes?.length || 0} sizes · ${x.printOptions?.framing?.framedAvailable && x.printOptions?.framing?.unframedAvailable ? "Framed or unframed" : x.printOptions?.framing?.framedAvailable ? "Framed" : "Unframed"}`}`
@@ -396,11 +377,7 @@ export default function Catalog({
                   )}
                 </span>
                 <span className="text-sm">
-                  {isMail
-                    ? x.inventory
-                    : x.available
-                      ? "Available"
-                      : "Unavailable"}
+                  {x.available ? "Available" : "Unavailable"}
                 </span>
                 <div className="flex gap-2">
                   {kind === "prints" && (
@@ -439,7 +416,7 @@ export default function Catalog({
                     </div>
                   )}
                   <Link
-                    href={`/admin/${isMail ? "mystery-mail" : kind}/${x.id}`}
+                    href={`/admin/${kind}/${x.id}`}
                     className="min-h-10 px-2 py-2 text-sm font-semibold underline"
                   >
                     Edit
@@ -454,9 +431,7 @@ export default function Catalog({
                     <div className="absolute right-0 z-20 w-40 border border-ink/10 bg-paper p-1 shadow-xl">
                       <a
                         href={
-                          isMail
-                            ? "/shop/turkiye/mystery-mail"
-                            : kind === "prints"
+                          kind === "prints"
                               ? x.category === "aceo"
                                 ? `/shop/aceos/${x.slug || x.id}`
                                 : "/shop?category=prints"
@@ -505,14 +480,7 @@ export default function Catalog({
                                       ? "draft"
                                       : "available",
                                 }
-                              : isMail
-                                ? {
-                                    status:
-                                      x.status === "published"
-                                        ? "draft"
-                                        : "published",
-                                  }
-                                : {
+                              : {
                                     available: x.status !== "published",
                                     status:
                                       x.status === "published"

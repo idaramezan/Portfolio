@@ -54,68 +54,6 @@ export default function Inventory() {
             </div>
           </div>
         ))}
-        {s.studioMailPackages.map((x) => (
-          <div
-            key={x.id}
-            className="grid gap-3 border-b border-ink/10 p-4 md:grid-cols-[1fr_120px_1fr] md:items-center"
-          >
-            <div className="flex items-center gap-3">
-              <img
-                src={x.coverImage}
-                alt=""
-                className="h-12 w-12 object-cover"
-              />
-              <div>
-                <strong>{x.title}</strong>
-                <p className="text-xs text-ink/45">
-                  Mystery Mail · low at {x.lowStockThreshold}
-                </p>
-              </div>
-            </div>
-            <StatusBadge
-              status={
-                x.inventory === 0
-                  ? "sold out"
-                  : x.inventory <= x.lowStockThreshold
-                    ? "low stock"
-                    : x.status
-              }
-            />
-            <div className="flex items-center gap-2 md:justify-end">
-              <button
-                onClick={() =>
-                  save({
-                    ...s,
-                    studioMailPackages: s.studioMailPackages.map((p) =>
-                      p.id === x.id
-                        ? { ...p, inventory: Math.max(0, p.inventory - 1) }
-                        : p,
-                    ),
-                  })
-                }
-                className="h-10 w-10 border"
-              >
-                −
-              </button>
-              <span className="min-w-10 text-center font-bold">
-                {x.inventory}
-              </span>
-              <button
-                onClick={() =>
-                  save({
-                    ...s,
-                    studioMailPackages: s.studioMailPackages.map((p) =>
-                      p.id === x.id ? { ...p, inventory: p.inventory + 1 } : p,
-                    ),
-                  })
-                }
-                className="h-10 w-10 border"
-              >
-                +
-              </button>
-            </div>
-          </div>
-        ))}
       </div>
     </AdminLayout>
   );

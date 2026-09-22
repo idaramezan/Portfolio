@@ -33,10 +33,6 @@ const EVENTS = new Set([
   "newsletter_form_started",
   "newsletter_signup_success",
   "newsletter_signup_failed",
-  "mystery_mail_viewed",
-  "mystery_mail_cta_clicked",
-  "mystery_mail_added_to_basket",
-  "mystery_mail_unavailable_signup_clicked",
   "painting_event_banner_viewed",
   "painting_event_form_started",
   "painting_event_signup_success",
@@ -182,7 +178,7 @@ async function runAnalyticsMaintenance() {
       COUNT(DISTINCT session_id), COUNT(*) FILTER (WHERE event_name='page_view'),
       COUNT(*) FILTER (WHERE event_name='newsletter_signup_success' AND metadata->>'newSubscriber'='true'),
       COUNT(*) FILTER (WHERE event_name='whatsapp_checkout_started'),
-      COUNT(*) FILTER (WHERE event_name IN ('add_to_basket','mystery_mail_added_to_basket')),
+      COUNT(*) FILTER (WHERE event_name='add_to_basket'),
       COUNT(*) FILTER (WHERE event_name='fourthwall_product_clicked')
     FROM analytics_events
     WHERE occurred_at >= CURRENT_DATE - 1 AND occurred_at < CURRENT_DATE
@@ -495,7 +491,7 @@ router.get("/dashboard", requireAdmin, async (req, res) => {
         args,
       ),
       pool.query(
-        `SELECT entity_id, MAX(entity_name) entity_name, MAX(entity_type) entity_type, COUNT(*) FILTER(WHERE event_name='product_view')::int views, COUNT(*) FILTER(WHERE event_name='product_options_opened')::int options, COUNT(*) FILTER(WHERE event_name IN ('add_to_basket','mystery_mail_added_to_basket'))::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE entity_id IS NOT NULL AND occurred_at >= NOW()-make_interval(days => $1::int) GROUP BY entity_id ORDER BY views DESC LIMIT 20`,
+        `SELECT entity_id, MAX(entity_name) entity_name, MAX(entity_type) entity_type, COUNT(*) FILTER(WHERE event_name='product_view')::int views, COUNT(*) FILTER(WHERE event_name='product_options_opened')::int options, COUNT(*) FILTER(WHERE event_name='add_to_basket')::int basket, COUNT(*) FILTER(WHERE event_name='whatsapp_checkout_started')::int whatsapp FROM analytics_events WHERE entity_id IS NOT NULL AND occurred_at >= NOW()-make_interval(days => $1::int) GROUP BY entity_id ORDER BY views DESC LIMIT 20`,
         args,
       ),
       pool.query(

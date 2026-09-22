@@ -6,22 +6,16 @@ import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 export default function Dashboard() {
   const s = productRepository.getSettings();
   const originals = s.originalProducts,
-    prints = s.printProducts,
-    mail = s.studioMailPackages;
-  const drafts =
-    [...originals, ...prints].filter((x) => x.status === "draft").length +
-    mail.filter((x) => x.status === "draft").length;
+    prints = s.printProducts;
+  const drafts = [...originals, ...prints].filter(
+    (x) => x.status === "draft",
+  ).length;
   const attention = [...originals, ...prints]
     .filter((x) => !x.imageUrl || x.priceUsdCents <= 0)
     .map(
       (x) =>
         `${x.name}: ${!x.imageUrl ? "missing image" : "missing USD price"}`,
     );
-  mail
-    .filter(
-      (x) => x.inventory <= x.lowStockThreshold && x.status === "published",
-    )
-    .forEach((x) => attention.push(`${x.title}: low inventory`));
   if (!/^\d{8,15}$/.test(s.whatsapp.number))
     attention.push("WhatsApp number is missing or invalid");
   return (
@@ -69,35 +63,11 @@ export default function Dashboard() {
           </Link>
         ))}
         <StatCard label="Fourthwall prints" value="External" />
-        <Link href="/admin/mystery-mail?status=published">
-          <StatCard
-            label="Active Mystery Mail"
-            value={
-              mail.filter(
-                (x) =>
-                  x.status === "published" &&
-                  Boolean(x.expiresAt) &&
-                  Date.parse(x.expiresAt!) > Date.now() &&
-                  x.inventory !== 0,
-              ).length
-            }
-          />
-        </Link>
         <StatCard label="Draft products" value={drafts} />
         <StatCard
           label="Sold / sold out"
-          value={[...originals, ...prints, ...mail].filter(isSoldOut).length}
+          value={[...originals, ...prints].filter(isSoldOut).length}
         />
-        <Link href="/admin/inventory?filter=low-stock">
-          <StatCard
-            label="Low stock"
-            value={
-              mail.filter(
-                (x) => x.inventory > 0 && x.inventory <= x.lowStockThreshold,
-              ).length
-            }
-          />
-        </Link>
       </section>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_.7fr]">
         <section className="border border-ink/10 bg-paper p-5">
@@ -156,9 +126,6 @@ export default function Dashboard() {
           </Link>
           <Link href="/admin/prints/new" className="button-secondary">
             Add print
-          </Link>
-          <Link href="/admin/mystery-mail/new" className="button-secondary">
-            Add Mystery Mail
           </Link>
           <a href="/" className="button-secondary">
             View storefront

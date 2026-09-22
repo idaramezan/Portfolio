@@ -77,8 +77,7 @@ function isShopSettings(value: unknown): value is Record<string, unknown> {
   return (
     validHundred &&
     Array.isArray(record.printProducts) &&
-    Array.isArray(record.originalProducts) &&
-    Array.isArray(record.studioMailPackages)
+    Array.isArray(record.originalProducts)
   );
 }
 
