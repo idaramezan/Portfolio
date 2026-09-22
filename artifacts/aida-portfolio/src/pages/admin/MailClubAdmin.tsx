@@ -279,9 +279,6 @@ export default function MailClubAdmin({
               />
             </label>
           </div>
-          <div className="mt-6">
-            <SaleEditor regularPriceMinor={edition.priceMinor} currency="TRY" sale={edition.sale} onChange={(sale) => patch({ sale })} />
-          </div>
         </div>
         <div className="admin-card">
           <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
@@ -342,6 +339,14 @@ export default function MailClubAdmin({
                 }
               />
             </label>
+          </div>
+          <div className="mt-6">
+            <SaleEditor
+              regularPriceMinor={edition.priceMinor}
+              currency="TRY"
+              sale={edition.sale}
+              onChange={(sale) => patch({ sale })}
+            />
           </div>
         </div>
       </div>
