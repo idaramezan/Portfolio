@@ -15,7 +15,7 @@ import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useServerNow } from "@/hooks/use-server-now";
 import { trackAnalytics } from "@/lib/analytics";
 import {
-  calculateTurkiyeOrderShipping,
+  calculateTurkiyeShippingSummary,
   TURKIYE_FLAT_SHIPPING_MINOR,
   TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
 } from "@/lib/turkiye-products";
@@ -36,6 +36,7 @@ type DiscountQuote = {
   subtotalMinor: number;
   shippingMinor: number;
   grandTotalMinor: number;
+  merchandiseTotalMinor: number;
 };
 
 const discountCopy = {
@@ -208,30 +209,29 @@ export default function CartDrawer({
     );
   }, 0);
   const productDiscountSavings = Math.max(0, originalProductValue - subtotal);
-  const includesMailClub = cart.some((item) => item.kind === "mail-club");
+  const merchandiseToday = Number.isInteger(coupon?.merchandiseTotalMinor)
+    ? coupon!.merchandiseTotalMinor
+    : subtotal;
+  const turkiyeShipping = calculateTurkiyeShippingSummary(merchandiseToday);
   const shipping =
     region === "TR"
-      ? includesMailClub
-        ? 0
-        : calculateTurkiyeOrderShipping(subtotal)
+      ? turkiyeShipping.shippingMinor
       : cart.length
         ? 10_000
         : 0;
   const displayedSubtotal = coupon?.subtotalMinor ?? subtotal;
-  const displayedShipping = coupon?.shippingMinor ?? shipping;
-  const orderTotal = coupon?.grandTotalMinor ?? subtotal + shipping;
-  const freeShippingRemaining = Math.max(
-    0,
-    TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR - displayedSubtotal,
-  );
-  const freeShippingProgress = Math.min(
-    100,
-    (displayedSubtotal / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100,
-  );
+  const displayedShipping =
+    region === "TR"
+      ? turkiyeShipping.shippingMinor
+      : (coupon?.shippingMinor ?? shipping);
+  const orderTotal =
+    region === "TR"
+      ? turkiyeShipping.totalMinor
+      : (coupon?.grandTotalMinor ?? subtotal + shipping);
+  const freeShippingRemaining = turkiyeShipping.remainingMinor;
+  const freeShippingProgress = turkiyeShipping.progressPercent;
   const thresholdFreeShipping =
-    region === "TR" &&
-    displayedShipping === 0 &&
-    displayedSubtotal >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR;
+    region === "TR" && turkiyeShipping.freeShippingUnlocked;
   const shippingSavings = thresholdFreeShipping
     ? TURKIYE_FLAT_SHIPPING_MINOR
     : 0;
@@ -812,7 +812,7 @@ export default function CartDrawer({
                 aria-valuemin={0}
                 aria-valuemax={TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR}
                 aria-valuenow={Math.min(
-                  displayedSubtotal,
+                  merchandiseToday,
                   TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
                 )}
               >

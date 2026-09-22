@@ -22,6 +22,26 @@ export function calculateTurkiyeOrderShipping(subtotalMinor: number) {
     : TURKIYE_FLAT_SHIPPING_MINOR;
 }
 
+export function calculateTurkiyeShippingSummary(merchandiseTotalMinor: number) {
+  const shippingMinor = calculateTurkiyeOrderShipping(merchandiseTotalMinor);
+  const remainingMinor = Math.max(
+    0,
+    TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR - merchandiseTotalMinor,
+  );
+  return {
+    merchandiseTotalMinor,
+    shippingMinor,
+    remainingMinor,
+    progressPercent: Math.min(
+      100,
+      (merchandiseTotalMinor / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100,
+    ),
+    freeShippingUnlocked:
+      merchandiseTotalMinor >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
+    totalMinor: merchandiseTotalMinor + shippingMinor,
+  };
+}
+
 export function calculateTurkiyeProductShipping(
   productQuantity: number,
   framedQuantity = 0,

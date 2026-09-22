@@ -4,7 +4,14 @@ import Money from "@/components/Money";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useLocale } from "@/lib/locale";
 import { getCanonicalCartItemPricing, loadCart } from "@/lib/store";
-import { TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR } from "@/lib/turkiye-products";
+import {
+  calculateTurkiyeShippingSummary,
+  TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR,
+} from "@/lib/turkiye-products";
+import {
+  checkoutItems,
+  loadAppliedDiscountCode,
+} from "@/lib/checkout-cart";
 
 export default function ShippingProgressTracker({ region }: { region: "TR" | "INTERNATIONAL" }) {
   const settings = useShopSettings();
@@ -12,18 +19,59 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
   const [cart, setCart] = useState(() => loadCart(region));
   const [celebrating, setCelebrating] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const subtotal = cart.reduce((sum, item) => {
+  const [quotedMerchandiseTotal, setQuotedMerchandiseTotal] = useState<number | null>(null);
+  const [discountVersion, setDiscountVersion] = useState(0);
+  const canonicalSubtotal = cart.reduce((sum, item) => {
     const unitPrice = getCanonicalCartItemPricing(item, settings)?.unitPriceCents ?? item.priceUsdCents;
     return sum + unitPrice * item.quantity;
   }, 0);
-  const unlocked = subtotal >= TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR;
+  const shipping = calculateTurkiyeShippingSummary(
+    quotedMerchandiseTotal ?? canonicalSubtotal,
+  );
+  const unlocked = shipping.freeShippingUnlocked;
   const wasUnlocked = useRef(unlocked);
 
   useEffect(() => {
     const sync = () => setCart(loadCart(region));
+    const syncDiscount = () => setDiscountVersion((value) => value + 1);
     window.addEventListener("cart:updated", sync);
-    return () => window.removeEventListener("cart:updated", sync);
+    window.addEventListener("discount-code:updated", syncDiscount);
+    return () => {
+      window.removeEventListener("cart:updated", sync);
+      window.removeEventListener("discount-code:updated", syncDiscount);
+    };
   }, [region]);
+
+  useEffect(() => {
+    if (region !== "TR" || !cart.length) {
+      setQuotedMerchandiseTotal(null);
+      return;
+    }
+    const controller = new AbortController();
+    void fetch("/api/checkout/quote", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        market: "turkiye",
+        items: checkoutItems(cart),
+        discountCode: loadAppliedDiscountCode() || undefined,
+      }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+        setQuotedMerchandiseTotal(
+          Number.isInteger(result.merchandiseTotalMinor)
+            ? result.merchandiseTotalMinor
+            : null,
+        );
+      })
+      .catch((error) => {
+        if (error?.name !== "AbortError") setQuotedMerchandiseTotal(null);
+      });
+    return () => controller.abort();
+  }, [region, discountVersion, JSON.stringify(checkoutItems(cart))]);
 
   useEffect(() => {
     if (unlocked && !wasUnlocked.current) setCelebrating(true);
@@ -41,8 +89,8 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
   }, [cart.length]);
 
   if (region !== "TR" || cart.length === 0) return null;
-  const remaining = Math.max(0, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR - subtotal);
-  const progress = Math.min(100, (subtotal / TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR) * 100);
+  const remaining = shipping.remainingMinor;
+  const progress = shipping.progressPercent;
   const status = unlocked
     ? locale === "tr" ? "Ücretsiz kargo kazandın" : "Free shipping unlocked"
     : locale === "tr" ? "Ücretsiz kargoya yaklaşıyorsun" : "You're close to free shipping";
@@ -68,7 +116,7 @@ export default function ShippingProgressTracker({ region }: { region: "TR" | "IN
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR}
-            aria-valuenow={Math.min(subtotal, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR)}
+            aria-valuenow={Math.min(shipping.merchandiseTotalMinor, TURKIYE_FREE_SHIPPING_THRESHOLD_MINOR)}
           >
             <span style={{ width: `${progress}%` }} />
           </div>

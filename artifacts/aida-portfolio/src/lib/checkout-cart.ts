@@ -38,4 +38,5 @@ export const loadAppliedDiscountCode = () =>
 export function saveAppliedDiscountCode(code: string | null) {
   if (code) sessionStorage.setItem(TURKIYE_DISCOUNT_STORAGE_KEY, code);
   else sessionStorage.removeItem(TURKIYE_DISCOUNT_STORAGE_KEY);
+  window.dispatchEvent(new Event("discount-code:updated"));
 }

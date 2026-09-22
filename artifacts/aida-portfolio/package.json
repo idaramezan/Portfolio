@@ -9,6 +9,7 @@
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-strip-types scripts/test-turkiye-products.ts",
+    "test:shipping": "node --experimental-strip-types scripts/test-shipping.ts",
     "test:newsletter": "node scripts/verify-newsletter-acquisition.mjs",
     "test:analytics": "node scripts/verify-analytics.mjs",
     "test:mobile-nav": "node scripts/verify-mobile-navigation.mjs"

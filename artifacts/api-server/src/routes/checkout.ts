@@ -159,7 +159,6 @@ function applyDiscount(
   quote: Awaited<ReturnType<typeof calculate>>,
   discount: any | null,
 ) {
-  const totalBeforeDiscountMinor = quote.subtotalMinor + quote.shippingMinor;
   const selectedProductIds = new Set(discountProductIds(discount));
   const productScope = discount?.scope === "products";
   const eligibleItems = quote.items.filter((item) => discountCodeAppliesToItem({ scope: discount?.scope || "order", selectedRefs: selectedProductIds, item, automaticSaleAllowsCodes: item.discountCodeEligible }));
@@ -172,16 +171,28 @@ function applyDiscount(
   const discountPercent = discount ? Number(discount.discount_percent) : 0;
   const calculated = discount
     ? calculatePercentageDiscount(discountEligibleMinor, discountPercent)
-    : { discountAmountMinor: 0, finalTotalMinor: totalBeforeDiscountMinor };
+    : { discountAmountMinor: 0, finalTotalMinor: quote.subtotalMinor };
+  const merchandiseTotalMinor =
+    quote.subtotalMinor - calculated.discountAmountMinor;
+  const shippingMinor = calculateCheckoutShipping({
+    market:
+      quote.market === "turkiye" ? "turkiye" : "international_original",
+    printQuantity: quote.printQuantity,
+    framedQuantity: quote.framedQuantity,
+    subtotalMinor: merchandiseTotalMinor,
+  });
+  const totalBeforeDiscountMinor = quote.subtotalMinor + shippingMinor;
   return {
     ...quote,
+    shippingMinor,
     totalBeforeDiscountMinor,
     discountCode: discount?.code || null,
     discountPercent,
     discountAmountMinor: calculated.discountAmountMinor,
+    merchandiseTotalMinor,
     eligibleSubtotalMinor: discountEligibleMinor,
     eligibleItems: productScope ? eligibleItems.map((item) => ({ itemType: item.kind.replaceAll("-", "_"), itemId: item.productId, quantity: item.quantity })) : [],
-    grandTotalMinor: totalBeforeDiscountMinor - calculated.discountAmountMinor,
+    grandTotalMinor: merchandiseTotalMinor + shippingMinor,
   };
 }
 
@@ -418,9 +429,7 @@ async function calculate(body: any) {
     (sum, item) => sum + (item.discountCodeEligible ? item.lineTotalMinor : 0),
     0,
   );
-  const shippingMinor = items.some((item) => item.kind === "mail-club")
-    ? 0
-    : calculateCheckoutShipping({ market, printQuantity, framedQuantity, subtotalMinor });
+  const shippingMinor = calculateCheckoutShipping({ market, printQuantity, framedQuantity, subtotalMinor });
   return {
     market,
     currency,

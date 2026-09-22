@@ -86,6 +86,12 @@ assert.ok(cart.includes("saveAppliedDiscountCode(null)"));
 assert.ok(cart.includes("coupon.discountAmountMinor"));
 assert.ok(cart.includes("Bu indirim kodunun kullanım sınırına ulaşıldı."));
 assert.ok(cart.includes("not_applicable"));
+assert.ok(cart.includes("Number.isInteger(coupon?.merchandiseTotalMinor)"));
+assert.ok(server.includes("subtotalMinor: merchandiseTotalMinor"));
+assert.ok(
+  !server.includes('items.some((item) => item.kind === "mail-club")'),
+  "Mail Club must not bypass the Türkiye shipping threshold",
+);
 assert.ok(checkout.includes("discountCode: discountCode || undefined"));
 assert.ok(checkout.includes("result.discountInvalid"));
 assert.ok(/quote\??\.grandTotalMinor === 0/.test(checkout));

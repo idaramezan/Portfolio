@@ -9,6 +9,7 @@ import {
   discountProductRef,
   selectedDiscountProduct,
 } from "../src/lib/discount-eligibility.ts";
+import { calculateCheckoutShipping } from "../src/lib/checkout-pricing.ts";
 
 assert.equal(normalizeDiscountCode(" aida10 "), "AIDA10");
 assert.equal(normalizeDiscountCode("Live-10"), "LIVE-10");
@@ -76,5 +77,21 @@ assert.equal(
   false,
   "order-wide codes continue to respect automatic-sale stacking rules",
 );
+
+for (const [subtotalMinor, expectedShippingMinor] of [
+  [49_000, 5_000],
+  [39_690, 5_000],
+  [149_900, 5_000],
+  [150_000, 0],
+  [150_100, 0],
+] as const)
+  assert.equal(
+    calculateCheckoutShipping({
+      market: "turkiye",
+      printQuantity: 0,
+      subtotalMinor,
+    }),
+    expectedShippingMinor,
+  );
 
 console.log("Discount normalization and pricing tests passed.");
