@@ -97,7 +97,8 @@ export async function addFourthwallCartItem(item: FourthwallCartItem) {
   });
   let cart = ensured.cart;
   const existing = cart.items.find(
-    (entry) => entry.variantId === item.variantId,
+    (entry) =>
+      entry.productId === item.productId && entry.variantId === item.variantId,
   );
   const quantity = (existing?.quantity || 0) + item.quantity;
   try {

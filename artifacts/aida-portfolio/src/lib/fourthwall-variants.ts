@@ -8,6 +8,36 @@ export type ResolvedFourthwallVariant = ProductFourthwallVariant & {
   available: boolean;
 };
 
+export function getPurchasableFourthwallOptions(
+  variants: ResolvedFourthwallVariant[],
+) {
+  return variants.filter(
+    (variant) =>
+      variant.enabled && variant.available && variant.product?.available,
+  );
+}
+
+export function getFourthwallFormats(variants: ResolvedFourthwallVariant[]) {
+  return [...new Set(variants.map((variant) => variant.variantType))];
+}
+
+export function getOptionsForFormat(
+  variants: ResolvedFourthwallVariant[],
+  format: string,
+) {
+  return variants.filter((variant) => variant.variantType === format);
+}
+
+export function getDefaultOptionForFormat(
+  variants: ResolvedFourthwallVariant[],
+  format: string,
+) {
+  const available = getPurchasableFourthwallOptions(
+    getOptionsForFormat(variants, format),
+  );
+  return available.find((variant) => variant.isDefault) || available[0];
+}
+
 export function getFourthwallVariants(
   product: ManagedProduct,
   catalogue: InternationalProduct[],
@@ -54,7 +84,8 @@ export function getFourthwallVariants(
 export function getDefaultFourthwallVariant(
   variants: ResolvedFourthwallVariant[],
 ) {
-  return variants.find((variant) => variant.isDefault) || variants[0];
+  const available = getPurchasableFourthwallOptions(variants);
+  return available.find((variant) => variant.isDefault) || available[0];
 }
 
 export function getLowestFourthwallVariant(

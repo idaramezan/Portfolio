@@ -317,11 +317,19 @@ export default function ProductEditor({
       )
         next.fourthwall =
           "The same Fourthwall product cannot be assigned more than once.";
-      if (
-        new Set(enabled.map((variant) => variant.variantType)).size !==
-        enabled.length
-      )
-        next.fourthwall = "Each international format type must be unique.";
+      if (enabled.some((variant) => !variant.sizeLabel?.trim()))
+        next.fourthwall =
+          "Enter a website size label for every enabled option.";
+      for (const type of new Set(
+        enabled.map((variant) => variant.variantType),
+      )) {
+        if (
+          enabled.filter(
+            (variant) => variant.variantType === type && variant.isDefault,
+          ).length > 1
+        )
+          next.fourthwall = "Choose no more than one default size per format.";
+      }
     }
     if (
       publishing &&

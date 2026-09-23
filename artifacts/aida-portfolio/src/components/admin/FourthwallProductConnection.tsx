@@ -14,15 +14,25 @@ const TYPES: Array<{ value: FourthwallVariantType; label: string }> = [
   { value: "framed", label: "Framed" },
 ];
 
-function createVariant(index: number): ProductFourthwallVariant {
-  const type = index === 0 ? "poster" : "framed";
+function suggestSize(title: string) {
+  const match = title.match(
+    /(?:^|\s)(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)(?:\s*(?:in|inch|inches))?/i,
+  );
+  return match ? `${match[1]} × ${match[2]} in` : "";
+}
+
+function createVariant(
+  type: FourthwallVariantType,
+  index: number,
+): ProductFourthwallVariant {
   return {
-    id: `fw-format-${Date.now()}-${index}`,
+    id: `fw-size-${Date.now()}-${index}`,
     fourthwallProductId: "",
     variantType: type,
+    sizeLabel: "",
     label: type === "poster" ? "Poster" : "Framed",
     sortOrder: index,
-    isDefault: index === 0,
+    isDefault: false,
     enabled: true,
   };
 }
@@ -69,11 +79,16 @@ export default function FourthwallProductConnection({
     let next = variants.map((variant) =>
       variant.id === id ? { ...variant, ...patch } : variant,
     );
-    if (patch.isDefault)
+    if (patch.isDefault) {
+      const current = variants.find((variant) => variant.id === id);
       next = next.map((variant) => ({
         ...variant,
-        isDefault: variant.id === id,
+        isDefault:
+          variant.variantType === current?.variantType
+            ? variant.id === id
+            : variant.isDefault,
       }));
+    }
     updateVariants(next);
   };
   const connectLegacy = (id: string) => {
@@ -110,18 +125,18 @@ export default function FourthwallProductConnection({
                 fourthwallVariantGroupEnabled: event.target.checked,
                 fourthwallVariants:
                   event.target.checked && !variants.length
-                    ? [createVariant(0)]
+                    ? [createVariant("poster", 0)]
                     : variants,
               })
             }
           />
-          Use multiple Fourthwall products as formats
+          Configure Fourthwall format and size products
         </label>
       )}
       {supportsGrouped && (
         <p className="mt-1 text-xs text-ink/45">
-          International visitors will see these formats as options under one
-          artwork.
+          Every size links to its own Fourthwall product while remaining under
+          this artwork.
         </p>
       )}
 
@@ -139,139 +154,171 @@ export default function FourthwallProductConnection({
       </label>
 
       {grouped ? (
-        <div className="mt-5 space-y-4">
-          {variants.map((variant, index) => {
-            const selected = international.products.find(
-              (item) => item.id === variant.fourthwallProductId,
-            );
-            const duplicate = variants.some(
-              (item) =>
-                item.id !== variant.id &&
-                item.fourthwallProductId &&
-                item.fourthwallProductId === variant.fourthwallProductId,
-            );
-            const duplicateType = variants.some(
-              (item) =>
-                item.id !== variant.id &&
-                item.variantType === variant.variantType,
+        <div className="mt-7 space-y-8">
+          {TYPES.map((type) => {
+            const formatOptions = variants.filter(
+              (variant) => variant.variantType === type.value,
             );
             return (
-              <fieldset key={variant.id} className="border border-ink/10 p-4">
-                <legend className="px-2 text-xs font-bold uppercase tracking-[.12em] text-ink/55">
-                  Format {String(index + 1).padStart(2, "0")}
-                </legend>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="text-sm font-semibold">
-                    Type
-                    <select
-                      className={field}
-                      value={variant.variantType}
-                      onChange={(event) => {
-                        const type = event.target.value;
-                        updateVariant(variant.id, {
-                          variantType: type,
-                          label:
-                            TYPES.find((item) => item.value === type)?.label ||
-                            type,
-                        });
-                      }}
-                    >
-                      {TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold">
-                    Fourthwall product
-                    <select
-                      className={field}
-                      value={variant.fourthwallProductId}
-                      onChange={(event) => {
-                        const item = international.products.find(
-                          (entry) => entry.id === event.target.value,
-                        );
-                        updateVariant(variant.id, {
-                          fourthwallProductId: event.target.value,
-                          fourthwallProductUrl: item?.externalUrl,
-                        });
-                      }}
-                    >
-                      <option value="">Select a product</option>
-                      {options.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-5 text-sm">
-                  <label className="flex items-center gap-2">
+              <section key={type.value} className="border-t border-ink/15 pt-5">
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="text-sm font-bold uppercase tracking-[.14em]">
+                    {type.label}
+                  </h3>
+                  <label className="text-xs font-semibold text-ink/60">
+                    Default format{" "}
                     <input
                       type="radio"
-                      name={`default-fourthwall-${product.id}`}
-                      checked={variant.isDefault}
+                      name={`default-format-${product.id}`}
+                      checked={
+                        (product.fourthwallDefaultFormat || "poster") ===
+                        type.value
+                      }
                       onChange={() =>
-                        updateVariant(variant.id, { isDefault: true })
+                        onChange({ fourthwallDefaultFormat: type.value })
                       }
                     />
-                    Default
                   </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={variant.enabled}
-                      onChange={(event) =>
-                        updateVariant(variant.id, {
-                          enabled: event.target.checked,
-                        })
-                      }
-                    />
-                    Enabled
-                  </label>
-                  <button
-                    type="button"
-                    className="button-link ml-auto"
-                    onClick={() =>
-                      updateVariants(
-                        variants.filter((item) => item.id !== variant.id),
-                      )
-                    }
-                  >
-                    <Trash2 size={15} /> Remove
-                  </button>
                 </div>
-                {(duplicate || duplicateType) && (
-                  <p
-                    role="alert"
-                    className="mt-3 text-sm font-semibold text-warning"
-                  >
-                    {duplicate
-                      ? "This Fourthwall product is already assigned to another format."
-                      : "Each format type may only be used once."}
-                  </p>
-                )}
-                {selected && (
-                  <p className="mt-3 text-xs text-ink/55">
-                    {selected.name} · {selected.price.formatted} ·{" "}
-                    {selected.available ? "Available" : "Unavailable"}
-                  </p>
-                )}
-              </fieldset>
+                <div className="mt-3 space-y-3">
+                  {formatOptions.map((variant, index) => {
+                    const selected = international.products.find(
+                      (item) => item.id === variant.fourthwallProductId,
+                    );
+                    const duplicate = variants.some(
+                      (item) =>
+                        item.id !== variant.id &&
+                        item.fourthwallProductId &&
+                        item.fourthwallProductId ===
+                          variant.fourthwallProductId,
+                    );
+                    return (
+                      <fieldset
+                        key={variant.id}
+                        className="border border-ink/10 p-4"
+                      >
+                        <legend className="px-2 text-xs font-bold uppercase tracking-[.12em] text-ink/55">
+                          Size option {String(index + 1).padStart(2, "0")}
+                        </legend>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <label className="text-sm font-semibold">
+                            Website size
+                            <input
+                              className={field}
+                              value={variant.sizeLabel || ""}
+                              placeholder="10 × 10 in"
+                              onChange={(event) =>
+                                updateVariant(variant.id, {
+                                  sizeLabel: event.target.value.replace(
+                                    /\s+x\s+/gi,
+                                    " × ",
+                                  ),
+                                })
+                              }
+                            />
+                          </label>
+                          <label className="text-sm font-semibold">
+                            Fourthwall product
+                            <select
+                              className={field}
+                              value={variant.fourthwallProductId}
+                              onChange={(event) => {
+                                const item = international.products.find(
+                                  (entry) => entry.id === event.target.value,
+                                );
+                                updateVariant(variant.id, {
+                                  fourthwallProductId: event.target.value,
+                                  fourthwallProductUrl: item?.externalUrl,
+                                  sizeLabel:
+                                    variant.sizeLabel ||
+                                    suggestSize(item?.name || ""),
+                                });
+                              }}
+                            >
+                              <option value="">Select a product</option>
+                              {options.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                  {item.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                        <div className="mt-4 flex flex-wrap items-center gap-5 text-sm">
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name={`default-fourthwall-${product.id}-${type.value}`}
+                              checked={variant.isDefault}
+                              onChange={() =>
+                                updateVariant(variant.id, { isDefault: true })
+                              }
+                            />
+                            Default
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={variant.enabled}
+                              onChange={(event) =>
+                                updateVariant(variant.id, {
+                                  enabled: event.target.checked,
+                                })
+                              }
+                            />
+                            Enabled
+                          </label>
+                          <button
+                            type="button"
+                            className="button-link ml-auto"
+                            onClick={() =>
+                              updateVariants(
+                                variants.filter(
+                                  (item) => item.id !== variant.id,
+                                ),
+                              )
+                            }
+                          >
+                            <Trash2 size={15} /> Remove
+                          </button>
+                        </div>
+                        {duplicate && (
+                          <p
+                            role="alert"
+                            className="mt-3 text-sm font-semibold text-warning"
+                          >
+                            This Fourthwall product is already assigned to
+                            another size.
+                          </p>
+                        )}
+                        {selected && (
+                          <p className="mt-3 text-xs text-ink/55">
+                            {selected.name} · {selected.price.formatted} ·{" "}
+                            {selected.available ? "Available" : "Unavailable"}
+                          </p>
+                        )}
+                      </fieldset>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  className="button-secondary mt-3"
+                  onClick={() =>
+                    updateVariants([
+                      ...variants,
+                      {
+                        ...createVariant(type.value, variants.length),
+                        isDefault: formatOptions.length === 0,
+                      },
+                    ])
+                  }
+                >
+                  <Plus size={16} /> Add {type.label} Size
+                </button>
+              </section>
             );
           })}
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() =>
-              updateVariants([...variants, createVariant(variants.length)])
-            }
-            disabled={variants.length >= TYPES.length}
-          >
-            <Plus size={16} /> Add format
-          </button>
           {!variants.some((variant) => variant.fourthwallProductId) && (
             <p role="alert" className="text-sm font-semibold text-warning">
               Assign at least one Fourthwall product before saving.

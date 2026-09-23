@@ -126,6 +126,8 @@ export interface ProductFourthwallVariant {
   fourthwallProductId: string;
   fourthwallProductUrl?: string;
   variantType: FourthwallVariantType;
+  /** Website-facing size. The linked Fourthwall product remains the commerce source. */
+  sizeLabel?: string;
   label: string;
   sortOrder: number;
   isDefault: boolean;
@@ -175,6 +177,7 @@ export interface ManagedProduct {
   fourthwallProductUrl?: string;
   fourthwallLinkType?: "exact" | "edition" | "related";
   fourthwallVariantGroupEnabled?: boolean;
+  fourthwallDefaultFormat?: FourthwallVariantType;
   fourthwallVariants?: ProductFourthwallVariant[];
   isHundredWindowsProduct?: boolean;
   paintedLive?: boolean;
@@ -396,15 +399,45 @@ export function getDefaultSettings(): ShopSettings {
       priceMinor: 120000,
       coverImage: "/assets/custom-watercolor-palette.jpg",
       types: [
-        { id: "resin", enabled: true, nameEn: "Resin", nameTr: "Reçine", descriptionEn: "Smooth, translucent and full of flowing colour.", descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu." },
-        { id: "stone", enabled: true, nameEn: "Stone", nameTr: "Taş", descriptionEn: "Textured, weighty and naturally one of a kind.", descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz." },
+        {
+          id: "resin",
+          enabled: true,
+          nameEn: "Resin",
+          nameTr: "Reçine",
+          descriptionEn: "Smooth, translucent and full of flowing colour.",
+          descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu.",
+        },
+        {
+          id: "stone",
+          enabled: true,
+          nameEn: "Stone",
+          nameTr: "Taş",
+          descriptionEn: "Textured, weighty and naturally one of a kind.",
+          descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz.",
+        },
       ],
       colors: [
         ["dusty-rose", "Dusty Rose", "Pudra Gülü", "#c98f91"],
         ["sky-blue", "Sky Blue", "Gök Mavisi", "#78bddd"],
         ["sage", "Sage", "Adaçayı", "#9ca98c"],
         ["lavender", "Lavender", "Lavanta", "#a99abd"],
-      ].flatMap(([id, nameEn, nameTr, hex], colorIndex) => (["resin", "stone"] as const).map((paletteType, typeIndex) => ({ id: `${paletteType}-${id}`, paletteType, nameEn, nameTr, hex, enabled: true, displayOrder: colorIndex, createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex)).toISOString(), updatedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex)).toISOString() }))),
+      ].flatMap(([id, nameEn, nameTr, hex], colorIndex) =>
+        (["resin", "stone"] as const).map((paletteType, typeIndex) => ({
+          id: `${paletteType}-${id}`,
+          paletteType,
+          nameEn,
+          nameTr,
+          hex,
+          enabled: true,
+          displayOrder: colorIndex,
+          createdAt: new Date(
+            Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex),
+          ).toISOString(),
+          updatedAt: new Date(
+            Date.UTC(2026, 0, 1, 0, 0, colorIndex * 2 + typeIndex),
+          ).toISOString(),
+        })),
+      ),
     },
     readyMadePalettes: [],
     mailClubEditions: [
@@ -415,10 +448,13 @@ export function getDefaultSettings(): ShopSettings {
         title: "October Mail Club",
         titleTr: "Ekim Mail Club",
         monthYear: "2026-10",
-        description: "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.",
-        descriptionTr: "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.",
+        description:
+          "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.",
+        descriptionTr:
+          "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.",
         coverImage: "/assets/mail-club-october.jpg",
-        altText: "October Mail Club print, letter, stickers, bookmark and habit tracker",
+        altText:
+          "October Mail Club print, letter, stickers, bookmark and habit tracker",
         priceMinor: 49000,
         stock: 20,
         enabled: true,
@@ -1031,11 +1067,16 @@ export function getCanonicalCartItemPricing(
   settings: ShopSettings = loadShopSettings(),
 ) {
   if (["custom-palette", "ready-palette", "mail-club"].includes(item.kind)) {
-    const sale = item.kind === "custom-palette"
-      ? settings.paletteSettings.sale
-      : item.kind === "ready-palette"
-        ? settings.readyMadePalettes.find((entry) => entry.id === item.productId)?.sale
-        : settings.mailClubEditions.find((entry) => entry.id === item.productId)?.sale;
+    const sale =
+      item.kind === "custom-palette"
+        ? settings.paletteSettings.sale
+        : item.kind === "ready-palette"
+          ? settings.readyMadePalettes.find(
+              (entry) => entry.id === item.productId,
+            )?.sale
+          : settings.mailClubEditions.find(
+              (entry) => entry.id === item.productId,
+            )?.sale;
     const regular = item.canonicalPriceMinor ?? item.priceUsdCents;
     const salePricing = calculateProductSale(regular, sale);
     const final = salePricing.finalPriceMinor;
@@ -1048,9 +1089,15 @@ export function getCanonicalCartItemPricing(
     };
   }
   if (item.convertedUnitPriceMinor != null && item.displayCurrency === "TRY") {
-    const originalId = item.productId || item.id.split(":")[0].replace(/^original-/, "");
-    const sale = settings.originalProducts.find((entry) => entry.id === originalId)?.sale;
-    const salePricing = calculateProductSale(item.convertedUnitPriceMinor, sale);
+    const originalId =
+      item.productId || item.id.split(":")[0].replace(/^original-/, "");
+    const sale = settings.originalProducts.find(
+      (entry) => entry.id === originalId,
+    )?.sale;
+    const salePricing = calculateProductSale(
+      item.convertedUnitPriceMinor,
+      sale,
+    );
     const final = salePricing.finalPriceMinor;
     return {
       unitPriceCents: final,
@@ -1062,10 +1109,23 @@ export function getCanonicalCartItemPricing(
   }
   if (!item.printConfiguration) {
     const baseId = item.id.split(":")[0];
-    const product = item.kind === "original"
-      ? settings.originalProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^original-/, "")))
-      : settings.printProducts.find((entry) => entry.id === (item.productId || baseId.replace(/^print-product-/, "").replace(/^product-/, "").replace(/^aceo-/, "")));
-    const regular = product?.priceUsdCents ?? item.canonicalPriceMinor ?? item.priceUsdCents;
+    const product =
+      item.kind === "original"
+        ? settings.originalProducts.find(
+            (entry) =>
+              entry.id === (item.productId || baseId.replace(/^original-/, "")),
+          )
+        : settings.printProducts.find(
+            (entry) =>
+              entry.id ===
+              (item.productId ||
+                baseId
+                  .replace(/^print-product-/, "")
+                  .replace(/^product-/, "")
+                  .replace(/^aceo-/, "")),
+          );
+    const regular =
+      product?.priceUsdCents ?? item.canonicalPriceMinor ?? item.priceUsdCents;
     const salePricing = calculateProductSale(regular, product?.sale);
     const final = salePricing.finalPriceMinor;
     return {
@@ -1149,25 +1209,31 @@ export function loadCart(
       const aceoId = baseItemId.startsWith("aceo-")
         ? baseItemId.slice("aceo-".length)
         : null;
-      const product = item.kind === "mail-club"
-        ? settings.mailClubEditions.find((entry) => entry.id === item.productId)
-        : item.kind === "ready-palette"
-          ? settings.readyMadePalettes.find((entry) => entry.id === item.productId)
-          : originalId
-            ? settings.originalProducts.find((entry) => entry.id === originalId)
-            : printId || aceoId
-              ? settings.printProducts.find(
-                  (entry) => entry.id === (printId || aceoId),
+      const product =
+        item.kind === "mail-club"
+          ? settings.mailClubEditions.find(
+              (entry) => entry.id === item.productId,
+            )
+          : item.kind === "ready-palette"
+            ? settings.readyMadePalettes.find(
+                (entry) => entry.id === item.productId,
+              )
+            : originalId
+              ? settings.originalProducts.find(
+                  (entry) => entry.id === originalId,
                 )
-              : undefined;
+              : printId || aceoId
+                ? settings.printProducts.find(
+                    (entry) => entry.id === (printId || aceoId),
+                  )
+                : undefined;
       if (!product) return item;
       const refreshed = {
         ...item,
         title:
           ("name" in product ? product.name : product.title) ||
           getCartItemDisplayName(item),
-        imageUrl:
-          "imageUrl" in product ? product.imageUrl : product.coverImage,
+        imageUrl: "imageUrl" in product ? product.imageUrl : product.coverImage,
       };
       const pricing = getCanonicalCartItemPricing(refreshed, settings);
       if (!pricing) return refreshed;
@@ -1301,9 +1367,9 @@ export function isCartItemAvailable(
     );
     return Boolean(
       region === "TR" &&
-        product &&
-        product.status === "available" &&
-        product.stock >= item.quantity,
+      product &&
+      product.status === "available" &&
+      product.stock >= item.quantity,
     );
   }
   if (item.kind === "mail-club") {
@@ -1313,12 +1379,12 @@ export function isCartItemAvailable(
     const nowIso = new Date(now).toISOString();
     return Boolean(
       region === "TR" &&
-        edition?.enabled &&
-        edition.current &&
-        edition.status === "published" &&
-        edition.stock >= item.quantity &&
-        (!edition.availabilityStart || edition.availabilityStart <= nowIso) &&
-        (!edition.availabilityEnd || edition.availabilityEnd >= nowIso),
+      edition?.enabled &&
+      edition.current &&
+      edition.status === "published" &&
+      edition.stock >= item.quantity &&
+      (!edition.availabilityStart || edition.availabilityStart <= nowIso) &&
+      (!edition.availabilityEnd || edition.availabilityEnd >= nowIso),
     );
   }
   const baseItemId = item.id.split(":")[0];

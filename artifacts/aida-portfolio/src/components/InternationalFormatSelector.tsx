@@ -3,23 +3,24 @@ import { Check, Minus, Plus } from "lucide-react";
 import type { InternationalProduct } from "@/lib/fourthwall";
 import { addFourthwallCartItem } from "@/lib/fourthwall-cart";
 import {
-  getDefaultFourthwallVariant,
+  getDefaultOptionForFormat,
+  getFourthwallFormats,
   getFourthwallVariants,
+  getLowestFourthwallVariant,
+  getOptionsForFormat,
 } from "@/lib/fourthwall-variants";
 import type { ManagedProduct } from "@/lib/store";
 import { trackAnalytics } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
-import FourthwallVariantPicker from "@/components/FourthwallVariantPicker";
-import { normalizeFourthwallVariant } from "@/lib/fourthwall-options";
 
 const words = {
   en: {
     format: "CHOOSE FORMAT",
-    variant: "CHOOSE SIZE / OPTION",
+    size: "CHOOSE SIZE",
     quantity: "QUANTITY",
     poster: "Print only",
     framed: "Ready framed",
-    unavailable: "This format is currently unavailable",
+    unavailable: "Unavailable",
     add: "ADD TO BASKET",
     adding: "ADDING…",
     added: "ADDED TO BASKET",
@@ -27,11 +28,11 @@ const words = {
   },
   tr: {
     format: "FORMAT SEÇ",
-    variant: "BOYUT / SEÇENEK",
+    size: "BOYUT SEÇ",
     quantity: "ADET",
     poster: "Yalnızca baskı",
     framed: "Çerçeveli, hazır",
-    unavailable: "Bu seçenek şu anda mevcut değil",
+    unavailable: "Mevcut değil",
     add: "SEPETE EKLE",
     adding: "EKLENİYOR…",
     added: "SEPETE EKLENDİ",
@@ -56,74 +57,93 @@ export default function InternationalFormatSelector({
 }) {
   const text = words[locale];
   const { toast } = useToast();
-  const variants = useMemo(
+  const options = useMemo(
     () => getFourthwallVariants(product, catalogue, shopUrl),
     [product, catalogue, shopUrl],
   );
-  const queryFormat = new URLSearchParams(window.location.search).get("format");
-  const initial =
-    variants.find((variant) => variant.variantType === queryFormat) ||
-    getDefaultFourthwallVariant(variants);
-  const [selectedId, setSelectedId] = useState(initial?.id || "");
-  const selected =
-    variants.find((variant) => variant.id === selectedId) || initial;
-  const availableOptions = (selected?.product?.variants || []).filter(
-    (variant) => variant.available,
+  const formats = getFourthwallFormats(options);
+  const availableFormats = formats.filter((item) =>
+    Boolean(getDefaultOptionForFormat(options, item)),
   );
-  const [optionId, setOptionId] = useState(availableOptions[0]?.id || "");
+  const requested = new URLSearchParams(window.location.search).get("format");
+  const initialFormat = availableFormats.includes(requested || "")
+    ? requested!
+    : availableFormats.includes(product.fourthwallDefaultFormat || "")
+      ? product.fourthwallDefaultFormat!
+      : availableFormats[0] || formats[0];
+  const [format, setFormat] = useState(initialFormat || "");
+  const initial = getDefaultOptionForFormat(options, initialFormat || "");
+  const [selectedId, setSelectedId] = useState(initial?.id || "");
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState(false);
   const [error, setError] = useState("");
+  const formatOptions = getOptionsForFormat(options, format);
+  const selected =
+    formatOptions.find(
+      (option) =>
+        option.id === selectedId &&
+        option.available &&
+        option.product?.available,
+    ) || getDefaultOptionForFormat(options, format);
 
   useEffect(() => {
-    if (!variants.some((variant) => variant.id === selectedId))
-      setSelectedId(getDefaultFourthwallVariant(variants)?.id || "");
-  }, [variants, selectedId]);
+    if (!availableFormats.includes(format))
+      setFormat(availableFormats[0] || formats[0] || "");
+  }, [options, format]);
   useEffect(() => {
-    setOptionId(availableOptions[0]?.id || "");
+    if (selected && selected.id !== selectedId) setSelectedId(selected.id);
     const image = selected?.product?.primaryImage;
     onImageChange?.(
       image
         ? {
             src: image.url,
-            alt: image.alt || `${product.name} ${selected?.label || ""}`,
+            alt: image.alt || `${product.name} ${selected.sizeLabel || ""}`,
           }
         : undefined,
     );
   }, [selected?.id]);
 
-  if (!selected) return null;
-  const option =
-    availableOptions.find((variant) => variant.id === optionId) ||
-    availableOptions[0];
-  const normalizedOption =
-    option && selected.product
-      ? normalizeFourthwallVariant(selected.product.name, option)
-      : null;
-  const formatDescription =
-    selected.variantType === "framed" ? text.framed : text.poster;
+  const chooseFormat = (nextFormat: string) => {
+    const sameSize =
+      selected?.sizeLabel &&
+      getOptionsForFormat(options, nextFormat).find(
+        (option) =>
+          option.sizeLabel === selected.sizeLabel &&
+          option.available &&
+          option.product?.available,
+      );
+    const next = sameSize || getDefaultOptionForFormat(options, nextFormat);
+    setFormat(nextFormat);
+    setSelectedId(next?.id || "");
+    setQuantity(1);
+    setError("");
+  };
   const add = async () => {
-    if (!selected.product || !option || busy) return;
+    const fourthwallVariant = selected?.product?.variants.find(
+      (variant) => variant.available,
+    );
+    if (!selected?.product || !fourthwallVariant || busy || !selected.available)
+      return;
     setBusy(true);
     setError("");
     try {
       await addFourthwallCartItem({
-        id: `fourthwall-${option.id}`,
-        variantId: option.id,
+        id: `fourthwall-${selected.product.id}-${fourthwallVariant.id}`,
+        variantId: fourthwallVariant.id,
         productId: selected.product.id,
         title: product.name,
         format: selected.label,
-        variantName: normalizedOption?.label || option.name,
+        variantName: selected.sizeLabel || "",
         imageUrl: selected.product.primaryImage?.url,
         quantity,
-        unitAmountMinor: Math.round(option.price.amount * 100),
-        currency: option.price.currency,
+        unitAmountMinor: Math.round(fourthwallVariant.price.amount * 100),
+        currency: fourthwallVariant.price.currency,
       });
       setAdded(true);
       toast({
         title: text.added,
-        description: product.name,
+        description: `${product.name} · ${selected.label} · ${selected.sizeLabel}`,
         duration: 2500,
         className: "border-green/30 bg-[#edf6ed] text-ink",
       });
@@ -132,8 +152,10 @@ export default function InternationalFormatSelector({
         entityName: product.name,
         metadata: {
           productType: "fourthwall",
-          format: selected.variantType,
-          variantId: option.id,
+          format,
+          size: selected.sizeLabel || "",
+          fourthwallProductId: selected.product.id,
+          variantId: fourthwallVariant.id,
           quantity,
           country: countryCode,
         },
@@ -145,70 +167,87 @@ export default function InternationalFormatSelector({
       setBusy(false);
     }
   };
-
+  if (!formats.length) return null;
   return (
     <div className="international-formats">
       <fieldset>
         <legend>{text.format}</legend>
         <div className="international-formats__cards" role="radiogroup">
-          {variants.map((variant) => (
-            <button
-              key={variant.id}
-              type="button"
-              role="radio"
-              aria-checked={variant.id === selected.id}
-              disabled={!variant.available}
-              onClick={() => {
-                setSelectedId(variant.id);
-                setQuantity(1);
-                setError("");
-                trackAnalytics("format_selected", {
-                  entityId: product.id,
-                  metadata: {
-                    productId: product.id,
-                    format: variant.variantType,
-                    country: countryCode,
-                    fourthwallProductId: variant.fourthwallProductId,
-                  },
-                });
-              }}
-            >
-              <span className="international-formats__radio" aria-hidden="true">
-                {variant.id === selected.id && <Check size={14} />}
-              </span>
-              <span>
-                <strong>{variant.label}</strong>
-                <small>
-                  {variant.variantType === "framed" ? text.framed : text.poster}
-                </small>
-              </span>
-              <b>
-                {variant.product?.price.formatted ||
-                  (variant.available ? "—" : text.unavailable)}
-              </b>
-            </button>
-          ))}
+          {formats.map((item) => {
+            const formatItems = getOptionsForFormat(options, item);
+            const lowest = getLowestFourthwallVariant(formatItems);
+            const available = Boolean(
+              lowest?.available && lowest.product?.available,
+            );
+            return (
+              <button
+                key={item}
+                type="button"
+                role="radio"
+                aria-checked={item === format}
+                disabled={!available}
+                onClick={() => chooseFormat(item)}
+              >
+                <span
+                  className="international-formats__radio"
+                  aria-hidden="true"
+                >
+                  {item === format && <Check size={14} />}
+                </span>
+                <span>
+                  <strong>{formatItems[0]?.label || item}</strong>
+                  <small>{item === "framed" ? text.framed : text.poster}</small>
+                </span>
+                <b>
+                  {available && lowest?.product
+                    ? `From ${lowest.product.price.formatted}`
+                    : text.unavailable}
+                </b>
+              </button>
+            );
+          })}
         </div>
       </fieldset>
-      {selected.product && option && (
-        <FourthwallVariantPicker
-          product={selected.product}
-          selectedId={option.id}
-          onSelect={setOptionId}
-          locale={locale}
-          name={`fourthwall-option-${product.id}`}
-        />
-      )}
-      {option && (
+      <fieldset className="international-formats__sizes">
+        <legend>{text.size}</legend>
+        <div>
+          {formatOptions.map((option) => {
+            const available = Boolean(
+              option.available && option.product?.available,
+            );
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={!available}
+                aria-pressed={option.id === selected?.id}
+                onClick={() => {
+                  setSelectedId(option.id);
+                  setQuantity(1);
+                  setError("");
+                }}
+              >
+                <span>
+                  {option.id === selected?.id && <Check size={13} />}
+                  {option.sizeLabel || option.product?.name}
+                </span>
+                <small>
+                  {available
+                    ? option.product?.price.formatted
+                    : text.unavailable}
+                </small>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+      {selected?.product && (
         <>
           <strong className="international-formats__price">
-            {option.price.formatted}
+            {selected.product.price.formatted}
           </strong>
           <p className="international-formats__selection">
-            {selected.label} · {formatDescription}
-            {normalizedOption?.label && normalizedOption.label !== "Standard"
-              ? ` · ${normalizedOption.label}`
-              : ""}
+            {selected.label} · {selected.sizeLabel}
           </p>
           <div className="international-formats__quantity">
             <span>{text.quantity}</span>
@@ -216,10 +255,8 @@ export default function InternationalFormatSelector({
               <button
                 type="button"
                 disabled={quantity <= 1 || busy}
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                aria-label={
-                  locale === "tr" ? "Adedi azalt" : "Decrease quantity"
-                }
+                onClick={() => setQuantity((v) => Math.max(1, v - 1))}
+                aria-label="Decrease quantity"
               >
                 <Minus size={15} />
               </button>
@@ -227,10 +264,8 @@ export default function InternationalFormatSelector({
               <button
                 type="button"
                 disabled={quantity >= 99 || busy}
-                onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-                aria-label={
-                  locale === "tr" ? "Adedi artır" : "Increase quantity"
-                }
+                onClick={() => setQuantity((v) => Math.min(99, v + 1))}
+                aria-label="Increase quantity"
               >
                 <Plus size={15} />
               </button>
@@ -239,7 +274,7 @@ export default function InternationalFormatSelector({
           <button
             type="button"
             className="button-primary product-detail__cta"
-            disabled={busy || added}
+            disabled={busy || added || !selected.available}
             onClick={() => void add()}
           >
             {added ? (
@@ -255,7 +290,7 @@ export default function InternationalFormatSelector({
           </button>
         </>
       )}
-      {!option && (
+      {!selected && (
         <p className="international-formats__unavailable">{text.unavailable}</p>
       )}
       {error && (

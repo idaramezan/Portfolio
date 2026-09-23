@@ -8,7 +8,8 @@ import { pool } from "@workspace/db";
 
 const router = Router();
 const ACEO_DIMENSION = "6.4 × 8.9 cm · 2.5 × 3.5 in";
-const PRODUCT_IMAGE_PATTERN = /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z0-9]+)?$/i;
+const PRODUCT_IMAGE_PATTERN =
+  /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z0-9]+)?$/i;
 
 function productImageIds(value: unknown, result = new Set<string>()) {
   if (typeof value === "string") {
@@ -138,13 +139,23 @@ function validFourthwallConnections(settings: Record<string, unknown>) {
       const types = enabled.map((variant) =>
         String(variant.variantType || "").trim(),
       );
+      const sizes = enabled.map((variant) =>
+        String(variant.sizeLabel || "").trim(),
+      );
       if (
         !enabled.length ||
         ids.some((value) => !value || value.length > 200) ||
         types.some((value) => !value || value.length > 50) ||
+        sizes.some((value) => !value || value.length > 100) ||
         new Set(ids).size !== ids.length ||
-        new Set(types).size !== types.length ||
-        enabled.filter((variant) => Boolean(variant.isDefault)).length > 1
+        [...new Set(types)].some(
+          (format) =>
+            enabled.filter(
+              (variant) =>
+                String(variant.variantType || "").trim() === format &&
+                Boolean(variant.isDefault),
+            ).length > 1,
+        )
       )
         return false;
       for (const variant of enabled) {
@@ -184,15 +195,18 @@ function validProductSales(settings: Record<string, any>) {
     ...(settings.mailClubEditions || []).map((item: any) => item.sale),
     settings.paletteSettings?.sale,
   ].filter(Boolean);
-  return sales.every((sale: any) =>
-    typeof sale.enabled === "boolean" &&
-    Number.isFinite(Number(sale.percentage)) &&
-    Number(sale.percentage) >= 1 &&
-    Number(sale.percentage) <= 100 &&
-    typeof sale.allowDiscountCodes === "boolean" &&
-    (!sale.startsAt || Number.isFinite(Date.parse(sale.startsAt))) &&
-    (!sale.endsAt || Number.isFinite(Date.parse(sale.endsAt))) &&
-    (!sale.startsAt || !sale.endsAt || Date.parse(sale.startsAt) < Date.parse(sale.endsAt)),
+  return sales.every(
+    (sale: any) =>
+      typeof sale.enabled === "boolean" &&
+      Number.isFinite(Number(sale.percentage)) &&
+      Number(sale.percentage) >= 1 &&
+      Number(sale.percentage) <= 100 &&
+      typeof sale.allowDiscountCodes === "boolean" &&
+      (!sale.startsAt || Number.isFinite(Date.parse(sale.startsAt))) &&
+      (!sale.endsAt || Number.isFinite(Date.parse(sale.endsAt))) &&
+      (!sale.startsAt ||
+        !sale.endsAt ||
+        Date.parse(sale.startsAt) < Date.parse(sale.endsAt)),
   );
 }
 
@@ -245,13 +259,33 @@ router.get("/shop-settings", async (request, response) => {
     const settings = result.rows[0].payload;
     let upgraded = false;
     if (!settings.paletteSettings) {
-      settings.paletteSettings = { enabled: true, priceMinor: 120000, coverImage: "/assets/custom-watercolor-palette.jpg", types: [], colors: [] };
+      settings.paletteSettings = {
+        enabled: true,
+        priceMinor: 120000,
+        coverImage: "/assets/custom-watercolor-palette.jpg",
+        types: [],
+        colors: [],
+      };
       upgraded = true;
     }
     if (!Array.isArray(settings.paletteSettings.types)) {
       settings.paletteSettings.types = [
-        { id: "resin", enabled: true, nameEn: "Resin", nameTr: "Reçine", descriptionEn: "Smooth, translucent and full of flowing colour.", descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu." },
-        { id: "stone", enabled: true, nameEn: "Stone", nameTr: "Taş", descriptionEn: "Textured, weighty and naturally one of a kind.", descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz." },
+        {
+          id: "resin",
+          enabled: true,
+          nameEn: "Resin",
+          nameTr: "Reçine",
+          descriptionEn: "Smooth, translucent and full of flowing colour.",
+          descriptionTr: "Pürüzsüz, yarı saydam ve akışkan renklerle dolu.",
+        },
+        {
+          id: "stone",
+          enabled: true,
+          nameEn: "Stone",
+          nameTr: "Taş",
+          descriptionEn: "Textured, weighty and naturally one of a kind.",
+          descriptionTr: "Dokulu, ağırlıklı ve doğal olarak benzersiz.",
+        },
       ];
       upgraded = true;
     }
@@ -282,14 +316,38 @@ router.get("/shop-settings", async (request, response) => {
       settings.readyMadePalettes = [];
       upgraded = true;
     } else {
-      settings.readyMadePalettes = settings.readyMadePalettes.map((palette: any) => {
-        if (palette.colors) return palette;
-        upgraded = true;
-        return { ...palette, colors: palette.description || "" };
-      });
+      settings.readyMadePalettes = settings.readyMadePalettes.map(
+        (palette: any) => {
+          if (palette.colors) return palette;
+          upgraded = true;
+          return { ...palette, colors: palette.description || "" };
+        },
+      );
     }
     if (!Array.isArray(settings.mailClubEditions)) {
-      settings.mailClubEditions = [{ id: "mail-club-october", slug: "october-mail-club", internalName: "October Mail Club", title: "October Mail Club", titleTr: "Ekim Mail Club", monthYear: "2026-10", description: "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.", descriptionTr: "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.", coverImage: "/assets/mail-club-october.jpg", altText: "October Mail Club contents", priceMinor: 49000, stock: 20, enabled: true, status: "published", current: true, createdAt: new Date().toISOString(), publishedAt: new Date().toISOString() }];
+      settings.mailClubEditions = [
+        {
+          id: "mail-club-october",
+          slug: "october-mail-club",
+          internalName: "October Mail Club",
+          title: "October Mail Club",
+          titleTr: "Ekim Mail Club",
+          monthYear: "2026-10",
+          description:
+            "A small collection of things I made for this month, sent only to the people who choose to keep a piece of it.",
+          descriptionTr:
+            "Bu ay için hazırladığım küçük bir koleksiyon, ondan bir parça saklamayı seçen insanlara gönderiliyor.",
+          coverImage: "/assets/mail-club-october.jpg",
+          altText: "October Mail Club contents",
+          priceMinor: 49000,
+          stock: 20,
+          enabled: true,
+          status: "published",
+          current: true,
+          createdAt: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      ];
       upgraded = true;
     }
     if (!Array.isArray(settings.animationMerchProductIds)) {
@@ -357,12 +415,20 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
       .status(400)
       .json({ error: "Social links must be valid HTTPS URLs" });
   if (!validProductSales(request.body.settings))
-    return response.status(400).json({ error: "Product sale settings are invalid." });
-  const currentMailEditions = Array.isArray(request.body.settings.mailClubEditions)
-    ? request.body.settings.mailClubEditions.filter((edition: any) => edition?.current)
+    return response
+      .status(400)
+      .json({ error: "Product sale settings are invalid." });
+  const currentMailEditions = Array.isArray(
+    request.body.settings.mailClubEditions,
+  )
+    ? request.body.settings.mailClubEditions.filter(
+        (edition: any) => edition?.current,
+      )
     : [];
   if (currentMailEditions.length > 1)
-    return response.status(400).json({ error: "Only one Mail Club edition can be current." });
+    return response
+      .status(400)
+      .json({ error: "Only one Mail Club edition can be current." });
   const aceoError = normalizeAceos(request.body.settings);
   if (aceoError) return response.status(400).json({ error: aceoError });
   if (!validFourthwallConnections(request.body.settings))
@@ -406,7 +472,11 @@ router.put("/admin/shop-settings", requireAdmin, async (request, response) => {
       await client.query("COMMIT");
       if (orphanedIds.length)
         request.log.info(
-          { operation: "product-image-cleanup", orphanedReferences: orphanedIds.length, deletedImages },
+          {
+            operation: "product-image-cleanup",
+            orphanedReferences: orphanedIds.length,
+            deletedImages,
+          },
           "Removed product images no longer referenced by shop settings",
         );
       return response.json({

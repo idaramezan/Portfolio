@@ -132,7 +132,10 @@ export default function FourthwallBasket({
       )}
       <div>
         {cart.items.map((item) => (
-          <article key={item.variantId} className="fourthwall-basket__item">
+          <article
+            key={`${item.productId}:${item.variantId}`}
+            className="fourthwall-basket__item"
+          >
             {item.imageUrl ? (
               <img src={item.imageUrl} alt="" />
             ) : (
