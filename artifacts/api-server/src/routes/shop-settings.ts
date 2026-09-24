@@ -146,7 +146,9 @@ function validFourthwallConnections(settings: Record<string, unknown>) {
         !enabled.length ||
         ids.some((value) => !value || value.length > 200) ||
         types.some((value) => !value || value.length > 50) ||
-        sizes.some((value) => !value || value.length > 100) ||
+        // Existing grouped mappings predate sizeLabel. Keep them loadable and
+        // savable; ProductEditor requires labels when a product is published.
+        sizes.some((value) => value.length > 100) ||
         new Set(ids).size !== ids.length ||
         [...new Set(types)].some(
           (format) =>
