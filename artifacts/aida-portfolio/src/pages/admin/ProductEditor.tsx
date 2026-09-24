@@ -317,9 +317,6 @@ export default function ProductEditor({
       )
         next.fourthwall =
           "The same Fourthwall product cannot be assigned more than once.";
-      if (enabled.some((variant) => !variant.sizeLabel?.trim()))
-        next.fourthwall =
-          "Enter a website size label for every enabled option.";
       for (const type of new Set(
         enabled.map((variant) => variant.variantType),
       )) {

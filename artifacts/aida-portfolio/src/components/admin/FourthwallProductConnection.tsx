@@ -216,6 +216,14 @@ export default function FourthwallProductConnection({
                                 })
                               }
                             />
+                            {!variant.sizeLabel?.trim() &&
+                              variant.fourthwallProductId && (
+                                <span className="mt-1 block text-xs font-normal text-ink/45">
+                                  Optional for legacy mappings. Add a clean
+                                  label when this product represents a specific
+                                  size.
+                                </span>
+                              )}
                           </label>
                           <label className="text-sm font-semibold">
                             Fourthwall product
