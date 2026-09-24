@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   getFourthwallVariants,
   getLowestFourthwallVariant,
+  hasConfiguredFourthwallOptions,
 } from "@/lib/fourthwall-variants";
 
 const words = {
@@ -152,7 +153,12 @@ export default function HomeCommerce() {
       )
       .slice(0, 4);
   const prints = [...settings.printProducts]
-    .filter((p) => isPubliclyVisible(p) && !isAceoProduct(p))
+    .filter(
+      (p) =>
+        isPubliclyVisible(p) &&
+        !isAceoProduct(p) &&
+        (local || hasConfiguredFourthwallOptions(p)),
+    )
     .sort(compareProductDisplayOrder)
     .slice(0, 4);
   const originals = newest(settings.originalProducts.filter(isPubliclyVisible));

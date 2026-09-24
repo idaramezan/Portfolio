@@ -19,6 +19,7 @@ import {
   getDefaultFourthwallVariant,
   getFourthwallVariants,
   getLowestFourthwallVariant,
+  hasConfiguredFourthwallOptions,
 } from "@/lib/fourthwall-variants";
 import HomeCommerce from "@/components/HomeCommerce";
 
@@ -243,7 +244,11 @@ export default function Home() {
       filter === "originals" && destination.countryCode === "TR"
         ? settings.originalProducts.filter(isPubliclyVisible)
         : settings.printProducts.filter(
-            (product) => isPubliclyVisible(product) && !isAceoProduct(product),
+            (product) =>
+              isPubliclyVisible(product) &&
+              !isAceoProduct(product) &&
+              (destination.countryCode === "TR" ||
+                hasConfiguredFourthwallOptions(product)),
           );
     return filtered.sort((a, b) =>
       sort === "newest"
@@ -267,7 +272,11 @@ export default function Home() {
   const availableFilters: Array<[HomeFilter, string]> = [];
   if (
     settings.printProducts.some(
-      (product) => isPubliclyVisible(product) && !isAceoProduct(product),
+      (product) =>
+        isPubliclyVisible(product) &&
+        !isAceoProduct(product) &&
+        (destination?.countryCode === "TR" ||
+          hasConfiguredFourthwallOptions(product)),
     )
   )
     availableFilters.push(["prints", text.prints]);

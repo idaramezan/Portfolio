@@ -13,6 +13,7 @@ import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import {
   getFourthwallVariants,
   getLowestFourthwallVariant,
+  hasConfiguredFourthwallOptions,
 } from "@/lib/fourthwall-variants";
 import { useLocale } from "@/lib/locale";
 import { resolveProductPresentation } from "@/lib/product-presentation";
@@ -594,12 +595,10 @@ function ProductCatalogue({
   const visible =
     kind === "originals"
       ? products.filter((product) => product.availableInTurkiye !== false)
-      : products.filter(
-          (product) =>
-            (local && product.availableInTurkiye !== false) ||
-            product.fourthwallProductId ||
-            product.fourthwallProductUrl ||
-            product.fourthwallVariants?.some((variant) => variant.enabled),
+      : products.filter((product) =>
+          local
+            ? product.availableInTurkiye !== false
+            : hasConfiguredFourthwallOptions(product),
         );
   return (
     <section className="section-shell unified-shop__catalog">

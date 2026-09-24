@@ -8,6 +8,15 @@ export type ResolvedFourthwallVariant = ProductFourthwallVariant & {
   available: boolean;
 };
 
+export function hasConfiguredFourthwallOptions(product: ManagedProduct) {
+  return Boolean(
+    product.fourthwallVariantGroupEnabled &&
+    product.fourthwallVariants?.some(
+      (option) => option.enabled && option.fourthwallProductId,
+    ),
+  );
+}
+
 export function getPurchasableFourthwallOptions(
   variants: ResolvedFourthwallVariant[],
 ) {
