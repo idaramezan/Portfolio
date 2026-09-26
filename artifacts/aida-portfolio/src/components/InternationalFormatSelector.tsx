@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { Check, Minus, Plus } from "lucide-react";
 import type { InternationalProduct } from "@/lib/fourthwall";
 import { addFourthwallCartItem } from "@/lib/fourthwall-cart";
@@ -40,20 +40,48 @@ const words = {
   },
 } as const;
 
+export type SelectedFourthwallMedia = {
+  optionId: string;
+  images: Array<{ src: string; alt: string }>;
+};
+
+function getFourthwallDisplayImages(
+  selected: ReturnType<typeof getDefaultOptionForFormat>,
+  artworkName: string,
+) {
+  if (!selected?.product) return [];
+  const candidates = [
+    ...(selected.product.primaryImage ? [selected.product.primaryImage] : []),
+    ...selected.product.images,
+  ];
+  return candidates
+    .filter(
+      (image, index, all) =>
+        Boolean(image?.url) &&
+        all.findIndex((candidate) => candidate.url === image.url) === index,
+    )
+    .map((image) => ({
+      src: image.url,
+      alt:
+        image.alt ||
+        `${artworkName} ${selected.label} ${selected.sizeLabel || ""}`.trim(),
+    }));
+}
+
 export default function InternationalFormatSelector({
   product,
   catalogue,
   shopUrl,
   countryCode,
   locale,
-  onImageChange,
+  onMediaChange,
 }: {
   product: ManagedProduct;
   catalogue: InternationalProduct[];
   shopUrl: string | null;
   countryCode: string;
   locale: "en" | "tr";
-  onImageChange?: (image?: { src: string; alt: string }) => void;
+  onMediaChange?: (media: SelectedFourthwallMedia) => void;
 }) {
   const text = words[locale];
   const { toast } = useToast();
@@ -91,18 +119,13 @@ export default function InternationalFormatSelector({
     if (!availableFormats.includes(format))
       setFormat(availableFormats[0] || formats[0] || "");
   }, [options, format]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (selected && selected.id !== selectedId) setSelectedId(selected.id);
-    const image = selected?.product?.primaryImage;
-    onImageChange?.(
-      image
-        ? {
-            src: image.url,
-            alt: image.alt || `${product.name} ${selected.sizeLabel || ""}`,
-          }
-        : undefined,
-    );
-  }, [selected?.id]);
+    onMediaChange?.({
+      optionId: selected?.id || "",
+      images: getFourthwallDisplayImages(selected, product.name),
+    });
+  }, [selected?.id, selected?.product]);
 
   const chooseFormat = (nextFormat: string) => {
     const sameSize =

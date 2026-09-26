@@ -24,6 +24,12 @@ export default function ProductImageLightbox({
   const touchStart = useRef<number | null>(null);
   const image = images[index];
   const multiple = images.length > 1;
+  const imageSetKey = images.map((item) => item.src).join("|");
+
+  useEffect(() => {
+    setIndex(0);
+    setFailed(false);
+  }, [imageSetKey]);
 
   const close = () => setOpen(false);
   const move = (direction: -1 | 1) => {
@@ -103,7 +109,9 @@ export default function ProductImageLightbox({
             <div className="artwork-finish-preview__mat">{imageTrigger}</div>
           </div>
         </div>
-      ) : imageTrigger}
+      ) : (
+        imageTrigger
+      )}
       {multiple && (
         <div className="product-image-thumbnails" aria-label="Product images">
           {images.map((candidate, candidateIndex) => (

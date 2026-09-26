@@ -26,7 +26,9 @@ import {
   TURKIYE_FLAT_SHIPPING_MINOR,
   type PrintFraming,
 } from "@/lib/turkiye-products";
-import InternationalFormatSelector from "@/components/InternationalFormatSelector";
+import InternationalFormatSelector, {
+  type SelectedFourthwallMedia,
+} from "@/components/InternationalFormatSelector";
 import Money from "@/components/Money";
 import { addItemToCart } from "@/lib/store";
 import { calculateProductSale } from "@/lib/product-sale";
@@ -115,10 +117,9 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [purchaseError, setPurchaseError] = useState("");
-  const [internationalImage, setInternationalImage] = useState<{
-    src: string;
-    alt: string;
-  } | null>(null);
+  const [internationalMedia, setInternationalMedia] = useState<
+    (SelectedFourthwallMedia & { productId: string }) | null
+  >(null);
   const { toast } = useToast();
   const { destination, isTürkiye, openDestination } = useShippingDestination();
   const product = settings.printProducts.find(
@@ -147,7 +148,6 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
     setQuantity(1);
     setAdded(false);
     setPurchaseError("");
-    setInternationalImage(null);
   }, [product?.id, availableSizes]);
   const query = new URLSearchParams(window.location.search);
   const fromProject = query.get("from") === "100-windows";
@@ -300,20 +300,28 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
   const regionalGallery = isTürkiye
     ? (product.galleryImagesTurkiye ?? product.galleryImages ?? [])
     : (product.galleryImagesInternational ?? product.galleryImages ?? []);
-  const productImages = [
-    ...(internationalImage && !isTürkiye ? [internationalImage.src] : []),
-    product.imageUrl,
-    ...regionalGallery,
-  ]
+  const selectedInternationalMedia =
+    internationalMedia?.productId === product.id ? internationalMedia : null;
+  const waitingForInternationalMedia = Boolean(
+    !isTürkiye &&
+    product.fourthwallVariantGroupEnabled &&
+    (international.loading || !selectedInternationalMedia),
+  );
+  const fourthwallImages = selectedInternationalMedia?.images || [];
+  const fallbackImages = [product.imageUrl, ...regionalGallery]
     .filter((src, index, all) => Boolean(src) && all.indexOf(src) === index)
     .map((src) => ({
       src,
       highResolutionSrc: src,
-      alt:
-        internationalImage?.src === src
-          ? internationalImage.alt
-          : product.altText || product.name,
+      alt: product.altText || product.name,
     }));
+  const productImages =
+    !isTürkiye && fourthwallImages.length
+      ? fourthwallImages.map((image) => ({
+          ...image,
+          highResolutionSrc: image.src,
+        }))
+      : fallbackImages;
 
   return (
     <>
@@ -325,10 +333,18 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
         </Link>
         <div className="print-story-detail__layout">
           <div className="print-story-detail__media">
-            <ProductImageLightbox
-              images={productImages}
-              framedPreview={framing === "framed" && isTürkiye}
-            />
+            {waitingForInternationalMedia ? (
+              <div
+                className="print-story-detail__image-loading"
+                role="status"
+                aria-label="Loading product images"
+              />
+            ) : (
+              <ProductImageLightbox
+                images={productImages}
+                framedPreview={framing === "framed" && isTürkiye}
+              />
+            )}
           </div>
           <article className="print-story-detail__story">
             <p className="eyebrow">
@@ -693,8 +709,8 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                   shopUrl={international.shopUrl}
                   countryCode={destination.countryCode}
                   locale={locale}
-                  onImageChange={(image) =>
-                    setInternationalImage(image || null)
+                  onMediaChange={(media) =>
+                    setInternationalMedia({ ...media, productId: product.id })
                   }
                 />
               ) : (
