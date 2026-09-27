@@ -125,15 +125,7 @@ export default function InternationalFormatSelector({
   }, [selected?.id, selected?.product]);
 
   const chooseFormat = (nextFormat: string) => {
-    const sameSize =
-      selected?.sizeLabel &&
-      getOptionsForFormat(options, nextFormat).find(
-        (option) =>
-          option.sizeLabel === selected.sizeLabel &&
-          option.available &&
-          option.product?.available,
-      );
-    const next = sameSize || getDefaultOptionForFormat(options, nextFormat);
+    const next = getDefaultOptionForFormat(options, nextFormat);
     setFormat(nextFormat);
     setSelectedId(next?.id || "");
     setQuantity(1);

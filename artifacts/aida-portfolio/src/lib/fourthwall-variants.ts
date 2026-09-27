@@ -50,7 +50,12 @@ export function getDefaultOptionForFormat(
   const available = getPurchasableFourthwallOptions(
     getOptionsForFormat(variants, format),
   );
-  return available.find((variant) => variant.isDefault) || available[0];
+  return available.sort((a, b) => {
+    const priceDifference =
+      (a.product?.price.amount ?? Number.POSITIVE_INFINITY) -
+      (b.product?.price.amount ?? Number.POSITIVE_INFINITY);
+    return priceDifference || a.sortOrder - b.sortOrder;
+  })[0];
 }
 
 export function getDefaultFourthwallFormat(
