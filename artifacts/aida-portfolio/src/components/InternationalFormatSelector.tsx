@@ -3,6 +3,7 @@ import { Check, Minus, Plus } from "lucide-react";
 import type { InternationalProduct } from "@/lib/fourthwall";
 import { addFourthwallCartItem } from "@/lib/fourthwall-cart";
 import {
+  getDefaultFourthwallFormat,
   getDefaultOptionForFormat,
   getFourthwallFormats,
   getFourthwallVariants,
@@ -94,11 +95,7 @@ export default function InternationalFormatSelector({
     Boolean(getDefaultOptionForFormat(options, item)),
   );
   const requested = new URLSearchParams(window.location.search).get("format");
-  const initialFormat = availableFormats.includes(requested || "")
-    ? requested!
-    : availableFormats.includes(product.fourthwallDefaultFormat || "")
-      ? product.fourthwallDefaultFormat!
-      : availableFormats[0] || formats[0];
+  const initialFormat = getDefaultFourthwallFormat(options, requested);
   const [format, setFormat] = useState(initialFormat || "");
   const initial = getDefaultOptionForFormat(options, initialFormat || "");
   const [selectedId, setSelectedId] = useState(initial?.id || "");

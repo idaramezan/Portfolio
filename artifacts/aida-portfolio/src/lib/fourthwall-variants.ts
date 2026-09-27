@@ -27,7 +27,13 @@ export function getPurchasableFourthwallOptions(
 }
 
 export function getFourthwallFormats(variants: ResolvedFourthwallVariant[]) {
-  return [...new Set(variants.map((variant) => variant.variantType))];
+  const priority = new Map([
+    ["poster", 0],
+    ["framed", 1],
+  ]);
+  return [...new Set(variants.map((variant) => variant.variantType))].sort(
+    (a, b) => (priority.get(a) ?? 2) - (priority.get(b) ?? 2),
+  );
 }
 
 export function getOptionsForFormat(
@@ -45,6 +51,20 @@ export function getDefaultOptionForFormat(
     getOptionsForFormat(variants, format),
   );
   return available.find((variant) => variant.isDefault) || available[0];
+}
+
+export function getDefaultFourthwallFormat(
+  variants: ResolvedFourthwallVariant[],
+  requested?: string | null,
+) {
+  const formats = getFourthwallFormats(variants);
+  const available = formats.filter((format) =>
+    Boolean(getDefaultOptionForFormat(variants, format)),
+  );
+  if (requested && available.includes(requested)) return requested;
+  return available.includes("poster")
+    ? "poster"
+    : available[0] || formats[0] || "";
 }
 
 export function getFourthwallVariants(
