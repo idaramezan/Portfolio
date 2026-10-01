@@ -245,6 +245,7 @@ export interface ShopSettings {
     sale?: ProductSale;
   };
   readyMadePalettes: ReadyMadePalette[];
+  mailClubEnabled: boolean;
   mailClubEditions: MailClubEdition[];
   animationMerchProductIds: string[];
   siteLinks: {
@@ -440,6 +441,7 @@ export function getDefaultSettings(): ShopSettings {
       ),
     },
     readyMadePalettes: [],
+    mailClubEnabled: true,
     mailClubEditions: [
       {
         id: "mail-club-october",
@@ -658,6 +660,7 @@ export function loadShopSettings(): ShopSettings {
               colors: palette.colors || palette.description || "",
             }))
           : defaults.readyMadePalettes,
+        mailClubEnabled: saved.mailClubEnabled !== false,
         mailClubEditions: Array.isArray(saved.mailClubEditions)
           ? saved.mailClubEditions
           : defaults.mailClubEditions,

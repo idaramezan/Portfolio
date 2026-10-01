@@ -162,9 +162,9 @@ export default function HomeCommerce() {
     .sort(compareProductDisplayOrder)
     .slice(0, 4);
   const originals = newest(settings.originalProducts.filter(isPubliclyVisible));
-  const currentMail = settings.mailClubEditions.find(
-    (e) => e.current && e.enabled,
-  );
+  const currentMail = settings.mailClubEnabled
+    ? settings.mailClubEditions.find((e) => e.current && e.enabled)
+    : undefined;
   const readyPalettes = newest(
     settings.readyMadePalettes.filter(
       (p) => p.status === "available" && p.stock > 0,

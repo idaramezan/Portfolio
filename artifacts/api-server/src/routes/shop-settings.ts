@@ -326,6 +326,10 @@ router.get("/shop-settings", async (request, response) => {
         },
       );
     }
+    if (typeof settings.mailClubEnabled !== "boolean") {
+      settings.mailClubEnabled = true;
+      upgraded = true;
+    }
     if (!Array.isArray(settings.mailClubEditions)) {
       settings.mailClubEditions = [
         {

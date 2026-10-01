@@ -50,7 +50,33 @@ export default function CommerceCollections({
         </div>
       )}
       {section === "mail-club" && (
-        <MailClubAdmin settings={settings} onChange={setSettings} />
+        <div className="space-y-8">
+          <section className="admin-card">
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-coral">
+              Website visibility
+            </p>
+            <label className="mt-4 flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={settings.mailClubEnabled}
+                onChange={(event) =>
+                  setSettings({
+                    ...settings,
+                    mailClubEnabled: event.target.checked,
+                  })
+                }
+              />
+              <span>
+                <strong className="block">Show Mail Club on website</strong>
+                <small className="mt-1 block text-ink/60">
+                  When disabled, Mail Club is hidden from the homepage, shop,
+                  and navigation.
+                </small>
+              </span>
+            </label>
+          </section>
+          <MailClubAdmin settings={settings} onChange={setSettings} />
+        </div>
       )}
       {section === "animation-merch" && (
         <section className="admin-card">

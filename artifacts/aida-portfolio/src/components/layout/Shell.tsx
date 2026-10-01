@@ -51,7 +51,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const isBasketEmpty = cartCount === 0;
   const isBasketDisabled = isBasketEmpty || isMobileMenuOpen;
   const { locale, setLocale } = useLocale();
-  const siteLinks = loadShopSettings().siteLinks;
+  const settings = loadShopSettings();
+  const siteLinks = settings.siteLinks;
   const socialLinks = [
     ["Instagram", siteLinks.instagramUrl],
     ["TikTok", siteLinks.tiktokUrl],
@@ -446,7 +447,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   ? "Baskılar ve orijinal eserler"
                   : "Prints and original works",
               links: [
-                ...(isTürkiye
+                ...(isTürkiye && settings.mailClubEnabled
                   ? [["/shop?category=mail-club", "Mail Club"]]
                   : []),
                 [

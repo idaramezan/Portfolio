@@ -183,22 +183,24 @@ export default function UnifiedShop() {
   const customPaletteAvailable =
     settings.paletteSettings.enabled &&
     settings.paletteSettings.types.some((type) => type.enabled);
-  const currentMail = settings.mailClubEditions.find((edition) => {
-    const start = edition.availabilityStart
-      ? Date.parse(edition.availabilityStart)
-      : 0;
-    const end = edition.availabilityEnd
-      ? Date.parse(edition.availabilityEnd)
-      : Infinity;
-    return (
-      edition.current &&
-      edition.enabled &&
-      edition.status === "published" &&
-      edition.stock > 0 &&
-      now >= start &&
-      now < end
-    );
-  });
+  const currentMail = settings.mailClubEnabled
+    ? settings.mailClubEditions.find((edition) => {
+        const start = edition.availabilityStart
+          ? Date.parse(edition.availabilityStart)
+          : 0;
+        const end = edition.availabilityEnd
+          ? Date.parse(edition.availabilityEnd)
+          : Infinity;
+        return (
+          edition.current &&
+          edition.enabled &&
+          edition.status === "published" &&
+          edition.stock > 0 &&
+          now >= start &&
+          now < end
+        );
+      })
+    : undefined;
   const merch = international.products.filter(
     (product) =>
       settings.animationMerchProductIds.includes(product.id) &&

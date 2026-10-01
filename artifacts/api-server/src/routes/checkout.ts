@@ -314,7 +314,7 @@ async function calculate(body: any) {
       throw new Error("A selected item is no longer available.");
     if (kind === "ready-palette" && (product.status !== "available" || Number(product.stock) < quantity))
       throw new Error("This palette was just collected.");
-    if (kind === "mail-club" && (!product.enabled || !product.current || product.status !== "published" || Number(product.stock) < quantity))
+    if (kind === "mail-club" && (settings.mailClubEnabled === false || !product.enabled || !product.current || product.status !== "published" || Number(product.stock) < quantity))
       throw new Error("This Mail Club edition is no longer available.");
     if (kind === "mail-club") {
       const now = Date.now();
