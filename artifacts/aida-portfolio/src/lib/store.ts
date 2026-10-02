@@ -149,6 +149,9 @@ export interface LimitedEditionUnit {
 }
 export interface LimitedEditionGroup {
   id: string;
+  /** Existing website print referenced by this release overlay. */
+  productId?: string;
+  editionEnabled?: boolean;
   title: string;
   slug: string;
   description: string;
@@ -162,6 +165,11 @@ export interface LimitedEditionGroup {
   homepageFeatured: boolean;
   homepageOrder: number;
   priceLabel?: string;
+  homepageTitleOverride?: string;
+  homepageStoryOverride?: string;
+  homepageImageOverride?: string;
+  homepageImageFocalPoint?: string;
+  homepageCtaLabel?: string;
   units: LimitedEditionUnit[];
 }
 export interface WeeklyLimitedCollection {
@@ -479,6 +487,9 @@ export interface CartItem {
     selectedColorIds?: string[];
     selectedColorNames?: string[];
     customerNote?: string;
+    limitedCollectionId?: string;
+    limitedEditionId?: string;
+    editionSize?: number;
   };
   priceChanged?: boolean;
 }

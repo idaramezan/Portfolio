@@ -1,7 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { Check, Minus, Plus } from "lucide-react";
 import type { InternationalProduct } from "@/lib/fourthwall";
-import { addFourthwallCartItem } from "@/lib/fourthwall-cart";
+import {
+  addFourthwallCartItem,
+  loadFourthwallCart,
+} from "@/lib/fourthwall-cart";
 import {
   getDefaultFourthwallFormat,
   getDefaultOptionForFormat,
@@ -76,6 +79,8 @@ export default function InternationalFormatSelector({
   countryCode,
   locale,
   onMediaChange,
+  maxQuantity = 99,
+  limitedEditionSlug,
 }: {
   product: ManagedProduct;
   catalogue: InternationalProduct[];
@@ -83,6 +88,8 @@ export default function InternationalFormatSelector({
   countryCode: string;
   locale: "en" | "tr";
   onMediaChange?: (media: SelectedFourthwallMedia) => void;
+  maxQuantity?: number;
+  limitedEditionSlug?: string;
 }) {
   const text = words[locale];
   const { toast } = useToast();
@@ -140,6 +147,22 @@ export default function InternationalFormatSelector({
     setBusy(true);
     setError("");
     try {
+      if (limitedEditionSlug) {
+        const reservation = await fetch(
+          `/api/limited-editions/${encodeURIComponent(limitedEditionSlug)}/reserve`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              basketId: loadFourthwallCart().cartId || undefined,
+              fourthwallProductId: selected.product.id,
+            }),
+          },
+        );
+        const reservationData = await reservation.json();
+        if (!reservation.ok)
+          throw new Error(reservationData.error || text.error);
+      }
       await addFourthwallCartItem({
         id: `fourthwall-${selected.product.id}-${fourthwallVariant.id}`,
         variantId: fourthwallVariant.id,
@@ -275,8 +298,8 @@ export default function InternationalFormatSelector({
               <strong aria-live="polite">{quantity}</strong>
               <button
                 type="button"
-                disabled={quantity >= 99 || busy}
-                onClick={() => setQuantity((v) => Math.min(99, v + 1))}
+                disabled={quantity >= maxQuantity || busy}
+                onClick={() => setQuantity((v) => Math.min(maxQuantity, v + 1))}
                 aria-label="Increase quantity"
               >
                 <Plus size={15} />

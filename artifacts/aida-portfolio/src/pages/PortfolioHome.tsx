@@ -16,7 +16,11 @@ import {
 } from "@/lib/fourthwall-variants";
 import EditorialProductCard from "@/components/EditorialProductCard";
 import ProductPrice from "@/components/ProductPrice";
-import type { LimitedEditionGroup, WeeklyLimitedCollection } from "@/lib/store";
+import type {
+  LimitedEditionGroup,
+  ManagedProduct,
+  WeeklyLimitedCollection,
+} from "@/lib/store";
 
 const fallbackHero = "/assets/aida-green-gallery-hero.png";
 
@@ -56,8 +60,14 @@ export default function PortfolioHome() {
   const release = active || next;
   const weeklyGroups = (release?.editionGroupIds || [])
     .map((id) => settings.limitedEditionGroups.find((group) => group.id === id))
-    .filter((x): x is LimitedEditionGroup => Boolean(x))
+    .filter(
+      (x): x is LimitedEditionGroup =>
+        Boolean(x) && x?.editionEnabled !== false,
+    )
     .slice(0, 3);
+  const weeklyProductIds = new Set(
+    weeklyGroups.map((group) => group.productId).filter(Boolean),
+  );
   const originals = settings.originalProducts.filter(
     (item) => isPubliclyVisible(item) && !isSoldOut(item),
   );
@@ -78,6 +88,7 @@ export default function PortfolioHome() {
       (item) =>
         isPubliclyVisible(item) &&
         !isAceoProduct(item) &&
+        !weeklyProductIds.has(item.id) &&
         (local || hasConfiguredFourthwallOptions(item)),
     )
     .sort(compareProductDisplayOrder);
@@ -102,17 +113,17 @@ export default function PortfolioHome() {
       />
       {weeklyGroups.length > 0 && (
         <section id="weekly-editions" className="weekly-editions section-shell">
-          <header>
-            <p className="portfolio-kicker">THIS WEEK'S EDITIONS</p>
-            <h2>Three works. A small number of copies.</h2>
-          </header>
-          <div className="weekly-editions__grid">
-            {weeklyGroups.map((group) => (
-              <EditionCard
+          <div className="weekly-editions__features">
+            {weeklyGroups.map((group, index) => (
+              <EditionFeature
                 key={group.id}
                 group={group}
+                product={settings.printProducts.find(
+                  (item) => item.id === group.productId,
+                )}
                 release={release}
                 now={now}
+                index={index}
               />
             ))}
           </div>
@@ -218,9 +229,7 @@ function releaseState(release: WeeklyLimitedCollection, now: number) {
   return release.status === "closed" ? "closed" : "active";
 }
 function remaining(group: LimitedEditionGroup) {
-  return group.units.filter(
-    (unit) => unit.status === "available" && unit.fourthwallProductId,
-  ).length;
+  return group.units.filter((unit) => unit.status === "available").length;
 }
 function Countdown({
   to,
@@ -324,53 +333,111 @@ function WeeklyHero({
     </section>
   );
 }
-function EditionCard({
+function editorialExcerpt(value: string) {
+  const text = value.trim();
+  if (text.length <= 260) return text;
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+  let excerpt = "";
+  for (const sentence of sentences) {
+    if (excerpt.length + sentence.length <= 260) excerpt += sentence;
+  }
+  return excerpt.trim() || `${text.slice(0, 257).trimEnd()}…`;
+}
+function EditionFeature({
   group,
+  product,
   release,
   now,
+  index,
 }: {
   group: LimitedEditionGroup;
+  product?: ManagedProduct;
   release?: WeeklyLimitedCollection;
   now: number;
+  index: number;
 }) {
-  const left = remaining(group),
+  const [liveRemaining, setLiveRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    const refresh = () =>
+      void fetch(
+        `/api/limited-editions/${encodeURIComponent(group.slug)}/availability`,
+        { cache: "no-store" },
+      )
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data) => {
+          if (active && Number.isFinite(data?.remaining))
+            setLiveRemaining(Number(data.remaining));
+        })
+        .catch(() => undefined);
+    refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [group.slug]);
+  const left = liveRemaining ?? remaining(group),
     sold = group.editionSize - left,
     closed =
       !release ||
       releaseState(release, now) === "closed" ||
       group.status === "closed",
     soldOut = left === 0;
+  const title = group.homepageTitleOverride || product?.name || group.title;
+  const story = editorialExcerpt(
+    group.homepageStoryOverride ||
+      product?.description ||
+      group.description ||
+      group.story,
+  );
+  const image =
+    group.homepageImageOverride ||
+    product?.imageUrl ||
+    group.image ||
+    fallbackHero;
+  const href = product
+    ? `/shop/prints/${product.slug || product.id}?limited=${encodeURIComponent(group.id)}`
+    : `/limited-editions/${group.slug}`;
   return (
-    <article className="edition-card">
-      <Link href={`/limited-editions/${group.slug}`}>
-        <div className="edition-card__media">
-          <img
-            src={group.image || fallbackHero}
-            alt={group.title}
-            loading="lazy"
-          />
-        </div>
-        <h3>{group.title}</h3>
-        <p>LIMITED EDITION · {group.editionSize}</p>
-        <p>
+    <article
+      className={`edition-feature ${index % 2 === 1 ? "edition-feature--reverse" : ""}`}
+    >
+      <div className="edition-feature__copy">
+        <p className="edition-feature__eyebrow">
+          LIMITED EDITION · {group.editionSize}
+        </p>
+        <h2>{title}</h2>
+        {story && <p className="edition-feature__story">{story}</p>}
+        <p className="edition-feature__status">
           {soldOut
-            ? `${group.editionSize} / ${group.editionSize} COLLECTED`
+            ? `${group.editionSize} / ${group.editionSize} collected · SOLD OUT`
             : closed
-              ? `EDITION CLOSED · ${sold} / ${group.editionSize} COLLECTED`
-              : `${left} OF ${group.editionSize} REMAINING`}
+              ? `${sold} / ${group.editionSize} collected · EDITION CLOSED`
+              : `${left} / ${group.editionSize} remaining`}
         </p>
         {release?.endAt && !closed && (
-          <small>
-            Closing{" "}
+          <p className="edition-feature__deadline">
+            Available until{" "}
             {new Intl.DateTimeFormat("en", {
               day: "numeric",
-              month: "short",
+              month: "long",
             }).format(new Date(release.endAt))}
-          </small>
+          </p>
         )}
-        <span>
-          View edition <ArrowRight />
-        </span>
+        {!closed && !soldOut && (
+          <Link className="edition-feature__cta" href={href}>
+            {group.homepageCtaLabel || "View this edition"} <ArrowRight />
+          </Link>
+        )}
+      </div>
+      <Link className="edition-feature__media" href={href} aria-label={title}>
+        <img
+          src={image}
+          alt={product?.altText || title}
+          loading="lazy"
+          style={{ objectPosition: group.homepageImageFocalPoint || "center" }}
+        />
       </Link>
     </article>
   );

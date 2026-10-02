@@ -181,6 +181,28 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
 
   const shortDescription = product.description;
   const fullDescription = product.fullDescription || product.description;
+  const requestedEditionId = query.get("limited");
+  const limitedEdition = settings.limitedEditionGroups.find(
+    (item) =>
+      item.productId === product.id &&
+      item.editionEnabled !== false &&
+      (!requestedEditionId || item.id === requestedEditionId),
+  );
+  const limitedCollection = limitedEdition
+    ? settings.weeklyLimitedCollections.find((item) =>
+        item.editionGroupIds.includes(limitedEdition.id),
+      )
+    : undefined;
+  const editionDeadline =
+    limitedCollection?.endAt || limitedEdition?.releaseEnd;
+  const editionClosed = Boolean(
+    limitedEdition &&
+    (["closed", "archived"].includes(limitedEdition.status) ||
+      (editionDeadline && Date.now() >= Date.parse(editionDeadline))),
+  );
+  const editionRemaining = limitedEdition
+    ? limitedEdition.units.filter((unit) => unit.status === "available").length
+    : 0;
   const linked = international.products.find(
     (item) => item.id === product.fourthwallProductId,
   );
@@ -225,12 +247,22 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
   const productSavings = baseSale.discountAmountMinor * quantity;
   const totalSavings = productSavings + shippingSavings;
   const orderTotal = pricing.lineTotalCents + shipping;
-  const maximum = Math.max(
-    1,
-    Math.min(product.maxPerUser || 1, product.inventory ?? product.maxPerUser),
-  );
+  const maximum = limitedEdition
+    ? 1
+    : Math.max(
+        1,
+        Math.min(
+          product.maxPerUser || 1,
+          product.inventory ?? product.maxPerUser,
+        ),
+      );
   const canAdd =
-    !sold && product.available && Boolean(size) && quantity <= maximum;
+    !sold &&
+    !editionClosed &&
+    (!limitedEdition || editionRemaining > 0) &&
+    product.available &&
+    Boolean(size) &&
+    quantity <= maximum;
   const addConfiguredPrint = () => {
     if (!canAdd || !size || !product.printOptions) {
       setPurchaseError(
@@ -255,6 +287,13 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
         displayCurrency: "TRY",
         quantity,
         maxQuantity: maximum,
+        metadata: limitedEdition
+          ? {
+              limitedCollectionId: limitedCollection?.id,
+              limitedEditionId: limitedEdition.id,
+              editionSize: limitedEdition.editionSize,
+            }
+          : undefined,
         configurationKey: getPrintConfigurationKey(size.id, framing),
         selectedSizeId: size.id,
         selectedFinishId: framing,
@@ -355,6 +394,34 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
             <h1>{product.name}</h1>
             {shortDescription && (
               <p className="print-story-detail__intro">{shortDescription}</p>
+            )}
+            {limitedEdition && (
+              <aside className="limited-edition-context">
+                <p className="eyebrow">LIMITED EDITION</p>
+                <h2>Edition of {limitedEdition.editionSize}</h2>
+                <p>
+                  {editionClosed
+                    ? "Edition closed"
+                    : editionRemaining
+                      ? `${editionRemaining} remaining`
+                      : "Sold out"}
+                </p>
+                <p>
+                  Digitally signed by Aida. Your unique edition number is
+                  assigned after purchase and recorded as part of this limited
+                  release.
+                </p>
+                {editionDeadline && !editionClosed && (
+                  <small>
+                    Available until{" "}
+                    {new Intl.DateTimeFormat(locale, {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date(editionDeadline))}
+                  </small>
+                )}
+              </aside>
             )}
             <div className="print-story-detail__purchase-intro">
               <p className="eyebrow">{c.printInfo}</p>
@@ -709,6 +776,8 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                   shopUrl={international.shopUrl}
                   countryCode={destination.countryCode}
                   locale={locale}
+                  maxQuantity={limitedEdition ? 1 : 99}
+                  limitedEditionSlug={limitedEdition?.slug}
                   onMediaChange={(media) =>
                     setInternationalMedia({ ...media, productId: product.id })
                   }

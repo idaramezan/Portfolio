@@ -1,10 +1,10 @@
 import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useInternationalProducts } from "@/hooks/use-international";
 import {
   loadShopSettings,
   saveShopSettingsAndWait,
   type LimitedEditionGroup,
+  type ManagedProduct,
   type ShopSettings,
   type WeeklyLimitedCollection,
 } from "@/lib/store";
@@ -20,7 +20,6 @@ export default function WeeklyLimitedCollections() {
   const [selectedWeek, setSelectedWeek] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const catalogue = useInternationalProducts();
   const group =
     settings.limitedEditionGroups.find((x) => x.id === selectedGroup) ||
     settings.limitedEditionGroups[0];
@@ -61,6 +60,31 @@ export default function WeeklyLimitedCollections() {
     setSaving(true);
     setMessage("");
     try {
+      for (const collection of next.weeklyLimitedCollections) {
+        const selected = collection.editionGroupIds
+          .map((id) => next.limitedEditionGroups.find((item) => item.id === id))
+          .filter((item): item is LimitedEditionGroup => Boolean(item));
+        const productIds = selected
+          .map((item) => item.productId)
+          .filter((id): id is string => Boolean(id));
+        if (new Set(productIds).size !== productIds.length)
+          throw new Error(
+            "The same print cannot be selected twice in one collection.",
+          );
+        if (collection.status === "active" && selected.length !== 3)
+          throw new Error(
+            "An active collection must have exactly three featured editions.",
+          );
+        if (
+          collection.status === "active" &&
+          selected.some(
+            (item) => !item.productId || item.editionEnabled === false,
+          )
+        )
+          throw new Error(
+            "Every active featured edition must reference an enabled print product.",
+          );
+      }
       await saveShopSettingsAndWait(next);
       setMessage("Weekly releases saved.");
     } catch (error) {
@@ -73,6 +97,8 @@ export default function WeeklyLimitedCollections() {
     const id = crypto.randomUUID();
     const next: LimitedEditionGroup = {
       id,
+      productId: "",
+      editionEnabled: true,
       title: "Untitled edition",
       slug: `edition-${settings.limitedEditionGroups.length + 1}`,
       description: "",
@@ -297,6 +323,32 @@ export default function WeeklyLimitedCollections() {
             </div>
             {group && (
               <div className="grid gap-4 md:grid-cols-2">
+                <PrintProductPicker
+                  products={settings.printProducts}
+                  value={group.productId || ""}
+                  onChange={(productId) => {
+                    const product = settings.printProducts.find(
+                      (item) => item.id === productId,
+                    );
+                    updateGroup({
+                      productId,
+                      title: product?.name || group.title,
+                      slug: product?.slug || group.slug,
+                      description: product?.description || group.description,
+                      image: product?.imageUrl || group.image,
+                    });
+                  }}
+                />
+                <label className="flex items-center gap-2 self-end pb-3">
+                  <input
+                    type="checkbox"
+                    checked={group.editionEnabled !== false}
+                    onChange={(e) =>
+                      updateGroup({ editionEnabled: e.target.checked })
+                    }
+                  />
+                  Edition enabled
+                </label>
                 <Text
                   label="Title"
                   value={group.title}
@@ -318,6 +370,36 @@ export default function WeeklyLimitedCollections() {
                   value={group.story}
                   area
                   onChange={(story) => updateGroup({ story })}
+                />
+                <Text
+                  label="Homepage title override (optional)"
+                  value={group.homepageTitleOverride || ""}
+                  onChange={(homepageTitleOverride) =>
+                    updateGroup({ homepageTitleOverride })
+                  }
+                />
+                <Text
+                  label="Homepage story override (optional)"
+                  value={group.homepageStoryOverride || ""}
+                  area
+                  onChange={(homepageStoryOverride) =>
+                    updateGroup({ homepageStoryOverride })
+                  }
+                />
+                <Text
+                  label="Homepage CTA label (optional)"
+                  value={group.homepageCtaLabel || ""}
+                  onChange={(homepageCtaLabel) =>
+                    updateGroup({ homepageCtaLabel })
+                  }
+                />
+                <Select
+                  label="Homepage image focal point"
+                  value={group.homepageImageFocalPoint || "center"}
+                  values={["center", "top", "bottom", "left", "right"]}
+                  onChange={(homepageImageFocalPoint) =>
+                    updateGroup({ homepageImageFocalPoint })
+                  }
                 />
                 <Text
                   label="Price label (optional)"
@@ -359,6 +441,24 @@ export default function WeeklyLimitedCollections() {
                       ...settings,
                       limitedEditionGroups: settings.limitedEditionGroups.map(
                         (x) => (x.id === group.id ? { ...x, image } : x),
+                      ),
+                    };
+                    setSettings(next);
+                    await save(next);
+                  }}
+                />
+                <ImageUpload
+                  label="Homepage image override (optional)"
+                  value={group.homepageImageOverride || ""}
+                  owner={`edition-home-${group.id}`}
+                  onUploaded={async (homepageImageOverride) => {
+                    const next = {
+                      ...settings,
+                      limitedEditionGroups: settings.limitedEditionGroups.map(
+                        (x) =>
+                          x.id === group.id
+                            ? { ...x, homepageImageOverride }
+                            : x,
                       ),
                     };
                     setSettings(next);
@@ -413,44 +513,22 @@ export default function WeeklyLimitedCollections() {
                 </label>
                 <fieldset className="md:col-span-2 border border-ink/10 p-4">
                   <legend className="font-semibold">
-                    Numbered Fourthwall units
+                    AedaArt edition ledger
                   </legend>
+                  <p className="mb-3 text-sm text-ink/60">
+                    One global pool is shared by Türkiye and Fourthwall formats.
+                    Numbers are allocated by the server in purchase order.
+                  </p>
                   <div className="grid gap-3 md:grid-cols-2">
                     {group.units.map((unit, index) => (
                       <div
-                        className="grid grid-cols-[auto_1fr_120px] items-end gap-2"
+                        className="grid grid-cols-[1fr_140px] items-end gap-3"
                         key={unit.editionNumber}
                       >
                         <strong className="pb-3 text-sm">
                           {String(unit.editionNumber).padStart(2, "0")} /{" "}
                           {group.editionSize}
                         </strong>
-                        <label>
-                          Fourthwall product
-                          <select
-                            className={field}
-                            value={unit.fourthwallProductId}
-                            onChange={(e) =>
-                              updateGroup({
-                                units: group.units.map((x, i) =>
-                                  i === index
-                                    ? {
-                                        ...x,
-                                        fourthwallProductId: e.target.value,
-                                      }
-                                    : x,
-                                ),
-                              })
-                            }
-                          >
-                            <option value="">Not mapped</option>
-                            {catalogue.products.map((p) => (
-                              <option value={p.id} key={p.id}>
-                                {p.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
                         <Select
                           label="Status"
                           value={unit.status}
@@ -475,6 +553,54 @@ export default function WeeklyLimitedCollections() {
         </section>
       </div>
     </AdminLayout>
+  );
+}
+
+function PrintProductPicker({
+  products,
+  value,
+  onChange,
+}: {
+  products: ManagedProduct[];
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const selected = products.find((item) => item.id === value);
+  return (
+    <label>
+      Search/select existing print
+      <select
+        className={field}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">Select a print…</option>
+        {products.map((product) => (
+          <option key={product.id} value={product.id}>
+            {product.name} · Print · Türkiye{" "}
+            {product.availableInTurkiye === false ? "—" : "✓"} · Fourthwall{" "}
+            {product.fourthwallProductId || product.fourthwallVariants?.length
+              ? "✓"
+              : "—"}
+          </option>
+        ))}
+      </select>
+      {selected && (
+        <span className="mt-2 grid grid-cols-[52px_1fr] items-center gap-3 text-sm">
+          <img
+            src={selected.imageUrl}
+            alt=""
+            className="h-14 w-14 object-contain"
+          />
+          <span>
+            <strong className="block">{selected.name}</strong>
+            <span className="text-ink/55">
+              Existing print reference · no duplicate product created
+            </span>
+          </span>
+        </span>
+      )}
+    </label>
   );
 }
 

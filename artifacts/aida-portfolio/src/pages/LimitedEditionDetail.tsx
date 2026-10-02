@@ -31,13 +31,16 @@ export default function LimitedEditionDetail() {
         <h1>Edition not found</h1>
       </main>
     );
-  const available = group.units.filter(
-    (unit) => unit.status === "available" && unit.fourthwallProductId,
-  );
+  const available = group.units.filter((unit) => unit.status === "available");
   const collected = group.units.filter((unit) => unit.status === "sold").length;
   const next = available[0];
+  const websiteProduct = settings.printProducts.find(
+    (item) => item.id === group.productId,
+  );
   const product = catalogue.products.find(
-    (item) => item.id === next?.fourthwallProductId,
+    (item) =>
+      item.id ===
+      (websiteProduct?.fourthwallProductId || next?.fourthwallProductId),
   );
   const closed =
     group.status === "closed" ||
@@ -91,7 +94,7 @@ export default function LimitedEditionDetail() {
           </div>
           <div>
             <dt>Details</dt>
-            <dd>Digitally signed · Individually numbered</dd>
+            <dd>Digitally signed · Edition number recorded by AedaArt</dd>
           </div>
           <div>
             <dt>Availability</dt>
@@ -121,7 +124,10 @@ export default function LimitedEditionDetail() {
             {error}
           </p>
         )}
-        <small>Edition number assigned automatically in purchase order.</small>
+        <small>
+          Edition number assigned automatically in purchase order and recorded
+          as part of this release.
+        </small>
         <section>
           <p className="portfolio-kicker">THE STORY</p>
           <p>{group.story}</p>
@@ -129,9 +135,10 @@ export default function LimitedEditionDetail() {
         <section>
           <p className="portfolio-kicker">THE EDITION</p>
           <p>
-            {group.editionSize} total copies. Digitally signed and individually
-            numbered. Numbers are assigned in purchase order. This edition will
-            not be reissued after closing.
+            {group.editionSize} total copies. Digitally signed by Aida. Your
+            unique edition number is assigned after purchase and recorded as
+            part of this limited release. This edition will not be reissued
+            after closing.
           </p>
         </section>
       </div>

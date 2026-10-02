@@ -234,6 +234,21 @@ async function ensureSchema() {
   await pool.query(
     `CREATE TABLE IF NOT EXISTS checkout_order_status_history (id UUID PRIMARY KEY, order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE, previous_status TEXT, new_status TEXT NOT NULL, changed_by_admin_id TEXT, internal_note TEXT, customer_notified BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`,
   );
+  await pool.query(`CREATE TABLE IF NOT EXISTS edition_reservations (
+    id UUID PRIMARY KEY, edition_group_id TEXT NOT NULL, edition_number INTEGER NOT NULL,
+    fourthwall_product_id TEXT NOT NULL, basket_id TEXT, status TEXT NOT NULL DEFAULT 'active',
+    expires_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), sold_at TIMESTAMPTZ
+  )`);
+  await pool.query(`ALTER TABLE edition_reservations
+    ADD COLUMN IF NOT EXISTS limited_collection_id TEXT,
+    ADD COLUMN IF NOT EXISTS product_id TEXT,
+    ADD COLUMN IF NOT EXISTS order_id TEXT,
+    ADD COLUMN IF NOT EXISTS collector_snapshot JSONB,
+    ADD COLUMN IF NOT EXISTS edition_size INTEGER,
+    ADD COLUMN IF NOT EXISTS purchase_snapshot JSONB,
+    ADD COLUMN IF NOT EXISTS purchased_at TIMESTAMPTZ`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS edition_reservations_allocated_unit
+    ON edition_reservations(edition_group_id,edition_number) WHERE status IN ('active','sold')`);
   await pool.query(
     `CREATE SEQUENCE IF NOT EXISTS event_application_number_seq`,
   );
@@ -656,6 +671,27 @@ publicRouter.post(
       const number = `AR-${year}-${String(seq.rows[0].value).padStart(6, "0")}`;
       const reference = `PAY-${idempotency.slice(0, 8).toUpperCase()}`;
       const orderId = randomUUID();
+      for (const item of quote.items.filter((entry) => entry.selectedOptions?.limitedEditionId)) {
+        if (item.quantity !== 1) throw new Error("Limited editions are restricted to one per order.");
+        const group = lockedSettings?.limitedEditionGroups?.find((entry: any) => entry.id === item.selectedOptions.limitedEditionId);
+        const collection = lockedSettings?.weeklyLimitedCollections?.find((entry: any) => entry.editionGroupIds?.includes(group?.id));
+        const deadline = Date.parse(collection?.endAt || group?.releaseEnd || "");
+        if (!group || group.productId !== item.productId || group.editionEnabled === false || ["closed", "archived"].includes(group.status) || (Number.isFinite(deadline) && Date.now() >= deadline))
+          throw new Error("This limited edition is no longer available.");
+        await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [group.id]);
+        await client.query("UPDATE edition_reservations SET status='expired' WHERE edition_group_id=$1 AND status='active' AND expires_at<=NOW()", [group.id]);
+        const allocated = await client.query("SELECT edition_number FROM edition_reservations WHERE edition_group_id=$1 AND status IN ('active','sold') FOR UPDATE", [group.id]);
+        const unavailable = new Set(allocated.rows.map((row) => Number(row.edition_number)));
+        const unit = (group.units || []).filter((entry: any) => entry.status === "available").sort((a: any, b: any) => Number(a.editionNumber) - Number(b.editionNumber)).find((entry: any) => !unavailable.has(Number(entry.editionNumber)));
+        if (!unit) throw new Error("This edition was just collected. No copies remain.");
+        const snapshot = { limitedCollectionId: collection?.id || null, limitedEditionId: group.id, productId: item.productId, editionNumber: Number(unit.editionNumber), editionSize: Number(group.editionSize), orderId, purchaseTimestamp: new Date().toISOString() };
+        await client.query(
+          `INSERT INTO edition_reservations(id,edition_group_id,edition_number,fourthwall_product_id,basket_id,status,expires_at,sold_at,limited_collection_id,product_id,order_id,collector_snapshot,edition_size,purchase_snapshot,purchased_at)
+           VALUES($1,$2,$3,'local',$4,'sold',NOW(),NOW(),$5,$6,$7,$8::jsonb,$9,$10::jsonb,NOW())`,
+          [randomUUID(), group.id, Number(unit.editionNumber), idempotency, collection?.id || null, item.productId, orderId, JSON.stringify({ fullName, email, phone, countryCode }), Number(group.editionSize), JSON.stringify(snapshot)],
+        );
+        item.selectedOptions = { ...item.selectedOptions, ...snapshot };
+      }
       const savedOrder = (
         await client.query(
           `INSERT INTO checkout_orders(id,order_number,payment_reference,idempotency_key,market,currency,status,customer_full_name,customer_email,customer_phone,country_code,country_name,province_or_region,district,city,postal_code,address_line,delivery_notes,subtotal_minor,shipping_minor,total_before_discount_minor,discount_code_id,discount_code,discount_percent,discount_amount_minor,grand_total_minor,print_quantity,original_quantity,receipt_storage_key,receipt_original_name,receipt_mime_type,receipt_size,customer_language,consent_version,consent_at) VALUES($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,'checkout-v1',NOW()) RETURNING subtotal_minor,shipping_minor,discount_code,discount_percent,discount_amount_minor,grand_total_minor,currency`,
