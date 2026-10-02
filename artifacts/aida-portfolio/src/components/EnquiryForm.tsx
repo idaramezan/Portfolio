@@ -34,6 +34,13 @@ export default function EnquiryForm({
         setError("");
         const form = new FormData(event.currentTarget);
         const body = Object.fromEntries(form.entries());
+        if (kind === "moving_image") {
+          const minutes = Number(body.desiredDurationMinutes || 0);
+          const seconds = Number(body.desiredDurationSeconds || 0);
+          body.desiredDuration = `${minutes} min ${seconds} sec`;
+          delete body.desiredDurationMinutes;
+          delete body.desiredDurationSeconds;
+        }
         try {
           const response = await fetch("/api/enquiries", {
             method: "POST",
@@ -79,38 +86,60 @@ export default function EnquiryForm({
           </>
         ) : (
           <>
-            <label>
-              Artist / band / brand
-              <input name="organisation" required />
-            </label>
-            <label>
-              Project type
-              <select name="projectType" required defaultValue="">
-                <option value="" disabled>
-                  Select one
-                </option>
-                <option>Music video</option>
-                <option>Animated visual</option>
-                <option>Loop / visualizer</option>
-                <option>Short animation</option>
-                <option>Other</option>
-              </select>
-            </label>
-            <label>
-              Track / project link
-              <input name="projectLink" type="url" />
-            </label>
-            <label>
-              Desired duration
-              <input name="desiredDuration" />
-            </label>
+            <fieldset className="enquiry-form__duration">
+              <legend>Desired duration</legend>
+              <div>
+                <label>
+                  <span className="sr-only">Minutes</span>
+                  <span className="form-field-with-suffix">
+                    <input
+                      name="desiredDurationMinutes"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="999"
+                      step="1"
+                      defaultValue="0"
+                      aria-label="Desired duration minutes"
+                    />
+                    <span>min</span>
+                  </span>
+                </label>
+                <label>
+                  <span className="sr-only">Seconds</span>
+                  <span className="form-field-with-suffix">
+                    <input
+                      name="desiredDurationSeconds"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      max="59"
+                      step="1"
+                      defaultValue="0"
+                      aria-label="Desired duration seconds"
+                    />
+                    <span>sec</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
             <label>
               Target release / deadline
               <input name="deadline" type="date" />
             </label>
             <label>
-              Budget range
-              <input name="budgetRange" />
+              Budget in USD
+              <span className="form-field-with-prefix">
+                <span aria-hidden="true">$</span>
+                <input
+                  name="budgetRange"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  step="1"
+                  placeholder="0"
+                />
+              </span>
             </label>
             <label className="enquiry-form__wide">
               Reference links

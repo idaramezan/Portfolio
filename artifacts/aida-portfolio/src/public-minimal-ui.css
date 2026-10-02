@@ -629,6 +629,198 @@
   }
 }
 
+/* Unified public form language: compact, neutral and accessible. */
+[data-public-site] form label,
+[data-public-site] form legend {
+  color: #172b4d;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+[data-public-site] form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[data-public-site] form select,
+[data-public-site] form textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #b7b9be;
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.65rem 0.75rem;
+  color: #172b4d;
+  font: 400 0.95rem/1.4 Geist, Arial, sans-serif;
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+[data-public-site] form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+[data-public-site] form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover,
+[data-public-site] form select:hover,
+[data-public-site] form textarea:hover {
+  border-color: #8590a2;
+}
+
+[data-public-site] form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+[data-public-site] form select:focus,
+[data-public-site] form textarea:focus {
+  border-color: #0c66e4;
+  box-shadow: 0 0 0 2px #0c66e4;
+}
+
+[data-public-site] form input::placeholder,
+[data-public-site] form textarea::placeholder {
+  color: #6b778c;
+}
+
+[data-public-site] form input:disabled,
+[data-public-site] form select:disabled,
+[data-public-site] form textarea:disabled {
+  border-color: #dfe1e6;
+  background: #f1f2f4;
+  color: #626f86;
+}
+
+[data-public-site] form input[aria-invalid="true"],
+[data-public-site] form select[aria-invalid="true"],
+[data-public-site] form textarea[aria-invalid="true"] {
+  border-color: #c9372c;
+  background: #fff;
+}
+
+[data-public-site] form button[type="submit"],
+[data-public-site] form button:not([type]) {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: #172b4d;
+  padding: 0.65rem 1.15rem;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+[data-public-site] form button[type="submit"]:hover,
+[data-public-site] form button:not([type]):hover {
+  background: #0c66e4;
+}
+
+[data-public-site] form button:focus-visible {
+  outline: 2px solid #0c66e4;
+  outline-offset: 2px;
+}
+
+[data-public-site] form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+[data-public-site] .enquiry-page__form {
+  width: min(calc(100% - 40px), 880px) !important;
+  margin-bottom: clamp(5rem, 10vw, 9rem);
+  border: 1px solid #dfe1e6;
+  border-radius: 10px;
+  background: #fff;
+  padding: clamp(1.25rem, 4vw, 3rem) !important;
+  box-shadow: 0 1px 2px rgb(9 30 66 / 8%);
+}
+
+[data-public-site] .enquiry-form {
+  gap: 1.25rem;
+}
+
+[data-public-site] .enquiry-form__grid {
+  gap: 1.25rem;
+}
+
+[data-public-site] .enquiry-form label {
+  gap: 0.45rem;
+}
+
+[data-public-site] .enquiry-form__duration {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+
+[data-public-site] .enquiry-form__duration > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+
+[data-public-site] .form-field-with-suffix,
+[data-public-site] .form-field-with-prefix {
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  border: 1px solid #b7b9be;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+}
+
+[data-public-site] .form-field-with-suffix:focus-within,
+[data-public-site] .form-field-with-prefix:focus-within {
+  border-color: #0c66e4;
+  box-shadow: 0 0 0 2px #0c66e4;
+}
+
+[data-public-site] .form-field-with-suffix input,
+[data-public-site] .form-field-with-prefix input {
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+[data-public-site] .form-field-with-suffix > span,
+[data-public-site] .form-field-with-prefix > span {
+  flex: 0 0 auto;
+  padding: 0 0.75rem;
+  color: #626f86;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+[data-public-site] .form-field-with-prefix > span:first-child {
+  border-right: 1px solid #dfe1e6;
+}
+
+[data-public-site] .form-field-with-suffix > span:last-child {
+  border-left: 1px solid #dfe1e6;
+}
+
+[data-public-site] .enquiry-form__error,
+[data-public-site] .checkout-error {
+  border-radius: 6px;
+  background: #ffeceb;
+  padding: 0.75rem;
+  color: #ae2e24;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  [data-public-site] .enquiry-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  [data-public-site] .enquiry-form__wide {
+    grid-column: auto;
+  }
+}
+
 /* Simplified catalog introductions and focused original-art presentation */
 [data-public-site] .catalog-title {
   display: flex;
