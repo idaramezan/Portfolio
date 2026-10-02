@@ -214,7 +214,6 @@ export default function PortfolioContent({
                   label="Hero image"
                   collectionId={active.id}
                   value={active.heroImage}
-                  onChange={(heroImage) => patch({ heroImage })}
                   onUploaded={(heroImage) =>
                     persistCollectionImage({ heroImage })
                   }
@@ -223,7 +222,6 @@ export default function PortfolioContent({
                   label="Mobile hero image"
                   collectionId={active.id}
                   value={active.mobileHeroImage || ""}
-                  onChange={(mobileHeroImage) => patch({ mobileHeroImage })}
                   onUploaded={(mobileHeroImage) =>
                     persistCollectionImage({ mobileHeroImage })
                   }
@@ -584,19 +582,17 @@ function CollectionImageField({
   label,
   collectionId,
   value,
-  onChange,
   onUploaded,
 }: {
   label: string;
   collectionId: string;
   value: string;
-  onChange: (value: string) => void;
   onUploaded: (value: string) => Promise<void>;
 }) {
   const [uploading, setUploading] = useState(false);
   return (
-    <label>
-      {label}
+    <div>
+      <p className="font-medium">{label}</p>
       {value && (
         <img
           src={value}
@@ -604,52 +600,61 @@ function CollectionImageField({
           className="mt-2 h-36 w-full border border-ink/10 object-contain"
         />
       )}
-      <input
-        className={field}
-        value={value}
-        placeholder="Image URL"
-        onChange={(event) => onChange(event.target.value)}
-      />
-      <input
-        className="mt-2 block text-sm"
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        disabled={uploading}
-        onChange={async (event) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          setUploading(true);
-          try {
-            const body = new FormData();
-            body.append("image", file);
-            body.append("productId", `collection-${collectionId}`);
-            const response = await fetch("/api/admin/product-media", {
-              method: "POST",
-              headers: {
-                "x-admin-password":
-                  sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
-              },
-              body,
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok || !payload.imageUrl)
-              throw new Error(payload.error || "Image upload failed.");
-            await onUploaded(payload.imageUrl);
-            event.target.value = "";
-          } catch (error) {
-            window.alert(
-              error instanceof Error ? error.message : "Image upload failed.",
-            );
-          } finally {
-            setUploading(false);
-          }
-        }}
-      />
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <label className="button-primary cursor-pointer">
+          {uploading ? "Uploading…" : value ? "Replace image" : "Upload image"}
+          <input
+            className="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={uploading}
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              setUploading(true);
+              try {
+                const body = new FormData();
+                body.append("image", file);
+                body.append("productId", `collection-${collectionId}`);
+                const response = await fetch("/api/admin/product-media", {
+                  method: "POST",
+                  headers: {
+                    "x-admin-password":
+                      sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
+                  },
+                  body,
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.imageUrl)
+                  throw new Error(payload.error || "Image upload failed.");
+                await onUploaded(payload.imageUrl);
+                event.target.value = "";
+              } catch (error) {
+                window.alert(
+                  error instanceof Error
+                    ? error.message
+                    : "Image upload failed.",
+                );
+              } finally {
+                setUploading(false);
+              }
+            }}
+          />
+        </label>
+        {value && (
+          <button
+            className="button-link"
+            type="button"
+            disabled={uploading}
+            onClick={() => onUploaded("")}
+          >
+            Remove image
+          </button>
+        )}
+      </div>
       <small className="mt-1 block text-ink/55">
-        {uploading
-          ? "Uploading and saving…"
-          : "Upload a JPG, PNG or WebP, or paste an image URL."}
+        {uploading ? "Uploading and saving…" : "JPG, PNG or WebP."}
       </small>
-    </label>
+    </div>
   );
 }

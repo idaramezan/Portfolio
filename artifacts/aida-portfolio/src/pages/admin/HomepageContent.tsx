@@ -502,54 +502,63 @@ function ImageField({
 }) {
   const [busy, setBusy] = useState(false);
   return (
-    <label>
-      {label}
+    <div>
+      <p className="font-medium">{label}</p>
       {value && (
         <img src={value} alt="" className="mt-2 h-28 w-full object-contain" />
       )}
-      <input
-        className={field}
-        value={value}
-        placeholder="Image URL"
-        onChange={(e) => onChange(e.target.value)}
-      />
-      <input
-        className="mt-2 block text-sm"
-        type="file"
-        accept="image/*"
-        disabled={busy}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          setBusy(true);
-          try {
-            const body = new FormData();
-            body.append("image", file);
-            body.append("productId", "homepage-content");
-            const response = await fetch("/api/admin/product-media", {
-              method: "POST",
-              headers: {
-                "x-admin-password":
-                  sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
-              },
-              body,
-            });
-            const payload = await response.json();
-            if (!response.ok || !payload.imageUrl)
-              throw new Error(payload.error || "Upload failed");
-            await onChange(payload.imageUrl, true);
-          } catch (error) {
-            window.alert(
-              error instanceof Error ? error.message : "Image upload failed",
-            );
-          } finally {
-            setBusy(false);
-          }
-        }}
-      />
-      <small>
-        {busy ? "Uploading…" : "Upload or paste a permanent media URL."}
-      </small>
-    </label>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <label className="button-primary cursor-pointer">
+          {busy ? "Uploading…" : value ? "Replace image" : "Upload image"}
+          <input
+            className="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={busy}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setBusy(true);
+              try {
+                const body = new FormData();
+                body.append("image", file);
+                body.append("productId", "homepage-content");
+                const response = await fetch("/api/admin/product-media", {
+                  method: "POST",
+                  headers: {
+                    "x-admin-password":
+                      sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
+                  },
+                  body,
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.imageUrl)
+                  throw new Error(payload.error || "Upload failed");
+                await onChange(payload.imageUrl, true);
+              } catch (error) {
+                window.alert(
+                  error instanceof Error
+                    ? error.message
+                    : "Image upload failed",
+                );
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+        </label>
+        {value && (
+          <button
+            className="button-link"
+            type="button"
+            disabled={busy}
+            onClick={() => onChange("", true)}
+          >
+            Remove image
+          </button>
+        )}
+      </div>
+      <small className="mt-1 block text-ink/55">JPG, PNG or WebP.</small>
+    </div>
   );
 }
