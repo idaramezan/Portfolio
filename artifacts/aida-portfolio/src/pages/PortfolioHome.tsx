@@ -87,7 +87,7 @@ export default function PortfolioHome() {
             Date.parse(b.createdAt || b.updatedAt || "0") -
             Date.parse(a.createdAt || a.updatedAt || "0"),
         )
-  ).slice(0, 4);
+  ).slice(0, 3);
   const prints = settings.printProducts
     .filter(
       (item) =>
@@ -102,7 +102,7 @@ export default function PortfolioHome() {
     .filter((item): item is (typeof prints)[number] => Boolean(item));
   const featuredPrints = (
     selectedPrints.length ? selectedPrints : prints
-  ).slice(0, 4);
+  ).slice(0, 3);
 
   return (
     <div className="weekly-home">
@@ -140,9 +140,6 @@ export default function PortfolioHome() {
             <p className="portfolio-kicker">AVAILABLE ORIGINALS</p>
             <h2>One-of-one works.</h2>
           </div>
-          <Link href="/paintings">
-            View all originals <ArrowRight />
-          </Link>
         </header>
         <div className="homepage-art-grid">
           {featuredOriginals.map(
@@ -154,11 +151,14 @@ export default function PortfolioHome() {
                   image={item.imageUrl}
                   alt={item.altText || item.name}
                   title={item.name}
-                  metadata={`ORIGINAL · ${item.dimension}${item.artworkSurface ? ` · ${item.artworkSurface.toUpperCase()}` : ""}`}
+                  metadata={`${item.dimension}${item.artworkSurface ? ` · ${item.artworkSurface.toUpperCase()}` : ""}`}
                 />
               ),
           )}
         </div>
+        <Link className="homepage-gallery__view-all" href="/paintings">
+          View all
+        </Link>
       </section>
       <section className="home-prints section-shell">
         <header>
@@ -166,9 +166,6 @@ export default function PortfolioHome() {
             <p className="portfolio-kicker">AVAILABLE PRINTS</p>
             <h2>Prints made to live with.</h2>
           </div>
-          <Link href="/shop?category=prints">
-            View all prints <ArrowRight />
-          </Link>
         </header>
         <div className="homepage-art-grid">
           {featuredPrints.map((item) => {
@@ -202,6 +199,12 @@ export default function PortfolioHome() {
             );
           })}
         </div>
+        <Link
+          className="homepage-gallery__view-all"
+          href="/shop?category=prints"
+        >
+          View all
+        </Link>
       </section>
       <section className="home-about-preview section-shell">
         <img
