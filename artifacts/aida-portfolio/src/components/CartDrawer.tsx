@@ -214,11 +214,7 @@ export default function CartDrawer({
     : subtotal;
   const turkiyeShipping = calculateTurkiyeShippingSummary(merchandiseToday);
   const shipping =
-    region === "TR"
-      ? turkiyeShipping.shippingMinor
-      : cart.length
-        ? 10_000
-        : 0;
+    region === "TR" ? turkiyeShipping.shippingMinor : cart.length ? 10_000 : 0;
   const displayedSubtotal = coupon?.subtotalMinor ?? subtotal;
   const displayedShipping =
     region === "TR"
@@ -294,7 +290,7 @@ export default function CartDrawer({
         aria-label="Close basket"
         onClick={() => onOpenChange(false)}
         className={cn(
-          "absolute inset-0 h-full w-full bg-ink/50 transition-opacity",
+          "basket-drawer-backdrop absolute inset-0 h-full w-full bg-ink/50 transition-opacity",
           open ? "opacity-100" : "opacity-0",
         )}
       />
