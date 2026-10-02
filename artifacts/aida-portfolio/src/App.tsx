@@ -33,6 +33,7 @@ import Faq from "@/pages/Faq";
 import { Privacy, Terms } from "@/pages/Legal";
 import LimitedEditionDetail from "@/pages/LimitedEditionDetail";
 import ArtEraDetail from "@/pages/ArtEraDetail";
+import LimitedCollectionDetail from "@/pages/LimitedCollectionDetail";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -68,6 +69,10 @@ function Router() {
           <Switch>
             <Route path="/" component={PortfolioHome} />
             <Route path="/eras/:slug" component={ArtEraDetail} />
+            <Route
+              path="/limited-collections/:slug"
+              component={LimitedCollectionDetail}
+            />
             <Route path="/paintings/:slug">
               <RedirectTo to="/paintings" />
             </Route>

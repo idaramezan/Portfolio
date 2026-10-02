@@ -274,8 +274,11 @@ function WeeklyHero({
               }
             />
             {active && (
-              <Link className="portfolio-text-link" href="#weekly-editions">
-                Explore this week's editions <ArrowRight />
+              <Link
+                className="portfolio-text-link"
+                href={`/limited-collections/${release.slug}`}
+              >
+                Explore this month&apos;s editions <ArrowRight />
               </Link>
             )}
           </>
