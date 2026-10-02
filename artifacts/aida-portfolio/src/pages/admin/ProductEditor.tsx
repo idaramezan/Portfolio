@@ -980,21 +980,6 @@ export default function ProductEditor({
             {kind === "originals" && (
               <>
                 <label>
-                  Collection
-                  <select
-                    className={field}
-                    value={draft.collectionId || ""}
-                    onChange={(e) => update({ collectionId: e.target.value })}
-                  >
-                    <option value="">Not assigned</option>
-                    {settings.artCollections.map((collection) => (
-                      <option key={collection.id} value={collection.id}>
-                        {collection.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
                   Year
                   <input
                     className={field}

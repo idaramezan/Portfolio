@@ -17,7 +17,6 @@ import {
   PackageOpen,
   PanelsTopLeft,
   Film,
-  FolderOpen,
   Settings,
   ShoppingBag,
   Sparkles,
@@ -38,7 +37,6 @@ const groups = [
   [
     "Catalog",
     [
-      ["/admin/collections", "Collections", FolderOpen],
       [
         "/admin/weekly-limited-collections",
         "Weekly Limited Collections",

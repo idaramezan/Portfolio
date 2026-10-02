@@ -149,8 +149,6 @@ export default function Admin() {
     return <CommerceCollections section="mail-club" />;
   if (location === "/admin/animation-merch")
     return <CommerceCollections section="animation-merch" />;
-  if (location === "/admin/collections")
-    return <PortfolioContent section="collections" />;
   if (location === "/admin/weekly-limited-collections")
     return <WeeklyLimitedCollections />;
   if (location === "/admin/site-content/homepage")

@@ -26,7 +26,7 @@ import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
 import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
-import { PaintingsIndex, CollectionDetail } from "@/pages/Collections";
+import { PaintingsIndex } from "@/pages/Collections";
 import { MovingImage, MovingImageDetail } from "@/pages/MovingImage";
 import MovingCommission from "@/pages/MovingCommission";
 import Faq from "@/pages/Faq";
@@ -66,7 +66,9 @@ function Router() {
         <Shell>
           <Switch>
             <Route path="/" component={PortfolioHome} />
-            <Route path="/paintings/:slug" component={CollectionDetail} />
+            <Route path="/paintings/:slug">
+              <RedirectTo to="/paintings" />
+            </Route>
             <Route path="/paintings" component={PaintingsIndex} />
             <Route
               path="/limited-editions/:slug"

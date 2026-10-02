@@ -223,22 +223,6 @@ export default function HomepageContentAdmin() {
         </Editor>
         <Editor title="Featured content">
           <Select
-            label="Current collection"
-            value={content.currentCollectionId}
-            options={settings.artCollections.map((x) => [x.id, x.title])}
-            onChange={(currentCollectionId) =>
-              setContent({ ...content, currentCollectionId })
-            }
-          />
-          <Select
-            label="Second collection"
-            value={content.secondCollectionId}
-            options={settings.artCollections.map((x) => [x.id, x.title])}
-            onChange={(secondCollectionId) =>
-              setContent({ ...content, secondCollectionId })
-            }
-          />
-          <Select
             label="Featured Moving Image"
             value={content.featuredMovingProjectId || ""}
             options={[
