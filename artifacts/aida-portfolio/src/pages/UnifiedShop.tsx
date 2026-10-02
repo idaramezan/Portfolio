@@ -43,7 +43,7 @@ const copy = {
     external: "Shop this piece",
     categories: {
       prints: [
-        "LIMITED EDITIONS",
+        "ART PRINTS",
         "Prints",
         "Art prints made from Aida's original work.",
       ],
@@ -86,7 +86,7 @@ const copy = {
     external: "Ürünü incele",
     categories: {
       prints: [
-        "SINIRLI EDİSYONLAR",
+        "SANAT BASKILARI",
         "Baskılar",
         "Aida'nın orijinal eserlerinden hazırlanan sanat baskıları.",
       ],
@@ -272,7 +272,11 @@ export default function UnifiedShop() {
           products={settings.printProducts
             .filter(
               (product) =>
-                isPubliclyVisible(product) && !isAceoProduct(product),
+                isPubliclyVisible(product) &&
+                !isAceoProduct(product) &&
+                !settings.limitedEditionGroups.some(
+                  (group) => group.productId === product.id,
+                ),
             )
             .sort(compareProductDisplayOrder)}
           kind="prints"
@@ -281,9 +285,6 @@ export default function UnifiedShop() {
           international={international}
           empty={t.empty}
           sold={t.sold}
-          limitedGroups={settings.limitedEditionGroups.filter(
-            (group) => !["draft", "archived"].includes(group.status),
-          )}
           externalProducts={international.products.filter(
             (product) =>
               !local &&
@@ -417,7 +418,6 @@ function ProductCatalogue({
   international,
   empty,
   sold,
-  limitedGroups = [],
   externalProducts = [],
 }: {
   products: ManagedProduct[];
@@ -427,7 +427,6 @@ function ProductCatalogue({
   international: ReturnType<typeof useInternationalProducts>;
   empty: string;
   sold: string;
-  limitedGroups?: ReturnType<typeof useShopSettings>["limitedEditionGroups"];
   externalProducts?: ReturnType<typeof useInternationalProducts>["products"];
 }) {
   const local = destination.countryCode === "TR";
@@ -441,25 +440,8 @@ function ProductCatalogue({
         );
   return (
     <section className="section-shell unified-shop__catalog">
-      {visible.length || externalProducts.length || limitedGroups.length ? (
+      {visible.length || externalProducts.length ? (
         <div className="unified-product-grid catalog-gallery-grid">
-          {limitedGroups.map((group) => {
-            const remaining = group.units.filter(
-              (unit) => unit.status === "available",
-            ).length;
-            return (
-              <EditorialProductCard
-                key={group.id}
-                href={`/limited-editions/${group.slug}`}
-                image={group.image}
-                alt={group.title}
-                title={group.title}
-                price={group.priceLabel}
-                metadata={`LIMITED EDITION · EDITION OF ${group.editionSize}`}
-                status={remaining ? "available" : "sold"}
-              />
-            );
-          })}
           {visible.map((product) => {
             const linked = international.products.find(
               (item) => item.id === product.fourthwallProductId,
