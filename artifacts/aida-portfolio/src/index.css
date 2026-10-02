@@ -2076,8 +2076,8 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.65rem;
-  border: 1px solid #39283320;
-  background: #fffaf2;
+  border: 0;
+  background: #fff;
   color: #392833;
   font-size: 0.78rem;
   font-weight: 750;
@@ -2085,7 +2085,7 @@
 }
 .destination-utility:hover,
 .destination-utility:focus-visible {
-  background: #dce9ef80;
+  background: rgb(23 60 50 / 5%);
 }
 .destination-utility svg:first-child {
   width: 16px;
@@ -2099,8 +2099,11 @@
   grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
   align-items: center;
   column-gap: clamp(1rem, 2.5vw, 2.4rem);
-  padding-block: 1.35rem;
+  padding-block: 0;
+  background: #fff;
 }
+.site-header__menu-button { justify-self: start; }
+.site-header__brand { justify-self: center; }
 .site-header__nav {
   align-items: center;
   gap: clamp(1.25rem, 2.2vw, 2.1rem);
@@ -2920,12 +2923,19 @@
 }
 @media (max-width: 767px) {
   .site-header__grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(44px, 1fr) auto minmax(0, 1fr);
+    column-gap: .35rem;
     padding-block: 0;
   }
   .site-header__utilities {
-    margin-left: auto;
+    gap: .1rem;
   }
+  .site-header__country .destination-utility { max-width: 86px; gap: .2rem; padding-inline: .3rem; }
+  .site-header__country .destination-utility span { overflow: hidden; text-overflow: ellipsis; }
+  .site-header__country .destination-utility svg:first-child { display: none; }
+  .header-language__trigger { padding-inline: .35rem; }
+  .header-basket { padding-inline: .25rem; }
 }
 
 /* Product artwork lightbox */

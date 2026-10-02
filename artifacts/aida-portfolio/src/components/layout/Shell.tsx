@@ -22,13 +22,6 @@ import {
   useShippingDestination,
 } from "@/lib/shipping-destination";
 
-const NAV_LINKS = [
-  { href: "/paintings", en: "Paintings", tr: "Resimler" },
-  { href: "/moving-image", en: "Moving Image", tr: "Hareketli Görüntü" },
-  { href: "/shop", en: "Shop", tr: "Mağaza" },
-  { href: "/about", en: "About", tr: "Hakkında" },
-];
-
 const INFORMATION_LINKS = [{ href: "/about", label: "About" }];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
@@ -49,7 +42,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     () => getCartCount(activeRegion) + getFourthwallCartCount(),
   );
   const isBasketEmpty = cartCount === 0;
-  const isBasketDisabled = isBasketEmpty || isMobileMenuOpen;
   const { locale, setLocale } = useLocale();
   const settings = loadShopSettings();
   const siteLinks = settings.siteLinks;
@@ -223,43 +215,33 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
       <header
         data-scrolled={headerScrolled || undefined}
-        className="site-header sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-ink/5"
+        className="site-header sticky top-0 z-50 border-b border-ink/5 bg-white"
       >
-        <div className="site-header__grid mx-auto h-20 max-w-7xl px-4 md:h-auto md:px-8">
+        <div className="site-header__grid mx-auto h-24 w-full px-4 md:h-32 md:px-10">
+          <button
+            ref={menuButtonRef}
+            className="site-header__menu-button z-50 min-h-11 min-w-11 p-2 text-ink hover:text-coral focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
+          >
+            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
           <Link
             href="/"
-            className="z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
+            className="site-header__brand z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
           >
             <StudioWordmark compact />
           </Link>
 
-          <nav
-            aria-label="Primary navigation"
-            className="site-header__nav hidden md:flex"
-          >
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "font-medium text-sm lg:text-base link-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-4 focus-visible:ring-offset-paper",
-                  location.startsWith(link.href)
-                    ? "site-header__nav-link--active text-ink"
-                    : "text-ink hover:text-coral",
-                )}
-              >
-                {link[locale]}
-              </Link>
-            ))}
-          </nav>
-
           <div className="site-header__utilities flex shrink-0 items-center">
-            <div className="hidden lg:block">
+            <div className="site-header__country">
               <DestinationControl utility />
             </div>
             <div
               ref={languagePickerRef}
-              className="header-language hidden md:block"
+              className="header-language"
               data-active-locale={locale}
               data-open={languageOpen || undefined}
               data-no-translate
@@ -352,49 +334,32 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ))}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={isBasketEmpty ? undefined : () => setCartOpen(true)}
-              disabled={isBasketDisabled}
-              aria-disabled={isBasketDisabled}
-              className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
-              aria-label={
-                isBasketEmpty
-                  ? locale === "tr"
-                    ? "Sepet, boş"
-                    : "Basket, empty"
-                  : locale === "tr"
+            {!isBasketEmpty && (
+              <button
+                type="button"
+                onClick={() => setCartOpen(true)}
+                disabled={isMobileMenuOpen}
+                className="header-basket relative inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral sm:px-3"
+                aria-label={
+                  locale === "tr"
                     ? `Sepet, ${cartCount} ürün`
                     : `Basket, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
-              }
-            >
-              <ShoppingBag size={20} />
-              <span className="hidden lg:inline text-sm font-semibold">
-                {locale === "tr" ? "Sepet" : "Basket"}
-              </span>
-              <span
-                className={`header-basket__count ${cartCount ? "" : "header-basket__count--empty"}`}
+                }
               >
-                {cartCount}
-              </span>
-            </button>
-            <button
-              ref={menuButtonRef}
-              className="md:hidden z-50 min-h-11 min-w-11 p-2 text-ink hover:text-coral focus:outline-none focus-visible:ring-2 focus-visible:ring-coral"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-navigation"
-            >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
+                <ShoppingBag size={20} />
+                <span className="hidden lg:inline text-sm font-semibold">
+                  {locale === "tr" ? "Sepet" : "Basket"}
+                </span>
+                <span className="header-basket__count">{cartCount}</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       {isMobileMenuOpen && (
         <div
-          className="mobile-menu-overlay md:hidden"
+          className="mobile-menu-overlay"
           aria-hidden="true"
           onClick={() => closeMobileMenu(true)}
         />
@@ -407,7 +372,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         aria-hidden={!isMobileMenuOpen}
         role="dialog"
         data-open={isMobileMenuOpen}
-        className="mobile-menu md:hidden"
+        className="mobile-menu"
       >
         <header className="mobile-menu__header">
           <Link

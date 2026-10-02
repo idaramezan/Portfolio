@@ -544,13 +544,13 @@
 /* Header and mobile navigation */
 [data-public-site] .site-header {
   border-bottom: 1px solid var(--border-soft) !important;
-  background: rgb(247 243 236 / 94%) !important;
+  background: #fff !important;
   box-shadow: none !important;
-  backdrop-filter: blur(16px);
+  backdrop-filter: none;
 }
 [data-public-site] .site-header__grid {
-  width: min(100%, var(--content-max));
-  max-width: var(--content-max);
+  width: 100%;
+  max-width: none;
   min-height: 82px;
   padding-inline: clamp(1.25rem, 5vw, 5rem);
 }
