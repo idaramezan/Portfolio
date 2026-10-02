@@ -336,7 +336,9 @@
 
 /* 2026 portfolio system — quiet, artwork-first and shared across public pages */
 [data-public-site] {
-  --portfolio-paper: #f5f1e8;
+  --portfolio-paper: #ffffff;
+  --color-paper: #ffffff;
+  --bg-page: #ffffff;
   --portfolio-forest: #173f35;
   --portfolio-charcoal: #33423d;
   --portfolio-muted: #6f7770;
