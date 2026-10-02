@@ -8,6 +8,7 @@ import {
   type MovingImageProject,
   type ShopSettings,
 } from "@/lib/store";
+import { ADMIN_PASSWORD_SESSION_KEY } from "@/pages/Admin";
 
 const field = "mt-1 min-h-11 w-full border border-ink/20 bg-paper px-3";
 
@@ -20,11 +21,17 @@ export default function PortfolioContent({
     loadShopSettings(),
   );
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const [selected, setSelected] = useState("");
   const save = async () => {
     setSaving(true);
     try {
       await saveShopSettingsAndWait(settings);
+      setSaveMessage("Changes saved.");
+    } catch (error) {
+      setSaveMessage(
+        error instanceof Error ? error.message : "Changes could not be saved.",
+      );
     } finally {
       setSaving(false);
     }
@@ -41,6 +48,30 @@ export default function PortfolioContent({
           x.id === active.id ? { ...x, ...changes } : x,
         ),
       });
+    const persistCollectionImage = async (changes: Partial<ArtCollection>) => {
+      const nextSettings = {
+        ...settings,
+        artCollections: settings.artCollections.map((item) =>
+          item.id === active.id ? { ...item, ...changes } : item,
+        ),
+      };
+      setSettings(nextSettings);
+      setSaving(true);
+      setSaveMessage("");
+      try {
+        await saveShopSettingsAndWait(nextSettings);
+        setSaveMessage("Collection image uploaded and saved.");
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Collection image could not be saved.";
+        setSaveMessage(message);
+        throw error;
+      } finally {
+        setSaving(false);
+      }
+    };
     const reorder = (dragId: string, targetId: string) => {
       const ordered = [...items];
       const from = ordered.findIndex((x) => x.id === dragId),
@@ -71,6 +102,14 @@ export default function PortfolioContent({
           </button>
         }
       >
+        {saveMessage && (
+          <p
+            className="mb-5 border border-ink/15 bg-paper px-4 py-3 text-sm"
+            role="status"
+          >
+            {saveMessage}
+          </p>
+        )}
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <section className="admin-card">
             <p className="text-xs font-bold uppercase tracking-wider text-coral">
@@ -171,22 +210,24 @@ export default function PortfolioContent({
                     onChange={(e) => patch({ story: e.target.value })}
                   />
                 </label>
-                <label>
-                  Hero image URL
-                  <input
-                    className={field}
-                    value={active.heroImage}
-                    onChange={(e) => patch({ heroImage: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Mobile hero URL
-                  <input
-                    className={field}
-                    value={active.mobileHeroImage || ""}
-                    onChange={(e) => patch({ mobileHeroImage: e.target.value })}
-                  />
-                </label>
+                <CollectionImageField
+                  label="Hero image"
+                  collectionId={active.id}
+                  value={active.heroImage}
+                  onChange={(heroImage) => patch({ heroImage })}
+                  onUploaded={(heroImage) =>
+                    persistCollectionImage({ heroImage })
+                  }
+                />
+                <CollectionImageField
+                  label="Mobile hero image"
+                  collectionId={active.id}
+                  value={active.mobileHeroImage || ""}
+                  onChange={(mobileHeroImage) => patch({ mobileHeroImage })}
+                  onUploaded={(mobileHeroImage) =>
+                    persistCollectionImage({ mobileHeroImage })
+                  }
+                />
                 <label>
                   Launch date
                   <input
@@ -536,5 +577,79 @@ export default function PortfolioContent({
         )}
       </div>
     </AdminLayout>
+  );
+}
+
+function CollectionImageField({
+  label,
+  collectionId,
+  value,
+  onChange,
+  onUploaded,
+}: {
+  label: string;
+  collectionId: string;
+  value: string;
+  onChange: (value: string) => void;
+  onUploaded: (value: string) => Promise<void>;
+}) {
+  const [uploading, setUploading] = useState(false);
+  return (
+    <label>
+      {label}
+      {value && (
+        <img
+          src={value}
+          alt=""
+          className="mt-2 h-36 w-full border border-ink/10 object-contain"
+        />
+      )}
+      <input
+        className={field}
+        value={value}
+        placeholder="Image URL"
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <input
+        className="mt-2 block text-sm"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        disabled={uploading}
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          setUploading(true);
+          try {
+            const body = new FormData();
+            body.append("image", file);
+            body.append("productId", `collection-${collectionId}`);
+            const response = await fetch("/api/admin/product-media", {
+              method: "POST",
+              headers: {
+                "x-admin-password":
+                  sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
+              },
+              body,
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload.imageUrl)
+              throw new Error(payload.error || "Image upload failed.");
+            await onUploaded(payload.imageUrl);
+            event.target.value = "";
+          } catch (error) {
+            window.alert(
+              error instanceof Error ? error.message : "Image upload failed.",
+            );
+          } finally {
+            setUploading(false);
+          }
+        }}
+      />
+      <small className="mt-1 block text-ink/55">
+        {uploading
+          ? "Uploading and saving…"
+          : "Upload a JPG, PNG or WebP, or paste an image URL."}
+      </small>
+    </label>
   );
 }
