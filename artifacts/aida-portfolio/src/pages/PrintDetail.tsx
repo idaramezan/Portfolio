@@ -403,7 +403,7 @@ export default function PrintDetail({ market: _market }: { market: Market }) {
                   {editionClosed
                     ? "Edition closed"
                     : editionRemaining
-                      ? `${editionRemaining} remaining`
+                      ? "Available during this limited release"
                       : "Sold out"}
                 </p>
                 <p>

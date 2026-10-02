@@ -445,7 +445,7 @@ function ProductCatalogue({
         <div className="unified-product-grid">
           {limitedGroups.map((group) => {
             const remaining = group.units.filter(
-              (unit) => unit.status === "available" && unit.fourthwallProductId,
+              (unit) => unit.status === "available",
             ).length;
             return (
               <EditorialProductCard
@@ -455,7 +455,7 @@ function ProductCatalogue({
                 alt={group.title}
                 title={group.title}
                 price={group.priceLabel}
-                metadata={`LIMITED EDITION · ${remaining}/${group.editionSize} REMAIN`}
+                metadata={`LIMITED EDITION · EDITION OF ${group.editionSize}`}
                 status={remaining ? "available" : "sold"}
               />
             );

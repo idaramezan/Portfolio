@@ -32,7 +32,6 @@ export default function LimitedEditionDetail() {
       </main>
     );
   const available = group.units.filter((unit) => unit.status === "available");
-  const collected = group.units.filter((unit) => unit.status === "sold").length;
   const next = available[0];
   const websiteProduct = settings.printProducts.find(
     (item) => item.id === group.productId,
@@ -100,10 +99,10 @@ export default function LimitedEditionDetail() {
             <dt>Availability</dt>
             <dd>
               {soldOut
-                ? `${group.editionSize} / ${group.editionSize} collected`
+                ? "Sold out"
                 : closed
-                  ? `Edition closed · ${collected} / ${group.editionSize} collected`
-                  : `${available.length} of ${group.editionSize} remain`}
+                  ? "Edition closed"
+                  : "Available during this limited release"}
             </dd>
           </div>
         </dl>

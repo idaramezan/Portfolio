@@ -63,6 +63,14 @@ export default function PortfolioHome() {
       !["closed", "archived"].includes(item.status),
   );
   const release = active || next || configured;
+  const releaseIsLive = Boolean(
+    release &&
+    !["closed", "archived"].includes(release.status) &&
+    (!Number.isFinite(Date.parse(release.startAt)) ||
+      now >= Date.parse(release.startAt)) &&
+    (!Number.isFinite(Date.parse(release.endAt)) ||
+      now < Date.parse(release.endAt)),
+  );
   const weeklyGroups = (release?.editionGroupIds || [])
     .map((id) => settings.limitedEditionGroups.find((group) => group.id === id))
     .filter(
@@ -108,7 +116,7 @@ export default function PortfolioHome() {
     <div className="weekly-home">
       <WeeklyHero
         release={release}
-        active={Boolean(active)}
+        active={releaseIsLive}
         now={now}
         fallback={{
           image: content.hero.image || fallbackHero,
@@ -386,7 +394,6 @@ function EditionFeature({
     };
   }, [group.slug]);
   const left = liveRemaining ?? remaining(group),
-    sold = group.editionSize - left,
     closed =
       !release ||
       releaseState(release, now) === "closed" ||
@@ -417,13 +424,11 @@ function EditionFeature({
         </p>
         <h2>{title}</h2>
         {story && <p className="edition-feature__story">{story}</p>}
-        <p className="edition-feature__status">
-          {soldOut
-            ? `${group.editionSize} / ${group.editionSize} collected · SOLD OUT`
-            : closed
-              ? `${sold} / ${group.editionSize} collected · EDITION CLOSED`
-              : `${left} / ${group.editionSize} remaining`}
-        </p>
+        {(soldOut || closed) && (
+          <p className="edition-feature__status">
+            {soldOut ? "SOLD OUT" : "EDITION CLOSED"}
+          </p>
+        )}
         {release?.endAt && !closed && (
           <p className="edition-feature__deadline">
             Available until{" "}
