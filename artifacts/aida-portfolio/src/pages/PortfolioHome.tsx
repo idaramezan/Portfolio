@@ -57,7 +57,12 @@ export default function PortfolioHome() {
   const next = releases
     .filter((item) => releaseState(item, now) === "scheduled")
     .sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt))[0];
-  const release = active || next;
+  const configured = releases.find(
+    (item) =>
+      item.editionGroupIds.length > 0 &&
+      !["closed", "archived"].includes(item.status),
+  );
+  const release = active || next || configured;
   const weeklyGroups = (release?.editionGroupIds || [])
     .map((id) => settings.limitedEditionGroups.find((group) => group.id === id))
     .filter(

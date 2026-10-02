@@ -617,16 +617,16 @@
 .weekly-editions__features { border-top: 1px solid rgb(23 63 53 / 16%); }
 .edition-feature {
   display: grid;
-  grid-template-columns: minmax(280px, 5fr) minmax(0, 7fr);
-  grid-template-areas: "copy media";
+  grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
+  grid-template-areas: "media copy";
   align-items: center;
   gap: clamp(3.5rem, 8vw, 9rem);
   padding: clamp(5rem, 9vw, 9rem) 0;
   border-bottom: 1px solid rgb(23 63 53 / 16%);
 }
 .edition-feature--reverse {
-  grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
-  grid-template-areas: "media copy";
+  grid-template-columns: minmax(280px, 5fr) minmax(0, 7fr);
+  grid-template-areas: "copy media";
 }
 .edition-feature__copy { grid-area: copy; align-self: center; }
 .edition-feature__media { grid-area: media; display: grid; min-height: 560px; place-items: center; }
