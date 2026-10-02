@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CartDrawer from "@/components/CartDrawer";
 import ShippingProgressTracker from "@/components/ShippingProgressTracker";
@@ -433,7 +433,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <span>{label}</span>
-                <ArrowUpRight aria-hidden="true" />
+                <ArrowRight aria-hidden="true" />
               </Link>
             </div>
           ))}
