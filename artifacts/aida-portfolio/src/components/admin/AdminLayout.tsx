@@ -39,6 +39,11 @@ const groups = [
     "Catalog",
     [
       ["/admin/collections", "Collections", FolderOpen],
+      [
+        "/admin/weekly-limited-collections",
+        "Weekly Limited Collections",
+        CalendarDays,
+      ],
       ["/admin/site-content/homepage", "Homepage", PanelsTopLeft],
       ["/admin/moving-image", "Moving Image", Film],
       ["/admin/originals", "Originals", PanelsTopLeft],
@@ -47,7 +52,13 @@ const groups = [
       ["/admin/media", "Media Library", Images],
     ],
   ],
-  ["International", [["/admin/settings/fourthwall", "Fourthwall", Globe2], ["/admin/animation-merch", "Animation Merch", ShoppingBag]]],
+  [
+    "International",
+    [
+      ["/admin/settings/fourthwall", "Fourthwall", Globe2],
+      ["/admin/animation-merch", "Animation Merch", ShoppingBag],
+    ],
+  ],
   [
     "Store management",
     [

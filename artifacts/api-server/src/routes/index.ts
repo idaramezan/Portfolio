@@ -23,6 +23,7 @@ if (process.env.DATABASE_URL) {
     { default: stickerDropRouter },
     { default: checkoutRouter, adminCheckoutRouter },
     { default: enquiriesRouter },
+    { default: limitedEditionsRouter },
   ] = await Promise.all([
     import("./artworks"),
     import("./events"),
@@ -35,6 +36,7 @@ if (process.env.DATABASE_URL) {
     import("./sticker-drop"),
     import("./checkout"),
     import("./enquiries"),
+    import("./limited-editions"),
   ]);
   router.use("/artworks", artworksRouter);
   router.use("/events", eventsRouter);
@@ -48,6 +50,7 @@ if (process.env.DATABASE_URL) {
   router.use("/checkout", checkoutRouter);
   router.use("/admin/checkout", adminCheckoutRouter);
   router.use(enquiriesRouter);
+  router.use(limitedEditionsRouter);
 } else {
   router.use(
     ["/artworks", "/events", "/newsletter", "/product-images"],

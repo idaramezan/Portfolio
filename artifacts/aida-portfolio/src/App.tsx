@@ -31,6 +31,7 @@ import { MovingImage, MovingImageDetail } from "@/pages/MovingImage";
 import MovingCommission from "@/pages/MovingCommission";
 import Faq from "@/pages/Faq";
 import { Privacy, Terms } from "@/pages/Legal";
+import LimitedEditionDetail from "@/pages/LimitedEditionDetail";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -67,6 +68,10 @@ function Router() {
             <Route path="/" component={PortfolioHome} />
             <Route path="/paintings/:slug" component={CollectionDetail} />
             <Route path="/paintings" component={PaintingsIndex} />
+            <Route
+              path="/limited-editions/:slug"
+              component={LimitedEditionDetail}
+            />
             <Route path="/artworks/:slug">
               {() => <OriginalDetail market="international" />}
             </Route>

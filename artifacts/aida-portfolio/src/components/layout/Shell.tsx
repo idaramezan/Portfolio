@@ -1,14 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowUpRight,
-  ChevronDown,
-  Menu,
-  Minus,
-  Plus,
-  ShoppingBag,
-  X,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CartDrawer from "@/components/CartDrawer";
 import ShippingProgressTracker from "@/components/ShippingProgressTracker";
@@ -22,8 +14,6 @@ import {
   useShippingDestination,
 } from "@/lib/shipping-destination";
 
-const INFORMATION_LINKS = [{ href: "/about", label: "About" }];
-
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const previousPathRef = useRef<string | null>(null);
@@ -32,7 +22,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const languagePickerRef = useRef<HTMLDivElement>(null);
   const languageTriggerRef = useRef<HTMLButtonElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openMobileShop, setOpenMobileShop] = useState<"shop" | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -418,11 +407,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <p className="mobile-menu__eyebrow">AEDA ART</p>
         <div className="mobile-menu__navigation">
           {[
-            ["/paintings", locale === "tr" ? "Resimler" : "Paintings"],
+            ["/", locale === "tr" ? "Ana Sayfa" : "Home"],
+            ["/paintings", locale === "tr" ? "Orijinaller" : "Originals"],
+            [
+              "/shop?category=prints",
+              locale === "tr"
+                ? "Sınırlı Edisyon Baskılar"
+                : "Limited Edition Prints",
+            ],
             [
               "/moving-image",
               locale === "tr" ? "Hareketli Görüntü" : "Moving Image",
             ],
+            ["/about", locale === "tr" ? "Aida Hakkında" : "About"],
           ].map(([href, label]) => (
             <div className="mobile-menu__row" key={href}>
               <Link
@@ -430,7 +427,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 onClick={() => closeMobileMenu()}
                 className={cn(
                   "mobile-menu__link",
-                  location.startsWith(href) && "is-active",
+                  (href === "/"
+                    ? location === "/"
+                    : location.startsWith(href.split("?")[0])) && "is-active",
                 )}
               >
                 <span>{label}</span>
@@ -438,115 +437,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
           ))}
-          {[
-            {
-              id: "shop" as const,
-              label: locale === "tr" ? "Mağaza" : "Shop",
-              home: "/shop",
-              description:
-                locale === "tr"
-                  ? "Baskılar ve orijinal eserler"
-                  : "Prints and original works",
-              links: [
-                ...(isTürkiye && settings.mailClubEnabled
-                  ? [["/shop?category=mail-club", "Mail Club"]]
-                  : []),
-                [
-                  "/shop?category=prints",
-                  locale === "tr" ? "Baskılar" : "Prints",
-                ],
-                ...(isTürkiye
-                  ? [
-                      [
-                        "/paintings",
-                        locale === "tr" ? "Orijinal Eserler" : "Original Art",
-                      ],
-                    ]
-                  : []),
-              ],
-            },
-          ].map((group) => {
-            const isOpen = openMobileShop === group.id;
-            const submenuId = `mobile-${group.id}-shop-links`;
-            return (
-              <div key={group.home} className="mobile-menu__row">
-                <button
-                  type="button"
-                  className="mobile-menu__trigger"
-                  aria-expanded={isOpen}
-                  aria-controls={submenuId}
-                  onClick={() => setOpenMobileShop(isOpen ? null : group.id)}
-                >
-                  <span className="mobile-menu__trigger-copy">
-                    <span className="mobile-menu__trigger-title">
-                      {group.label}
-                    </span>
-                  </span>
-                  {isOpen ? (
-                    <Minus
-                      className="mobile-menu__chevron"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <Plus className="mobile-menu__chevron" aria-hidden="true" />
-                  )}
-                </button>
-                <div
-                  id={submenuId}
-                  className="mobile-menu__submenu"
-                  data-open={isOpen || undefined}
-                  aria-hidden={!isOpen}
-                >
-                  <Link href={group.home} onClick={() => closeMobileMenu()}>
-                    {locale === "tr" ? "Mağaza ana sayfası" : "Shop home"}
-                  </Link>
-                  {group.links.map(([href, label]) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => closeMobileMenu()}
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          {[["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"]].map(
-            ([href, label]) => (
-              <div className="mobile-menu__row" key={href}>
-                <Link
-                  href={href}
-                  onClick={() => closeMobileMenu()}
-                  className={cn(
-                    "mobile-menu__link",
-                    location.startsWith(href) && "is-active",
-                  )}
-                  aria-current={location.startsWith(href) ? "page" : undefined}
-                >
-                  <span>{label}</span>
-                  <ArrowUpRight aria-hidden="true" />
-                </Link>
-              </div>
-            ),
-          )}
         </div>
         <div className="mobile-menu__destination">
           <p className="mobile-menu__utility-label">
             {locale === "tr" ? "GÖNDERİM" : "SHIPPING TO"}
           </p>
           <DestinationControl menu />
-        </div>
-        <div className="mobile-menu__note">
-          <p className="mobile-menu__utility-label">
-            {locale === "tr" ? "ATÖLYE NOTLARI" : "STUDIO NOTES"}
-          </p>
-          <p>
-            {locale === "tr"
-              ? "Kişisel sanat hikâyeleri ve yeni çalışmalara ara sıra ilk bakışlar."
-              : "Personal art stories and occasional first looks."}
-          </p>
         </div>
         <footer className="mobile-menu__footer">
           <p className="mobile-menu__utility-label">
@@ -599,82 +495,13 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       <footer className="site-footer public-footer">
         <div className="site-footer__inner">
-          <div className="site-footer__main">
-            <section>
-              <h2 className="site-footer__brand">Aeda Art</h2>
-              <p className="site-footer__studio-line">
-                Paintings and moving images shaped by memory, living nature and
-                music.
-              </p>
-              <div
-                className="site-footer__social"
-                aria-label="Aeda Art on social media"
-              >
-                {socialLinks.map(([label, href]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => trackSocial(label, "site_footer")}
-                  >
-                    {label}
-                    <span className="sr-only"> opens in a new tab</span>
-                  </a>
-                ))}
-              </div>
-            </section>
-            <nav
-              className="site-footer__nav site-footer__nav--shop footer-desktop-links"
-              aria-label="Shop navigation"
-            >
-              <p className="footer-eyebrow">Explore</p>
-              <div className="site-footer__nav-links">
-                <Link href="/paintings">Paintings</Link>
-                <Link href="/moving-image">Moving Image</Link>
-                <Link href="/shop?category=prints">Prints</Link>
-                <Link href="/paintings">Original Art</Link>
-              </div>
-            </nav>
-            <nav
-              className="site-footer__nav site-footer__nav--information footer-desktop-links"
-              aria-label="Information navigation"
-            >
-              <p className="footer-eyebrow mt-5">Aeda Art</p>
-              <div className="site-footer__nav-links">
-                {INFORMATION_LINKS.map((link) => (
-                  <Link key={link.href} href={link.href}>
-                    {link.label}
-                  </Link>
-                ))}
-                <Link href="/faq">FAQ</Link>
-                <a href="mailto:aida@aedaart.com">Contact</a>
-              </div>
-            </nav>
-            <div className="site-footer__nav footer-mobile-links">
-              <details className="site-footer__nav-group">
-                <summary className="site-footer__nav-trigger">Explore</summary>
-                <div className="site-footer__nav-links">
-                  <Link href="/paintings">Paintings</Link>
-                  <Link href="/moving-image">Moving Image</Link>
-                  <Link href="/shop?category=prints">Prints</Link>
-                  <Link href="/paintings">Original Art</Link>
-                </div>
-              </details>
-              <details className="site-footer__nav-group">
-                <summary className="site-footer__nav-trigger">
-                  Information
-                </summary>
-                <div className="site-footer__nav-links">
-                  <Link href="/about">About</Link>
-                  <Link href="/faq">FAQ</Link>
-                  <a href="mailto:aida@aedaart.com">Contact</a>
-                </div>
-              </details>
-            </div>
-          </div>
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Aeda Art</span>
+            <span>
+              <Link href="/paintings">Originals</Link> ·{" "}
+              <Link href="/shop?category=prints">Limited Edition Prints</Link> ·{" "}
+              <Link href="/about">About</Link>
+            </span>
             <span>
               <Link href="/privacy">Privacy</Link> ·{" "}
               <Link href="/terms">Terms</Link>

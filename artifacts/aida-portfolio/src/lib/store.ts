@@ -141,6 +141,42 @@ export interface ArtCollection {
   seoDescription?: string;
 }
 
+export type EditionUnitStatus = "available" | "reserved" | "sold" | "disabled";
+export interface LimitedEditionUnit {
+  editionNumber: number;
+  fourthwallProductId: string;
+  status: EditionUnitStatus;
+}
+export interface LimitedEditionGroup {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  story: string;
+  image: string;
+  galleryImages: string[];
+  editionSize: number;
+  releaseStart: string;
+  releaseEnd: string;
+  status: "draft" | "scheduled" | "active" | "closed" | "archived";
+  homepageFeatured: boolean;
+  homepageOrder: number;
+  priceLabel?: string;
+  units: LimitedEditionUnit[];
+}
+export interface WeeklyLimitedCollection {
+  id: string;
+  title: string;
+  slug: string;
+  heroImage: string;
+  shortDescription: string;
+  startAt: string;
+  endAt: string;
+  status: "draft" | "scheduled" | "active" | "closed" | "archived";
+  editionGroupIds: string[];
+  displayOrder: number;
+}
+
 export interface HomepageContent {
   hero: {
     image: string;
@@ -339,6 +375,8 @@ export interface ShopSettings {
   mailClubEditions: MailClubEdition[];
   artCollections: ArtCollection[];
   movingImageProjects: MovingImageProject[];
+  limitedEditionGroups: LimitedEditionGroup[];
+  weeklyLimitedCollections: WeeklyLimitedCollection[];
   homepageContent: HomepageContent;
   animationMerchProductIds: string[];
   siteLinks: {
@@ -597,12 +635,13 @@ export function getDefaultSettings(): ShopSettings {
       },
     ],
     movingImageProjects: [],
+    limitedEditionGroups: [],
+    weeklyLimitedCollections: [],
     homepageContent: {
       hero: {
         image: "",
         eyebrow: "AIDA RAMEZANI",
-        headline:
-          "Paintings and moving images made from things that stay with me.",
+        headline: "Paintings made from things that stay with me.",
         supportingText:
           "Feelings, flowers, songs and small moments I keep returning to.",
         primaryCtaText: "Explore Paintings",
@@ -852,6 +891,12 @@ export function loadShopSettings(): ShopSettings {
         movingImageProjects: Array.isArray(saved.movingImageProjects)
           ? saved.movingImageProjects
           : defaults.movingImageProjects,
+        limitedEditionGroups: Array.isArray(saved.limitedEditionGroups)
+          ? saved.limitedEditionGroups
+          : [],
+        weeklyLimitedCollections: Array.isArray(saved.weeklyLimitedCollections)
+          ? saved.weeklyLimitedCollections
+          : [],
         homepageContent: {
           ...defaults.homepageContent,
           ...(saved.homepageContent || {}),

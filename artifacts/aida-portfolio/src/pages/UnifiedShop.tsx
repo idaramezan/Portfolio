@@ -281,10 +281,18 @@ export default function UnifiedShop() {
           international={international}
           empty={t.empty}
           sold={t.sold}
+          limitedGroups={settings.limitedEditionGroups.filter(
+            (group) => !["draft", "archived"].includes(group.status),
+          )}
           externalProducts={international.products.filter(
             (product) =>
               !local &&
               !settings.animationMerchProductIds.includes(product.id) &&
+              !settings.limitedEditionGroups.some((group) =>
+                group.units.some(
+                  (unit) => unit.fourthwallProductId === product.id,
+                ),
+              ) &&
               !settings.printProducts.some(
                 (localProduct) =>
                   localProduct.fourthwallProductId === product.id ||
@@ -409,6 +417,7 @@ function ProductCatalogue({
   international,
   empty,
   sold,
+  limitedGroups = [],
   externalProducts = [],
 }: {
   products: ManagedProduct[];
@@ -418,6 +427,7 @@ function ProductCatalogue({
   international: ReturnType<typeof useInternationalProducts>;
   empty: string;
   sold: string;
+  limitedGroups?: ReturnType<typeof useShopSettings>["limitedEditionGroups"];
   externalProducts?: ReturnType<typeof useInternationalProducts>["products"];
 }) {
   const local = destination.countryCode === "TR";
@@ -431,8 +441,25 @@ function ProductCatalogue({
         );
   return (
     <section className="section-shell unified-shop__catalog">
-      {visible.length || externalProducts.length ? (
+      {visible.length || externalProducts.length || limitedGroups.length ? (
         <div className="unified-product-grid">
+          {limitedGroups.map((group) => {
+            const remaining = group.units.filter(
+              (unit) => unit.status === "available" && unit.fourthwallProductId,
+            ).length;
+            return (
+              <EditorialProductCard
+                key={group.id}
+                href={`/limited-editions/${group.slug}`}
+                image={group.image}
+                alt={group.title}
+                title={group.title}
+                price={group.priceLabel}
+                metadata={`LIMITED EDITION · ${remaining}/${group.editionSize} REMAIN`}
+                status={remaining ? "available" : "sold"}
+              />
+            );
+          })}
           {visible.map((product) => {
             const linked = international.products.find(
               (item) => item.id === product.fourthwallProductId,
@@ -484,7 +511,9 @@ function ProductCatalogue({
               <EditorialProductCard
                 key={product.id}
                 href={href}
-                image={product.imageUrl}
+                image={
+                  cardVariant?.product?.primaryImage?.url || product.imageUrl
+                }
                 alt={product.altText || product.name}
                 title={product.name}
                 price={price}
