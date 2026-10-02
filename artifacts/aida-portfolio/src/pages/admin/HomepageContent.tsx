@@ -14,13 +14,35 @@ export default function HomepageContentAdmin() {
     loadShopSettings(),
   );
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const content = settings.homepageContent;
-  const setContent = (next: HomepageContent) =>
-    setSettings({ ...settings, homepageContent: next });
+  const setContent = async (next: HomepageContent, persist = false) => {
+    const nextSettings = { ...settings, homepageContent: next };
+    setSettings(nextSettings);
+    if (!persist) return;
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await saveShopSettingsAndWait(nextSettings);
+      setSaveMessage("Image uploaded and homepage updated.");
+    } catch (error) {
+      setSaveMessage(
+        error instanceof Error ? error.message : "Homepage update failed.",
+      );
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
   const save = async () => {
     setSaving(true);
     try {
       await saveShopSettingsAndWait(settings);
+      setSaveMessage("Homepage changes saved.");
+    } catch (error) {
+      setSaveMessage(
+        error instanceof Error ? error.message : "Homepage update failed.",
+      );
     } finally {
       setSaving(false);
     }
@@ -34,13 +56,24 @@ export default function HomepageContentAdmin() {
         </button>
       }
     >
+      {saveMessage && (
+        <p
+          className="mb-5 border border-ink/15 bg-paper px-4 py-3 text-sm"
+          role="status"
+        >
+          {saveMessage}
+        </p>
+      )}
       <div className="grid gap-6">
         <Editor title="Hero">
           <ImageField
             label="Hero image"
             value={content.hero.image}
-            onChange={(image) =>
-              setContent({ ...content, hero: { ...content.hero, image } })
+            onChange={(image, persist) =>
+              setContent(
+                { ...content, hero: { ...content.hero, image } },
+                persist,
+              )
             }
           />
           <Text
@@ -114,11 +147,14 @@ export default function HomepageContentAdmin() {
           <ImageField
             label="Painting image"
             value={content.paintingPath.image}
-            onChange={(image) =>
-              setContent({
-                ...content,
-                paintingPath: { ...content.paintingPath, image },
-              })
+            onChange={(image, persist) =>
+              setContent(
+                {
+                  ...content,
+                  paintingPath: { ...content.paintingPath, image },
+                },
+                persist,
+              )
             }
           />
           <Text
@@ -144,11 +180,14 @@ export default function HomepageContentAdmin() {
           <ImageField
             label="Moving Image poster"
             value={content.movingPath.image}
-            onChange={(image) =>
-              setContent({
-                ...content,
-                movingPath: { ...content.movingPath, image },
-              })
+            onChange={(image, persist) =>
+              setContent(
+                {
+                  ...content,
+                  movingPath: { ...content.movingPath, image },
+                },
+                persist,
+              )
             }
           />
           <Text
@@ -213,8 +252,8 @@ export default function HomepageContentAdmin() {
           <ImageField
             label="Moving Image cover override"
             value={content.featuredMovingCover || ""}
-            onChange={(featuredMovingCover) =>
-              setContent({ ...content, featuredMovingCover })
+            onChange={(featuredMovingCover, persist) =>
+              setContent({ ...content, featuredMovingCover }, persist)
             }
           />
           <Picker
@@ -240,11 +279,14 @@ export default function HomepageContentAdmin() {
           <ImageField
             label="Editorial image"
             value={content.studioLetter.image || ""}
-            onChange={(image) =>
-              setContent({
-                ...content,
-                studioLetter: { ...content.studioLetter, image },
-              })
+            onChange={(image, persist) =>
+              setContent(
+                {
+                  ...content,
+                  studioLetter: { ...content.studioLetter, image },
+                },
+                persist,
+              )
             }
           />
           <Text
@@ -294,8 +336,11 @@ export default function HomepageContentAdmin() {
           <ImageField
             label="Portrait"
             value={content.about.portrait}
-            onChange={(portrait) =>
-              setContent({ ...content, about: { ...content.about, portrait } })
+            onChange={(portrait, persist) =>
+              setContent(
+                { ...content, about: { ...content.about, portrait } },
+                persist,
+              )
             }
           />
           <Text
@@ -453,7 +498,7 @@ function ImageField({
 }: {
   label: string;
   value: string;
-  onChange: (x: string) => void;
+  onChange: (x: string, persist?: boolean) => void | Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
   return (
@@ -492,7 +537,11 @@ function ImageField({
             const payload = await response.json();
             if (!response.ok || !payload.imageUrl)
               throw new Error(payload.error || "Upload failed");
-            onChange(payload.imageUrl);
+            await onChange(payload.imageUrl, true);
+          } catch (error) {
+            window.alert(
+              error instanceof Error ? error.message : "Image upload failed",
+            );
           } finally {
             setBusy(false);
           }
