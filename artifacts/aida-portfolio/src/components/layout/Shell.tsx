@@ -498,17 +498,74 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       <footer className="site-footer public-footer">
         <div className="site-footer__inner">
+          <div className="site-footer__main">
+            <section className="site-footer__identity">
+              <Link className="site-footer__brand" href="/">
+                Aeda Art
+              </Link>
+              <p className="site-footer__studio-line">
+                {locale === "tr"
+                  ? "Aida Ramezani'den özgün eserler, edisyonlar ve bir sanat yolculuğu."
+                  : "Original works, editions and an unfolding art journey by Aida Ramezani."}
+              </p>
+            </section>
+
+            <nav className="site-footer__nav" aria-label="Footer">
+              <p className="site-footer__eyebrow">
+                {locale === "tr" ? "KEŞFET" : "EXPLORE"}
+              </p>
+              <div className="site-footer__nav-links">
+                <Link href="/paintings">
+                  {locale === "tr" ? "Orijinaller" : "Originals"}
+                </Link>
+                <Link href="/shop?category=prints">
+                  {locale === "tr" ? "Baskılar" : "Prints"}
+                </Link>
+                <Link href="/moving-image">
+                  {locale === "tr" ? "Hareketli Görüntü" : "Moving Image"}
+                </Link>
+                <Link href="/about">
+                  {locale === "tr" ? "Hakkında" : "About"}
+                </Link>
+              </div>
+            </nav>
+
+            <section className="site-footer__connect">
+              <p className="site-footer__eyebrow">
+                {locale === "tr" ? "TAKİP ET" : "FOLLOW"}
+              </p>
+              <div className="site-footer__social">
+                {socialLinks.map(([label, href]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackSocial(label, "footer")}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Aeda Art</span>
-            <span>
-              <Link href="/paintings">Originals</Link> ·{" "}
-              <Link href="/shop?category=prints">Limited Edition Prints</Link> ·{" "}
-              <Link href="/about">About</Link>
+            <span className="site-footer__legal-links">
+              <Link href="/privacy">
+                {locale === "tr" ? "Gizlilik" : "Privacy"}
+              </Link>
+              <Link href="/terms">
+                {locale === "tr" ? "Koşullar" : "Terms"}
+              </Link>
             </span>
-            <span>
-              <Link href="/privacy">Privacy</Link> ·{" "}
-              <Link href="/terms">Terms</Link>
-            </span>
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            >
+              {locale === "tr" ? "Yukarı dön ↑" : "Back to top ↑"}
+            </button>
           </div>
         </div>
       </footer>
