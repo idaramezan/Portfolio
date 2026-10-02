@@ -800,6 +800,113 @@
   }
 }
 
+/* Clean customer-facing popovers and commerce dialogs. */
+[data-public-site] .header-language__menu {
+  top: calc(100% + .75rem);
+  width: 220px;
+  padding: .7rem;
+  border: 1px solid rgb(0 0 0 / 6%);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 12%);
+}
+[data-public-site] .header-language__menu button {
+  min-height: 58px;
+  gap: .8rem;
+  padding: .8rem 1rem;
+  border-radius: 10px;
+  background: transparent !important;
+  color: #171717 !important;
+  font-size: 1rem;
+  font-weight: 450;
+}
+[data-public-site] .header-language__menu button:hover,
+[data-public-site] .header-language__menu button:focus-visible {
+  background: #f6f6f6 !important;
+  color: #171717 !important;
+}
+[data-public-site] .header-language__menu button[aria-checked="true"] {
+  color: #171717 !important;
+  font-weight: 550;
+}
+[data-public-site] .header-language__indicator {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 0;
+  background: transparent !important;
+}
+[data-public-site] .header-language__menu button[aria-checked="true"] .header-language__indicator::after {
+  position: absolute;
+  inset: -2px 0 0;
+  color: #171717;
+  content: "✓";
+  font-size: 1rem;
+  line-height: 1;
+}
+[data-public-site] .destination-modal__overlay {
+  padding: 1.25rem;
+  background: rgb(20 20 20 / 22%);
+  backdrop-filter: blur(8px);
+}
+[data-public-site] .destination-modal {
+  width: min(100%, 560px);
+  padding: clamp(2rem, 5vw, 3rem);
+  border: 1px solid rgb(0 0 0 / 7%);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 14%);
+  color: #171717;
+}
+[data-public-site] .destination-modal h2 { color: #171717; }
+[data-public-site] .destination-modal__close {
+  border-radius: 50%;
+  background: transparent;
+  color: #171717;
+}
+[data-public-site] .destination-modal__close:hover { background: #f4f4f4; }
+[data-public-site] .destination-modal input,
+[data-public-site] .destination-modal select,
+[data-public-site] .destination-modal textarea {
+  border: 1px solid rgb(0 0 0 / 14%);
+  border-radius: 10px;
+  background: #fff;
+  color: #171717;
+  box-shadow: none;
+}
+[data-public-site] .destination-modal__confirm {
+  border-radius: 10px;
+  background: #171717;
+  color: #fff;
+  box-shadow: none;
+}
+[data-public-site] .print-modal {
+  border-color: rgb(0 0 0 / 7%);
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 16%);
+}
+[data-public-site] .print-modal__close {
+  border: 1px solid rgb(0 0 0 / 8%);
+  border-radius: 50%;
+  background: #fff;
+  color: #171717;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+}
+
+@media (min-width: 768px) {
+  [data-public-site] .print-modal-overlay { padding: 2rem; background: rgb(20 20 20 / 22%); backdrop-filter: blur(8px); }
+  [data-public-site] .print-modal {
+    width: min(1180px, calc(100vw - 4rem));
+    height: min(820px, calc(100dvh - 4rem));
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  [data-public-site] .header-language__menu { width: min(220px, calc(100vw - 2rem)); }
+  [data-public-site] .destination-modal { border-radius: 16px; }
+}
+
 /* Full Originals and Prints catalog galleries. */
 [data-public-site] .catalog-gallery-grid {
   display: grid;
