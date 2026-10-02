@@ -4,6 +4,32 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+@font-face {
+  font-family: "Geist";
+  src: url("https://cdn.jsdelivr.net/gh/vercel/geist-font@1.7.2/fonts/Geist/webfonts/Geist%5Bwght%5D.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* Public typography: editorial serif headings with clean Geist body copy. */
+[data-public-site],
+[data-public-site] button,
+[data-public-site] input,
+[data-public-site] select,
+[data-public-site] textarea {
+  font-family: var(--font-sans) !important;
+}
+
+[data-public-site] :is(h1, h2, h3, h4, h5, h6),
+[data-public-site] [role="heading"] {
+  font-family: var(--font-serif) !important;
+}
+
+[data-public-site] :is(p, li, dt, dd, figcaption, blockquote, label, small, em) {
+  font-family: var(--font-sans) !important;
+}
+
 /* Admin shell uses explicit breakpoints so its navigation cannot be lost to
    utility-order changes during Tailwind builds. */
 .admin-sidebar {
@@ -339,6 +365,8 @@
   --portfolio-paper: #ffffff;
   --color-paper: #ffffff;
   --bg-page: #ffffff;
+  --font-sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "New York", "New York Small", "Iowan Old Style", "Baskerville", Georgia, serif;
   --portfolio-forest: #173f35;
   --portfolio-charcoal: #33423d;
   --portfolio-muted: #6f7770;
