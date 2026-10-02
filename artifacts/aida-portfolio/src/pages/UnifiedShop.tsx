@@ -277,11 +277,7 @@ export default function UnifiedShop() {
           products={settings.printProducts
             .filter(
               (product) =>
-                isPubliclyVisible(product) &&
-                !isAceoProduct(product) &&
-                !settings.limitedEditionGroups.some(
-                  (group) => group.productId === product.id,
-                ),
+                isPubliclyVisible(product) && !isAceoProduct(product),
             )
             .sort(compareProductDisplayOrder)}
           kind="prints"
