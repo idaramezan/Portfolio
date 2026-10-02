@@ -2,7 +2,7 @@ import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { compareProductDisplayOrder } from "@/lib/product-order";
-import EditorialProductCard from "@/components/EditorialProductCard";
+import { Link } from "wouter";
 
 export function PaintingsIndex() {
   const settings = useShopSettings();
@@ -17,25 +17,38 @@ export function PaintingsIndex() {
 
   return (
     <main className="portfolio-page originals-index">
-      <header className="portfolio-page-header section-shell">
-        <p className="portfolio-kicker">AVAILABLE ORIGINALS</p>
-        <h1>One-of-one works.</h1>
-        <p>Every original painting currently available from Aida’s studio.</p>
+      <header className="catalog-title section-shell">
+        <h1>Originals</h1>
       </header>
       <section
-        className="catalog-gallery-grid section-shell"
+        className="originals-editorial-list section-shell"
         aria-label="Available originals"
       >
-        {originals.map((artwork) => (
-          <EditorialProductCard
-            image={artwork.imageUrl}
-            alt={artwork.altText || artwork.name}
-            title={artwork.name}
-            href={`/artworks/${artwork.slug || artwork.id}`}
-            key={artwork.id}
-            metadata={`${artwork.dimension}${artwork.artworkSurface ? ` · ${artwork.artworkSurface.toUpperCase()}` : ""}`}
-          />
-        ))}
+        {originals.map((artwork) => {
+          const href = `/artworks/${artwork.slug || artwork.id}`;
+          return (
+            <article className="originals-editorial-item" key={artwork.id}>
+              <Link className="originals-editorial-item__media" href={href}>
+                <img
+                  src={artwork.imageUrl}
+                  alt={artwork.altText || artwork.name}
+                  loading="lazy"
+                />
+              </Link>
+              <div className="originals-editorial-item__details">
+                <h2>
+                  {artwork.name}
+                  {artwork.year ? `, ${artwork.year}` : ""}
+                </h2>
+                {artwork.dimension && <p>{artwork.dimension}</p>}
+                {artwork.artworkSurface && (
+                  <p>{artwork.artworkSurface.toUpperCase()}</p>
+                )}
+                <Link href={href}>View full details →</Link>
+              </div>
+            </article>
+          );
+        })}
         {!originals.length && (
           <p className="portfolio-empty">
             No originals are currently available.

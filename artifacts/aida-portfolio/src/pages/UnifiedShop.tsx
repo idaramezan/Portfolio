@@ -206,11 +206,8 @@ export default function UnifiedShop() {
   if (!destination) {
     return (
       <main className="unified-shop">
-        <header className="section-shell unified-shop__header">
-          <p className="eyebrow">{t.heroEye}</p>
-          <h1>{t.heroTitle}</h1>
-          <p>{t.heroBody}</p>
-          <DestinationControl compact />
+        <header className="catalog-title section-shell">
+          <h1>{locale === "tr" ? "Sınırlı Baskılar" : "Limited Prints"}</h1>
         </header>
         <div
           className="section-shell storefront-catalog-skeleton"
@@ -235,37 +232,45 @@ export default function UnifiedShop() {
 
   return (
     <main className="unified-shop">
-      <header className="section-shell unified-shop__header">
-        <p className="eyebrow">{t.heroEye}</p>
-        <h1>{t.heroTitle}</h1>
-        <p>{t.heroBody}</p>
-        <DestinationControl compact />
-      </header>
-      <div className="unified-shop__rail-wrap">
-        <nav
-          className="section-shell unified-shop__filters"
-          aria-label={
-            locale === "tr" ? "Mağaza kategorileri" : "Shop categories"
-          }
-        >
-          {categories.map((value) => (
-            <button
-              ref={category === value ? activeRef : undefined}
-              type="button"
-              key={value}
-              onClick={() => navigate(`/shop?category=${value}`)}
-              aria-current={category === value ? "page" : undefined}
+      {category === "prints" ? (
+        <header className="catalog-title section-shell">
+          <h1>{locale === "tr" ? "Sınırlı Baskılar" : "Limited Prints"}</h1>
+        </header>
+      ) : (
+        <>
+          <header className="section-shell unified-shop__header">
+            <p className="eyebrow">{t.heroEye}</p>
+            <h1>{t.heroTitle}</h1>
+            <p>{t.heroBody}</p>
+            <DestinationControl compact />
+          </header>
+          <div className="unified-shop__rail-wrap">
+            <nav
+              className="section-shell unified-shop__filters"
+              aria-label={
+                locale === "tr" ? "Mağaza kategorileri" : "Shop categories"
+              }
             >
-              {t.labels[value]}
-            </button>
-          ))}
-        </nav>
-      </div>
-      <section className="section-shell unified-shop__collection-intro">
-        <p className="eyebrow">{intro[0]}</p>
-        <h2>{intro[1]}</h2>
-        <p>{intro[2]}</p>
-      </section>
+              {categories.map((value) => (
+                <button
+                  ref={category === value ? activeRef : undefined}
+                  type="button"
+                  key={value}
+                  onClick={() => navigate(`/shop?category=${value}`)}
+                  aria-current={category === value ? "page" : undefined}
+                >
+                  {t.labels[value]}
+                </button>
+              ))}
+            </nav>
+          </div>
+          <section className="section-shell unified-shop__collection-intro">
+            <p className="eyebrow">{intro[0]}</p>
+            <h2>{intro[1]}</h2>
+            <p>{intro[2]}</p>
+          </section>
+        </>
+      )}
 
       {category === "prints" && (
         <ProductCatalogue
