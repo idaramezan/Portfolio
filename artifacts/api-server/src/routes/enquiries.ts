@@ -6,7 +6,13 @@ import {
   type Response,
 } from "express";
 import { pool } from "@workspace/db";
-import { emailShell, escapeHtml, OWNER_EMAIL, sendEmail } from "../lib/email";
+import {
+  CONTACT_EMAIL,
+  emailShell,
+  escapeHtml,
+  OWNER_EMAIL,
+  sendEmail,
+} from "../lib/email";
 
 const router = Router();
 const clean = (value: unknown, max = 1000) =>
@@ -82,15 +88,43 @@ router.post("/enquiries", async (req, res) => {
     "INSERT INTO portfolio_enquiries(id,enquiry_number,enquiry_type,subject_id,subject_name,subject_url,customer_name,customer_email,country,city,phone,organisation,project_type,project_link,desired_duration,deadline,budget_range,message,reference_links) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)",
     values,
   );
-  void sendEmail({
-    to: process.env.ORDER_NOTIFICATION_EMAIL || OWNER_EMAIL,
-    replyTo: email,
-    subject: `${type === "artwork" ? "New artwork request" : "New moving-image enquiry"} · ${number}`,
-    html: emailShell(
-      `<h1>${escapeHtml(subjectName)}</h1><p><strong>${escapeHtml(name)}</strong> · ${escapeHtml(email)}</p><p>${escapeHtml(clean(req.body?.country, 100))} ${escapeHtml(clean(req.body?.city, 100))}</p><p>${escapeHtml(clean(req.body?.message, 4000))}</p>`,
-      { headerLabel: number, showSignature: false },
+  const configuredRecipients = (
+    process.env.ENQUIRY_NOTIFICATION_EMAIL ||
+    process.env.ORDER_NOTIFICATION_EMAIL ||
+    ""
+  )
+    .split(",")
+    .map((recipient) => recipient.trim())
+    .filter(emailOk);
+  const recipients = [
+    ...new Set(
+      configuredRecipients.length
+        ? configuredRecipients
+        : [OWNER_EMAIL, CONTACT_EMAIL],
     ),
-  }).catch((error) => req.log.error({ error }, "Enquiry email failed"));
+  ];
+  try {
+    await sendEmail({
+      to: recipients,
+      replyTo: email,
+      subject: `${type === "artwork" ? "New artwork request" : "New moving-image enquiry"} · ${number}`,
+      text: `${subjectName}\n\n${name} · ${email}\n${clean(req.body?.country, 100)} ${clean(req.body?.city, 100)}\n\n${clean(req.body?.message, 4000)}\n\n${clean(req.body?.subjectUrl, 500)}`,
+      html: emailShell(
+        `<h1>${escapeHtml(subjectName)}</h1><p><strong>${escapeHtml(name)}</strong> · <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p><p>${escapeHtml(clean(req.body?.country, 100))} ${escapeHtml(clean(req.body?.city, 100))}</p><p>${escapeHtml(clean(req.body?.message, 4000))}</p>${clean(req.body?.subjectUrl, 500) ? `<p>Artwork page: ${escapeHtml(clean(req.body?.subjectUrl, 500))}</p>` : ""}`,
+        { headerLabel: number, showSignature: false },
+      ),
+    });
+  } catch (error) {
+    req.log.error(
+      { error, enquiryNumber: number, recipients },
+      "Enquiry notification email failed",
+    );
+    return res.status(502).json({
+      error:
+        "Your enquiry was saved, but the email notification could not be delivered. Please email aida@aedaart.com directly.",
+      enquiryNumber: number,
+    });
+  }
   return res.status(201).json({ enquiryNumber: number });
 });
 
