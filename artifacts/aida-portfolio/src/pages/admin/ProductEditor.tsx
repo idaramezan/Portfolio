@@ -977,6 +977,52 @@ export default function ProductEditor({
                 />
               </label>
             )}
+            {kind === "originals" && (
+              <>
+                <label>
+                  Collection
+                  <select
+                    className={field}
+                    value={draft.collectionId || ""}
+                    onChange={(e) => update({ collectionId: e.target.value })}
+                  >
+                    <option value="">Not assigned</option>
+                    {settings.artCollections.map((collection) => (
+                      <option key={collection.id} value={collection.id}>
+                        {collection.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Year
+                  <input
+                    className={field}
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value={draft.year || new Date().getFullYear()}
+                    onChange={(e) => update({ year: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="md:col-span-2">
+                  Artwork story
+                  <textarea
+                    className={area}
+                    value={draft.story || ""}
+                    onChange={(e) => update({ story: e.target.value })}
+                  />
+                </label>
+                <label className="md:col-span-2">
+                  Inspired while listening to
+                  <input
+                    className={field}
+                    value={draft.inspiredBySong || ""}
+                    onChange={(e) => update({ inspiredBySong: e.target.value })}
+                  />
+                </label>
+              </>
+            )}
           </FormSection>
           {!isMail && (
             <FormSection title="Product images">

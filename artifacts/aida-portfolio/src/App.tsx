@@ -6,9 +6,9 @@ import { Route, Switch, Router as WouterRouter, useLocation } from "wouter";
 import { lazy, Suspense, useEffect } from "react";
 
 import Shell from "@/components/layout/Shell";
-import Home from "@/pages/Home";
+import PortfolioHome from "@/pages/PortfolioHome";
 import Gallery from "@/pages/Gallery";
-import About from "@/pages/About";
+import PersonalAbout from "@/pages/PersonalAbout";
 import { CurrencyProvider } from "@/lib/currency";
 import { LocaleProvider } from "@/lib/locale";
 import Links from "@/pages/Links";
@@ -27,6 +27,11 @@ import UnifiedShop from "@/pages/UnifiedShop";
 import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
 import CustomPalette from "@/pages/CustomPalette";
+import { PaintingsIndex, CollectionDetail } from "@/pages/Collections";
+import { MovingImage, MovingImageDetail } from "@/pages/MovingImage";
+import MovingCommission from "@/pages/MovingCommission";
+import Faq from "@/pages/Faq";
+import { Privacy, Terms } from "@/pages/Legal";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -60,7 +65,21 @@ function Router() {
       <Route>
         <Shell>
           <Switch>
-            <Route path="/" component={Home} />
+            <Route path="/" component={PortfolioHome} />
+            <Route path="/paintings/:slug" component={CollectionDetail} />
+            <Route path="/paintings" component={PaintingsIndex} />
+            <Route path="/artworks/:slug">
+              {() => <OriginalDetail market="international" />}
+            </Route>
+            <Route path="/moving-image/:slug" component={MovingImageDetail} />
+            <Route path="/moving-image" component={MovingImage} />
+            <Route
+              path="/commissions/moving-image"
+              component={MovingCommission}
+            />
+            <Route path="/faq" component={Faq} />
+            <Route path="/privacy" component={Privacy} />
+            <Route path="/terms" component={Terms} />
             <Route path="/gallery" component={Gallery} />
             <Route path="/shop/turkiye/originals/:slug">
               {() => <OriginalDetail market="turkiye" />}
@@ -122,7 +141,7 @@ function Router() {
             <Route path="/cart">
               <RedirectTo to="/shop/turkiye" />
             </Route>
-            <Route path="/about" component={About} />
+            <Route path="/about" component={PersonalAbout} />
             <Route path="/newsletter">
               <RedirectTo to="/" />
             </Route>

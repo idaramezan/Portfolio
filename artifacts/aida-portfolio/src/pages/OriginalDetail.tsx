@@ -1,21 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Link, useRoute } from "wouter";
-import ManagedProductCard from "@/components/ManagedProductCard";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { useInternationalProducts } from "@/hooks/use-international";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import type { Market } from "@/lib/market";
 import RelatedProducts from "@/components/RelatedProducts";
-import {
-  DestinationControl,
-  useShippingDestination,
-} from "@/lib/shipping-destination";
+import { useShippingDestination } from "@/lib/shipping-destination";
 import { useLocale } from "@/lib/locale";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { trackAnalytics } from "@/lib/analytics";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
+import EnquiryForm from "@/components/EnquiryForm";
 
 export default function OriginalDetail({
   market: _market,
@@ -24,11 +21,12 @@ export default function OriginalDetail({
 }) {
   const [, params] = useRoute("/shop/:market/originals/:slug");
   const canonicalMatch = useRoute("/shop/originals/:slug")[1];
+  const artworkMatch = useRoute("/artworks/:slug")[1];
   const settings = useShopSettings();
   const international = useInternationalProducts();
-  const { destination, isTürkiye, openDestination } = useShippingDestination();
+  const { isTürkiye } = useShippingDestination();
   const { locale } = useLocale();
-  const slug = canonicalMatch?.slug || params?.slug;
+  const slug = artworkMatch?.slug || canonicalMatch?.slug || params?.slug;
   const product = settings.originalProducts.find(
     (item) => (item.slug || item.id) === slug && isPubliclyVisible(item),
   );
@@ -50,13 +48,12 @@ export default function OriginalDetail({
       : "";
   const printHref = linked?.externalUrl || fallback;
   const sold = product ? isSoldOut(product) : false;
-  const unavailableUS = destination?.countryCode === "US";
   useEffect(() => {
-    if (product && unavailableUS && !sold)
-      trackAnalytics("us_original_unavailable_view", {
-        metadata: { productId: product.id },
+    if (product)
+      trackAnalytics("product_view", {
+        metadata: { productId: product.id, productType: "original" },
       });
-  }, [product?.id, unavailableUS, sold]);
+  }, [product?.id]);
   if (!product)
     return (
       <section className="section-shell">
@@ -119,25 +116,42 @@ export default function OriginalDetail({
           </div>
           <div className="product-detail-info">
             <p className="eyebrow">
-              {locale === "tr" ? "TEK VE ORİJİNAL" : "ONE-OF-ONE ORIGINAL"}
+              {sold ? "ORIGINAL · SOLD" : "ORIGINAL · AVAILABLE"}
             </p>
             <h1 className="mt-3 text-5xl">{product.name}</h1>
-            <p className="mt-4 leading-relaxed text-ink/65">
-              {product.description}
-            </p>
-            <DestinationControl compact />
-            {destination && !isTürkiye ? (
-              <div className="original-fulfillment-state">
-                <h2>
-                  {locale === "tr"
-                    ? "Bu orijinal eser yalnızca Türkiye teslimatı için mevcut."
-                    : "This original is currently available only for delivery within Türkiye."}
-                </h2>
-                <Link href="/shop?category=prints" className="button-link">
-                  {locale === "tr" ? "BASKILARI GÖR" : "VIEW PRINTS"} →
-                </Link>
-              </div>
-            ) : sold ? (
+            <dl className="artwork-metadata">
+              {product.year && (
+                <>
+                  <dt>Year</dt>
+                  <dd>{product.year}</dd>
+                </>
+              )}
+              <dt>Medium</dt>
+              <dd>
+                {product.artworkSurface === "canvas"
+                  ? "Oil pastel on canvas"
+                  : "Oil pastel on paper"}
+              </dd>
+              {product.dimension && (
+                <>
+                  <dt>Dimensions</dt>
+                  <dd>{product.dimension}</dd>
+                </>
+              )}
+            </dl>
+            <div className="artwork-story">
+              <p>
+                {product.story ||
+                  product.fullDescription ||
+                  product.description}
+              </p>
+              {product.inspiredBySong && (
+                <small>
+                  Inspired while listening to: {product.inspiredBySong}
+                </small>
+              )}
+            </div>
+            {sold ? (
               <div className="original-fulfillment-state">
                 <strong>SOLD</strong>
                 {printHref && (
@@ -161,66 +175,21 @@ export default function OriginalDetail({
                   </>
                 )}
               </div>
-            ) : !destination ? (
-              <button
-                type="button"
-                className="button-primary product-detail__cta mt-5"
-                onClick={() => openDestination()}
-              >
-                {locale === "tr" ? "Bu eseri edin" : "Collect this piece"}
-              </button>
-            ) : isTürkiye ? (
-              <>
-                <ManagedProductCard product={product} region="TR" hideImage />
-                <p className="mt-4 text-sm font-semibold text-green">
-                  {locale === "tr"
-                    ? "Türkiye içi kargo 50 TL · 1.500 TL'den itibaren ücretsiz"
-                    : "Türkiye shipping is 50 TL · Free from 1,500 TL"}
-                </p>
-              </>
-            ) : unavailableUS ? (
-              <div className="original-fulfillment-state">
-                <h2>
-                  {locale === "tr"
-                    ? "Orijinal eser ABD'ye gönderilemiyor"
-                    : "Original unavailable for US delivery"}
-                </h2>
-                <p>
-                  {locale === "tr"
-                    ? "Bu orijinal eser şu anda Amerika Birleşik Devletleri'ne gönderilemiyor."
-                    : "This original can't currently be shipped to the United States."}
-                </p>
-                {printHref ? (
-                  <a
-                    href={printHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="button-primary product-detail__cta"
-                  >
-                    {locale === "tr" ? "Baskıyı edin" : "Get the print instead"}{" "}
-                    <ArrowUpRight aria-hidden="true" />
-                  </a>
-                ) : (
-                  <Link href="/newsletter" className="button-link">
-                    {locale === "tr" ? "Bültene katıl" : "Join the Newsletter"}{" "}
-                    →
-                  </Link>
-                )}
-              </div>
             ) : (
-              <div className="original-fulfillment-state">
-                <h2>
-                  {locale === "tr" ? "Teslimat talebi" : "Request delivery"}
-                </h2>
+              <details className="artwork-enquiry">
+                <summary>
+                  Enquire about this artwork <ArrowUpRight />
+                </summary>
                 <p>
-                  {locale === "tr"
-                    ? "Seçili ülkelere teslimat mümkündür. Aida, herhangi bir ödeme yapılmadan önce uygunluk ve kargoyu onaylayacak."
-                    : "Delivery is available to selected countries. Aida will confirm availability and shipping before any payment is made."}
+                  Aida will reply personally with availability, shipping and
+                  collection details. Original prices are shared privately.
                 </p>
-                <Link href="/shop?category=prints" className="button-primary product-detail__cta">
-                  {locale === "tr" ? "Baskıları keşfet" : "Browse prints"}
-                </Link>
-              </div>
+                <EnquiryForm
+                  kind="artwork"
+                  subjectId={product.id}
+                  subjectName={product.name}
+                />
+              </details>
             )}
           </div>
         </div>

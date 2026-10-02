@@ -20,6 +20,8 @@ import { StickerDropEditor, StickerDropList } from "@/pages/admin/StickerDrop";
 import { hydrateShopSettingsFromServer } from "@/lib/store";
 import CommerceCollections from "@/pages/admin/CommerceCollections";
 import PaletteEditor from "@/pages/admin/PaletteEditor";
+import PortfolioContent from "@/pages/admin/PortfolioContent";
+import Enquiries from "@/pages/admin/Enquiries";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -148,6 +150,9 @@ export default function Admin() {
   if (location === "/admin/palettes") return <CommerceCollections section="palettes" />;
   if (location === "/admin/mail-club") return <CommerceCollections section="mail-club" />;
   if (location === "/admin/animation-merch") return <CommerceCollections section="animation-merch" />;
+  if (location === "/admin/collections") return <PortfolioContent section="collections" />;
+  if (location === "/admin/moving-image") return <PortfolioContent section="moving-image" />;
+  if (location === "/admin/enquiries") return <Enquiries />;
   if (location === "/admin/orders") return <Orders />;
   if (location === "/admin/discount-codes") return <DiscountCodes />;
   if (location === "/admin/subscribers/compose") return <CampaignComposer />;

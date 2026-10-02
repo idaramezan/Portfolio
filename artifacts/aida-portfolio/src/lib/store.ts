@@ -119,6 +119,49 @@ export interface MailClubEdition {
   sale?: ProductSale;
 }
 
+export interface ArtCollection {
+  id: string;
+  title: string;
+  slug: string;
+  eyebrow: string;
+  shortDescription: string;
+  story: string;
+  heroImage: string;
+  mobileHeroImage?: string;
+  status: "current" | "active" | "archived" | "draft";
+  featuredOnHomepage: boolean;
+  displayOrder: number;
+  launchDate?: string;
+  endDate?: string;
+  countdownEnabled: boolean;
+  artworkIds: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
+export interface MovingImageProject {
+  id: string;
+  title: string;
+  slug: string;
+  client?: string;
+  year: number;
+  role: string;
+  projectType: "Music Video" | "Animation" | "Visual" | "Personal Project";
+  shortDescription: string;
+  story: string;
+  thumbnail: string;
+  videoUrl: string;
+  previewUrl?: string;
+  stillImages: string[];
+  externalUrl?: string;
+  credits?: string;
+  featured: boolean;
+  displayOrder: number;
+  status: "published" | "draft";
+  seoTitle?: string;
+  seoDescription?: string;
+}
+
 export type FourthwallVariantType = "poster" | "framed" | (string & {});
 
 export interface ProductFourthwallVariant {
@@ -183,6 +226,10 @@ export interface ManagedProduct {
   paintedLive?: boolean;
   createdAt?: string;
   sale?: ProductSale;
+  collectionId?: string;
+  year?: number;
+  story?: string;
+  inspiredBySong?: string;
 }
 
 export type ShoppingRegion = "TR" | "INTERNATIONAL";
@@ -247,6 +294,8 @@ export interface ShopSettings {
   readyMadePalettes: ReadyMadePalette[];
   mailClubEnabled: boolean;
   mailClubEditions: MailClubEdition[];
+  artCollections: ArtCollection[];
+  movingImageProjects: MovingImageProject[];
   animationMerchProductIds: string[];
   siteLinks: {
     instagramUrl: string;
@@ -466,6 +515,55 @@ export function getDefaultSettings(): ShopSettings {
         publishedAt: new Date().toISOString(),
       },
     ],
+    artCollections: [
+      {
+        id: "among-growing-things",
+        title: "Among Growing Things",
+        slug: "among-growing-things",
+        eyebrow: "CURRENT BODY OF WORK",
+        shortDescription: "A small world that keeps moving.",
+        story:
+          "I started looking less at individual flowers and more at everything happening around them. A bee passing through. Stems crossing one another. Flowers disappearing into the green behind them. Things growing without asking to be noticed. These paintings are about that small world — busy, imperfect, changing and alive.",
+        heroImage: "",
+        status: "current",
+        featuredOnHomepage: true,
+        displayOrder: 1,
+        countdownEnabled: false,
+        artworkIds: [],
+      },
+      {
+        id: "songs-i-could-see",
+        title: "Songs I Could See",
+        slug: "songs-i-could-see",
+        eyebrow: "PAINTINGS FROM MUSIC",
+        shortDescription: "Some songs leave images behind.",
+        story:
+          "Some songs don’t stay with me as sound. They turn into colours, weather, places and fragments of images that I can’t completely explain. I began painting some of those images — not as illustrations of the songs, but as the places they created in my head. These are the songs I could see.",
+        heroImage: "",
+        status: "active",
+        featuredOnHomepage: true,
+        displayOrder: 2,
+        countdownEnabled: false,
+        artworkIds: [],
+      },
+      {
+        id: "flowers-as-i-remember-them",
+        title: "Flowers as I Remember Them",
+        slug: "flowers-as-i-remember-them",
+        eyebrow: "FLOWERS, SOFTENED BY MEMORY",
+        shortDescription:
+          "Not quite as they were. More like how they stayed with me.",
+        story:
+          "I rarely remember a flower exactly as it was. What stays is usually something smaller — a colour, the bend of a stem, the way the light touched it, or simply the feeling of seeing it. These paintings began with flowers, but they were never meant to document them. They are closer to the version that remained in my memory.",
+        heroImage: "",
+        status: "active",
+        featuredOnHomepage: true,
+        displayOrder: 3,
+        countdownEnabled: false,
+        artworkIds: [],
+      },
+    ],
+    movingImageProjects: [],
     animationMerchProductIds: [],
     printProducts: [
       {
@@ -664,6 +762,12 @@ export function loadShopSettings(): ShopSettings {
         mailClubEditions: Array.isArray(saved.mailClubEditions)
           ? saved.mailClubEditions
           : defaults.mailClubEditions,
+        artCollections: Array.isArray(saved.artCollections)
+          ? saved.artCollections
+          : defaults.artCollections,
+        movingImageProjects: Array.isArray(saved.movingImageProjects)
+          ? saved.movingImageProjects
+          : defaults.movingImageProjects,
         animationMerchProductIds: Array.isArray(saved.animationMerchProductIds)
           ? saved.animationMerchProductIds
           : [],

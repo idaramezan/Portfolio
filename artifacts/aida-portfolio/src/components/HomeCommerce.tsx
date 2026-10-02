@@ -161,7 +161,6 @@ export default function HomeCommerce() {
     )
     .sort(compareProductDisplayOrder)
     .slice(0, 4);
-  const originals = newest(settings.originalProducts.filter(isPubliclyVisible));
   const currentMail = settings.mailClubEnabled
     ? settings.mailClubEditions.find((e) => e.current && e.enabled)
     : undefined;
@@ -239,7 +238,6 @@ export default function HomeCommerce() {
   );
   return (
     <>
-      {mailClubSection}
       <ProductSection
         eyebrow={t.printsEye}
         title={t.prints}
@@ -292,35 +290,7 @@ export default function HomeCommerce() {
           );
         })}
       </ProductSection>
-      {local && (
-        <ProductSection
-          eyebrow={t.originalsEye}
-          title={t.originals}
-          body={t.originalsBody}
-          cta={t.originalsCta}
-          href="/shop?category=originals"
-        >
-          {originals.map((p) => (
-            <EditorialProductCard
-              key={p.id}
-              href={`/shop/originals/${p.slug || p.id}`}
-              image={p.imageUrl}
-              alt={p.altText || p.name}
-              title={p.name}
-              price={
-                <ProductPrice
-                  regularPriceMinor={p.priceUsdCents}
-                  currency="USD"
-                  sale={p.sale}
-                  compact
-                />
-              }
-              metadata={locale === "tr" ? "ORİJİNAL" : "ORIGINAL"}
-              status="available"
-            />
-          ))}
-        </ProductSection>
-      )}
+      {mailClubSection}
       {local && settings.paletteSettings.enabled && (
         <section className="commerce-feature section-shell">
           <img

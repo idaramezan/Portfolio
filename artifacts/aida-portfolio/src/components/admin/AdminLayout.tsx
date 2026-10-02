@@ -16,6 +16,8 @@ import {
   MessageCircle,
   PackageOpen,
   PanelsTopLeft,
+  Film,
+  FolderOpen,
   Settings,
   ShoppingBag,
   Sparkles,
@@ -36,6 +38,8 @@ const groups = [
   [
     "Catalog",
     [
+      ["/admin/collections", "Collections", FolderOpen],
+      ["/admin/moving-image", "Moving Image", Film],
       ["/admin/originals", "Originals", PanelsTopLeft],
       ["/admin/prints", "Prints & Goods", Images],
       ["/admin/palettes", "Palettes", PackageOpen],
@@ -47,6 +51,7 @@ const groups = [
     "Store management",
     [
       ["/admin/orders", "Orders", ShoppingBag],
+      ["/admin/enquiries", "Creative Enquiries", MessageCircle],
       ["/admin/inventory", "Inventory", Boxes],
       ["/admin/discount-codes", "Discount Codes", Ticket],
     ],

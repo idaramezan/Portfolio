@@ -208,9 +208,8 @@ export default function UnifiedShop() {
       product.externalUrl,
   );
   const categories = useMemo(() => {
-    const values: Category[] = ["prints"];
+    const values: Category[] = ["prints", "originals"];
     if (local) {
-      values.push("originals");
       if (customPaletteAvailable || readyPalettes.length)
         values.push("palettes");
       if (currentMail) values.push("mail-club");
@@ -596,7 +595,7 @@ function ProductCatalogue({
   const local = destination.countryCode === "TR";
   const visible =
     kind === "originals"
-      ? products.filter((product) => product.availableInTurkiye !== false)
+      ? products
       : products.filter((product) =>
           local
             ? product.availableInTurkiye !== false
@@ -630,9 +629,13 @@ function ProductCatalogue({
               cardVariant?.product || linked,
               cardVariant?.href || fallback,
             );
-            const href = `/shop/${kind === "originals" ? "originals" : "prints"}/${product.slug || product.id}`;
+            const href =
+              kind === "originals"
+                ? `/artworks/${product.slug || product.id}`
+                : `/shop/prints/${product.slug || product.id}`;
             const price =
-              presentation.amountMinor !== null && presentation.currency ? (
+              kind === "originals" ? undefined : presentation.amountMinor !==
+                  null && presentation.currency ? (
                 local ? (
                   <ProductPrice
                     regularPriceMinor={presentation.amountMinor}

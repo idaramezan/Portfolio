@@ -23,8 +23,9 @@ import {
 } from "@/lib/shipping-destination";
 
 const NAV_LINKS = [
+  { href: "/paintings", en: "Paintings", tr: "Resimler" },
+  { href: "/moving-image", en: "Moving Image", tr: "Hareketli Görüntü" },
   { href: "/shop", en: "Shop", tr: "Mağaza" },
-  { href: "/events", en: "Events", tr: "Etkinlikler" },
   { href: "/about", en: "About", tr: "Hakkında" },
 ];
 
@@ -40,7 +41,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openMobileShop, setOpenMobileShop] = useState<"shop" | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [activeEvent, setActiveEvent] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const { isTürkiye } = useShippingDestination();
@@ -133,13 +133,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("fourthwall-cart:updated", sync);
     };
   }, [activeRegion]);
-
-  useEffect(() => {
-    fetch("/api/newsletter/event-banner?placement=home")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((result) => setActiveEvent(Boolean(result?.config)))
-      .catch(() => setActiveEvent(false));
-  }, []);
 
   useEffect(() => {
     const selectors =
@@ -433,10 +426,29 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <X aria-hidden="true" />
           </button>
         </header>
-        <p className="mobile-menu__eyebrow">
-          {locale === "tr" ? "Stüdyoyu keşfet" : "Explore the studio"}
-        </p>
+        <p className="mobile-menu__eyebrow">AEDA ART</p>
         <div className="mobile-menu__navigation">
+          {[
+            ["/paintings", locale === "tr" ? "Resimler" : "Paintings"],
+            [
+              "/moving-image",
+              locale === "tr" ? "Hareketli Görüntü" : "Moving Image",
+            ],
+          ].map(([href, label]) => (
+            <div className="mobile-menu__row" key={href}>
+              <Link
+                href={href}
+                onClick={() => closeMobileMenu()}
+                className={cn(
+                  "mobile-menu__link",
+                  location.startsWith(href) && "is-active",
+                )}
+              >
+                <span>{label}</span>
+                <ArrowUpRight aria-hidden="true" />
+              </Link>
+            </div>
+          ))}
           {[
             {
               id: "shop" as const,
@@ -512,38 +524,23 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </div>
             );
           })}
-          {[
-            ["/events", locale === "tr" ? "Etkinlikler" : "Events"],
-            ["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"],
-          ].map(([href, label]) => (
-            <div className="mobile-menu__row" key={href}>
-              <Link
-                href={href}
-                onClick={() => closeMobileMenu()}
-                className={cn(
-                  "mobile-menu__link",
-                  location.startsWith(href) && "is-active",
-                )}
-                aria-current={location.startsWith(href) ? "page" : undefined}
-              >
-                <span>{label}</span>
-                <ArrowUpRight aria-hidden="true" />
-              </Link>
-            </div>
-          ))}
-          {activeEvent && (
-            <div className="mobile-menu__row">
-              <Link
-                href="/event"
-                onClick={() => closeMobileMenu()}
-                className="mobile-menu__link"
-              >
-                <span>{locale === "tr" ? "Etkinlik" : "Current Event"}</span>
-                <span className="mobile-menu__event-badge">
-                  {locale === "tr" ? "Güncel" : "Current"}
-                </span>
-              </Link>
-            </div>
+          {[["/about", locale === "tr" ? "Aida Hakkında" : "About Aida"]].map(
+            ([href, label]) => (
+              <div className="mobile-menu__row" key={href}>
+                <Link
+                  href={href}
+                  onClick={() => closeMobileMenu()}
+                  className={cn(
+                    "mobile-menu__link",
+                    location.startsWith(href) && "is-active",
+                  )}
+                  aria-current={location.startsWith(href) ? "page" : undefined}
+                >
+                  <span>{label}</span>
+                  <ArrowUpRight aria-hidden="true" />
+                </Link>
+              </div>
+            ),
           )}
         </div>
         <div className="mobile-menu__destination">
@@ -617,7 +614,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <section>
               <h2 className="site-footer__brand">Aeda Art</h2>
               <p className="site-footer__studio-line">
-                Original art, studio stories and small editions made by Aida.
+                Paintings and moving images shaped by memory, living nature and
+                music.
               </p>
               <div
                 className="site-footer__social"
@@ -641,38 +639,37 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               className="site-footer__nav site-footer__nav--shop footer-desktop-links"
               aria-label="Shop navigation"
             >
-              <p className="footer-eyebrow">Shop</p>
+              <p className="footer-eyebrow">Explore</p>
               <div className="site-footer__nav-links">
+                <Link href="/paintings">Paintings</Link>
+                <Link href="/moving-image">Moving Image</Link>
                 <Link href="/shop?category=prints">Prints</Link>
-                {isTürkiye && (
-                  <Link href="/shop?category=originals">Original Art</Link>
-                )}
+                <Link href="/shop?category=originals">Original Art</Link>
               </div>
             </nav>
             <nav
               className="site-footer__nav site-footer__nav--information footer-desktop-links"
               aria-label="Information navigation"
             >
-              <p className="footer-eyebrow mt-5">Information</p>
+              <p className="footer-eyebrow mt-5">Aeda Art</p>
               <div className="site-footer__nav-links">
-                <Link href="/events">Events</Link>
                 {INFORMATION_LINKS.map((link) => (
                   <Link key={link.href} href={link.href}>
                     {link.label}
                   </Link>
                 ))}
-                <Link href="/links">Links</Link>
+                <Link href="/faq">FAQ</Link>
                 <a href="mailto:aida@aedaart.com">Contact</a>
               </div>
             </nav>
             <div className="site-footer__nav footer-mobile-links">
               <details className="site-footer__nav-group">
-                <summary className="site-footer__nav-trigger">Shop</summary>
+                <summary className="site-footer__nav-trigger">Explore</summary>
                 <div className="site-footer__nav-links">
+                  <Link href="/paintings">Paintings</Link>
+                  <Link href="/moving-image">Moving Image</Link>
                   <Link href="/shop?category=prints">Prints</Link>
-                  {isTürkiye && (
-                    <Link href="/shop?category=originals">Original Art</Link>
-                  )}
+                  <Link href="/shop?category=originals">Original Art</Link>
                 </div>
               </details>
               <details className="site-footer__nav-group">
@@ -680,9 +677,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   Information
                 </summary>
                 <div className="site-footer__nav-links">
-                  <Link href="/events">Events</Link>
                   <Link href="/about">About</Link>
-                  <Link href="/links">Links</Link>
+                  <Link href="/faq">FAQ</Link>
                   <a href="mailto:aida@aedaart.com">Contact</a>
                 </div>
               </details>
@@ -690,7 +686,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Aeda Art</span>
-            <span>Made by Aida</span>
+            <span>
+              <Link href="/privacy">Privacy</Link> ·{" "}
+              <Link href="/terms">Terms</Link>
+            </span>
           </div>
         </div>
       </footer>
