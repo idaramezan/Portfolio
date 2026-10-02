@@ -121,14 +121,22 @@ export default function PortfolioHome() {
                   <h2>{era.title}</h2>
                   {era.shortDescription && <p>{era.shortDescription}</p>}
                   {previews.length > 0 && (
-                    <div className="home-era__previews" aria-hidden="true">
+                    <div
+                      className="home-era__previews"
+                      aria-label={`Explore ${era.title}`}
+                    >
                       {previews.map((product) => (
-                        <img
+                        <Link
                           key={product.id}
-                          src={product.imageUrl}
-                          alt=""
-                          loading="lazy"
-                        />
+                          href={`/eras/${era.slug}`}
+                          aria-label={`View ${era.title}`}
+                        >
+                          <img
+                            src={product.imageUrl}
+                            alt={product.altText || product.name}
+                            loading="lazy"
+                          />
+                        </Link>
                       ))}
                     </div>
                   )}
