@@ -12,7 +12,7 @@ import { useLocale } from "@/lib/locale";
 import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { trackAnalytics } from "@/lib/analytics";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
-import EnquiryForm from "@/components/EnquiryForm";
+import EnquiryDialog from "@/components/EnquiryDialog";
 
 export default function OriginalDetail({
   market: _market,
@@ -176,20 +176,22 @@ export default function OriginalDetail({
                 )}
               </div>
             ) : (
-              <details className="artwork-enquiry">
-                <summary>
-                  Enquire about this artwork <ArrowUpRight />
-                </summary>
+              <div className="artwork-enquiry">
                 <p>
                   Aida will reply personally with availability, shipping and
                   collection details. Original prices are shared privately.
                 </p>
-                <EnquiryForm
+                <EnquiryDialog
                   kind="artwork"
                   subjectId={product.id}
                   subjectName={product.name}
+                  trigger={
+                    <button type="button" className="portfolio-text-link">
+                      Enquire about this artwork <ArrowUpRight />
+                    </button>
+                  }
                 />
-              </details>
+              </div>
             )}
           </div>
         </div>
