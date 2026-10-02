@@ -548,6 +548,12 @@
   box-shadow: none !important;
   backdrop-filter: none;
 }
+[data-public-site] .site-header[data-scrolled] {
+  border-bottom-color: rgb(23 60 50 / 8%) !important;
+  background: rgb(255 255 255 / 72%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  backdrop-filter: blur(22px) saturate(135%);
+}
 [data-public-site] .site-header__grid {
   width: 100%;
   max-width: none;

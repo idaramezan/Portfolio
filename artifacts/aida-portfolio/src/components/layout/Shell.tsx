@@ -35,6 +35,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const [openMobileShop, setOpenMobileShop] = useState<"shop" | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
   const [languageOpen, setLanguageOpen] = useState(false);
   const { isTürkiye } = useShippingDestination();
   const activeRegion = isTürkiye ? "TR" : "INTERNATIONAL";
@@ -69,10 +70,32 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const updateHeader = () => setHeaderScrolled(window.scrollY > 24);
+    let previousY = window.scrollY;
+    let frame = 0;
+    const updateHeader = () => {
+      frame = 0;
+      const currentY = Math.max(0, window.scrollY);
+      setHeaderScrolled(currentY > 24);
+      if (currentY <= 8) {
+        setHeaderVisible(true);
+      } else if (currentY > previousY + 4) {
+        setHeaderVisible(false);
+        setIsMobileMenuOpen(false);
+        setLanguageOpen(false);
+      } else if (currentY < previousY - 4) {
+        setHeaderVisible(true);
+      }
+      previousY = currentY;
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateHeader);
+    };
     updateHeader();
-    window.addEventListener("scroll", updateHeader, { passive: true });
-    return () => window.removeEventListener("scroll", updateHeader);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -215,6 +238,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
       <header
         data-scrolled={headerScrolled || undefined}
+        data-hidden={!headerVisible || undefined}
         className="site-header sticky top-0 z-50 border-b border-ink/5 bg-white"
       >
         <div className="site-header__grid mx-auto h-24 w-full px-4 md:h-32 md:px-10">

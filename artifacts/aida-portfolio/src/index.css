@@ -2130,6 +2130,11 @@
   padding-block: 0;
   background: #fff;
 }
+.site-header {
+  transition: transform 240ms ease, background-color 200ms ease, border-color 200ms ease;
+  will-change: transform;
+}
+.site-header[data-hidden] { transform: translateY(-100%); }
 .site-header__menu-button { justify-self: start; }
 .site-header__brand { justify-self: center; }
 .site-header__nav {
