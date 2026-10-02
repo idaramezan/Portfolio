@@ -3,19 +3,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { heroPortrait } from "@/lib/assets";
 import { useShopSettings } from "@/hooks/use-shop-settings";
-import { useInternationalProducts } from "@/hooks/use-international";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
-import { useShippingDestination } from "@/lib/shipping-destination";
-import { compareProductDisplayOrder } from "@/lib/product-order";
-import { isAceoProduct } from "@/lib/turkiye-products";
-import {
-  getFourthwallVariants,
-  getLowestFourthwallVariant,
-  hasConfiguredFourthwallOptions,
-} from "@/lib/fourthwall-variants";
-import EditorialProductCard from "@/components/EditorialProductCard";
-import ProductPrice from "@/components/ProductPrice";
 import type {
   LimitedEditionGroup,
   ManagedProduct,
@@ -27,9 +15,6 @@ const fallbackHero = "/assets/aida-green-gallery-hero.png";
 export default function PortfolioHome() {
   const settings = useShopSettings();
   const content = settings.homepageContent;
-  const international = useInternationalProducts();
-  const { destination } = useShippingDestination();
-  const local = destination?.countryCode === "TR";
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     let offset = 0;
@@ -78,39 +63,9 @@ export default function PortfolioHome() {
         Boolean(x) && x?.editionEnabled !== false,
     )
     .slice(0, 3);
-  const weeklyProductIds = new Set(
-    weeklyGroups.map((group) => group.productId).filter(Boolean),
-  );
-  const originals = settings.originalProducts.filter(
-    (item) => isPubliclyVisible(item) && !isSoldOut(item),
-  );
-  const selectedOriginals = content.featuredOriginalIds
-    .map((id) => originals.find((item) => item.id === id))
-    .filter((item): item is (typeof originals)[number] => Boolean(item));
-  const featuredOriginals = (
-    selectedOriginals.length
-      ? selectedOriginals
-      : [...originals].sort(
-          (a, b) =>
-            Date.parse(b.createdAt || b.updatedAt || "0") -
-            Date.parse(a.createdAt || a.updatedAt || "0"),
-        )
-  ).slice(0, 3);
-  const prints = settings.printProducts
-    .filter(
-      (item) =>
-        isPubliclyVisible(item) &&
-        !isAceoProduct(item) &&
-        !weeklyProductIds.has(item.id) &&
-        (local || hasConfiguredFourthwallOptions(item)),
-    )
-    .sort(compareProductDisplayOrder);
-  const selectedPrints = content.featuredPrintIds
-    .map((id) => prints.find((item) => item.id === id))
-    .filter((item): item is (typeof prints)[number] => Boolean(item));
-  const featuredPrints = (
-    selectedPrints.length ? selectedPrints : prints
-  ).slice(0, 3);
+  const eras = [...settings.artEras]
+    .filter((era) => era.status === "published" && era.featuredOnHomepage)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
     <div className="weekly-home">
@@ -142,78 +97,50 @@ export default function PortfolioHome() {
           </div>
         </section>
       )}
-      <section className="available-originals section-shell">
-        <header>
-          <div>
-            <p className="portfolio-kicker">AVAILABLE ORIGINALS</p>
-            <h2>One-of-one works.</h2>
-          </div>
-        </header>
-        <div className="homepage-art-grid">
-          {featuredOriginals.map(
-            (item) =>
-              item && (
-                <EditorialProductCard
-                  key={item.id}
-                  href={`/artworks/${item.slug || item.id}`}
-                  image={item.imageUrl}
-                  alt={item.altText || item.name}
-                  title={item.name}
-                  metadata={`${item.dimension}${item.artworkSurface ? ` · ${item.artworkSurface.toUpperCase()}` : ""}`}
-                />
-              ),
-          )}
-        </div>
-        <Link className="homepage-gallery__view-all" href="/paintings">
-          View all
-        </Link>
-      </section>
-      <section className="home-prints section-shell">
-        <header>
-          <div>
-            <p className="portfolio-kicker">AVAILABLE PRINTS</p>
-            <h2>Prints made to live with.</h2>
-          </div>
-        </header>
-        <div className="homepage-art-grid">
-          {featuredPrints.map((item) => {
-            const variants = getFourthwallVariants(
-              item,
-              international.products,
-              international.shopUrl,
-            );
-            const linked = getLowestFourthwallVariant(variants)?.product;
+      {eras.length > 0 && (
+        <div className="home-eras">
+          {eras.map((era, index) => {
+            const previews = era.printIds
+              .map((id) =>
+                settings.printProducts.find((product) => product.id === id),
+              )
+              .filter((product): product is ManagedProduct => Boolean(product))
+              .slice(0, 3);
             return (
-              <EditorialProductCard
-                key={item.id}
-                href={`/shop/prints/${item.slug || item.id}`}
-                image={linked?.primaryImage?.url || item.imageUrl}
-                alt={item.altText || item.name}
-                title={item.name}
-                metadata="PRINT"
-                price={
-                  local ? (
-                    <ProductPrice
-                      regularPriceMinor={item.priceMinor ?? item.priceUsdCents}
-                      currency="TRY"
-                      sale={item.sale}
-                      compact
-                    />
-                  ) : (
-                    linked?.price.formatted
-                  )
-                }
-              />
+              <section
+                key={era.id}
+                className={`home-era section-shell ${index % 2 ? "home-era--reverse" : ""}`}
+              >
+                <Link className="home-era__media" href={`/eras/${era.slug}`}>
+                  <img src={era.heroImage} alt={era.title} loading="lazy" />
+                </Link>
+                <div className="home-era__copy">
+                  <p className="portfolio-kicker">
+                    {era.eyebrow || "AN ERA IN MY ART JOURNEY"}
+                  </p>
+                  <h2>{era.title}</h2>
+                  {era.shortDescription && <p>{era.shortDescription}</p>}
+                  {previews.length > 0 && (
+                    <div className="home-era__previews" aria-hidden="true">
+                      {previews.map((product) => (
+                        <img
+                          key={product.id}
+                          src={product.imageUrl}
+                          alt=""
+                          loading="lazy"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <Link className="home-era__cta" href={`/eras/${era.slug}`}>
+                    View era <ArrowRight />
+                  </Link>
+                </div>
+              </section>
             );
           })}
         </div>
-        <Link
-          className="homepage-gallery__view-all"
-          href="/shop?category=prints"
-        >
-          View all
-        </Link>
-      </section>
+      )}
       <section className="home-about-preview section-shell">
         <img
           src={content.about.portrait || heroPortrait}

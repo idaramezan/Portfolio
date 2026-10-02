@@ -46,6 +46,7 @@ const groups = [
       ["/admin/moving-image", "Moving Image", Film],
       ["/admin/originals", "Originals", PanelsTopLeft],
       ["/admin/prints", "Prints & Goods", Images],
+      ["/admin/art-eras", "Art Eras", Sparkles],
       ["/admin/palettes", "Palettes", PackageOpen],
       ["/admin/media", "Media Library", Images],
     ],

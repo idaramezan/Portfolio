@@ -24,6 +24,7 @@ import PortfolioContent from "@/pages/admin/PortfolioContent";
 import Enquiries from "@/pages/admin/Enquiries";
 import HomepageContentAdmin from "@/pages/admin/HomepageContent";
 import WeeklyLimitedCollections from "@/pages/admin/WeeklyLimitedCollections";
+import ArtErasAdmin from "@/pages/admin/ArtEras";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -139,6 +140,7 @@ export default function Admin() {
     return <ProductEditor kind={editor[1] as "originals" | "prints"} />;
   if (location === "/admin/originals") return <Catalog kind="originals" />;
   if (location === "/admin/prints") return <Catalog kind="prints" />;
+  if (location === "/admin/art-eras") return <ArtErasAdmin />;
   if (location === "/admin/products") return <Catalog kind="prints" />;
   if (location === "/admin/inventory") return <Inventory />;
   const paletteEditor = location.match(/^\/admin\/palettes\/(new|[^/]+)$/);

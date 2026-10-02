@@ -141,6 +141,21 @@ export interface ArtCollection {
   seoDescription?: string;
 }
 
+export interface ArtEra {
+  id: string;
+  title: string;
+  slug: string;
+  eyebrow: string;
+  shortDescription: string;
+  story: string;
+  heroImage: string;
+  storyImage?: string;
+  status: "draft" | "published" | "archived";
+  featuredOnHomepage: boolean;
+  displayOrder: number;
+  printIds: string[];
+}
+
 export type EditionUnitStatus = "available" | "reserved" | "sold" | "disabled";
 export interface LimitedEditionUnit {
   editionNumber: number;
@@ -382,6 +397,7 @@ export interface ShopSettings {
   mailClubEnabled: boolean;
   mailClubEditions: MailClubEdition[];
   artCollections: ArtCollection[];
+  artEras: ArtEra[];
   movingImageProjects: MovingImageProject[];
   limitedEditionGroups: LimitedEditionGroup[];
   weeklyLimitedCollections: WeeklyLimitedCollection[];
@@ -645,6 +661,7 @@ export function getDefaultSettings(): ShopSettings {
         artworkIds: [],
       },
     ],
+    artEras: [],
     movingImageProjects: [],
     limitedEditionGroups: [],
     weeklyLimitedCollections: [],
@@ -899,6 +916,7 @@ export function loadShopSettings(): ShopSettings {
                 visibleOnPaintingsPage: item.visibleOnPaintingsPage !== false,
               }))
             : defaults.artCollections,
+        artEras: Array.isArray(saved.artEras) ? saved.artEras : [],
         movingImageProjects: Array.isArray(saved.movingImageProjects)
           ? saved.movingImageProjects
           : defaults.movingImageProjects,

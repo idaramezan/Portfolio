@@ -32,6 +32,7 @@ import MovingCommission from "@/pages/MovingCommission";
 import Faq from "@/pages/Faq";
 import { Privacy, Terms } from "@/pages/Legal";
 import LimitedEditionDetail from "@/pages/LimitedEditionDetail";
+import ArtEraDetail from "@/pages/ArtEraDetail";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -66,6 +67,7 @@ function Router() {
         <Shell>
           <Switch>
             <Route path="/" component={PortfolioHome} />
+            <Route path="/eras/:slug" component={ArtEraDetail} />
             <Route path="/paintings/:slug">
               <RedirectTo to="/paintings" />
             </Route>
