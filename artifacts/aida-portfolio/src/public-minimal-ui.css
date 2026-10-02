@@ -632,17 +632,17 @@
 /* Simplified catalog introductions and focused original-art presentation */
 [data-public-site] .catalog-title {
   display: flex;
-  min-height: clamp(230px, 28vw, 420px);
+  min-height: 0;
   align-items: flex-end;
-  padding-top: clamp(4rem, 8vw, 8rem);
-  padding-bottom: clamp(2.5rem, 5vw, 5rem);
+  padding-top: clamp(3rem, 5vw, 5rem);
+  padding-bottom: clamp(2rem, 3vw, 3rem);
 }
 
 [data-public-site] .catalog-title h1 {
   margin: 0;
   color: #111;
   font-family: "New York", "Iowan Old Style", "Times New Roman", serif;
-  font-size: clamp(4rem, 9vw, 10rem);
+  font-size: clamp(3rem, 5vw, 5.25rem);
   font-weight: 400;
   letter-spacing: -0.045em;
   line-height: 0.88;
@@ -713,11 +713,13 @@
 
 @media (max-width: 760px) {
   [data-public-site] .catalog-title {
-    min-height: 210px;
+    min-height: 0;
+    padding-top: 2.5rem;
+    padding-bottom: 2rem;
   }
 
   [data-public-site] .catalog-title h1 {
-    font-size: clamp(3.5rem, 18vw, 6rem);
+    font-size: clamp(2.75rem, 13vw, 4.5rem);
   }
 
   [data-public-site] .originals-editorial-item {
