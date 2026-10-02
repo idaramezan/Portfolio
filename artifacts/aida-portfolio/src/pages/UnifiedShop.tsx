@@ -442,7 +442,7 @@ function ProductCatalogue({
   return (
     <section className="section-shell unified-shop__catalog">
       {visible.length || externalProducts.length || limitedGroups.length ? (
-        <div className="unified-product-grid">
+        <div className="unified-product-grid catalog-gallery-grid">
           {limitedGroups.map((group) => {
             const remaining = group.units.filter(
               (unit) => unit.status === "available",

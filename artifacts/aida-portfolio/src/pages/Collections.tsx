@@ -1,8 +1,8 @@
-import { Link } from "wouter";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { compareProductDisplayOrder } from "@/lib/product-order";
+import EditorialProductCard from "@/components/EditorialProductCard";
 
 export function PaintingsIndex() {
   const settings = useShopSettings();
@@ -23,29 +23,18 @@ export function PaintingsIndex() {
         <p>Every original painting currently available from Aida’s studio.</p>
       </header>
       <section
-        className="artwork-gallery section-shell"
+        className="catalog-gallery-grid section-shell"
         aria-label="Available originals"
       >
         {originals.map((artwork) => (
-          <Link
+          <EditorialProductCard
+            image={artwork.imageUrl}
+            alt={artwork.altText || artwork.name}
+            title={artwork.name}
             href={`/artworks/${artwork.slug || artwork.id}`}
             key={artwork.id}
-          >
-            <img
-              src={artwork.imageUrl}
-              alt={artwork.altText || artwork.name}
-              loading="lazy"
-            />
-            <span>
-              <strong>{artwork.name}</strong>
-              <small>
-                {artwork.dimension}
-                {artwork.artworkSurface
-                  ? ` · ${artwork.artworkSurface.toUpperCase()}`
-                  : ""}
-              </small>
-            </span>
-          </Link>
+            metadata={`${artwork.dimension}${artwork.artworkSurface ? ` · ${artwork.artworkSurface.toUpperCase()}` : ""}`}
+          />
         ))}
         {!originals.length && (
           <p className="portfolio-empty">
