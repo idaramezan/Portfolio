@@ -127,6 +127,14 @@ export default function PortfolioContent({
                   />
                 </label>
                 <label>
+                  CTA label
+                  <input
+                    className={field}
+                    value={active.ctaLabel || ""}
+                    onChange={(e) => patch({ ctaLabel: e.target.value })}
+                  />
+                </label>
+                <label>
                   Status
                   <select
                     className={field}
@@ -224,6 +232,16 @@ export default function PortfolioContent({
                     }
                   />{" "}
                   Featured on homepage
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={active.visibleOnPaintingsPage}
+                    onChange={(e) =>
+                      patch({ visibleOnPaintingsPage: e.target.checked })
+                    }
+                  />{" "}
+                  Visible on Paintings page
                 </label>
                 <label>
                   <input

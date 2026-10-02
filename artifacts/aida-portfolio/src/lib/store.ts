@@ -130,6 +130,8 @@ export interface ArtCollection {
   mobileHeroImage?: string;
   status: "current" | "active" | "archived" | "draft";
   featuredOnHomepage: boolean;
+  visibleOnPaintingsPage: boolean;
+  ctaLabel?: string;
   displayOrder: number;
   launchDate?: string;
   endDate?: string;
@@ -137,6 +139,47 @@ export interface ArtCollection {
   artworkIds: string[];
   seoTitle?: string;
   seoDescription?: string;
+}
+
+export interface HomepageContent {
+  hero: {
+    image: string;
+    eyebrow: string;
+    headline: string;
+    supportingText: string;
+    primaryCtaText: string;
+    primaryCtaUrl: string;
+    secondaryCtaText: string;
+    secondaryCtaUrl: string;
+  };
+  paintingPath: { image: string; heading: string; description: string };
+  movingPath: {
+    image: string;
+    previewVideo?: string;
+    heading: string;
+    description: string;
+  };
+  currentCollectionId: string;
+  secondCollectionId: string;
+  featuredMovingProjectId?: string;
+  featuredMovingCover?: string;
+  featuredOriginalIds: string[];
+  featuredPrintIds: string[];
+  studioLetter: {
+    heading: string;
+    body: string;
+    excerpt: string;
+    image?: string;
+    cta: string;
+  };
+  about: {
+    portrait: string;
+    eyebrow: string;
+    headline: string;
+    paragraph: string;
+    cta: string;
+    ctaUrl: string;
+  };
 }
 
 export interface MovingImageProject {
@@ -296,6 +339,7 @@ export interface ShopSettings {
   mailClubEditions: MailClubEdition[];
   artCollections: ArtCollection[];
   movingImageProjects: MovingImageProject[];
+  homepageContent: HomepageContent;
   animationMerchProductIds: string[];
   siteLinks: {
     instagramUrl: string;
@@ -517,53 +561,86 @@ export function getDefaultSettings(): ShopSettings {
     ],
     artCollections: [
       {
-        id: "among-growing-things",
-        title: "Among Growing Things",
-        slug: "among-growing-things",
+        id: "feelings",
+        title: "Feelings",
+        slug: "feelings",
         eyebrow: "CURRENT BODY OF WORK",
-        shortDescription: "A small world that keeps moving.",
+        shortDescription:
+          "Paintings for things I could not quite put into words.",
         story:
-          "I started looking less at individual flowers and more at everything happening around them. A bee passing through. Stems crossing one another. Flowers disappearing into the green behind them. Things growing without asking to be noticed. These paintings are about that small world — busy, imperfect, changing and alive.",
+          "Some feelings arrive before language does. These paintings begin there — with colours, places and fragments that hold what I could not quite put into words.",
         heroImage: "",
         status: "current",
         featuredOnHomepage: true,
+        visibleOnPaintingsPage: true,
+        ctaLabel: "Enter Feelings",
         displayOrder: 1,
         countdownEnabled: false,
         artworkIds: [],
       },
       {
-        id: "songs-i-could-see",
-        title: "Songs I Could See",
-        slug: "songs-i-could-see",
-        eyebrow: "PAINTINGS FROM MUSIC",
-        shortDescription: "Some songs leave images behind.",
+        id: "flowers",
+        title: "Flowers",
+        slug: "flowers",
+        eyebrow: "FLOWERS, REMEMBERED AND NOTICED",
+        shortDescription: "Flowers remembered, noticed and rearranged.",
         story:
-          "Some songs don’t stay with me as sound. They turn into colours, weather, places and fragments of images that I can’t completely explain. I began painting some of those images — not as illustrations of the songs, but as the places they created in my head. These are the songs I could see.",
+          "I rarely remember a flower exactly as it was. What stays is a colour, the bend of a stem, an insect passing through or the feeling of seeing it. These paintings hold flowers as I remember, notice and rearrange them.",
         heroImage: "",
         status: "active",
         featuredOnHomepage: true,
+        visibleOnPaintingsPage: true,
+        ctaLabel: "Explore Flowers",
         displayOrder: 2,
-        countdownEnabled: false,
-        artworkIds: [],
-      },
-      {
-        id: "flowers-as-i-remember-them",
-        title: "Flowers as I Remember Them",
-        slug: "flowers-as-i-remember-them",
-        eyebrow: "FLOWERS, SOFTENED BY MEMORY",
-        shortDescription:
-          "Not quite as they were. More like how they stayed with me.",
-        story:
-          "I rarely remember a flower exactly as it was. What stays is usually something smaller — a colour, the bend of a stem, the way the light touched it, or simply the feeling of seeing it. These paintings began with flowers, but they were never meant to document them. They are closer to the version that remained in my memory.",
-        heroImage: "",
-        status: "active",
-        featuredOnHomepage: true,
-        displayOrder: 3,
         countdownEnabled: false,
         artworkIds: [],
       },
     ],
     movingImageProjects: [],
+    homepageContent: {
+      hero: {
+        image: "",
+        eyebrow: "AIDA RAMEZANI",
+        headline:
+          "Paintings and moving images made from things that stay with me.",
+        supportingText:
+          "Feelings, flowers, songs and small moments I keep returning to.",
+        primaryCtaText: "Explore Paintings",
+        primaryCtaUrl: "/paintings",
+        secondaryCtaText: "Watch Moving Image",
+        secondaryCtaUrl: "/moving-image",
+      },
+      paintingPath: {
+        image: "",
+        heading: "Paintings",
+        description: "Things I couldn’t quite leave behind.",
+      },
+      movingPath: {
+        image: "",
+        heading: "Moving Image",
+        description: "Stories that needed time, sound and movement.",
+      },
+      currentCollectionId: "feelings",
+      secondCollectionId: "flowers",
+      featuredOriginalIds: [],
+      featuredPrintIds: [],
+      studioLetter: {
+        heading: "Things I don’t always put on the website.",
+        body: "Stories behind the paintings, works in progress, new releases, and occasional pieces of life I feel like sharing.",
+        excerpt:
+          "It started on a warm afternoon when I was going to Beşiktaş...",
+        cta: "Send me the Studio Letter",
+      },
+      about: {
+        portrait: "",
+        eyebrow: "ABOUT AIDA",
+        headline: "I paint what stays with me.",
+        paragraph:
+          "I move between painting and animation. Sometimes an idea becomes an image; sometimes it needs movement, music and time.",
+        cta: "More about Aida",
+        ctaUrl: "/about",
+      },
+    },
     animationMerchProductIds: [],
     printProducts: [
       {
@@ -762,12 +839,43 @@ export function loadShopSettings(): ShopSettings {
         mailClubEditions: Array.isArray(saved.mailClubEditions)
           ? saved.mailClubEditions
           : defaults.mailClubEditions,
-        artCollections: Array.isArray(saved.artCollections)
-          ? saved.artCollections
-          : defaults.artCollections,
+        artCollections:
+          Array.isArray(saved.artCollections) &&
+          saved.artCollections.some(
+            (item: ArtCollection) => item.id === "feelings",
+          )
+            ? saved.artCollections.map((item: ArtCollection) => ({
+                ...item,
+                visibleOnPaintingsPage: item.visibleOnPaintingsPage !== false,
+              }))
+            : defaults.artCollections,
         movingImageProjects: Array.isArray(saved.movingImageProjects)
           ? saved.movingImageProjects
           : defaults.movingImageProjects,
+        homepageContent: {
+          ...defaults.homepageContent,
+          ...(saved.homepageContent || {}),
+          hero: {
+            ...defaults.homepageContent.hero,
+            ...(saved.homepageContent?.hero || {}),
+          },
+          paintingPath: {
+            ...defaults.homepageContent.paintingPath,
+            ...(saved.homepageContent?.paintingPath || {}),
+          },
+          movingPath: {
+            ...defaults.homepageContent.movingPath,
+            ...(saved.homepageContent?.movingPath || {}),
+          },
+          studioLetter: {
+            ...defaults.homepageContent.studioLetter,
+            ...(saved.homepageContent?.studioLetter || {}),
+          },
+          about: {
+            ...defaults.homepageContent.about,
+            ...(saved.homepageContent?.about || {}),
+          },
+        },
         animationMerchProductIds: Array.isArray(saved.animationMerchProductIds)
           ? saved.animationMerchProductIds
           : [],

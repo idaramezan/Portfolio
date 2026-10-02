@@ -26,7 +26,6 @@ import { ShippingDestinationProvider } from "@/lib/shipping-destination";
 import UnifiedShop from "@/pages/UnifiedShop";
 import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
-import CustomPalette from "@/pages/CustomPalette";
 import { PaintingsIndex, CollectionDetail } from "@/pages/Collections";
 import { MovingImage, MovingImageDetail } from "@/pages/MovingImage";
 import MovingCommission from "@/pages/MovingCommission";
@@ -85,7 +84,7 @@ function Router() {
               {() => <OriginalDetail market="turkiye" />}
             </Route>
             <Route path="/shop/turkiye/originals">
-              <RedirectTo to="/shop?category=originals" />
+              <RedirectTo to="/paintings" />
             </Route>
             <Route path="/shop/turkiye/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
@@ -100,7 +99,7 @@ function Router() {
               {() => <OriginalDetail market="international" />}
             </Route>
             <Route path="/shop/international/originals">
-              <RedirectTo to="/shop?category=originals" />
+              <RedirectTo to="/paintings" />
             </Route>
             <Route path="/shop/international/prints">
               <RedirectTo to="/shop?category=prints" />
@@ -115,13 +114,12 @@ function Router() {
             <Route path="/shop/prints/:slug">
               {() => <PrintDetail market="turkiye" />}
             </Route>
-            <Route path="/shop/palettes/custom" component={CustomPalette} />
             <Route
               path="/shop/fourthwall/:slug"
               component={FourthwallProductDetail}
             />
             <Route path="/originals">
-              <RedirectTo to="/shop?category=originals" />
+              <RedirectTo to="/paintings" />
             </Route>
             <Route path="/shop">
               <UnifiedShop />

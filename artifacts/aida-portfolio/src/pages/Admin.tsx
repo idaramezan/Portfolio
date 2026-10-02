@@ -22,6 +22,7 @@ import CommerceCollections from "@/pages/admin/CommerceCollections";
 import PaletteEditor from "@/pages/admin/PaletteEditor";
 import PortfolioContent from "@/pages/admin/PortfolioContent";
 import Enquiries from "@/pages/admin/Enquiries";
+import HomepageContentAdmin from "@/pages/admin/HomepageContent";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -151,6 +152,7 @@ export default function Admin() {
   if (location === "/admin/mail-club") return <CommerceCollections section="mail-club" />;
   if (location === "/admin/animation-merch") return <CommerceCollections section="animation-merch" />;
   if (location === "/admin/collections") return <PortfolioContent section="collections" />;
+  if (location === "/admin/site-content/homepage") return <HomepageContentAdmin />;
   if (location === "/admin/moving-image") return <PortfolioContent section="moving-image" />;
   if (location === "/admin/enquiries") return <Enquiries />;
   if (location === "/admin/orders") return <Orders />;

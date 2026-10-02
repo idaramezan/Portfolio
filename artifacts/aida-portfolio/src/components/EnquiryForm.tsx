@@ -76,14 +76,6 @@ export default function EnquiryForm({
               Country
               <input name="country" required autoComplete="country-name" />
             </label>
-            <label>
-              City
-              <input name="city" required autoComplete="address-level2" />
-            </label>
-            <label>
-              Phone / WhatsApp <small>optional</small>
-              <input name="phone" autoComplete="tel" />
-            </label>
           </>
         ) : (
           <>

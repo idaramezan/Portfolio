@@ -51,11 +51,8 @@ router.post("/enquiries", async (req, res) => {
     return res
       .status(400)
       .json({ error: "Name and a valid email are required." });
-  if (
-    type === "artwork" &&
-    (!clean(req.body?.country, 100) || !clean(req.body?.city, 100))
-  )
-    return res.status(400).json({ error: "Country and city are required." });
+  if (type === "artwork" && !clean(req.body?.country, 100))
+    return res.status(400).json({ error: "Country is required." });
   const sequence = await pool.query(
     "SELECT nextval('portfolio_enquiry_number_seq') value",
   );

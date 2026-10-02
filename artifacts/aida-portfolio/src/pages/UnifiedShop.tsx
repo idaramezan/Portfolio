@@ -27,18 +27,13 @@ import { addItemToCart, type ManagedProduct } from "@/lib/store";
 import { isAceoProduct } from "@/lib/turkiye-products";
 import { compareProductDisplayOrder } from "@/lib/product-order";
 
-type Category =
-  "prints" | "originals" | "palettes" | "mail-club" | "animation-merch";
-
-const newestFirst = (a: { createdAt?: string }, b: { createdAt?: string }) =>
-  (Date.parse(b.createdAt || "") || 0) - (Date.parse(a.createdAt || "") || 0);
+type Category = "prints" | "mail-club" | "animation-merch";
 
 const copy = {
   en: {
-    heroEye: "FROM AIDA'S STUDIO",
-    heroTitle: "Shop the studio.",
-    heroBody:
-      "Original paintings, prints and small studio editions made by Aida.",
+    heroEye: "PRINTS & EDITIONS",
+    heroTitle: "Works to keep.",
+    heroBody: "Art prints, Mail Club editions and selected animation pieces.",
     loading: "Loading shop",
     empty: "No pieces are available in this collection right now.",
     available: "AVAILABLE",
@@ -46,22 +41,11 @@ const copy = {
     add: "Add to basket",
     added: "Added to the basket",
     external: "Shop this piece",
-    customCta: "Design your custom palette",
     categories: {
       prints: [
         "LIMITED EDITIONS",
         "Prints",
         "Art prints made from Aida's original work.",
-      ],
-      originals: [
-        "ONE OF ONE",
-        "Originals",
-        "One-of-a-kind oil pastel works made by Aida.",
-      ],
-      palettes: [
-        "FOR YOUR DESK",
-        "Watercolor Palettes",
-        "Handmade palettes ready to ship or made around your colours.",
       ],
       "mail-club": [
         "MAIL CLUB",
@@ -76,17 +60,9 @@ const copy = {
     },
     labels: {
       prints: "Prints",
-      originals: "Originals",
-      palettes: "Palettes",
       "mail-club": "Mail Club",
       "animation-merch": "Animation Merch",
     },
-    paletteEye: "CUSTOM PALETTE",
-    paletteTitle: "A palette made around you.",
-    paletteBody:
-      "Choose the material and colours for a handmade watercolor palette. It may be created during one of Aida's TikTok LIVE sessions, so you can watch it take shape.",
-    readyEye: "READY TO SHIP",
-    readyTitle: "Ready-made palettes",
     mailOnce:
       "Some pieces will never be released separately. Each edition is made once, then it becomes part of the people who received it.",
     availableFor: "AVAILABLE FOR",
@@ -97,10 +73,10 @@ const copy = {
     mailShipping: "Free shipping in Türkiye",
   },
   tr: {
-    heroEye: "AIDA'NIN ATÖLYESİNDEN",
-    heroTitle: "Atölyeyi keşfet.",
+    heroEye: "BASKILAR & EDİSYONLAR",
+    heroTitle: "Saklanacak işler.",
     heroBody:
-      "Aida'nın ürettiği orijinal resimler, baskılar ve küçük atölye edisyonları.",
+      "Sanat baskıları, Mail Club edisyonları ve seçili animasyon ürünleri.",
     loading: "Mağaza yükleniyor",
     empty: "Bu koleksiyonda şu anda erişilebilir ürün yok.",
     available: "MEVCUT",
@@ -108,22 +84,11 @@ const copy = {
     add: "Sepete ekle",
     added: "Sepete eklendi",
     external: "Ürünü incele",
-    customCta: "Kendi paletini tasarla",
     categories: {
       prints: [
         "SINIRLI EDİSYONLAR",
         "Baskılar",
         "Aida'nın orijinal eserlerinden hazırlanan sanat baskıları.",
-      ],
-      originals: [
-        "TEK VE ÖZGÜN",
-        "Orijinaller",
-        "Aida'nın hazırladığı tek ve özgün yağlı pastel eserler.",
-      ],
-      palettes: [
-        "MASAN İÇİN",
-        "Suluboya Paletleri",
-        "Gönderime hazır veya renklerine göre hazırlanan el yapımı paletler.",
       ],
       "mail-club": [
         "MAIL CLUB",
@@ -138,17 +103,9 @@ const copy = {
     },
     labels: {
       prints: "Baskılar",
-      originals: "Orijinaller",
-      palettes: "Paletler",
       "mail-club": "Mail Club",
       "animation-merch": "Animasyon Ürünleri",
     },
-    paletteEye: "KİŞİYE ÖZEL PALET",
-    paletteTitle: "Sana özel bir palet.",
-    paletteBody:
-      "El yapımı suluboya paletin için malzeme ve renklerini seç. Paletin Aida'nın TikTok CANLI yayınlarından birinde hazırlanabilir; böylece oluşumunu izleyebilirsin.",
-    readyEye: "GÖNDERİME HAZIR",
-    readyTitle: "Hazır paletler",
     mailOnce:
       "Bazı parçalar ayrı olarak hiçbir zaman yayınlanmaz. Her edisyon bir kez hazırlanır ve sonra onu alan insanların hikâyesine katılır.",
     availableFor: "KALAN SÜRE",
@@ -173,16 +130,6 @@ export default function UnifiedShop() {
   const [now, setNow] = useState(Date.now());
   const local = destination?.countryCode === "TR";
 
-  const readyPalettes = useMemo(
-    () =>
-      settings.readyMadePalettes
-        .filter((item) => item.status === "available" && item.stock > 0)
-        .sort(newestFirst),
-    [settings.readyMadePalettes],
-  );
-  const customPaletteAvailable =
-    settings.paletteSettings.enabled &&
-    settings.paletteSettings.types.some((type) => type.enabled);
   const currentMail = settings.mailClubEnabled
     ? settings.mailClubEditions.find((edition) => {
         const start = edition.availabilityStart
@@ -208,21 +155,13 @@ export default function UnifiedShop() {
       product.externalUrl,
   );
   const categories = useMemo(() => {
-    const values: Category[] = ["prints", "originals"];
+    const values: Category[] = ["prints"];
     if (local) {
-      if (customPaletteAvailable || readyPalettes.length)
-        values.push("palettes");
       if (currentMail) values.push("mail-club");
     }
     if (merch.length) values.push("animation-merch");
     return values;
-  }, [
-    local,
-    customPaletteAvailable,
-    readyPalettes.length,
-    currentMail,
-    merch.length,
-  ]);
+  }, [local, currentMail, merch.length]);
   const requested = new URLSearchParams(search).get(
     "category",
   ) as Category | null;
@@ -356,117 +295,6 @@ export default function UnifiedShop() {
           )}
         />
       )}
-      {category === "originals" && (
-        <ProductCatalogue
-          products={settings.originalProducts
-            .filter(isPubliclyVisible)
-            .sort(newestFirst)}
-          kind="originals"
-          destination={destination!}
-          locale={locale}
-          international={international}
-          empty={t.empty}
-          sold={t.sold}
-        />
-      )}
-
-      {category === "palettes" && (
-        <div className="unified-shop__catalog">
-          {customPaletteAvailable && (
-            <section className="commerce-feature section-shell shop-palette-feature">
-              <img
-                src={settings.paletteSettings.coverImage}
-                alt={
-                  locale === "tr"
-                    ? "El yapımı suluboya paleti"
-                    : "Handmade watercolor palette"
-                }
-              />
-              <div className="commerce-feature__panel">
-                <p className="eyebrow">{t.paletteEye}</p>
-                <h2>{t.paletteTitle}</h2>
-                <p>{t.paletteBody}</p>
-                <ProductPrice
-                  regularPriceMinor={settings.paletteSettings.priceMinor}
-                  currency="TRY"
-                  sale={settings.paletteSettings.sale}
-                />
-                <Link
-                  href="/shop/palettes/custom"
-                  onClick={() =>
-                    trackAnalytics("custom_palette_started", {
-                      metadata: { locale, shippingCountry: "TR" },
-                    })
-                  }
-                >
-                  {t.customCta} →
-                </Link>
-              </div>
-            </section>
-          )}
-          {readyPalettes.length > 0 && (
-            <section className="section-shell shop-subcollection">
-              <header>
-                <p className="eyebrow">{t.readyEye}</p>
-                <h3>{t.readyTitle}</h3>
-              </header>
-              <div className="shop-ready-grid">
-                {readyPalettes.map((palette) => (
-                  <article className="shop-ready-card" key={palette.id}>
-                    <img
-                      src={palette.imageUrl}
-                      alt={palette.altText || palette.name}
-                      loading="lazy"
-                    />
-                    <div className="shop-ready-card__title">
-                      <h4>
-                        {locale === "tr" && palette.nameTr
-                          ? palette.nameTr
-                          : palette.name}
-                      </h4>
-                      <ProductPrice
-                        regularPriceMinor={palette.priceMinor}
-                        currency="TRY"
-                        sale={palette.sale}
-                        compact
-                      />
-                    </div>
-                    <p>
-                      {palette.colors ||
-                        (locale === "tr" && palette.descriptionTr
-                          ? palette.descriptionTr
-                          : palette.description)}
-                    </p>
-                    {palette.note && <p>{palette.note}</p>}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        add(
-                          {
-                            id: `ready-palette-${palette.id}`,
-                            productId: palette.id,
-                            kind: "ready-palette",
-                            title: palette.name,
-                            imageUrl: palette.imageUrl,
-                            priceUsdCents: palette.priceMinor,
-                            canonicalCurrency: "TRY",
-                            canonicalPriceMinor: palette.priceMinor,
-                            quantity: 1,
-                          },
-                          palette.stock,
-                        )
-                      }
-                    >
-                      {t.add}
-                    </button>
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
-
       {category === "mail-club" && currentMail && (
         <section className="commerce-feature commerce-feature--mail section-shell unified-shop__mail">
           <img

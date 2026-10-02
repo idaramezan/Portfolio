@@ -469,7 +469,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ...(isTürkiye
                   ? [
                       [
-                        "/shop?category=originals",
+                        "/paintings",
                         locale === "tr" ? "Orijinal Eserler" : "Original Art",
                       ],
                     ]
@@ -644,7 +644,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Link href="/paintings">Paintings</Link>
                 <Link href="/moving-image">Moving Image</Link>
                 <Link href="/shop?category=prints">Prints</Link>
-                <Link href="/shop?category=originals">Original Art</Link>
+                <Link href="/paintings">Original Art</Link>
               </div>
             </nav>
             <nav
@@ -669,7 +669,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   <Link href="/paintings">Paintings</Link>
                   <Link href="/moving-image">Moving Image</Link>
                   <Link href="/shop?category=prints">Prints</Link>
-                  <Link href="/shop?category=originals">Original Art</Link>
+                  <Link href="/paintings">Original Art</Link>
                 </div>
               </details>
               <details className="site-footer__nav-group">

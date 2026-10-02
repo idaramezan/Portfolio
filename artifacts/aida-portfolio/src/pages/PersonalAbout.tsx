@@ -2,8 +2,11 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { heroPortrait, paintingVideoPoster } from "@/lib/assets";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import StudioLetterSignup from "@/components/StudioLetterSignup";
+import { useShopSettings } from "@/hooks/use-shop-settings";
 
 export default function PersonalAbout() {
+  const content = useShopSettings().homepageContent.about;
   usePageMeta(
     "About Aida Ramezani | Aeda Art",
     "A personal introduction to Aida Ramezani’s painting and moving-image practice.",
@@ -12,8 +15,8 @@ export default function PersonalAbout() {
     <article className="personal-about">
       <header className="personal-about__hero section-shell">
         <div>
-          <p className="portfolio-kicker">ABOUT AIDA</p>
-          <h1>I paint what stays with me.</h1>
+          <p className="portfolio-kicker">{content.eyebrow}</p>
+          <h1>{content.headline}</h1>
           <div className="personal-about__intro">
             <p>
               Sometimes it is a flower I remember differently than it really
@@ -27,7 +30,7 @@ export default function PersonalAbout() {
           </div>
         </div>
         <img
-          src={heroPortrait}
+          src={content.portrait || heroPortrait}
           alt="Aida Ramezani with her artwork"
           fetchPriority="high"
         />
@@ -82,6 +85,17 @@ export default function PersonalAbout() {
         <Link href="/commissions/moving-image" className="portfolio-text-link">
           Start a conversation <ArrowRight />
         </Link>
+      </section>
+      <section className="section-shell about-letter-invitation">
+        <div>
+          <p className="portfolio-kicker">STUDIO LETTER</p>
+          <h2>Things I don’t always put on the website.</h2>
+        </div>
+        <StudioLetterSignup
+          variant="compact"
+          context="home"
+          presentation="compact"
+        />
       </section>
     </article>
   );

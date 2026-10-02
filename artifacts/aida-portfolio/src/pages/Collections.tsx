@@ -7,7 +7,7 @@ import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 export function PaintingsIndex() {
   const settings = useShopSettings();
   const collections = [...settings.artCollections]
-    .filter((item) => item.status !== "draft")
+    .filter((item) => item.status !== "draft" && item.visibleOnPaintingsPage)
     .sort((a, b) => a.displayOrder - b.displayOrder);
   usePageMeta(
     "Paintings | Aeda Art",

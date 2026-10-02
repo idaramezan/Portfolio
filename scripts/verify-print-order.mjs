@@ -3,9 +3,7 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const admin = read("../artifacts/aida-portfolio/src/pages/admin/Catalog.tsx");
-const home = read(
-  "../artifacts/aida-portfolio/src/components/HomeCommerce.tsx",
-);
+const home = read("../artifacts/aida-portfolio/src/pages/PortfolioHome.tsx");
 const shop = read("../artifacts/aida-portfolio/src/pages/UnifiedShop.tsx");
 
 assert.ok(
