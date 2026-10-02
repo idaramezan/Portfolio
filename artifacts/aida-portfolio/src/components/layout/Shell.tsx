@@ -7,7 +7,6 @@ import ShippingProgressTracker from "@/components/ShippingProgressTracker";
 import { getCartCount, loadShopSettings } from "@/lib/store";
 import { getFourthwallCartCount } from "@/lib/fourthwall-cart";
 import { useLocale } from "@/lib/locale";
-import { StudioWordmark } from "@/components/ui/playful-studio";
 import { trackAnalytics } from "@/lib/analytics";
 import {
   DestinationControl,
@@ -245,7 +244,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             href="/"
             className="site-header__brand z-50 shrink-0 whitespace-nowrap font-serif text-lg font-bold tracking-tighter text-ink transition-colors hover:text-coral sm:text-xl md:text-2xl lg:text-3xl"
           >
-            <StudioWordmark compact />
+            <img
+              src="/assets/aeda-signature.png"
+              alt="Aeda Art"
+              className="site-header__logo"
+            />
           </Link>
 
           <div className="site-header__utilities flex shrink-0 items-center">

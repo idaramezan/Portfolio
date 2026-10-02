@@ -1893,3 +1893,16 @@ iframe[src*="feedback.smartlook"],
   [data-public-site] .mobile-menu__destination { padding-top: 12px; }
   [data-public-site] .mobile-menu__footer { padding-top: 4px; }
 }
+
+[data-public-site] .site-header__brand { display: grid; place-items: center; }
+[data-public-site] .site-header__logo {
+  display: block;
+  width: clamp(104px, 10vw, 148px);
+  height: auto;
+  max-height: 76px;
+  object-fit: contain;
+}
+
+@media (max-width: 767px) {
+  [data-public-site] .site-header__logo { width: clamp(92px, 28vw, 120px); max-height: 64px; }
+}
