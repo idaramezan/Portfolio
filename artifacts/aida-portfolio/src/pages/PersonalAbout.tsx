@@ -67,7 +67,7 @@ export default function PersonalAbout() {
           IN MOTION
         </div>
         <div>
-          <p className="portfolio-kicker">MOVING IMAGE</p>
+          <p className="portfolio-kicker">ANIMATION</p>
           <h2>Some images need motion.</h2>
           <p>
             Animation gives me another way to work with music, atmosphere and
@@ -75,7 +75,7 @@ export default function PersonalAbout() {
             work for musicians.
           </p>
           <Link href="/moving-image" className="portfolio-text-link">
-            Explore Moving Image <ArrowRight />
+            Explore Animation <ArrowRight />
           </Link>
         </div>
       </section>

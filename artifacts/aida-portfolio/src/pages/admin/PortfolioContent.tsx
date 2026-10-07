@@ -356,6 +356,31 @@ export default function PortfolioContent({
         x.id === active.id ? { ...x, ...changes } : x,
       ),
     });
+  const persistProjectMedia = async (changes: Partial<MovingImageProject>) => {
+    if (!active) return;
+    const nextSettings = {
+      ...settings,
+      movingImageProjects: settings.movingImageProjects.map((item) =>
+        item.id === active.id ? { ...item, ...changes } : item,
+      ),
+    };
+    setSettings(nextSettings);
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await saveShopSettingsAndWait(nextSettings);
+      setSaveMessage("Animation media uploaded and saved.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Animation media could not be saved.";
+      setSaveMessage(message);
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
   const create = () => {
     const id = crypto.randomUUID();
     const next: MovingImageProject = {
@@ -382,7 +407,7 @@ export default function PortfolioContent({
   };
   return (
     <AdminLayout
-      title="Moving Image"
+      title="Animation"
       actions={
         <>
           <button className="button-link" onClick={create}>
@@ -394,6 +419,14 @@ export default function PortfolioContent({
         </>
       }
     >
+      {saveMessage && (
+        <p
+          className="mb-5 border border-ink/15 bg-paper px-4 py-3 text-sm"
+          role="status"
+        >
+          {saveMessage}
+        </p>
+      )}
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <section className="admin-card">
           {items.map((item) => (
@@ -428,11 +461,11 @@ export default function PortfolioContent({
               />
             </label>
             <label>
-              Client / musician
+              Artist name
               <input
                 className={field}
-                value={active.client || ""}
-                onChange={(e) => patch({ client: e.target.value })}
+                value={active.artistName || active.client || ""}
+                onChange={(e) => patch({ artistName: e.target.value })}
               />
             </label>
             <label>
@@ -509,20 +542,19 @@ export default function PortfolioContent({
                 onChange={(e) => patch({ story: e.target.value })}
               />
             </label>
+            <CollectionImageField
+              label="Project cover"
+              collectionId={`animation-${active.id}-cover`}
+              value={active.thumbnail}
+              onUploaded={(thumbnail) => persistProjectMedia({ thumbnail })}
+            />
             <label>
-              Thumbnail / poster URL
-              <input
-                className={field}
-                value={active.thumbnail}
-                onChange={(e) => patch({ thumbnail: e.target.value })}
-              />
-            </label>
-            <label>
-              Video embed URL
+              YouTube URL
               <input
                 className={field}
                 value={active.videoUrl}
                 onChange={(e) => patch({ videoUrl: e.target.value })}
+                placeholder="https://www.youtube.com/watch?v=…"
               />
             </label>
             <label>
@@ -533,19 +565,18 @@ export default function PortfolioContent({
                 onChange={(e) => patch({ externalUrl: e.target.value })}
               />
             </label>
-            <label>
-              Still image URLs (one per line)
+            <ProjectGalleryField
+              projectId={active.id}
+              images={active.stillImages}
+              onChange={(stillImages) => persistProjectMedia({ stillImages })}
+            />
+            <label className="md:col-span-2">
+              Credits
               <textarea
                 className={field}
-                value={active.stillImages.join("\n")}
-                onChange={(e) =>
-                  patch({
-                    stillImages: e.target.value
-                      .split("\n")
-                      .map((x) => x.trim())
-                      .filter(Boolean),
-                  })
-                }
+                rows={3}
+                value={active.credits || ""}
+                onChange={(e) => patch({ credits: e.target.value })}
               />
             </label>
             <label>
@@ -654,6 +685,91 @@ function CollectionImageField({
       </div>
       <small className="mt-1 block text-ink/55">
         {uploading ? "Uploading and saving…" : "JPG, PNG or WebP."}
+      </small>
+    </div>
+  );
+}
+
+function ProjectGalleryField({
+  projectId,
+  images,
+  onChange,
+}: {
+  projectId: string;
+  images: string[];
+  onChange: (images: string[]) => Promise<void>;
+}) {
+  const [uploading, setUploading] = useState(false);
+  return (
+    <div className="md:col-span-2">
+      <p className="font-medium">Gallery images</p>
+      {images.length > 0 && (
+        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
+          {images.map((src, index) => (
+            <div className="border border-ink/10 p-2" key={`${src}-${index}`}>
+              <img src={src} alt="" className="h-36 w-full object-cover" />
+              <button
+                className="button-link mt-2 text-sm"
+                type="button"
+                disabled={uploading}
+                onClick={() =>
+                  onChange(images.filter((_, itemIndex) => itemIndex !== index))
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <label className="button-primary mt-3 inline-flex cursor-pointer">
+        {uploading ? "Uploading…" : "Upload gallery images"}
+        <input
+          className="sr-only"
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          disabled={uploading}
+          onChange={async (event) => {
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+            setUploading(true);
+            try {
+              const uploaded: string[] = [];
+              for (const file of files) {
+                const body = new FormData();
+                body.append("image", file);
+                body.append(
+                  "productId",
+                  `animation-${projectId}-still-${crypto.randomUUID()}`,
+                );
+                const response = await fetch("/api/admin/product-media", {
+                  method: "POST",
+                  headers: {
+                    "x-admin-password":
+                      sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "",
+                  },
+                  body,
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.imageUrl)
+                  throw new Error(payload.error || "Image upload failed.");
+                uploaded.push(payload.imageUrl);
+              }
+              await onChange([...images, ...uploaded]);
+              event.target.value = "";
+            } catch (error) {
+              window.alert(
+                error instanceof Error ? error.message : "Image upload failed.",
+              );
+            } finally {
+              setUploading(false);
+            }
+          }}
+        />
+      </label>
+      <small className="mt-2 block text-ink/55">
+        Select one or several JPG, PNG or WebP images.
       </small>
     </div>
   );

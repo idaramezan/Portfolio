@@ -178,7 +178,7 @@ export default function HomepageContentAdmin() {
             }
           />
           <ImageField
-            label="Moving Image poster"
+            label="Animation poster"
             value={content.movingPath.image}
             onChange={(image, persist) =>
               setContent(
@@ -201,7 +201,7 @@ export default function HomepageContentAdmin() {
             }
           />
           <Text
-            label="Moving Image heading"
+            label="Animation heading"
             value={content.movingPath.heading}
             onChange={(heading) =>
               setContent({
@@ -211,7 +211,7 @@ export default function HomepageContentAdmin() {
             }
           />
           <Text
-            label="Moving Image description"
+            label="Animation description"
             value={content.movingPath.description}
             onChange={(description) =>
               setContent({
@@ -223,7 +223,7 @@ export default function HomepageContentAdmin() {
         </Editor>
         <Editor title="Featured content">
           <Select
-            label="Featured Moving Image"
+            label="Featured Animation"
             value={content.featuredMovingProjectId || ""}
             options={[
               ["", "Automatic"],
@@ -234,7 +234,7 @@ export default function HomepageContentAdmin() {
             }
           />
           <ImageField
-            label="Moving Image cover override"
+            label="Animation cover override"
             value={content.featuredMovingCover || ""}
             onChange={(featuredMovingCover, persist) =>
               setContent({ ...content, featuredMovingCover }, persist)

@@ -418,10 +418,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ? "Sınırlı Edisyon Baskılar"
                 : "Limited Edition Prints",
             ],
-            [
-              "/moving-image",
-              locale === "tr" ? "Hareketli Görüntü" : "Moving Image",
-            ],
+            ["/moving-image", locale === "tr" ? "Animasyon" : "Animation"],
             ["/about", locale === "tr" ? "Aida Hakkında" : "About"],
           ].map(([href, label]) => (
             <div className="mobile-menu__row" key={href}>
@@ -522,7 +519,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                   {locale === "tr" ? "Baskılar" : "Prints"}
                 </Link>
                 <Link href="/moving-image">
-                  {locale === "tr" ? "Hareketli Görüntü" : "Moving Image"}
+                  {locale === "tr" ? "Animasyon" : "Animation"}
                 </Link>
                 <Link href="/about">
                   {locale === "tr" ? "Hakkında" : "About"}

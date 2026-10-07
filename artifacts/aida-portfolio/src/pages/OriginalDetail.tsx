@@ -186,7 +186,10 @@ export default function OriginalDetail({
                   subjectId={product.id}
                   subjectName={product.name}
                   trigger={
-                    <button type="button" className="portfolio-text-link">
+                    <button
+                      type="button"
+                      className="button-primary artwork-enquiry__button"
+                    >
                       Enquire about this artwork <ArrowUpRight />
                     </button>
                   }

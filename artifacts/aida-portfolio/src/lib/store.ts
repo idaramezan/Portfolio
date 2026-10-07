@@ -246,6 +246,7 @@ export interface MovingImageProject {
   title: string;
   slug: string;
   client?: string;
+  artistName?: string;
   year: number;
   role: string;
   projectType: "Music Video" | "Animation" | "Visual" | "Personal Project";
@@ -674,7 +675,7 @@ export function getDefaultSettings(): ShopSettings {
           "Feelings, flowers, songs and small moments I keep returning to.",
         primaryCtaText: "Explore Paintings",
         primaryCtaUrl: "/paintings",
-        secondaryCtaText: "Watch Moving Image",
+        secondaryCtaText: "Watch Animation",
         secondaryCtaUrl: "/moving-image",
       },
       paintingPath: {
@@ -684,7 +685,7 @@ export function getDefaultSettings(): ShopSettings {
       },
       movingPath: {
         image: "",
-        heading: "Moving Image",
+        heading: "Animation",
         description: "Stories that needed time, sound and movement.",
       },
       currentCollectionId: "feelings",

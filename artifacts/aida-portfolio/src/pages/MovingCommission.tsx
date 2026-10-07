@@ -4,7 +4,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 export default function MovingCommission() {
   const [, navigate] = useLocation();
   usePageMeta(
-    "Moving Image Commission | Aeda Art",
+    "Animation Commission | Aeda Art",
     "Enquire about animation, music visuals and moving-image commissions with Aida Ramezani.",
   );
   return (
@@ -20,7 +20,7 @@ export default function MovingCommission() {
       <section className="section-shell enquiry-page__launcher">
         <EnquiryDialog
           kind="moving_image"
-          subjectName="Moving Image commission"
+          subjectName="Animation commission"
           defaultOpen
           onOpenChange={(open) => {
             if (!open) navigate("/moving-image");
