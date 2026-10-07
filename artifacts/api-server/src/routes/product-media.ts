@@ -29,7 +29,12 @@ async function ensureProductImagesTable() {
   );
 }
 
-const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const allowedTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -71,6 +76,7 @@ router.post(
       const newsletterImage = request.body.productId === "newsletter-campaign";
       const hundredWindowsHero =
         request.body.productId === "hundred-windows-hero";
+      const animatedGif = request.file.mimetype === "image/gif";
       if (newsletterImage && request.file.size > 8 * 1024 * 1024)
         return response
           .status(413)
@@ -78,39 +84,46 @@ router.post(
       const id = hundredWindowsHero
         ? "10000000-0000-4000-8000-000000000100"
         : crypto.randomUUID();
-      const derivative = newsletterImage
-        ? await sharp(request.file.buffer)
-            .rotate()
-            .resize({
-              width: 1400,
-              height: 1400,
-              fit: "inside",
-              withoutEnlargement: true,
-            })
-            .flatten({ background: "#fffaf1" })
-            .jpeg({ quality: 90, mozjpeg: true })
-            .toBuffer()
-        : await sharp(request.file.buffer)
-            .rotate()
-            .resize(
-              hundredWindowsHero
-                ? {
-                    width: 2000,
-                    height: 2000,
-                    fit: "inside",
-                    withoutEnlargement: true,
-                  }
-                : undefined,
-            )
-            .webp({
-              quality: 92,
-              nearLossless: true,
-              smartSubsample: true,
-              effort: 5,
-            })
-            .toBuffer();
-      const mimeType = newsletterImage ? "image/jpeg" : "image/webp";
-      const storedName = `${request.file.originalname.replace(/\.[^.]+$/, "")}.${newsletterImage ? "jpg" : "webp"}`;
+      const derivative = animatedGif
+        ? request.file.buffer
+        : newsletterImage
+          ? await sharp(request.file.buffer)
+              .rotate()
+              .resize({
+                width: 1400,
+                height: 1400,
+                fit: "inside",
+                withoutEnlargement: true,
+              })
+              .flatten({ background: "#fffaf1" })
+              .jpeg({ quality: 90, mozjpeg: true })
+              .toBuffer()
+          : await sharp(request.file.buffer)
+              .rotate()
+              .resize(
+                hundredWindowsHero
+                  ? {
+                      width: 2000,
+                      height: 2000,
+                      fit: "inside",
+                      withoutEnlargement: true,
+                    }
+                  : undefined,
+              )
+              .webp({
+                quality: 92,
+                nearLossless: true,
+                smartSubsample: true,
+                effort: 5,
+              })
+              .toBuffer();
+      const mimeType = animatedGif
+        ? "image/gif"
+        : newsletterImage
+          ? "image/jpeg"
+          : "image/webp";
+      const extension = animatedGif ? "gif" : newsletterImage ? "jpg" : "webp";
+      const storedName = `${request.file.originalname.replace(/\.[^.]+$/, "")}.${extension}`;
       await pool.query(
         `INSERT INTO product_images
           (id, original_name, mime_type, byte_size, data, source_mime_type, source_byte_size, source_data)
@@ -138,9 +151,9 @@ router.post(
         "Product media stored in PostgreSQL",
       );
       return response.status(201).json({
-        imageUrl: `/api/product-images/${id}.${newsletterImage ? "jpg" : "webp"}`,
+        imageUrl: `/api/product-images/${id}.${extension}`,
         storage: "postgres",
-        format: newsletterImage ? "jpeg" : "webp",
+        format: animatedGif ? "gif" : newsletterImage ? "jpeg" : "webp",
       });
     } catch (error) {
       request.log.error({ error }, "Failed to persist product media");
@@ -173,10 +186,11 @@ router.delete("/product-media", requireAdmin, async (request, response) => {
     ? request.body.imageUrls
     : [];
   const ids = imageUrls
-    .map((value: unknown) =>
-      String(value).match(
-        /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z]+)?$/i,
-      )?.[1],
+    .map(
+      (value: unknown) =>
+        String(value).match(
+          /^\/api\/product-images\/([a-f0-9-]+)(?:\.[a-z]+)?$/i,
+        )?.[1],
     )
     .filter((value: string | undefined): value is string => Boolean(value));
   if (!ids.length) return response.json({ deleted: 0 });
@@ -192,7 +206,9 @@ router.delete("/product-media", requireAdmin, async (request, response) => {
       { error, operation: "product-media-delete" },
       "Failed to delete product media",
     );
-    return response.status(500).json({ error: "Product media could not be deleted" });
+    return response
+      .status(500)
+      .json({ error: "Product media could not be deleted" });
   }
 });
 

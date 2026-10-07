@@ -736,6 +736,109 @@
   padding-bottom: clamp(5rem, 10vw, 10rem);
 }
 
+[data-public-site] .animation-section-heading {
+  margin-bottom: clamp(2rem, 4vw, 4rem);
+}
+
+[data-public-site] .animation-section-heading h2 {
+  max-width: 900px;
+  margin: 0.65rem 0 0;
+  font-family: "New York", "Iowan Old Style", "Times New Roman", serif;
+  font-size: clamp(2.8rem, 6vw, 6.5rem);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+[data-public-site] .animation-films {
+  display: grid;
+  gap: clamp(4rem, 8vw, 8rem);
+  padding-bottom: clamp(6rem, 11vw, 11rem);
+}
+
+[data-public-site] .animation-film iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  aspect-ratio: 16 / 9;
+  background: #111;
+}
+
+[data-public-site] .animation-film__caption {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-top: 1.3rem;
+}
+
+[data-public-site] .animation-film__caption small {
+  color: #6b6b6b;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-public-site] .animation-film__caption h3 {
+  margin: 0.35rem 0 0;
+  font-family: "New York", "Iowan Old Style", "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+[data-public-site] .animation-film__caption p {
+  margin: 0.55rem 0 0;
+  color: #666;
+}
+
+[data-public-site] .animation-film__caption a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.55rem;
+  border-bottom: 1px solid #111;
+  padding-bottom: 0.3rem;
+  color: #111;
+}
+
+[data-public-site] .animation-samples {
+  padding-bottom: clamp(6rem, 11vw, 11rem);
+}
+
+[data-public-site] .animation-samples__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(0.8rem, 2vw, 2rem);
+}
+
+[data-public-site] .animation-samples__grid figure {
+  grid-column: span 5;
+  overflow: hidden;
+  margin: 0;
+  background: #f4f4f4;
+}
+
+[data-public-site] .animation-samples__grid figure:nth-child(3n + 2) {
+  grid-column: span 7;
+}
+
+[data-public-site] .animation-samples__grid figure:nth-child(4n + 3) {
+  grid-column: 2 / span 6;
+}
+
+[data-public-site] .animation-samples__grid img {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 42vw, 700px);
+  object-fit: cover;
+  transition: transform 500ms ease;
+}
+
+[data-public-site] .animation-samples__grid figure:hover img {
+  transform: scale(1.012);
+}
+
 [data-public-site] .animation-project {
   display: block;
   color: #111;
@@ -975,6 +1078,26 @@
   [data-public-site] .animation-commission {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  [data-public-site] .animation-film__caption {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  [data-public-site] .animation-samples__grid {
+    grid-template-columns: 1fr;
+  }
+
+  [data-public-site] .animation-samples__grid figure,
+  [data-public-site] .animation-samples__grid figure:nth-child(3n + 2),
+  [data-public-site] .animation-samples__grid figure:nth-child(4n + 3) {
+    grid-column: 1;
+  }
+
+  [data-public-site] .animation-samples__grid img {
+    height: auto;
+    max-height: 70vh;
   }
 }
 

@@ -381,6 +381,25 @@ export default function PortfolioContent({
       setSaving(false);
     }
   };
+  const persistAnimationGallery = async (animationGalleryMedia: string[]) => {
+    const nextSettings = { ...settings, animationGalleryMedia };
+    setSettings(nextSettings);
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await saveShopSettingsAndWait(nextSettings);
+      setSaveMessage("Animation gallery uploaded and saved.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Animation gallery could not be saved.";
+      setSaveMessage(message);
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
   const create = () => {
     const id = crypto.randomUUID();
     const next: MovingImageProject = {
@@ -427,6 +446,19 @@ export default function PortfolioContent({
           {saveMessage}
         </p>
       )}
+      <section className="admin-card mb-6">
+        <h2 className="font-display text-2xl">General work samples</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink/60">
+          Upload standalone images and animated GIFs for the Animation gallery.
+          These samples are independent from YouTube projects.
+        </p>
+        <ProjectGalleryField
+          projectId="general"
+          label="Images and GIFs"
+          images={settings.animationGalleryMedia}
+          onChange={persistAnimationGallery}
+        />
+      </section>
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <section className="admin-card">
           {items.map((item) => (
@@ -567,6 +599,7 @@ export default function PortfolioContent({
             </label>
             <ProjectGalleryField
               projectId={active.id}
+              label="Project images"
               images={active.stillImages}
               onChange={(stillImages) => persistProjectMedia({ stillImages })}
             />
@@ -692,17 +725,19 @@ function CollectionImageField({
 
 function ProjectGalleryField({
   projectId,
+  label,
   images,
   onChange,
 }: {
   projectId: string;
+  label: string;
   images: string[];
   onChange: (images: string[]) => Promise<void>;
 }) {
   const [uploading, setUploading] = useState(false);
   return (
     <div className="md:col-span-2">
-      <p className="font-medium">Gallery images</p>
+      <p className="mt-4 font-medium">{label}</p>
       {images.length > 0 && (
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
           {images.map((src, index) => (
@@ -728,7 +763,7 @@ function ProjectGalleryField({
           className="sr-only"
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           disabled={uploading}
           onChange={async (event) => {
             const files = Array.from(event.target.files || []);
@@ -769,7 +804,7 @@ function ProjectGalleryField({
         />
       </label>
       <small className="mt-2 block text-ink/55">
-        Select one or several JPG, PNG or WebP images.
+        Select one or several JPG, PNG, WebP or animated GIF files.
       </small>
     </div>
   );

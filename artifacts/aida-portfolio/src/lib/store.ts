@@ -400,6 +400,7 @@ export interface ShopSettings {
   artCollections: ArtCollection[];
   artEras: ArtEra[];
   movingImageProjects: MovingImageProject[];
+  animationGalleryMedia: string[];
   limitedEditionGroups: LimitedEditionGroup[];
   weeklyLimitedCollections: WeeklyLimitedCollection[];
   homepageContent: HomepageContent;
@@ -664,6 +665,7 @@ export function getDefaultSettings(): ShopSettings {
     ],
     artEras: [],
     movingImageProjects: [],
+    animationGalleryMedia: [],
     limitedEditionGroups: [],
     weeklyLimitedCollections: [],
     homepageContent: {
@@ -921,6 +923,9 @@ export function loadShopSettings(): ShopSettings {
         movingImageProjects: Array.isArray(saved.movingImageProjects)
           ? saved.movingImageProjects
           : defaults.movingImageProjects,
+        animationGalleryMedia: Array.isArray(saved.animationGalleryMedia)
+          ? saved.animationGalleryMedia
+          : defaults.animationGalleryMedia,
         limitedEditionGroups: Array.isArray(saved.limitedEditionGroups)
           ? saved.limitedEditionGroups
           : [],

@@ -6,7 +6,7 @@ const router = Router();
 router.get("/product-images/:id", async (request, response) => {
   try {
     const imageId = String(request.params.id).replace(
-      /\.(webp|jpe?g|png)$/i,
+      /\.(webp|jpe?g|png|gif)$/i,
       "",
     );
     const result = await pool.query(

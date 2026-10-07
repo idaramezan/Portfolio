@@ -1,5 +1,5 @@
 import { Link, useRoute } from "wouter";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
@@ -26,13 +26,25 @@ function youtubeEmbed(value: string) {
 
 export function MovingImage() {
   const settings = useShopSettings();
-  const projects = [...settings.movingImageProjects]
+  const publishedProjects = [...settings.movingImageProjects]
     .filter((item) => item.status === "published")
     .sort(
       (a, b) =>
         Number(b.featured) - Number(a.featured) ||
         a.displayOrder - b.displayOrder,
     );
+  const videoProjects = publishedProjects.filter((project) =>
+    youtubeEmbed(project.videoUrl),
+  );
+  const galleryMedia = Array.from(
+    new Set([
+      ...settings.animationGalleryMedia,
+      ...settings.movingImageProjects.flatMap((project) => [
+        ...project.stillImages,
+        ...(!project.videoUrl && project.thumbnail ? [project.thumbnail] : []),
+      ]),
+    ]),
+  ).filter(Boolean);
   usePageMeta(
     "Animation | Aeda Art",
     "Animation, music visuals and moving worlds by Aida Ramezani.",
@@ -44,54 +56,61 @@ export function MovingImage() {
         <h1>Animation</h1>
         <p>Moving worlds shaped by music, memory and imagination.</p>
       </header>
-      {projects.length ? (
-        <section className="animation-gallery section-shell">
-          {projects.map((project, index) => {
-            const images = [project.thumbnail, ...project.stillImages].filter(
-              Boolean,
-            );
-            return (
-              <Link
-                href={`/moving-image/${project.slug}`}
-                className={`animation-project ${index === 0 ? "animation-project--featured" : ""}`}
-                key={project.id}
-              >
-                <span className="animation-project__media">
-                  {images[0] ? (
-                    <img
-                      src={images[0]}
-                      alt={project.title}
-                      loading={index ? "lazy" : "eager"}
-                    />
-                  ) : (
-                    <span className="animation-project__placeholder">
-                      {project.title}
-                    </span>
-                  )}
-                  {images[1] && <img src={images[1]} alt="" loading="lazy" />}
-                  {images[2] && <img src={images[2]} alt="" loading="lazy" />}
-                  {project.videoUrl && (
-                    <span className="animation-project__play">
-                      <Play aria-hidden="true" /> Watch
-                    </span>
-                  )}
-                </span>
-                <span className="animation-project__caption">
+      {videoProjects.length > 0 && (
+        <section className="animation-films section-shell">
+          <div className="animation-section-heading">
+            <p className="portfolio-kicker">PROJECTS</p>
+            <h2>Selected films</h2>
+          </div>
+          {videoProjects.map((project) => (
+            <article className="animation-film" key={project.id}>
+              <iframe
+                src={youtubeEmbed(project.videoUrl)}
+                title={`${project.title} video`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+              <div className="animation-film__caption">
+                <div>
                   <small>
                     {project.projectType} · {project.year}
                   </small>
-                  <strong>{project.title}</strong>
-                  <em>{project.artistName || project.client}</em>
-                </span>
-              </Link>
-            );
-          })}
+                  <h3>{project.title}</h3>
+                  {(project.artistName || project.client) && (
+                    <p>{project.artistName || project.client}</p>
+                  )}
+                </div>
+                <Link href={`/moving-image/${project.slug}`}>
+                  View project <ArrowRight />
+                </Link>
+              </div>
+            </article>
+          ))}
         </section>
-      ) : (
+      )}
+      {galleryMedia.length > 0 ? (
+        <section className="animation-samples section-shell">
+          <div className="animation-section-heading">
+            <p className="portfolio-kicker">EXPERIMENTS &amp; STUDIES</p>
+            <h2>Animation gallery</h2>
+          </div>
+          <div className="animation-samples__grid">
+            {galleryMedia.map((src, index) => (
+              <figure key={`${src}-${index}`}>
+                <img
+                  src={src}
+                  alt={`Animation work sample ${index + 1}`}
+                  loading="lazy"
+                />
+              </figure>
+            ))}
+          </div>
+        </section>
+      ) : videoProjects.length === 0 ? (
         <section className="portfolio-empty section-shell">
           <p>New animation work is being prepared for this space.</p>
         </section>
-      )}
+      ) : null}
       <section className="animation-commission section-shell">
         <div>
           <p className="portfolio-kicker">COMMISSIONS</p>
