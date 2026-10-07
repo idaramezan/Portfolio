@@ -3,6 +3,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { isPubliclyVisible, isSoldOut } from "@/lib/product-status";
 import { compareProductDisplayOrder } from "@/lib/product-order";
 import { Link } from "wouter";
+import ProgressiveImage from "@/components/ProgressiveImage";
 
 export function PaintingsIndex() {
   const settings = useShopSettings();
@@ -24,15 +25,16 @@ export function PaintingsIndex() {
         className="originals-editorial-list section-shell"
         aria-label="Available originals"
       >
-        {originals.map((artwork) => {
+        {originals.map((artwork, index) => {
           const href = `/artworks/${artwork.slug || artwork.id}`;
           return (
             <article className="originals-editorial-item" key={artwork.id}>
               <Link className="originals-editorial-item__media" href={href}>
-                <img
+                <ProgressiveImage
                   src={artwork.imageUrl}
                   alt={artwork.altText || artwork.name}
-                  loading="lazy"
+                  priority={index === 0}
+                  sizes="(max-width: 760px) 92vw, 65vw"
                 />
               </Link>
               <div className="originals-editorial-item__details">

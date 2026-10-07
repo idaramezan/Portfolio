@@ -7,9 +7,11 @@ import { trackAnalytics } from "@/lib/analytics";
 export default function ProductCard({
   product,
   onClick,
+  imagePriority = false,
 }: {
   product: ManagedProduct;
   onClick: () => void;
+  imagePriority?: boolean;
   variant?: "default" | "original";
 }) {
   const sold = isSoldOut(product);
@@ -24,6 +26,7 @@ export default function ProductCard({
     <EditorialProductCard
       image={product.imageUrl}
       alt={product.altText || product.name}
+      imagePriority={imagePriority}
       title={product.name}
       price={<Money baseAmountUsdCents={product.priceUsdCents} showBase />}
       metadata={`${type} · ${sold ? "SOLD" : "AVAILABLE"}`}

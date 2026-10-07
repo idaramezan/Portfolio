@@ -443,7 +443,7 @@ function ProductCatalogue({
     <section className="section-shell unified-shop__catalog">
       {visible.length || externalProducts.length ? (
         <div className="unified-product-grid catalog-gallery-grid">
-          {visible.map((product) => {
+          {visible.map((product, index) => {
             const linked = international.products.find(
               (item) => item.id === product.fourthwallProductId,
             );
@@ -498,6 +498,7 @@ function ProductCatalogue({
                   cardVariant?.product?.primaryImage?.url || product.imageUrl
                 }
                 alt={product.altText || product.name}
+                imagePriority={index < 3}
                 title={product.name}
                 price={price}
                 metadata={`${kind === "originals" ? (locale === "tr" ? "ORİJİNAL" : "ORIGINAL") : locale === "tr" ? "BASKI" : "PRINT"} · ${isSoldOut(product) ? sold : locale === "tr" ? "MEVCUT" : "AVAILABLE"}`}

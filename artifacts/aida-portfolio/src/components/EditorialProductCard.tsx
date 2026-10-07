@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Link } from "wouter";
+import ProgressiveImage from "@/components/ProgressiveImage";
 
 export default function EditorialProductCard({
   image,
@@ -14,6 +15,7 @@ export default function EditorialProductCard({
   onClick,
   onNavigate,
   imagePosition = "center center",
+  imagePriority = false,
   external = false,
 }: {
   image?: string;
@@ -27,21 +29,18 @@ export default function EditorialProductCard({
   onClick?: () => void;
   onNavigate?: () => void;
   imagePosition?: string;
+  imagePriority?: boolean;
   external?: boolean;
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
-  useEffect(() => setImageFailed(false), [image]);
   const content = (
     <>
       <span className="editorial-product-card__media">
-        {image && !imageFailed ? (
-          <img
+        {image ? (
+          <ProgressiveImage
             src={image}
             alt={alt}
-            loading="lazy"
-            decoding="async"
             style={{ objectPosition: imagePosition }}
-            onError={() => setImageFailed(true)}
+            priority={imagePriority}
           />
         ) : (
           <span className="editorial-product-card__placeholder">

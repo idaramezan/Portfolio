@@ -2,6 +2,7 @@ import { Link, useRoute } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import ProgressiveImage from "@/components/ProgressiveImage";
 
 function youtubeEmbed(value: string) {
   if (!value) return "";
@@ -97,10 +98,11 @@ export function MovingImage() {
           <div className="animation-samples__grid">
             {galleryMedia.map((src, index) => (
               <figure key={`${src}-${index}`}>
-                <img
+                <ProgressiveImage
                   src={src}
                   alt={`Animation work sample ${index + 1}`}
-                  loading="lazy"
+                  priority={index < 2 && videoProjects.length === 0}
+                  sizes="(max-width: 700px) 92vw, 58vw"
                 />
               </figure>
             ))}

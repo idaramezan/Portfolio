@@ -65,8 +65,8 @@ export default function ShopOriginals() {
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-ink/65">
             Explore one of a kind oil pastel paintings, created and signed by
-            Aeda Art. Each original artwork is accompanied by a Certificate
-            of Authenticity.
+            Aeda Art. Each original artwork is accompanied by a Certificate of
+            Authenticity.
           </p>
           <p className="mt-3 text-lg leading-relaxed text-ink/65">
             Orders are available in Türkiye and internationally.
@@ -107,10 +107,11 @@ export default function ShopOriginals() {
         </p>
         {products.length ? (
           <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {products.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
+                imagePriority={index < 3}
                 variant="original"
                 onClick={() => setSelected(product)}
               />

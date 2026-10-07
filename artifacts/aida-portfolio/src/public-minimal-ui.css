@@ -678,6 +678,62 @@
 }
 
 /* Animation portfolio */
+[data-public-site] .progressive-image {
+  opacity: 0;
+  transition: opacity 380ms ease;
+}
+
+[data-public-site] .progressive-image--loaded {
+  opacity: 1;
+}
+
+[data-public-site] .editorial-product-card__media,
+[data-public-site] .originals-editorial-item__media,
+[data-public-site] .animation-samples__grid figure {
+  background-color: #f4f4f4;
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.72) 42%,
+    transparent 64%
+  );
+  background-position: 140% 0;
+  background-size: 220% 100%;
+  animation: image-loading-sheen 1.35s ease-in-out infinite;
+}
+
+[data-public-site]
+  .editorial-product-card__media:has(.progressive-image--loaded),
+[data-public-site]
+  .originals-editorial-item__media:has(.progressive-image--loaded),
+[data-public-site]
+  .animation-samples__grid
+  figure:has(.progressive-image--loaded) {
+  background-image: none;
+  animation: none;
+}
+
+@keyframes image-loading-sheen {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-public-site] .progressive-image {
+    transition: none;
+  }
+
+  [data-public-site] .editorial-product-card__media,
+  [data-public-site] .originals-editorial-item__media,
+  [data-public-site] .animation-samples__grid figure {
+    animation: none;
+  }
+}
+
 [data-public-site] .artwork-enquiry__button {
   display: inline-flex;
   align-items: center;

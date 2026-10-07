@@ -108,10 +108,11 @@ export default function Prints() {
         })()
       ) : printProducts.length > 1 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {printProducts.map((product) => (
+          {printProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
+              imagePriority={index < 3}
               onClick={() => setSelectedProduct(product)}
             />
           ))}
