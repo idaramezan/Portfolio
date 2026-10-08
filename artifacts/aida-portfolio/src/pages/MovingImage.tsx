@@ -1,5 +1,6 @@
 import { Link, useRoute } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import ProgressiveImage from "@/components/ProgressiveImage";
@@ -27,6 +28,7 @@ function youtubeEmbed(value: string) {
 
 export function MovingImage() {
   const settings = useShopSettings();
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const publishedProjects = [...settings.movingImageProjects]
     .filter((item) => item.status === "published")
     .sort(
@@ -50,6 +52,19 @@ export function MovingImage() {
     "Animation | Aeda Art",
     "Animation, music visuals and moving worlds by Aida Ramezani.",
   );
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedMedia(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [selectedMedia]);
   return (
     <main className="animation-page">
       <header className="animation-hero section-shell">
@@ -97,14 +112,21 @@ export function MovingImage() {
           </div>
           <div className="animation-samples__grid">
             {galleryMedia.map((src, index) => (
-              <figure key={`${src}-${index}`}>
+              <button
+                type="button"
+                className="animation-samples__item"
+                key={`${src}-${index}`}
+                onClick={() => setSelectedMedia(src)}
+                aria-label={`View animation work sample ${index + 1} full size`}
+              >
                 <ProgressiveImage
                   src={src}
                   alt={`Animation work sample ${index + 1}`}
                   priority={index < 2 && videoProjects.length === 0}
                   sizes="(max-width: 700px) 92vw, 58vw"
                 />
-              </figure>
+                <span>View full size</span>
+              </button>
             ))}
           </div>
         </section>
@@ -122,6 +144,28 @@ export function MovingImage() {
           Commission an animation <ArrowRight />
         </Link>
       </section>
+      {selectedMedia && (
+        <div
+          className="animation-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full-size animation work"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setSelectedMedia(null);
+          }}
+        >
+          <button
+            type="button"
+            className="animation-lightbox__close"
+            onClick={() => setSelectedMedia(null)}
+            aria-label="Close full-size image"
+            autoFocus
+          >
+            <X aria-hidden="true" />
+          </button>
+          <img src={selectedMedia} alt="Full-size animation work" />
+        </div>
+      )}
     </main>
   );
 }
