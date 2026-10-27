@@ -20,6 +20,7 @@ const clean = (value: unknown, max = 1000) =>
     .trim()
     .slice(0, max);
 const emailOk = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const recentSubmissions = new Map<string, number[]>();
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const expected =
@@ -42,11 +43,20 @@ async function ensureTable() {
       message TEXT, reference_links TEXT,
       status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','negotiating','completed','declined')),
       admin_note TEXT, submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )`);
+    );
+    ALTER TABLE portfolio_enquiries DROP CONSTRAINT IF EXISTS portfolio_enquiries_status_check;
+    UPDATE portfolio_enquiries SET status = CASE status WHEN 'contacted' THEN 'replied' WHEN 'negotiating' THEN 'in_discussion' WHEN 'completed' THEN 'booked' WHEN 'declined' THEN 'closed' ELSE status END;
+    ALTER TABLE portfolio_enquiries ADD CONSTRAINT portfolio_enquiries_status_check CHECK (status IN ('new','replied','in_discussion','booked','closed'))`);
 }
 
 router.post("/enquiries", async (req, res) => {
   await ensureTable();
+  if (clean(req.body?.website, 200)) return res.status(201).json({ enquiryNumber: "received" });
+  const fingerprint = `${req.ip}:${clean(req.body?.email, 200).toLowerCase()}`;
+  const now = Date.now();
+  const attempts = (recentSubmissions.get(fingerprint) || []).filter((time) => now - time < 15 * 60_000);
+  if (attempts.length >= 3) return res.status(429).json({ error: "Too many enquiries. Please wait a little and try again." });
+  recentSubmissions.set(fingerprint, [...attempts, now]);
   const type = req.body?.type === "moving_image" ? "moving_image" : "artwork";
   const name = clean(req.body?.name, 120);
   const email = clean(req.body?.email, 200).toLowerCase();
@@ -59,6 +69,8 @@ router.post("/enquiries", async (req, res) => {
       .json({ error: "Name and a valid email are required." });
   if (type === "artwork" && !clean(req.body?.country, 100))
     return res.status(400).json({ error: "Country is required." });
+  if (type === "moving_image" && (!clean(req.body?.projectType, 100) || !clean(req.body?.message, 4000)))
+    return res.status(400).json({ error: "Project type and project description are required." });
   const sequence = await pool.query(
     "SELECT nextval('portfolio_enquiry_number_seq') value",
   );
@@ -107,8 +119,8 @@ router.post("/enquiries", async (req, res) => {
     await sendEmail({
       to: recipients,
       replyTo: email,
-      subject: `${type === "artwork" ? "New artwork request" : "New moving-image enquiry"} · ${number}`,
-      text: `${subjectName}\n\n${name} · ${email}\n${clean(req.body?.country, 100)} ${clean(req.body?.city, 100)}\n\n${clean(req.body?.message, 4000)}\n\n${clean(req.body?.subjectUrl, 500)}`,
+      subject: `${type === "artwork" ? "New artwork request" : "New Moving Image Commission Enquiry"} · ${number}`,
+      text: `${subjectName}\n\nName: ${name}\nEmail: ${email}\nProject type: ${clean(req.body?.projectType, 100)}\nArtist / client: ${clean(req.body?.organisation, 160)}\nDuration: ${clean(req.body?.desiredDuration, 100)}\nDeadline: ${clean(req.body?.deadline, 100)}\nBudget: ${clean(req.body?.budgetRange, 100)}\nReference: ${clean(req.body?.referenceLinks, 2000)}\n\n${clean(req.body?.message, 4000)}\n\n${clean(req.body?.subjectUrl, 500)}`,
       html: emailShell(
         `<h1>${escapeHtml(subjectName)}</h1><p><strong>${escapeHtml(name)}</strong> · <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p><p>${escapeHtml(clean(req.body?.country, 100))} ${escapeHtml(clean(req.body?.city, 100))}</p><p>${escapeHtml(clean(req.body?.message, 4000))}</p>${clean(req.body?.subjectUrl, 500) ? `<p>Artwork page: ${escapeHtml(clean(req.body?.subjectUrl, 500))}</p>` : ""}`,
         { headerLabel: number, showSignature: false },
@@ -138,7 +150,7 @@ router.get("/admin/enquiries", requireAdmin, async (_req, res) => {
 
 router.patch("/admin/enquiries/:id", requireAdmin, async (req, res) => {
   await ensureTable();
-  const statuses = ["new", "contacted", "negotiating", "completed", "declined"];
+  const statuses = ["new", "replied", "in_discussion", "booked", "closed"];
   const status = statuses.includes(req.body?.status) ? req.body.status : "new";
   const result = await pool.query(
     "UPDATE portfolio_enquiries SET status=$2,admin_note=$3,updated_at=NOW() WHERE id=$1 RETURNING *",

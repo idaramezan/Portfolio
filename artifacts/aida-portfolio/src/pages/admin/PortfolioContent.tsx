@@ -446,6 +446,19 @@ export default function PortfolioContent({
           {saveMessage}
         </p>
       )}
+      <section className="admin-card mb-6 grid gap-4 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <h2 className="font-display text-2xl">Moving Image page settings</h2>
+          <p className="mt-1 text-sm text-ink/60">Hero, archive and commission copy for the dedicated cinematic page.</p>
+        </div>
+        {([
+          ["Hero eyebrow", "heroEyebrow"], ["Hero title", "heroTitle"], ["Hero description", "heroDescription"],
+          ["Background media URL", "heroBackgroundMedia"], ["Fallback image URL", "heroFallbackImage"], ["Primary CTA label", "primaryCtaLabel"],
+          ["Archive heading", "archiveHeading"], ["Commission heading", "commissionHeading"], ["Commission description", "commissionDescription"],
+        ] as const).map(([label, key]) => <label key={key} className={key.includes("Description") || key === "commissionDescription" ? "md:col-span-2" : ""}>{label}
+          <input className={field} value={settings.movingImagePage[key]} onChange={(event) => setSettings({...settings,movingImagePage:{...settings.movingImagePage,[key]:event.target.value}})} />
+        </label>)}
+      </section>
       <section className="admin-card mb-6">
         <h2 className="font-display text-2xl">General work samples</h2>
         <p className="mt-1 max-w-2xl text-sm text-ink/60">
@@ -536,6 +549,16 @@ export default function PortfolioContent({
               </select>
             </label>
             <label>
+              Media type
+              <select className={field} value={active.mediaType || "YouTube"} onChange={(e) => patch({ mediaType: e.target.value as MovingImageProject["mediaType"] })}>
+                <option>GIF</option><option>Uploaded Video</option><option>YouTube</option><option>External Video</option>
+              </select>
+            </label>
+            <label>
+              Category
+              <input className={field} value={active.category || active.projectType} onChange={(e) => patch({ category: e.target.value })} placeholder="Animation, Loop, Music Visual…" />
+            </label>
+            <label>
               Status
               <select
                 className={field}
@@ -588,6 +611,10 @@ export default function PortfolioContent({
                 onChange={(e) => patch({ videoUrl: e.target.value })}
                 placeholder="https://www.youtube.com/watch?v=…"
               />
+            </label>
+            <label>
+              Primary media URL
+              <input className={field} value={active.primaryMedia || ""} onChange={(e) => patch({ primaryMedia: e.target.value })} placeholder="Uploaded GIF or video URL" />
             </label>
             <label>
               External release URL

@@ -13,6 +13,10 @@ type Enquiry = {
   phone?: string;
   organisation?: string;
   project_type?: string;
+  desired_duration?: string;
+  deadline?: string;
+  budget_range?: string;
+  reference_links?: string;
   message?: string;
   status: string;
   admin_note?: string;
@@ -80,16 +84,25 @@ export default function Enquiries() {
                   }
                 >
                   <option>new</option>
-                  <option>contacted</option>
-                  <option>negotiating</option>
-                  <option>completed</option>
-                  <option>declined</option>
+                  <option>replied</option>
+                  <option>in_discussion</option>
+                  <option>booked</option>
+                  <option>closed</option>
                 </select>
               </div>
               {item.message && (
                 <p className="mt-4 whitespace-pre-wrap border-t pt-4">
                   {item.message}
                 </p>
+              )}
+              {item.enquiry_type === "moving_image" && (
+                <dl className="mt-4 grid gap-2 border-t pt-4 text-sm sm:grid-cols-2">
+                  <div><dt className="font-bold">Project type</dt><dd>{item.project_type || "—"}</dd></div>
+                  <div><dt className="font-bold">Budget</dt><dd>{item.budget_range || "—"}</dd></div>
+                  <div><dt className="font-bold">Duration</dt><dd>{item.desired_duration || "—"}</dd></div>
+                  <div><dt className="font-bold">Deadline</dt><dd>{item.deadline || "—"}</dd></div>
+                  {item.reference_links && <div className="sm:col-span-2"><dt className="font-bold">Reference</dt><dd><a href={item.reference_links} target="_blank" rel="noreferrer">{item.reference_links}</a></dd></div>}
+                </dl>
               )}
               <textarea
                 className="mt-4 w-full border bg-paper p-3"

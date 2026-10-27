@@ -15,6 +15,7 @@ import {
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const isMovingImage = location.startsWith("/moving-image") || location === "/commissions/moving-image";
   const previousPathRef = useRef<string | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLElement>(null);
@@ -223,7 +224,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [isTürkiye]);
 
   return (
-    <div data-public-site className="min-h-[100dvh] flex flex-col font-sans">
+    <div data-public-site data-moving-image={isMovingImage || undefined} className="min-h-[100dvh] flex flex-col font-sans">
       <header
         data-scrolled={headerScrolled || undefined}
         data-hidden={!headerVisible || undefined}

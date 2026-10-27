@@ -263,6 +263,21 @@ export interface MovingImageProject {
   status: "published" | "draft";
   seoTitle?: string;
   seoDescription?: string;
+  mediaType?: "GIF" | "Uploaded Video" | "YouTube" | "External Video";
+  primaryMedia?: string;
+  category?: string;
+}
+
+export interface MovingImagePageSettings {
+  heroEyebrow: string;
+  heroTitle: string;
+  heroDescription: string;
+  heroBackgroundMedia: string;
+  heroFallbackImage: string;
+  primaryCtaLabel: string;
+  archiveHeading: string;
+  commissionHeading: string;
+  commissionDescription: string;
 }
 
 export type FourthwallVariantType = "poster" | "framed" | (string & {});
@@ -401,6 +416,7 @@ export interface ShopSettings {
   artEras: ArtEra[];
   movingImageProjects: MovingImageProject[];
   animationGalleryMedia: string[];
+  movingImagePage: MovingImagePageSettings;
   limitedEditionGroups: LimitedEditionGroup[];
   weeklyLimitedCollections: WeeklyLimitedCollection[];
   homepageContent: HomepageContent;
@@ -666,6 +682,17 @@ export function getDefaultSettings(): ShopSettings {
     artEras: [],
     movingImageProjects: [],
     animationGalleryMedia: [],
+    movingImagePage: {
+      heroEyebrow: "AEDA · MOVING IMAGE",
+      heroTitle: "Stories that move.",
+      heroDescription: "Animation, music visuals and small moving worlds made by Aida.",
+      heroBackgroundMedia: "/assets/moving-image/aeda-moving-world.m4v",
+      heroFallbackImage: "/assets/moving-image/aeda-moving-world-poster.png",
+      primaryCtaLabel: "View selected work",
+      archiveHeading: "Moving image archive",
+      commissionHeading: "Commission a moving image.",
+      commissionDescription: "Music, memory, characters, fragments of a story — tell me what you are making and what you want it to feel like.",
+    },
     limitedEditionGroups: [],
     weeklyLimitedCollections: [],
     homepageContent: {
@@ -926,6 +953,10 @@ export function loadShopSettings(): ShopSettings {
         animationGalleryMedia: Array.isArray(saved.animationGalleryMedia)
           ? saved.animationGalleryMedia
           : defaults.animationGalleryMedia,
+        movingImagePage: {
+          ...defaults.movingImagePage,
+          ...(saved.movingImagePage || {}),
+        },
         limitedEditionGroups: Array.isArray(saved.limitedEditionGroups)
           ? saved.limitedEditionGroups
           : [],
