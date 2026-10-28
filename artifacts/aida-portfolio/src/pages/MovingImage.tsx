@@ -61,15 +61,13 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
         <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Work</a>
         <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Animation</a>
         <a href="/moving-image#commission" onClick={() => setMenuOpen(false)}>Commission</a>
-        <Link href="/about">About</Link>
         <Link href="/">← Aeda Art</Link>
         <button onClick={() => setLocale(locale === "tr" ? "en" : "tr")}>{locale === "tr" ? "EN" : "TR"}</button>
       </nav>
     </header>
     <div className="mi-content">{children}</div>
-    <footer className="mi-footer">
-      <div className="mi-container mi-footer__grid"><div><strong>AEDA</strong><span>MOVING IMAGE</span></div><nav><b>EXPLORE</b><Link href="/paintings">Paintings</Link><Link href="/shop">Shop</Link><Link href="/about">About</Link><Link href="/">Main site</Link></nav><nav><b>FOLLOW</b>{settings.siteLinks.instagramUrl && <a href={settings.siteLinks.instagramUrl}>Instagram</a>}{settings.siteLinks.tiktokUrl && <a href={settings.siteLinks.tiktokUrl}>TikTok</a>}{settings.siteLinks.youtubeUrl && <a href={settings.siteLinks.youtubeUrl}>YouTube</a>}</nav></div>
-      <div className="mi-container mi-footer__bottom"><span>© {new Date().getFullYear()} Aeda Art</span><a href="#top">Back to top ↑</a></div>
+    <footer className="mi-footer mi-footer--minimal">
+      <div className="mi-container">{settings.siteLinks.instagramUrl && <a href={settings.siteLinks.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>}<a href="mailto:aida@aedaart.com">Contact me · aida@aedaart.com</a></div>
     </footer>
   </div>;
 }
