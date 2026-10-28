@@ -125,6 +125,13 @@ function ArchiveItem({ src, title, metadata, href, playable, onPlay }: { src: st
   </article>;
 }
 
+function MovingFrame({ src, alt }: { src: string; alt: string }) {
+  return <div className="figma-moving-frame">
+    <img className="figma-moving-frame__media" src={src} alt={alt} loading="lazy" />
+    <img className="figma-moving-frame__border" src="/assets/moving-image/border-layer.gif" alt="" aria-hidden="true" />
+  </div>;
+}
+
 export function MovingImage() {
   const settings = useShopSettings();
   const { locale } = useLocale();
@@ -132,25 +139,26 @@ export function MovingImage() {
   const projects = useMemo(() => [...settings.movingImageProjects].filter(isPublished).sort((a,b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999)), [settings.movingImageProjects]);
   const featured = projects.find((p) => p.featured) || projects[0];
   const archiveProjects = projects.filter((project) => project.id !== featured?.id);
+  const animationMedia = settings.animationGalleryMedia.slice(0, 2);
+  const illustrationMedia = archiveProjects.map(projectCover).filter(Boolean).slice(0, 2);
+  const illustrationFallback = settings.animationGalleryMedia.slice(2, 4);
+  const illustrations = [...illustrationMedia, ...illustrationFallback, ...settings.animationGalleryMedia].slice(0, 2);
+  const featuredSource = featured ? (featured.primaryMedia || projectCover(featured)) : "";
+  const featuredMediaType = featured ? normalizeMediaType(featured.mediaType || featured.projectType, featuredSource) : "image";
   const [lightbox, setLightbox] = useState<MovingImageProject | null>(null);
   usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.");
-  return <main id="top" className="moving-page">
-    <section className="moving-hero" aria-labelledby="moving-title"><div className="mi-container moving-hero__content">
-      <p className="moving-kicker">AEDA / MOVING IMAGE</p><h1 id="moving-title">{tr ? <>AIDA'DAN ANİMASYON<br />&amp; HAREKETLİ GÖRÜNTÜ</> : <>ARTWORK &amp; ANIMATION<br />BY AIDA</>}</h1><p className="moving-hero__copy">{tr ? "Animasyon, müzik görselleri ve elle yapılmış hareketli dünyalar." : "Animation, music visuals and hand-made moving worlds."}</p>
-      <a href="#archive" className="moving-button">{tr ? "İŞLERİ GÖR" : "VIEW WORK"} <ArrowRight /></a>
+  return <main id="top" className="moving-page figma-moving-page">
+    <section className="figma-moving-hero" aria-labelledby="moving-title"><div className="figma-moving-hero__content">
+      <p>AEDA / MOVING IMAGE</p><h1 id="moving-title">ARTWORK &amp;<br />ANIMATION<br />BY AEDA</h1><span>Animation, music visuals and hand-made moving worlds.</span><a href="#commission">REQUEST COMMISSION</a>
     </div></section>
 
-    <section id="archive" className="moving-archive"><div className="mi-container">
-      <header className="moving-section-heading"><h2>{tr ? "ARŞİVLER // GALERİ" : "THE ARCHIVES // GALLERY"}</h2><p>{tr ? "Döngüler, animasyonlar ve sipariş üzerine hareketli görüntü çalışmaları." : "A collection of loops, animation and commissioned moving-image work."}</p></header>
-      {(archiveProjects.length || settings.animationGalleryMedia.length) ? <div className="mi-archive-grid">
-        {archiveProjects.map((project) => { const cover = projectCover(project); const type = normalizeMediaType(project.mediaType || project.projectType, project.primaryMedia || project.videoUrl || cover); return <ArchiveItem key={project.id} src={type === "gif" ? (project.primaryMedia || project.thumbnail || cover) : cover} title={project.title} metadata={`${project.category || project.projectType}${project.year ? ` · ${project.year}` : ""}`} href={`/moving-image/${project.slug}`} playable={type === "video" || type === "youtube"} onPlay={() => setLightbox(project)} />; })}
-        {settings.animationGalleryMedia.map((src, index) => <ArchiveItem key={src} src={src} title={`${tr ? "Animasyon Çalışması" : "Animation Study"} ${String(index + 1).padStart(2, "0")}`} metadata={tr ? "Döngü animasyon" : "Loop animation"} href={src} />)}
-      </div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
+    <section id="archive" className="figma-showcase figma-showcase--animation"><div className="figma-showcase__copy"><h2>ANIMATION</h2><p>Aeda’s animations explore the depth of human emotions through dark, minimalist, black-and-white visuals. By stripping each idea down to its simplest form, they reveal the complexity beneath the surface. Because sometimes, the simplest things have the most to say, and the deepest feelings emerge when nothing stands in their way.</p></div><div className="figma-showcase__frames">{animationMedia.map((src, index) => <MovingFrame src={src} alt={`Animation study ${index + 1}`} key={src} />)}</div></section>
 
-      {featured && <article className="mi-featured"><Link href={`/moving-image/${featured.slug}`} className="mi-featured__media">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}</Link><div className="mi-featured__info"><p className="moving-kicker">FEATURED PROJECT</p><h3>{featured.title}</h3>{(featured.artistName || featured.client) && <p className="mi-featured__artist">For {featured.artistName || featured.client}</p>}<p className="mi-featured__description">Animated music visual created for “{featured.title}”.</p><dl><div><dt>Role</dt><dd>{featured.role || "Animated music visual"}</dd></div><div><dt>Year</dt><dd>{featured.year}</dd></div></dl><Link href={`/moving-image/${featured.slug}`} className="mi-featured__button">VIEW PROJECT →</Link></div></article>}
-    </div></section>
+    {featured && <section className="figma-featured">{featuredMediaType === "video" ? <video className="figma-featured__media" src={featuredSource} autoPlay muted loop playsInline /> : <img className="figma-featured__media" src={featuredSource} alt="" />}<div className="figma-featured__shade" /><div className="figma-featured__copy"><h2>{featured.title}</h2><h3>BY {(featured.artistName || featured.client || "ALEX SOUCY").toUpperCase()}</h3><p>Role: {featured.role || "Animator and Illustrator"}</p><p>Year: {featured.year || "2026"}</p><Link href={`/moving-image/${featured.slug}`}>Project Details</Link></div></section>}
 
-    <section id="commission" className="moving-commission-panel"><div className="mi-container moving-commission-panel__box"><header><h2>{tr ? "KOMİSYON TALEBİ" : "REQUEST A COMMISSION"}</h2><p>{tr ? "Aklınızdaki projeyi anlatın; size e-posta ile dönüş yapacağım." : "Tell me about the project you have in mind and I’ll get back to you by email."}</p></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
+    <section className="figma-showcase figma-showcase--illustration"><div className="figma-showcase__frames">{illustrations.map((src, index) => <MovingFrame src={src} alt={`Illustration study ${index + 1}`} key={`${src}-${index}`} />)}</div><div className="figma-showcase__copy"><h2>ILLUSTRATION</h2><p>Aeda’s illustrations explore the depth of human emotions through dark, minimalist, black-and-white visuals. By stripping each idea down to its simplest form, they reveal the complexity beneath the surface. Because sometimes, the simplest things have the most to say, and the deepest feelings emerge when nothing stands in their way.</p></div></section>
+
+    <section id="commission" className="figma-commission"><div className="figma-commission__content"><header><h2>REQUEST A COMMISSION</h2></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
     {lightbox && <MediaLightbox project={lightbox} onClose={() => setLightbox(null)} />}
   </main>;
 }

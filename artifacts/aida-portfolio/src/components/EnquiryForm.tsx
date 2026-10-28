@@ -112,7 +112,7 @@ export default function EnquiryForm({
           ? "Sending…"
           : kind === "artwork"
             ? "Send artwork request"
-            : tr ? "PROJE TALEBİ GÖNDER →" : "SEND PROJECT ENQUIRY →"}
+            : "SUBMIT"}
       </button>
     </form>
   );
