@@ -72,8 +72,8 @@ export default function EnquiryForm({
           <label><span className="sr-only">{tr ? "Adınız" : "Name"}</span><input name="name" required autoComplete="name" aria-label={tr ? "Adınız" : "Name"} placeholder={tr ? "AD" : "NAME"} /></label>
           <label><span className="sr-only">{tr ? "E-posta" : "Email"}</span><input name="email" required type="email" autoComplete="email" aria-label={tr ? "E-posta" : "Email"} placeholder={tr ? "E-POSTA" : "EMAIL"} /></label>
           <label><span className="sr-only">{tr ? "Bütçe aralığı" : "Budget range"}</span><select name="budgetRange" aria-label={tr ? "Bütçe aralığı" : "Budget range"} defaultValue=""><option value="" disabled>{tr ? "BÜTÇE ARALIĞI" : "BUDGET RANGE"}</option><option>Not sure yet</option><option>Under $300</option><option>$300–$700</option><option>$700–$1,500</option><option>$1,500+</option><option>Let's discuss</option></select></label>
+          <label><span className="sr-only">{tr ? "Talep" : "Request"}</span><select name="projectType" required aria-label={tr ? "Talep" : "Request"} defaultValue=""><option value="" disabled>{tr ? "TALEP" : "REQUEST"}</option><option value="Illustration">{tr ? "İllüstrasyon" : "Illustration"}</option><option value="Animation">{tr ? "Animasyon" : "Animation"}</option></select></label>
         </div>
-        <input type="hidden" name="projectType" value="Other" />
         <label className="enquiry-form__message"><span className="sr-only">{tr ? "Projeyi anlatın" : "About project"}</span><textarea name="message" rows={6} required aria-label={tr ? "Projeyi anlatın" : "About project"} placeholder={tr ? "PROJE HAKKINDA" : "ABOUT PROJECT"} /></label>
       </> : <>
         <div className="enquiry-form__grid">
