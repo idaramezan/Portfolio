@@ -89,7 +89,7 @@ export default function EnquiryForm({
               {tr ? "Proje türü" : "Project type"}
               <select name="projectType" required defaultValue="">
                 <option value="" disabled>{tr ? "Seçin" : "Choose one"}</option>
-                <option>Music Video</option><option>Animated Loop</option><option>Music Visual</option><option>Illustration + Animation</option><option>Social / Promotional Animation</option><option>Other</option>
+                <option>Music video</option><option>Animated visual</option><option>Loop / GIF</option><option>Lyric visual</option><option>Short animation</option><option>Other</option>
               </select>
             </label>
             <label>

@@ -22,7 +22,22 @@ function youtubeEmbed(value = "") {
 
 function projectCover(project: MovingImageProject) {
   const id = youtubeId(project.videoUrl);
-  return project.thumbnail || (id ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : "");
+  return project.thumbnail || project.primaryMedia || project.previewUrl || project.stillImages?.[0] || (id ? `https://i.ytimg.com/vi/${id}/maxresdefault.jpg` : "");
+}
+
+type NormalizedMediaType = "gif" | "video" | "youtube" | "image";
+function normalizeMediaType(value = "", url = ""): NormalizedMediaType {
+  const type = value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+  const source = url.split(/[?#]/, 1)[0].toLowerCase();
+  if (type.includes("gif") || type.includes("loop") || source.endsWith(".gif")) return "gif";
+  if (type.includes("youtube") || youtubeId(url)) return "youtube";
+  if (type.includes("video") || type.includes("animation") || /\.(mp4|m4v|mov|webm)$/.test(source)) return "video";
+  return "image";
+}
+
+function isPublished(project: MovingImageProject) {
+  const record = project as MovingImageProject & { published?: boolean; visible?: boolean };
+  return (record.status === "published" || record.published === true) && record.visible !== false;
 }
 
 function Background({ media, poster }: { media: string; poster: string }) {
@@ -80,8 +95,9 @@ export function MovingImage() {
   const settings = useShopSettings();
   const { locale } = useLocale();
   const tr = locale === "tr";
-  const projects = useMemo(() => [...settings.movingImageProjects].filter((p) => p.status === "published").sort((a,b) => a.displayOrder - b.displayOrder), [settings.movingImageProjects]);
+  const projects = useMemo(() => [...settings.movingImageProjects].filter(isPublished).sort((a,b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999)), [settings.movingImageProjects]);
   const featured = projects.find((p) => p.featured) || projects[0];
+  const archiveProjects = projects.filter((project) => project.id !== featured?.id);
   const [lightbox, setLightbox] = useState<MovingImageProject | null>(null);
   usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.");
   return <main id="top" className="moving-page">
@@ -92,16 +108,26 @@ export function MovingImage() {
 
     <section id="archive" className="moving-archive"><div className="mi-container">
       <header className="moving-section-heading"><h2>{tr ? "ARŞİVLER // GALERİ" : "THE ARCHIVES // GALLERY"}</h2><p>{tr ? "Döngüler, animasyonlar ve sipariş üzerine hareketli görüntü çalışmaları." : "A collection of loops, animation and commissioned moving-image work."}</p></header>
-      {projects.length ? <div className="moving-grid">{projects.map((project, index) => {
-        const cover = projectCover(project); const playable = Boolean(youtubeEmbed(project.videoUrl) || project.primaryMedia || project.previewUrl);
-        return <article className="moving-card" key={project.id}><div className="moving-card__frame"><div className="moving-card__media">
-          {cover ? <img src={cover} alt={project.title} loading={index > 2 ? "lazy" : "eager"} /> : <div className="moving-card__placeholder" />}
-          <span className="moving-card__label">{project.category || project.mediaType || project.projectType}</span>
-          {playable && <button className="moving-card__play" type="button" onClick={() => setLightbox(project)} aria-label={`Play ${project.title}`}>▶ PLAY</button>}
-          <Link className="moving-card__open" href={`/moving-image/${project.slug}`} aria-label={`View ${project.title}`} />
-          <div className="moving-card__title"><strong>{project.title}</strong><span>{project.year}</span></div>
-        </div></div></article>;
-      })}</div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
+      {(archiveProjects.length || settings.animationGalleryMedia.length) ? <div className="moving-grid">
+        {archiveProjects.map((project, index) => {
+          const cover = projectCover(project);
+          const mediaType = normalizeMediaType(project.mediaType || project.projectType, project.primaryMedia || project.videoUrl || cover);
+          const gifSource = mediaType === "gif" ? (project.thumbnail || project.primaryMedia || project.previewUrl || project.stillImages?.[0] || cover) : cover;
+          const playable = mediaType === "video" || mediaType === "youtube";
+          return <article className="moving-card" key={project.id}><div className="moving-card__frame"><div className="moving-card__media">
+            {gifSource ? <img src={gifSource} alt={project.title} loading={index > 2 ? "lazy" : "eager"} /> : <div className="moving-card__placeholder" />}
+            <span className="moving-card__label">{mediaType === "gif" ? "GIF / LOOP" : project.category || project.mediaType || project.projectType}</span>
+            {playable && <button className="moving-card__play" type="button" onClick={() => setLightbox(project)} aria-label={`Play ${project.title}`}>▶ PLAY</button>}
+            <Link className="moving-card__open" href={`/moving-image/${project.slug}`} aria-label={`View ${project.title}`} />
+            <div className="moving-card__title"><strong>{project.title}</strong><span>{project.year}</span></div>
+          </div></div></article>;
+        })}
+        {settings.animationGalleryMedia.map((src, index) => <article className="moving-card" key={src}><div className="moving-card__frame"><div className="moving-card__media">
+          <img src={src} alt={`${tr ? "Animasyon çalışması" : "Animation study"} ${index + 1}`} loading="lazy" />
+          <span className="moving-card__label">{normalizeMediaType("", src) === "gif" ? "GIF / LOOP" : "ANIMATION"}</span>
+          <a className="moving-card__open" href={src} target="_blank" rel="noreferrer" aria-label={`${tr ? "Animasyon çalışmasını aç" : "Open animation study"} ${index + 1}`} />
+        </div></div></article>)}
+      </div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
 
       {featured && <article className="moving-featured"><p className="moving-kicker">FEATURED PROJECT // {featured.title}</p><Link href={`/moving-image/${featured.slug}`} className="moving-featured__image">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}<span>VIEW PROJECT →</span></Link><div><strong>{featured.artistName || featured.client || featured.title}</strong><span>{featured.projectType} · {featured.year}</span></div></article>}
     </div></section>
