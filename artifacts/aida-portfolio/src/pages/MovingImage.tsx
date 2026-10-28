@@ -55,7 +55,7 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
   return <div className="mi-world">
     <Background media={settings.movingImagePage.heroBackgroundMedia} poster={settings.movingImagePage.heroFallbackImage} />
     <header className="mi-header">
-      <Link href="/moving-image" className="mi-wordmark">AEDA <span>/ MOVING IMAGE</span></Link>
+      <Link href="/moving-image" className="mi-wordmark">AEDA</Link>
       <button className="mi-menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Toggle moving image navigation">{menuOpen ? <X /> : <Menu />}</button>
       <nav className={menuOpen ? "is-open" : ""} aria-label="Moving Image">
         <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Work</a>
@@ -140,23 +140,22 @@ export function MovingImage() {
   const featured = projects.find((p) => p.featured) || projects[0];
   const archiveProjects = projects.filter((project) => project.id !== featured?.id);
   const animationMedia = settings.animationGalleryMedia.slice(0, 2);
-  const illustrationMedia = archiveProjects.map(projectCover).filter(Boolean).slice(0, 2);
-  const illustrationFallback = settings.animationGalleryMedia.slice(2, 4);
-  const illustrations = [...illustrationMedia, ...illustrationFallback, ...settings.animationGalleryMedia].slice(0, 2);
-  const featuredSource = featured ? (featured.primaryMedia || projectCover(featured)) : "";
+  const illustrationFallback = archiveProjects.map(projectCover).filter(Boolean);
+  const illustrations = [...settings.illustrationGalleryMedia, ...illustrationFallback, ...settings.animationGalleryMedia].slice(0, 2);
+  const featuredSource = settings.movingImagePage.featuredBackgroundMedia || (featured ? (featured.primaryMedia || projectCover(featured)) : "");
   const featuredMediaType = featured ? normalizeMediaType(featured.mediaType || featured.projectType, featuredSource) : "image";
   const [lightbox, setLightbox] = useState<MovingImageProject | null>(null);
   usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.");
   return <main id="top" className="moving-page figma-moving-page">
     <section className="figma-moving-hero" aria-labelledby="moving-title"><div className="figma-moving-hero__content">
-      <p>AEDA / MOVING IMAGE</p><h1 id="moving-title">ARTWORK &amp;<br />ANIMATION<br />BY AEDA</h1><span>Animation, music visuals and hand-made moving worlds.</span><a href="#commission">REQUEST COMMISSION</a>
+      <h1 id="moving-title">ARTWORK &amp;<br />ANIMATION<br />BY AEDA</h1><span>Animation, music visuals and hand-made moving worlds.</span><a href="#commission">REQUEST COMMISSION</a>
     </div></section>
 
     <section id="archive" className="figma-showcase figma-showcase--animation"><div className="figma-showcase__copy"><h2>ANIMATION</h2><p>Aeda’s animations explore the depth of human emotions through dark, minimalist, black-and-white visuals. By stripping each idea down to its simplest form, they reveal the complexity beneath the surface. Because sometimes, the simplest things have the most to say, and the deepest feelings emerge when nothing stands in their way.</p></div><div className="figma-showcase__frames">{animationMedia.map((src, index) => <MovingFrame src={src} alt={`Animation study ${index + 1}`} key={src} />)}</div></section>
 
     {featured && <section className="figma-featured">{featuredMediaType === "video" ? <video className="figma-featured__media" src={featuredSource} autoPlay muted loop playsInline /> : <img className="figma-featured__media" src={featuredSource} alt="" />}<div className="figma-featured__shade" /><div className="figma-featured__copy"><h2>{featured.title}</h2><h3>BY {(featured.artistName || featured.client || "ALEX SOUCY").toUpperCase()}</h3><p>Role: {featured.role || "Animator and Illustrator"}</p><p>Year: {featured.year || "2026"}</p><Link href={`/moving-image/${featured.slug}`}>Project Details</Link></div></section>}
 
-    <section className="figma-showcase figma-showcase--illustration"><div className="figma-showcase__frames">{illustrations.map((src, index) => <MovingFrame src={src} alt={`Illustration study ${index + 1}`} key={`${src}-${index}`} />)}</div><div className="figma-showcase__copy"><h2>ILLUSTRATION</h2><p>Aeda’s illustrations explore the depth of human emotions through dark, minimalist, black-and-white visuals. By stripping each idea down to its simplest form, they reveal the complexity beneath the surface. Because sometimes, the simplest things have the most to say, and the deepest feelings emerge when nothing stands in their way.</p></div></section>
+    <section className="figma-showcase figma-showcase--illustration"><div className="figma-showcase__frames">{illustrations.map((src, index) => <MovingFrame src={src} alt={`Illustration study ${index + 1}`} key={`${src}-${index}`} />)}</div><div className="figma-showcase__copy"><h2>ILLUSTRATIONS</h2><p>Aeda creates illustrations inspired by your pets, portraits, and the special memories you hold close. Each piece is shaped around the story, atmosphere, and feeling you want to capture. More than just an illustration, every artwork holds a story of its own, one that is uniquely yours.</p></div></section>
 
     <section id="commission" className="figma-commission"><div className="figma-commission__content"><header><h2>REQUEST A COMMISSION</h2></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
     {lightbox && <MediaLightbox project={lightbox} onClose={() => setLightbox(null)} />}

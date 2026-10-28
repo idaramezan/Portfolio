@@ -400,6 +400,39 @@ export default function PortfolioContent({
       setSaving(false);
     }
   };
+  const persistIllustrationGallery = async (illustrationGalleryMedia: string[]) => {
+    const nextSettings = { ...settings, illustrationGalleryMedia };
+    setSettings(nextSettings);
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await saveShopSettingsAndWait(nextSettings);
+      setSaveMessage("Illustration gallery uploaded and saved.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Illustration gallery could not be saved.";
+      setSaveMessage(message);
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
+  const persistFeaturedBackground = async (images: string[]) => {
+    const featuredBackgroundMedia = images.at(-1) || "";
+    const nextSettings = { ...settings, movingImagePage: { ...settings.movingImagePage, featuredBackgroundMedia } };
+    setSettings(nextSettings);
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await saveShopSettingsAndWait(nextSettings);
+      setSaveMessage("Miss Brown background uploaded and saved.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Miss Brown background could not be saved.";
+      setSaveMessage(message);
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  };
   const create = () => {
     const id = crypto.randomUUID();
     const next: MovingImageProject = {
@@ -470,6 +503,26 @@ export default function PortfolioContent({
           label="Images and GIFs"
           images={settings.animationGalleryMedia}
           onChange={persistAnimationGallery}
+        />
+      </section>
+      <section className="admin-card mb-6">
+        <h2 className="font-display text-2xl">Miss Brown featured background</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink/60">Upload the animated GIF used as the full-width featured-project background.</p>
+        <ProjectGalleryField
+          projectId="miss-brown-background"
+          label="Background GIF"
+          images={settings.movingImagePage.featuredBackgroundMedia ? [settings.movingImagePage.featuredBackgroundMedia] : []}
+          onChange={persistFeaturedBackground}
+        />
+      </section>
+      <section className="admin-card mb-6">
+        <h2 className="font-display text-2xl">Illustration section</h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink/60">Upload the images displayed in the two framed Illustration positions.</p>
+        <ProjectGalleryField
+          projectId="illustration"
+          label="Illustration images"
+          images={settings.illustrationGalleryMedia}
+          onChange={persistIllustrationGallery}
         />
       </section>
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">

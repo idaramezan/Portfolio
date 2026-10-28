@@ -278,6 +278,7 @@ export interface MovingImagePageSettings {
   archiveHeading: string;
   commissionHeading: string;
   commissionDescription: string;
+  featuredBackgroundMedia: string;
 }
 
 export type FourthwallVariantType = "poster" | "framed" | (string & {});
@@ -416,6 +417,7 @@ export interface ShopSettings {
   artEras: ArtEra[];
   movingImageProjects: MovingImageProject[];
   animationGalleryMedia: string[];
+  illustrationGalleryMedia: string[];
   movingImagePage: MovingImagePageSettings;
   limitedEditionGroups: LimitedEditionGroup[];
   weeklyLimitedCollections: WeeklyLimitedCollection[];
@@ -682,6 +684,7 @@ export function getDefaultSettings(): ShopSettings {
     artEras: [],
     movingImageProjects: [],
     animationGalleryMedia: [],
+    illustrationGalleryMedia: [],
     movingImagePage: {
       heroEyebrow: "AEDA · MOVING IMAGE",
       heroTitle: "Stories that move.",
@@ -692,6 +695,7 @@ export function getDefaultSettings(): ShopSettings {
       archiveHeading: "Moving image archive",
       commissionHeading: "Commission a moving image.",
       commissionDescription: "Music, memory, characters, fragments of a story — tell me what you are making and what you want it to feel like.",
+      featuredBackgroundMedia: "",
     },
     limitedEditionGroups: [],
     weeklyLimitedCollections: [],
@@ -953,6 +957,9 @@ export function loadShopSettings(): ShopSettings {
         animationGalleryMedia: Array.isArray(saved.animationGalleryMedia)
           ? saved.animationGalleryMedia
           : defaults.animationGalleryMedia,
+        illustrationGalleryMedia: Array.isArray(saved.illustrationGalleryMedia)
+          ? saved.illustrationGalleryMedia
+          : defaults.illustrationGalleryMedia,
         movingImagePage: {
           ...defaults.movingImagePage,
           ...(saved.movingImagePage || {}),
