@@ -2584,15 +2584,15 @@
 @media(max-width:800px){.mi-world .moving-commission-panel{padding:100px 0}.mi-world .moving-commission-panel__box{min-height:0;background-image:linear-gradient(90deg,rgba(4,4,4,.9),rgba(4,4,4,.62)),url('/assets/moving-image/commission-cat.jpg');background-position:65% center;padding:32px 28px}.mi-world .moving-commission-panel__box>header,.mi-world .moving-commission-panel__box>.enquiry-form{width:100%}}
 @media(max-width:560px){.mi-world .moving-commission-panel__box .enquiry-form__grid--commission{grid-template-columns:1fr;gap:18px}.mi-world .moving-commission-panel__box .enquiry-form__grid--commission>label:nth-of-type(3){grid-column:1}.mi-world .moving-commission-panel__box .enquiry-form--moving .button-primary{width:100%;min-width:0}}
 
-@font-face{font-family:"Chalkduster";src:url('/assets/fonts/Chalkduster.ttf') format('truetype');font-display:swap;font-style:normal;font-weight:400 700}
+@font-face{font-family:"Aeda Chalkduster";src:url('/assets/fonts/Chalkduster.ttf?v=2') format('truetype');font-display:swap;font-style:normal;font-weight:400}
 /* Figma-faithful Moving Image composition (7445px source coordinate system). */
-.mi-world{--figma-width:7445;--figma-edge:10.75vw;--figma-ui:"Geologica",sans-serif;--figma-body:"42dot Sans",sans-serif;--figma-display:"Chalkbuster","Courier New",monospace}
+.mi-world{--figma-width:7445;--figma-edge:10.75vw;--figma-ui:"Geologica",sans-serif;--figma-body:"42dot Sans",sans-serif;--figma-display:"Aeda Chalkduster","Chalkduster",cursive}
 .mi-world .figma-moving-page{overflow:visible;background:transparent;color:#f2f0ea;font-family:var(--figma-body)}
 .mi-world .figma-moving-page section{background-color:transparent}
 .mi-world .figma-moving-hero{display:grid;min-height:820px;place-items:center;padding:150px var(--figma-edge) 90px;text-align:center}
 .mi-world .figma-moving-hero__content{display:grid;justify-items:center}
 .mi-world .figma-moving-hero__content>p{margin:0 0 36px;color:#dedbd4;font:500 12px/1 var(--figma-ui);letter-spacing:.12em}
-.mi-world .figma-moving-hero h1{margin:0;color:#fff;font:500 clamp(58px,7.1vw,108px)/1.07 var(--figma-display);letter-spacing:2px;text-transform:uppercase;text-shadow:0 2px 20px #000}
+.mi-world .figma-moving-hero h1{margin:0;color:#fff;font-family:"Aeda Chalkduster","Chalkduster",cursive!important;font-size:clamp(58px,7.1vw,108px);font-style:normal!important;font-weight:400!important;line-height:1.07;letter-spacing:2px;text-transform:uppercase;text-shadow:0 2px 20px #000}
 .mi-world .figma-moving-hero__content>span{margin-top:18px;color:#e1ded7;font:400 clamp(14px,1.34vw,20px)/1.5 var(--figma-body)}
 .mi-world .figma-moving-hero__content>a{display:inline-flex;min-height:52px;align-items:center;margin-top:30px;background:#7d2023;padding:0 28px;color:#fff;font:500 clamp(13px,1.34vw,16px)/1 var(--figma-ui);letter-spacing:.02em}
 .mi-world .figma-showcase{display:grid;grid-template-columns:minmax(260px,.82fr) minmax(0,1.48fr);align-items:center;gap:clamp(70px,8.2vw,130px);padding:100px var(--figma-edge) 120px}
