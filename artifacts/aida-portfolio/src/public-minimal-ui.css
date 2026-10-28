@@ -436,6 +436,261 @@
     font-size: clamp(2.8rem, 12vw, 4rem);
   }
 }
+
+/* Curated two-stack archive: preserves intrinsic ratios without grid-row holes. */
+.mi-world .moving-archive {
+  padding-top: 110px;
+}
+
+.mi-world .moving-section-heading h2 {
+  font-size: clamp(3.4rem, 5vw, 4rem);
+}
+
+.mi-world .moving-section-heading p {
+  max-width: 550px;
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+}
+
+.mi-world .moving-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.mi-world .moving-grid__column {
+  display: grid;
+  gap: 48px;
+  align-content: start;
+}
+
+.mi-world .moving-grid .moving-card,
+.mi-world .moving-grid .moving-card--portrait,
+.mi-world .moving-grid .moving-card--landscape {
+  grid-column: auto;
+  width: 100%;
+}
+
+.mi-world .moving-grid .moving-card--portrait img {
+  width: auto;
+  max-width: 100%;
+  max-height: 640px;
+  margin-inline: auto;
+}
+
+.mi-world .moving-grid .moving-card--landscape img {
+  width: 100%;
+  max-height: 460px;
+}
+
+.mi-world .moving-card__meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 12px;
+  padding-top: 10px;
+  color: #aaa9a3;
+  font-family: var(--mi-display);
+  text-transform: uppercase;
+}
+
+.mi-world .moving-card__meta span {
+  grid-column: 1 / -1;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.mi-world .moving-card__meta strong {
+  color: #f1f0ea;
+  font-size: 0.95rem;
+}
+
+.mi-world .moving-card__meta small {
+  font-size: 0.75rem;
+}
+
+/* Controlled 65/35 Featured Project composition. */
+.mi-world .moving-featured {
+  width: min(1300px, 100%);
+  margin-top: 130px;
+  border-block: 1px solid rgba(255, 255, 255, 0.25);
+  border-inline: 0;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 28px 0;
+  clip-path: none;
+}
+
+.mi-world .moving-featured__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 65fr) minmax(260px, 35fr);
+  gap: clamp(35px, 6vw, 80px);
+  align-items: center;
+  margin-top: 18px;
+}
+
+.mi-world .moving-featured__image {
+  max-height: 600px;
+  margin: 0;
+  aspect-ratio: auto;
+}
+
+.mi-world .moving-featured__image img {
+  display: block;
+  width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+}
+
+.mi-world .moving-featured__info h3 {
+  margin: 0;
+  color: #f1f0ea;
+  font-family: var(--mi-display);
+  font-size: clamp(2.15rem, 3.2vw, 2.75rem);
+  text-transform: uppercase;
+}
+
+.mi-world .moving-featured__info > p {
+  margin: 0.5rem 0 2rem;
+  color: #c3c1ba;
+  font-size: 1.05rem;
+}
+
+.mi-world .moving-featured__info dl {
+  display: grid;
+  gap: 13px;
+  margin: 0 0 2rem;
+}
+
+.mi-world .moving-featured__info dl div {
+  display: grid;
+  gap: 3px;
+}
+
+.mi-world .moving-featured__info dt {
+  color: #777772;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mi-world .moving-featured__info dd {
+  margin: 0;
+  color: #f1f0ea;
+}
+
+.mi-world .moving-featured__info .moving-button {
+  margin-top: 0;
+}
+
+/* Compact, complete commission UI with the cat kept visible. */
+.mi-world .moving-commission-panel {
+  padding: 140px 0 105px;
+}
+
+.mi-world .moving-commission-panel__box {
+  min-height: 620px;
+  background-image:
+    linear-gradient(90deg, rgba(10, 10, 10, 0.82) 0%, rgba(10, 10, 10, 0.68) 40%, rgba(10, 10, 10, 0.22) 66%, rgba(10, 10, 10, 0.05) 100%),
+    url("/assets/moving-image/commission-cat.jpg");
+  padding: 48px clamp(38px, 4vw, 62px);
+}
+
+.mi-world .moving-commission-panel__box > header,
+.mi-world .moving-commission-panel__box > .enquiry-form {
+  width: min(52%, 640px);
+}
+
+.mi-world .moving-commission-panel h2 {
+  margin-bottom: 28px;
+  color: #f1f0ea;
+  font-size: clamp(2.375rem, 3.5vw, 3rem);
+}
+
+.mi-world .enquiry-form__grid--commission {
+  gap: 14px 16px;
+}
+
+.mi-world .enquiry-form--moving input:not([type="hidden"]),
+.mi-world .enquiry-form--moving select,
+.mi-world .enquiry-form--moving textarea {
+  min-height: 50px;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  background: rgba(20, 20, 20, 0.72) !important;
+  padding: 0 14px;
+  color: #f2f1ed !important;
+  font-size: 1rem !important;
+}
+
+.mi-world .enquiry-form--moving input::placeholder,
+.mi-world .enquiry-form--moving textarea::placeholder,
+.mi-world .enquiry-form--moving select:invalid {
+  color: rgba(255, 255, 255, 0.52) !important;
+}
+
+.mi-world .enquiry-form--moving .enquiry-form__wide {
+  grid-column: 1 / -1;
+}
+
+.mi-world .enquiry-form--moving .enquiry-form__message {
+  margin-top: 14px;
+}
+
+.mi-world .enquiry-form--moving textarea {
+  min-height: 145px;
+  padding-top: 14px;
+}
+
+.mi-world .enquiry-form--moving .button-primary {
+  min-height: 54px;
+  margin-top: 18px;
+  background: #eeede7;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 900px) {
+  .mi-world .moving-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  .mi-world .moving-featured__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mi-world .moving-featured__info {
+    max-width: 560px;
+  }
+
+  .mi-world .moving-commission-panel__box > header,
+  .mi-world .moving-commission-panel__box > .enquiry-form {
+    width: min(68%, 640px);
+  }
+}
+
+@media (max-width: 620px) {
+  .mi-world .moving-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 38px;
+  }
+
+  .mi-world .moving-grid__column {
+    display: contents;
+  }
+
+  .mi-world .moving-grid .moving-card--portrait img {
+    max-height: 620px;
+  }
+
+  .mi-world .moving-commission-panel__box > header,
+  .mi-world .moving-commission-panel__box > .enquiry-form {
+    width: 100%;
+  }
+
+  .mi-world .moving-commission-panel h2 {
+    font-size: clamp(1.75rem, 9vw, 2.125rem);
+  }
+}
 /* Art eras */
 [data-public-site] .home-eras {
   border-top: 1px solid rgba(18, 18, 18, 0.1);
