@@ -74,16 +74,19 @@ export default function EnquiryForm({
         }
       }}
     >
-      <div className="enquiry-form__grid">
-        <label>
-          {tr ? "Adınız" : "Name"}
-          <input name="name" required autoComplete="name" />
-        </label>
-        <label>
-          {tr ? "E-posta" : "Email"}
-          <input name="email" required type="email" autoComplete="email" />
-        </label>
-        {kind === "artwork" ? (
+      {kind === "moving_image" ? <>
+        <div className="enquiry-form__grid enquiry-form__grid--commission">
+          <label><span className="sr-only">{tr ? "Adınız" : "Name"}</span><input name="name" required autoComplete="name" aria-label={tr ? "Adınız" : "Name"} placeholder={tr ? "AD" : "NAME"} /></label>
+          <label><span className="sr-only">{tr ? "E-posta" : "Email"}</span><input name="email" required type="email" autoComplete="email" aria-label={tr ? "E-posta" : "Email"} placeholder={tr ? "E-POSTA" : "EMAIL"} /></label>
+          <label><span className="sr-only">{tr ? "Bütçe aralığı" : "Budget range"}</span><select name="budgetRange" aria-label={tr ? "Bütçe aralığı" : "Budget range"} defaultValue=""><option value="" disabled>{tr ? "BÜTÇE ARALIĞI" : "BUDGET RANGE"}</option><option>Not sure yet</option><option>Under $300</option><option>$300–$700</option><option>$700–$1,500</option><option>$1,500+</option><option>Let's discuss</option></select></label>
+          <input type="hidden" name="projectType" value="Other" />
+        </div>
+        <label className="enquiry-form__message"><span className="sr-only">{tr ? "Projeyi anlatın" : "About project"}</span><textarea name="message" rows={6} required aria-label={tr ? "Projeyi anlatın" : "About project"} placeholder={tr ? "PROJE HAKKINDA" : "ABOUT PROJECT"} /></label>
+      </> : <>
+        <div className="enquiry-form__grid">
+          <label>{tr ? "Adınız" : "Name"}<input name="name" required autoComplete="name" /></label>
+          <label>{tr ? "E-posta" : "Email"}<input name="email" required type="email" autoComplete="email" /></label>
+          {kind === "artwork" && (
           <>
             <label>
               {tr ? "Proje türü" : "Project type"}
@@ -101,33 +104,10 @@ export default function EnquiryForm({
               <input name="country" required autoComplete="country-name" />
             </label>
           </>
-        ) : (
-          <>
-            <label>
-              {tr ? "Hedef süre" : "Target duration"}
-              <input name="desiredDuration" placeholder={tr ? "örn. 30 saniye" : "e.g. 30 seconds"} />
-            </label>
-            <label>
-              {tr ? "Hedef tarih" : "Desired deadline"}
-              <input name="deadline" type="date" />
-            </label>
-            <label>
-              {tr ? "Bütçe aralığı" : "Budget range"}
-              <select name="budgetRange" defaultValue="Not sure yet"><option>Not sure yet</option><option>Under $300</option><option>$300–$700</option><option>$700–$1,500</option><option>$1,500+</option><option>Let's discuss</option></select>
-            </label>
-            <label className="enquiry-form__wide">
-              {tr ? "Referans / Drive / YouTube / Spotify bağlantısı" : "Reference / Drive / YouTube / Spotify link"}
-              <input name="referenceLinks" type="url" inputMode="url" placeholder="https://" />
-            </label>
-          </>
-        )}
-      </div>
-      <label className="enquiry-form__message">
-        {kind === "artwork"
-          ? "Message (optional)"
-          : tr ? "Projeyi anlatın" : "Tell me about the project"}
-        <textarea name="message" rows={6} required={kind === "moving_image"} />
-      </label>
+          )}
+        </div>
+        <label className="enquiry-form__message">Message (optional)<textarea name="message" rows={6} /></label>
+      </>}
       {error && (
         <p role="alert" className="enquiry-form__error">
           {error}
@@ -139,7 +119,7 @@ export default function EnquiryForm({
           ? "Sending…"
           : kind === "artwork"
             ? "Send artwork request"
-            : tr ? "PROJE TALEBİ GÖNDER →" : "SEND PROJECT ENQUIRY →"}
+            : tr ? "GÖNDER" : "SUBMIT"}
       </button>
     </form>
   );

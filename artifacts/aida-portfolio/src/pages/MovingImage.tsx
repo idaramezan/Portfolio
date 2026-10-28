@@ -91,6 +91,15 @@ function MediaLightbox({ project, onClose }: { project: MovingImageProject; onCl
   </div>;
 }
 
+function GallerySample({ src, index, tr }: { src: string; index: number; tr: boolean }) {
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("landscape");
+  return <article className={`moving-card moving-card--sample moving-card--${orientation}`}><div className="moving-card__frame"><div className="moving-card__media">
+    <img src={src} alt={`${tr ? "Animasyon çalışması" : "Animation study"} ${index + 1}`} loading="lazy" onLoad={(event) => setOrientation(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth ? "portrait" : "landscape")} />
+    <span className="moving-card__label">{normalizeMediaType("", src) === "gif" ? "GIF / LOOP" : "ANIMATION"}</span>
+    <a className="moving-card__open" href={src} target="_blank" rel="noreferrer" aria-label={`${tr ? "Animasyon çalışmasını aç" : "Open animation study"} ${index + 1}`} />
+  </div></div></article>;
+}
+
 export function MovingImage() {
   const settings = useShopSettings();
   const { locale } = useLocale();
@@ -122,17 +131,13 @@ export function MovingImage() {
             <div className="moving-card__title"><strong>{project.title}</strong><span>{project.year}</span></div>
           </div></div></article>;
         })}
-        {settings.animationGalleryMedia.map((src, index) => <article className="moving-card" key={src}><div className="moving-card__frame"><div className="moving-card__media">
-          <img src={src} alt={`${tr ? "Animasyon çalışması" : "Animation study"} ${index + 1}`} loading="lazy" />
-          <span className="moving-card__label">{normalizeMediaType("", src) === "gif" ? "GIF / LOOP" : "ANIMATION"}</span>
-          <a className="moving-card__open" href={src} target="_blank" rel="noreferrer" aria-label={`${tr ? "Animasyon çalışmasını aç" : "Open animation study"} ${index + 1}`} />
-        </div></div></article>)}
+        {settings.animationGalleryMedia.map((src, index) => <GallerySample src={src} index={index} tr={tr} key={src} />)}
       </div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
 
       {featured && <article className="moving-featured"><p className="moving-kicker">FEATURED PROJECT // {featured.title}</p><Link href={`/moving-image/${featured.slug}`} className="moving-featured__image">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}<span>VIEW PROJECT →</span></Link><div><strong>{featured.artistName || featured.client || featured.title}</strong><span>{featured.projectType} · {featured.year}</span></div></article>}
     </div></section>
 
-    <section id="commission" className="moving-commission-panel"><div className="mi-container moving-commission-panel__box"><header><p className="moving-kicker">{tr ? "FİKRİNİZİ HAREKETE GEÇİRİN" : "BRING YOUR IDEA TO LIFE"}</p><h2>{tr ? "BİR HAREKETLİ GÖRÜNTÜ SİPARİŞ EDİN" : "COMMISSION A MOVING IMAGE"}</h2><p>{tr ? "Animasyon, müzik görselleri, döngüler ve sipariş üzerine hareketli dünyalar." : "Animation, music visuals, loops and commissioned moving worlds."}</p></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
+    <section id="commission" className="moving-commission-panel"><div className="mi-container moving-commission-panel__box"><header><h2>{tr ? "KOMİSYON TALEBİ" : "REQUEST A COMMISSION"}</h2></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
     {lightbox && <MediaLightbox project={lightbox} onClose={() => setLightbox(null)} />}
   </main>;
 }

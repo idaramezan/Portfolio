@@ -1941,3 +1941,178 @@
     width: 100%;
   }
 }
+
+@font-face {
+  font-family: "Jersey 10";
+  src: url("/assets/fonts/jersey-10.ttf") format("truetype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* Alternating landscape/portrait animation archive. */
+.mi-world .moving-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  align-items: start;
+  gap: 28px;
+}
+
+.mi-world .moving-grid .moving-card {
+  grid-column: span 6;
+}
+
+.mi-world .moving-grid .moving-card--landscape {
+  grid-column: span 7;
+}
+
+.mi-world .moving-grid .moving-card--portrait {
+  grid-column: span 5;
+}
+
+.mi-world .moving-grid .moving-card--landscape .moving-card__media {
+  aspect-ratio: 16 / 9;
+}
+
+.mi-world .moving-grid .moving-card--portrait .moving-card__media {
+  aspect-ratio: 4 / 5;
+}
+
+.mi-world .moving-grid .moving-card--sample img {
+  object-fit: contain;
+  background: #050505;
+}
+
+/* Exact pixel-form treatment from the supplied commission reference. */
+.mi-world .moving-commission-panel__box {
+  min-height: 780px;
+  color: #090909;
+  background-image:
+    linear-gradient(rgba(188, 188, 188, 0.28), rgba(188, 188, 188, 0.28)),
+    url("/assets/moving-image/commission-cat.jpg");
+  background-position: center;
+  background-size: cover;
+  padding: 76px clamp(52px, 6vw, 92px);
+}
+
+.mi-world .moving-commission-panel__box > header,
+.mi-world .moving-commission-panel__box > .enquiry-form {
+  width: min(58%, 760px);
+}
+
+.mi-world .moving-commission-panel h2 {
+  margin: 0 0 58px;
+  color: #050505;
+  font-family: "Jersey 10", monospace;
+  font-size: clamp(4rem, 6vw, 6.3rem);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.82;
+}
+
+.mi-world .enquiry-form--moving,
+.mi-world .enquiry-form--moving input,
+.mi-world .enquiry-form--moving select,
+.mi-world .enquiry-form--moving textarea,
+.mi-world .enquiry-form--moving button {
+  font-family: "Jersey 10", monospace !important;
+}
+
+.mi-world .enquiry-form__grid--commission {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 34px;
+}
+
+.mi-world .enquiry-form__grid--commission > label:nth-of-type(3) {
+  grid-column: 1;
+}
+
+.mi-world .enquiry-form--moving input:not([type="hidden"]),
+.mi-world .enquiry-form--moving select,
+.mi-world .enquiry-form--moving textarea {
+  min-height: 66px;
+  border: 1px solid #444 !important;
+  border-radius: 0 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  padding: 0 25px;
+  color: #111 !important;
+  font-size: clamp(1.65rem, 2.2vw, 2.35rem) !important;
+  letter-spacing: 0 !important;
+  clip-path: none;
+}
+
+.mi-world .enquiry-form--moving input::placeholder,
+.mi-world .enquiry-form--moving textarea::placeholder {
+  color: #aaa !important;
+  opacity: 1;
+}
+
+.mi-world .enquiry-form--moving select:invalid {
+  color: #aaa !important;
+}
+
+.mi-world .enquiry-form--moving .enquiry-form__message {
+  display: block;
+  margin-top: 28px;
+}
+
+.mi-world .enquiry-form--moving textarea {
+  min-height: 150px;
+  padding-top: 24px;
+  resize: vertical;
+}
+
+.mi-world .enquiry-form--moving .button-primary {
+  width: 100%;
+  max-width: none;
+  min-height: 68px;
+  margin-top: 44px;
+  border: 0;
+  border-radius: 0;
+  background: #3d3d3d;
+  color: #fff;
+  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+  font-weight: 400;
+  clip-path: none;
+}
+
+@media (max-width: 900px) {
+  .mi-world .moving-grid .moving-card,
+  .mi-world .moving-grid .moving-card--landscape,
+  .mi-world .moving-grid .moving-card--portrait {
+    grid-column: 1 / -1;
+  }
+
+  .mi-world .moving-commission-panel__box {
+    min-height: 0;
+    background-position: 65% center;
+    padding: 42px 28px;
+  }
+
+  .mi-world .moving-commission-panel__box > header,
+  .mi-world .moving-commission-panel__box > .enquiry-form {
+    width: 100%;
+  }
+
+  .mi-world .moving-commission-panel h2 {
+    margin-bottom: 36px;
+    font-size: clamp(3.6rem, 15vw, 5.4rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .mi-world .enquiry-form__grid--commission {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .mi-world .enquiry-form__grid--commission > label:nth-of-type(3) {
+    grid-column: 1;
+  }
+
+  .mi-world .enquiry-form--moving input:not([type="hidden"]),
+  .mi-world .enquiry-form--moving select,
+  .mi-world .enquiry-form--moving textarea {
+    font-size: 1.75rem !important;
+  }
+}
