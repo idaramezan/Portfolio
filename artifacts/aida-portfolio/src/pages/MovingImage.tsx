@@ -50,7 +50,6 @@ function Background({ media, poster }: { media: string; poster: string }) {
 
 export function MovingImageLayout({ children }: { children: ReactNode }) {
   const settings = useShopSettings();
-  const { locale, setLocale } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   return <div className="mi-world">
     <Background media={settings.movingImagePage.heroBackgroundMedia} poster={settings.movingImagePage.heroFallbackImage} />
@@ -62,7 +61,6 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
         <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Animation</a>
         <a href="/moving-image#commission" onClick={() => setMenuOpen(false)}>Commission</a>
         <Link href="/">← Aeda Art</Link>
-        <button onClick={() => setLocale(locale === "tr" ? "en" : "tr")}>{locale === "tr" ? "EN" : "TR"}</button>
       </nav>
     </header>
     <div className="mi-content">{children}</div>
