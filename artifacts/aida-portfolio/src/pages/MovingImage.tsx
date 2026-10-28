@@ -1,6 +1,6 @@
 import { Link, useRoute } from "wouter";
 import { ArrowRight, Menu, Play, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useLocale } from "@/lib/locale";
@@ -91,24 +91,38 @@ function MediaLightbox({ project, onClose }: { project: MovingImageProject; onCl
   </div>;
 }
 
-function GallerySample({ src, index, tr, order }: { src: string; index: number; tr: boolean; order: number }) {
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("landscape");
-  return <article className={`moving-card moving-card--sample moving-card--${orientation}`} style={{ order }}><div className="moving-card__frame"><div className="moving-card__media">
-    <img src={src} alt={`${tr ? "Animasyon çalışması" : "Animation study"} ${index + 1}`} loading="lazy" onLoad={(event) => setOrientation(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth ? "portrait" : "landscape")} />
-    <a className="moving-card__open" href={src} target="_blank" rel="noreferrer" aria-label={`${tr ? "Animasyon çalışmasını aç" : "Open animation study"} ${index + 1}`} />
-  </div></div></article>;
+type ArchiveOrientation = "portrait" | "landscape" | "square";
+
+function getOrientation(width: number, height: number): ArchiveOrientation {
+  const ratio = height / width;
+  if (ratio >= 1.2) return "portrait";
+  if (1 / ratio >= 1.2) return "landscape";
+  return "square";
 }
 
-function ProjectArchiveCard({ project, onPlay, order }: { project: MovingImageProject; onPlay: () => void; order: number }) {
-  const cover = projectCover(project);
-  const mediaType = normalizeMediaType(project.mediaType || project.projectType, project.primaryMedia || project.videoUrl || cover);
-  const source = mediaType === "gif" ? (project.thumbnail || project.primaryMedia || project.previewUrl || project.stillImages?.[0] || cover) : cover;
-  return <article className="moving-card" style={{ order }}><div className="moving-card__frame"><div className="moving-card__media">
-    {source ? <img src={source} alt={project.title} /> : <div className="moving-card__placeholder" />}
-    {mediaType !== "gif" && <span className="moving-card__label">{project.category || project.mediaType || project.projectType}</span>}
-    {(mediaType === "video" || mediaType === "youtube") && <button className="moving-card__play" type="button" onClick={onPlay} aria-label={`Play ${project.title}`}>▶ PLAY</button>}
-    <Link className="moving-card__open" href={`/moving-image/${project.slug}`} aria-label={`View ${project.title}`} />
-  </div></div><div className="moving-card__meta"><span>{project.category || project.projectType}</span><strong>{project.title}</strong><small>{project.year}</small></div></article>;
+function ArchiveItem({ src, title, metadata, href, playable, onPlay }: { src: string; title: string; metadata: string; href: string; playable?: boolean; onPlay?: () => void }) {
+  const itemRef = useRef<HTMLElement>(null);
+  const [orientation, setOrientation] = useState<ArchiveOrientation>("square");
+  const [rowSpan, setRowSpan] = useState(1);
+
+  useLayoutEffect(() => {
+    const item = itemRef.current;
+    if (!item) return;
+    const measure = () => setRowSpan(Math.max(1, Math.ceil((item.getBoundingClientRect().height + 22) / 30)));
+    const observer = new ResizeObserver(measure);
+    observer.observe(item);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+
+  return <article ref={itemRef} className={`mi-archive-item mi-archive-item--${orientation}`} style={{ gridRowEnd: `span ${rowSpan}` }}>
+    <div className="mi-archive-item__media">
+      {src ? <img src={src} alt={title} loading="lazy" onLoad={(event) => setOrientation(getOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight))} /> : <div className="mi-archive-item__placeholder" />}
+      {playable && <button type="button" onClick={onPlay} aria-label={`Play ${title}`}><Play aria-hidden="true" /></button>}
+      <Link className="mi-archive-item__link" href={href} aria-label={`View ${title}`} />
+    </div>
+    <div className="mi-archive-item__caption"><strong>{title}</strong><span>{metadata}</span></div>
+  </article>;
 }
 
 export function MovingImage() {
@@ -128,17 +142,15 @@ export function MovingImage() {
 
     <section id="archive" className="moving-archive"><div className="mi-container">
       <header className="moving-section-heading"><h2>{tr ? "ARŞİVLER // GALERİ" : "THE ARCHIVES // GALLERY"}</h2><p>{tr ? "Döngüler, animasyonlar ve sipariş üzerine hareketli görüntü çalışmaları." : "A collection of loops, animation and commissioned moving-image work."}</p></header>
-      {(archiveProjects.length || settings.animationGalleryMedia.length) ? <div className="moving-grid">
-        {[0, 1].map((column) => <div className="moving-grid__column" key={column}>
-          {archiveProjects.filter((_, index) => index % 2 === column).map((project) => <ProjectArchiveCard project={project} onPlay={() => setLightbox(project)} order={archiveProjects.indexOf(project)} key={project.id} />)}
-          {settings.animationGalleryMedia.filter((_, index) => index % 2 === column).map((src) => { const index = settings.animationGalleryMedia.indexOf(src); return <GallerySample src={src} index={index} order={archiveProjects.length + index} tr={tr} key={src} />; })}
-        </div>)}
+      {(archiveProjects.length || settings.animationGalleryMedia.length) ? <div className="mi-archive-grid">
+        {archiveProjects.map((project) => { const cover = projectCover(project); const type = normalizeMediaType(project.mediaType || project.projectType, project.primaryMedia || project.videoUrl || cover); return <ArchiveItem key={project.id} src={type === "gif" ? (project.primaryMedia || project.thumbnail || cover) : cover} title={project.title} metadata={`${project.category || project.projectType}${project.year ? ` · ${project.year}` : ""}`} href={`/moving-image/${project.slug}`} playable={type === "video" || type === "youtube"} onPlay={() => setLightbox(project)} />; })}
+        {settings.animationGalleryMedia.map((src, index) => <ArchiveItem key={src} src={src} title={`${tr ? "Animasyon Çalışması" : "Animation Study"} ${String(index + 1).padStart(2, "0")}`} metadata={tr ? "Döngü animasyon" : "Loop animation"} href={src} />)}
       </div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
 
-      {featured && <article className="moving-featured"><p className="moving-kicker">FEATURED PROJECT</p><div className="moving-featured__grid"><Link href={`/moving-image/${featured.slug}`} className="moving-featured__image">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}</Link><div className="moving-featured__info"><h3>{featured.title}</h3>{(featured.artistName || featured.client) && <p>For {featured.artistName || featured.client}</p>}<dl><div><dt>Role</dt><dd>{featured.role || "Animated video / music visual"}</dd></div><div><dt>Year</dt><dd>{featured.year}</dd></div></dl><Link href={`/moving-image/${featured.slug}`} className="moving-button">VIEW PROJECT →</Link></div></div></article>}
+      {featured && <article className="mi-featured"><Link href={`/moving-image/${featured.slug}`} className="mi-featured__media">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}</Link><div className="mi-featured__info"><p className="moving-kicker">FEATURED PROJECT</p><h3>{featured.title}</h3>{(featured.artistName || featured.client) && <p className="mi-featured__artist">For {featured.artistName || featured.client}</p>}<p className="mi-featured__description">Animated music visual created for “{featured.title}”.</p><dl><div><dt>Role</dt><dd>{featured.role || "Animated music visual"}</dd></div><div><dt>Year</dt><dd>{featured.year}</dd></div></dl><Link href={`/moving-image/${featured.slug}`} className="mi-featured__button">VIEW PROJECT →</Link></div></article>}
     </div></section>
 
-    <section id="commission" className="moving-commission-panel"><div className="mi-container moving-commission-panel__box"><header><h2>{tr ? "KOMİSYON TALEBİ" : "REQUEST A COMMISSION"}</h2></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
+    <section id="commission" className="moving-commission-panel"><div className="mi-container mi-commission-card"><header><h2>{tr ? "KOMİSYON TALEBİ" : "REQUEST A COMMISSION"}</h2><p>{tr ? "Aklınızdaki projeyi anlatın; size e-posta ile dönüş yapacağım." : "Tell me about the project you have in mind and I’ll get back to you by email."}</p></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
     {lightbox && <MediaLightbox project={lightbox} onClose={() => setLightbox(null)} />}
   </main>;
 }

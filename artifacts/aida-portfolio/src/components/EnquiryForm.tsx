@@ -40,13 +40,6 @@ export default function EnquiryForm({
         const form = new FormData(event.currentTarget);
         const body = Object.fromEntries(form.entries());
         if (body.website) return;
-        if (kind === "moving_image" && (body.desiredDurationMinutes || body.desiredDurationSeconds)) {
-          const minutes = Number(body.desiredDurationMinutes || 0);
-          const seconds = Number(body.desiredDurationSeconds || 0);
-          body.desiredDuration = `${minutes} min ${seconds} sec`;
-          delete body.desiredDurationMinutes;
-          delete body.desiredDurationSeconds;
-        }
         try {
           const response = await fetch("/api/enquiries", {
             method: "POST",
@@ -78,12 +71,9 @@ export default function EnquiryForm({
         <div className="enquiry-form__grid enquiry-form__grid--commission">
           <label><span className="sr-only">{tr ? "Adınız" : "Name"}</span><input name="name" required autoComplete="name" aria-label={tr ? "Adınız" : "Name"} placeholder={tr ? "AD" : "NAME"} /></label>
           <label><span className="sr-only">{tr ? "E-posta" : "Email"}</span><input name="email" required type="email" autoComplete="email" aria-label={tr ? "E-posta" : "Email"} placeholder={tr ? "E-POSTA" : "EMAIL"} /></label>
-          <label><span className="sr-only">{tr ? "Proje türü" : "Project type"}</span><select name="projectType" required aria-label={tr ? "Proje türü" : "Project type"} defaultValue=""><option value="" disabled>{tr ? "PROJE TÜRÜ" : "PROJECT TYPE"}</option><option>Music video</option><option>Animated visual</option><option>Loop / GIF</option><option>Lyric visual</option><option>Short animation</option><option>Other</option></select></label>
           <label><span className="sr-only">{tr ? "Bütçe aralığı" : "Budget range"}</span><select name="budgetRange" aria-label={tr ? "Bütçe aralığı" : "Budget range"} defaultValue=""><option value="" disabled>{tr ? "BÜTÇE ARALIĞI" : "BUDGET RANGE"}</option><option>Not sure yet</option><option>Under $300</option><option>$300–$700</option><option>$700–$1,500</option><option>$1,500+</option><option>Let's discuss</option></select></label>
-          <label><span className="sr-only">{tr ? "Hedef süre" : "Target duration"}</span><input name="desiredDuration" aria-label={tr ? "Hedef süre" : "Target duration"} placeholder={tr ? "HEDEF SÜRE" : "TARGET DURATION"} /></label>
-          <label><span className="sr-only">{tr ? "Hedef tarih" : "Desired deadline"}</span><input name="deadline" type="text" aria-label={tr ? "Hedef tarih" : "Desired deadline"} placeholder={tr ? "HEDEF TARİH" : "DESIRED DEADLINE"} /></label>
-          <label className="enquiry-form__wide"><span className="sr-only">{tr ? "Referans bağlantısı" : "Reference link"}</span><input name="referenceLinks" type="url" inputMode="url" aria-label={tr ? "Referans bağlantısı" : "Reference link"} placeholder={tr ? "REFERANS / YOUTUBE / SPOTIFY / DRIVE" : "REFERENCE / YOUTUBE / SPOTIFY / DRIVE"} /></label>
         </div>
+        <input type="hidden" name="projectType" value="Other" />
         <label className="enquiry-form__message"><span className="sr-only">{tr ? "Projeyi anlatın" : "About project"}</span><textarea name="message" rows={6} required aria-label={tr ? "Projeyi anlatın" : "About project"} placeholder={tr ? "PROJE HAKKINDA" : "ABOUT PROJECT"} /></label>
       </> : <>
         <div className="enquiry-form__grid">
