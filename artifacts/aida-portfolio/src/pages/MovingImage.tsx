@@ -54,12 +54,12 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
   return <div className="mi-world">
     <Background media={settings.movingImagePage.heroBackgroundMedia} poster={settings.movingImagePage.heroFallbackImage} />
     <header className="mi-header">
-      <Link href="/moving-image" className="mi-wordmark">AEDA</Link>
+      <Link href="/animation" className="mi-wordmark">AEDA</Link>
       <button className="mi-menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Toggle moving image navigation">{menuOpen ? <X /> : <Menu />}</button>
       <nav className={menuOpen ? "is-open" : ""} aria-label="Moving Image">
-        <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Work</a>
-        <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Animation</a>
-        <a href="/moving-image#commission" onClick={() => setMenuOpen(false)}>Commission</a>
+        <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Work</a>
+        <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Animation</a>
+        <a href="/animation#commission" onClick={() => setMenuOpen(false)}>Commission</a>
         <Link href="/">← Aeda Art</Link>
       </nav>
     </header>
@@ -149,7 +149,7 @@ export function MovingImage() {
 
     <section id="archive" className="figma-showcase figma-showcase--animation"><div className="figma-showcase__copy"><h2>ANIMATION</h2><p>Aeda’s animations explore the depth of human emotions through dark, minimalist, black-and-white visuals. By stripping each idea down to its simplest form, they reveal the complexity beneath the surface. Because sometimes, the simplest things have the most to say, and the deepest feelings emerge when nothing stands in their way.</p></div><div className="figma-showcase__frames">{animationMedia.map((src, index) => <MovingFrame src={src} alt={`Animation study ${index + 1}`} key={src} />)}</div></section>
 
-    {featured && <section className="figma-featured">{featuredMediaType === "video" ? <video className="figma-featured__media" src={featuredSource} autoPlay muted loop playsInline /> : <img className="figma-featured__media" src={featuredSource} alt="" />}<div className="figma-featured__shade" /><div className="figma-featured__copy"><h2>{featured.title}</h2><h3>BY {(featured.artistName || featured.client || "ALEX SOUCY").toUpperCase()}</h3><p>Role: {featured.role || "Animator and Illustrator"}</p><p>Year: {featured.year || "2026"}</p><Link href={`/moving-image/${featured.slug}`}>Project Details</Link></div></section>}
+    {featured && <section className="figma-featured">{featuredMediaType === "video" ? <video className="figma-featured__media" src={featuredSource} autoPlay muted loop playsInline /> : <img className="figma-featured__media" src={featuredSource} alt="" />}<div className="figma-featured__shade" /><div className="figma-featured__copy"><h2>{featured.title}</h2><h3>BY {(featured.artistName || featured.client || "ALEX SOUCY").toUpperCase()}</h3><p>Role: {featured.role || "Animator and Illustrator"}</p><p>Year: {featured.year || "2026"}</p><Link href={`/animation/${featured.slug}`}>Project Details</Link></div></section>}
 
     <section className="figma-showcase figma-showcase--illustration"><div className="figma-showcase__frames">{illustrations.map((src, index) => <MovingFrame src={src} alt={`Illustration study ${index + 1}`} key={`${src}-${index}`} />)}</div><div className="figma-showcase__copy"><h2>ILLUSTRATIONS</h2><p>Aeda creates illustrations inspired by your pets, portraits, and the special memories you hold close. Each piece is shaped around the story, atmosphere, and feeling you want to capture. More than just an illustration, every artwork holds a story of its own, one that is uniquely yours.</p></div></section>
 
@@ -159,15 +159,15 @@ export function MovingImage() {
 }
 
 export function MovingImageDetail() {
-  const [, params] = useRoute("/moving-image/:slug"); const settings = useShopSettings(); const { locale } = useLocale();
+  const [, params] = useRoute("/animation/:slug"); const settings = useShopSettings(); const { locale } = useLocale();
   const project = settings.movingImageProjects.find((p) => p.slug === params?.slug && p.status === "published");
   usePageMeta(project?.seoTitle || `${project?.title || "Moving Image"} | Aeda Art`, project?.seoDescription || project?.shortDescription || "");
-  if (!project) return <main className="moving-page moving-detail"><div className="moving-shell moving-empty"><h1>Project not found.</h1><Link href="/moving-image">Moving Image</Link></div></main>;
+  if (!project) return <main className="moving-page moving-detail"><div className="moving-shell moving-empty"><h1>Project not found.</h1><Link href="/animation">Animation</Link></div></main>;
   const embed = youtubeEmbed(project.videoUrl); const next = settings.movingImageProjects.filter((p) => p.status === "published" && p.id !== project.id).sort((a,b) => a.displayOrder-b.displayOrder)[0];
   return <main className="moving-page moving-detail"><header className="moving-detail__hero moving-shell"><p className="moving-kicker">{project.category || project.projectType} · {project.year}</p><h1>{project.title}</h1><p>{project.shortDescription}</p></header>
     <section className="moving-detail__film moving-shell">{embed ? <iframe src={embed} title={project.title} allow="encrypted-media; picture-in-picture" allowFullScreen /> : project.primaryMedia ? <video src={project.primaryMedia} controls poster={project.thumbnail} /> : project.thumbnail && <img src={project.thumbnail} alt={project.title} />}</section>
     <section className="moving-detail__story moving-shell"><p className="moving-kicker">{locale === "tr" ? "PROJE" : "THE PROJECT"}</p><div><p>{project.story}</p><dl><div><dt>Role</dt><dd>{project.role}</dd></div>{(project.artistName || project.client) && <div><dt>Client / Artist</dt><dd>{project.artistName || project.client}</dd></div>}</dl>{project.credits && <small>{project.credits}</small>}</div></section>
     {project.stillImages.length > 0 && <section className="moving-detail__stills moving-shell">{project.stillImages.map((src,i) => <img src={src} alt={`${project.title} still ${i+1}`} loading="lazy" key={src} />)}</section>}
-    {next && <Link className="moving-next moving-shell" href={`/moving-image/${next.slug}`}><span>NEXT PROJECT</span><strong>{next.title}</strong><ArrowRight /></Link>}
+    {next && <Link className="moving-next moving-shell" href={`/animation/${next.slug}`}><span>NEXT PROJECT</span><strong>{next.title}</strong><ArrowRight /></Link>}
   </main>;
 }

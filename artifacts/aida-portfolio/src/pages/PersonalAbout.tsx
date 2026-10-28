@@ -74,7 +74,7 @@ export default function PersonalAbout() {
             time. I create personal visual experiments as well as commissioned
             work for musicians.
           </p>
-          <Link href="/moving-image" className="portfolio-text-link">
+          <Link href="/animation" className="portfolio-text-link">
             Explore Animation <ArrowRight />
           </Link>
         </div>

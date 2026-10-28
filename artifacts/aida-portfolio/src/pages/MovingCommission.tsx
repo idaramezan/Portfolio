@@ -23,7 +23,7 @@ export default function MovingCommission() {
           subjectName="Animation commission"
           defaultOpen
           onOpenChange={(open) => {
-            if (!open) navigate("/moving-image");
+            if (!open) navigate("/animation");
           }}
           trigger={
             <button type="button" className="button-primary">

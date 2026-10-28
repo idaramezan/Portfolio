@@ -15,7 +15,7 @@ import {
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const isMovingImage = location.startsWith("/moving-image") || location === "/commissions/moving-image";
+  const isMovingImage = location.startsWith("/animation") || location === "/commissions/moving-image";
   const previousPathRef = useRef<string | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLElement>(null);
@@ -419,7 +419,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 ? "Sınırlı Edisyon Baskılar"
                 : "Limited Edition Prints",
             ],
-            ["/moving-image", locale === "tr" ? "Animasyon" : "Animation"],
+            ["/animation", locale === "tr" ? "Animasyon" : "Animation"],
             ["/about", locale === "tr" ? "Aida Hakkında" : "About"],
           ].map(([href, label]) => (
             <div className="mobile-menu__row" key={href}>
@@ -519,7 +519,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Link href="/shop?category=prints">
                   {locale === "tr" ? "Baskılar" : "Prints"}
                 </Link>
-                <Link href="/moving-image">
+                <Link href="/animation">
                   {locale === "tr" ? "Animasyon" : "Animation"}
                 </Link>
                 <Link href="/about">

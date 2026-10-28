@@ -64,12 +64,14 @@ function Router() {
       <Route path="/admin/*" component={AdminRoute} />
       <Route path="/admin" component={AdminRoute} />
       <Route path="/links" component={Links} />
-      <Route path="/moving-image/:slug">
+      <Route path="/animation/:slug">
         <MovingImageLayout><MovingImageDetail /></MovingImageLayout>
       </Route>
-      <Route path="/moving-image">
+      <Route path="/animation">
         <MovingImageLayout><MovingImage /></MovingImageLayout>
       </Route>
+      <Route path="/moving-image/:slug">{(params) => <RedirectTo to={`/animation/${params.slug}`} />}</Route>
+      <Route path="/moving-image"><RedirectTo to="/animation" /></Route>
       <Route>
         <Shell>
           <Switch>

@@ -709,7 +709,7 @@ export function getDefaultSettings(): ShopSettings {
         primaryCtaText: "Explore Paintings",
         primaryCtaUrl: "/paintings",
         secondaryCtaText: "Watch Animation",
-        secondaryCtaUrl: "/moving-image",
+        secondaryCtaUrl: "/animation",
       },
       paintingPath: {
         image: "",
