@@ -1,6 +1,6 @@
 import { Link, useRoute } from "wouter";
-import { ArrowDown, ArrowRight, Play, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Menu, Play, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useLocale } from "@/lib/locale";
@@ -33,6 +33,32 @@ function Background({ media, poster }: { media: string; poster: string }) {
   </div>;
 }
 
+export function MovingImageLayout({ children }: { children: ReactNode }) {
+  const settings = useShopSettings();
+  const { locale, setLocale } = useLocale();
+  const [menuOpen, setMenuOpen] = useState(false);
+  return <div className="mi-world">
+    <Background media={settings.movingImagePage.heroBackgroundMedia} poster={settings.movingImagePage.heroFallbackImage} />
+    <header className="mi-header">
+      <Link href="/moving-image" className="mi-wordmark">AEDA <span>/ MOVING IMAGE</span></Link>
+      <button className="mi-menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label="Toggle moving image navigation">{menuOpen ? <X /> : <Menu />}</button>
+      <nav className={menuOpen ? "is-open" : ""} aria-label="Moving Image">
+        <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Work</a>
+        <a href="/moving-image#archive" onClick={() => setMenuOpen(false)}>Animation</a>
+        <a href="/moving-image#commission" onClick={() => setMenuOpen(false)}>Commission</a>
+        <Link href="/about">About</Link>
+        <Link href="/">← Aeda Art</Link>
+        <button onClick={() => setLocale(locale === "tr" ? "en" : "tr")}>{locale === "tr" ? "EN" : "TR"}</button>
+      </nav>
+    </header>
+    <div className="mi-content">{children}</div>
+    <footer className="mi-footer">
+      <div className="mi-container mi-footer__grid"><div><strong>AEDA</strong><span>MOVING IMAGE</span></div><nav><b>EXPLORE</b><Link href="/paintings">Paintings</Link><Link href="/shop">Shop</Link><Link href="/about">About</Link><Link href="/">Main site</Link></nav><nav><b>FOLLOW</b>{settings.siteLinks.instagramUrl && <a href={settings.siteLinks.instagramUrl}>Instagram</a>}{settings.siteLinks.tiktokUrl && <a href={settings.siteLinks.tiktokUrl}>TikTok</a>}{settings.siteLinks.youtubeUrl && <a href={settings.siteLinks.youtubeUrl}>YouTube</a>}</nav></div>
+      <div className="mi-container mi-footer__bottom"><span>© {new Date().getFullYear()} Aeda Art</span><a href="#top">Back to top ↑</a></div>
+    </footer>
+  </div>;
+}
+
 function MediaLightbox({ project, onClose }: { project: MovingImageProject; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const embed = youtubeEmbed(project.videoUrl);
@@ -54,36 +80,33 @@ export function MovingImage() {
   const settings = useShopSettings();
   const { locale } = useLocale();
   const tr = locale === "tr";
-  const page = settings.movingImagePage;
   const projects = useMemo(() => [...settings.movingImageProjects].filter((p) => p.status === "published").sort((a,b) => a.displayOrder - b.displayOrder), [settings.movingImageProjects]);
   const featured = projects.find((p) => p.featured) || projects[0];
   const [lightbox, setLightbox] = useState<MovingImageProject | null>(null);
   usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.");
-  return <main className="moving-page">
-    <Background media={page.heroBackgroundMedia} poster={page.heroFallbackImage} />
-    <section className="moving-hero" aria-labelledby="moving-title"><div className="moving-shell moving-hero__content">
-      <p className="moving-kicker">{page.heroEyebrow}</p><h1 id="moving-title">{page.heroTitle}</h1><p className="moving-hero__copy">{page.heroDescription}</p>
-      <div className="moving-hero__actions"><a href="#selected-work" className="moving-button">{page.primaryCtaLabel} <ArrowDown /></a><a href="#commission" className="moving-text-link">{tr ? "Bir proje sipariş et" : "Commission a project"}</a></div>
-    </div><p className="moving-hero__index" aria-hidden="true">01 / 04</p></section>
-
-    <section id="selected-work" className="moving-archive"><div className="moving-shell">
-      <header className="moving-section-heading"><p className="moving-kicker">{tr ? "SEÇİLMİŞ İŞLER" : "SELECTED WORK"}</p><h2>{page.archiveHeading}</h2><p>{tr ? "Animasyon, döngü ve müzik için yaratılmış görsel dünyalar." : "Animation, loops and visual worlds made for music."}</p></header>
-      {projects.length ? <div className="moving-grid">{projects.map((project, index) => {
-        const cover = projectCover(project); const playable = Boolean(youtubeEmbed(project.videoUrl) || project.primaryMedia || project.previewUrl);
-        return <article className={`moving-card moving-card--${index % 5}`} key={project.id}><div className="moving-card__media">
-          {cover ? <img src={cover} alt={project.title} loading={index > 1 ? "lazy" : "eager"} /> : <div className="moving-card__placeholder" />}
-          <div className="moving-card__overlay">{playable && <button type="button" onClick={() => setLightbox(project)} aria-label={`Play ${project.title}`}><Play fill="currentColor" /></button>}<Link href={`/moving-image/${project.slug}`}>{tr ? "Projeyi gör" : "View project"} <ArrowRight /></Link></div>
-        </div><div className="moving-card__caption"><p>{project.category || project.projectType} · {project.year}</p><h3><Link href={`/moving-image/${project.slug}`}>{project.title}</Link></h3>{(project.artistName || project.client) && <span>{project.artistName || project.client}</span>}</div></article>;
-      })}</div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
+  return <main id="top" className="moving-page">
+    <section className="moving-hero" aria-labelledby="moving-title"><div className="mi-container moving-hero__content">
+      <p className="moving-kicker">AEDA / MOVING IMAGE</p><h1 id="moving-title">{tr ? <>AIDA'DAN ANİMASYON<br />&amp; HAREKETLİ GÖRÜNTÜ</> : <>ARTWORK &amp; ANIMATION<br />BY AIDA</>}</h1><p className="moving-hero__copy">{tr ? "Animasyon, müzik görselleri ve elle yapılmış hareketli dünyalar." : "Animation, music visuals and hand-made moving worlds."}</p>
+      <a href="#archive" className="moving-button">{tr ? "İŞLERİ GÖR" : "VIEW WORK"} <ArrowRight /></a>
     </div></section>
 
-    {featured && <section className="moving-featured"><div className="moving-shell moving-featured__grid"><div className="moving-featured__media">
-      {projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}{(youtubeEmbed(featured.videoUrl) || featured.primaryMedia) && <button onClick={() => setLightbox(featured)} aria-label={`Play ${featured.title}`}><Play fill="currentColor" /></button>}
-    </div><div className="moving-featured__text"><p className="moving-kicker">{tr ? "ÖNE ÇIKAN PROJE" : "FEATURED PROJECT"}</p><h2>{featured.title}</h2>{(featured.artistName || featured.client) && <p className="moving-featured__artist">{tr ? "Sanatçı" : "For"} {featured.artistName || featured.client}</p>}
-      <dl><div><dt>{tr ? "Rol" : "Role"}</dt><dd>{featured.role}</dd></div><div><dt>{tr ? "Yıl" : "Year"}</dt><dd>{featured.year}</dd></div></dl><p>{featured.shortDescription}</p><Link href={`/moving-image/${featured.slug}`} className="moving-button">{tr ? "Projeyi gör" : "View project"} <ArrowRight /></Link>
-    </div></div></section>}
+    <section id="archive" className="moving-archive"><div className="mi-container">
+      <header className="moving-section-heading"><h2>{tr ? "ARŞİVLER // GALERİ" : "THE ARCHIVES // GALLERY"}</h2><p>{tr ? "Döngüler, animasyonlar ve sipariş üzerine hareketli görüntü çalışmaları." : "A collection of loops, animation and commissioned moving-image work."}</p></header>
+      {projects.length ? <div className="moving-grid">{projects.map((project, index) => {
+        const cover = projectCover(project); const playable = Boolean(youtubeEmbed(project.videoUrl) || project.primaryMedia || project.previewUrl);
+        return <article className="moving-card" key={project.id}><div className="moving-card__frame"><div className="moving-card__media">
+          {cover ? <img src={cover} alt={project.title} loading={index > 2 ? "lazy" : "eager"} /> : <div className="moving-card__placeholder" />}
+          <span className="moving-card__label">{project.category || project.mediaType || project.projectType}</span>
+          {playable && <button className="moving-card__play" type="button" onClick={() => setLightbox(project)} aria-label={`Play ${project.title}`}>▶ PLAY</button>}
+          <Link className="moving-card__open" href={`/moving-image/${project.slug}`} aria-label={`View ${project.title}`} />
+          <div className="moving-card__title"><strong>{project.title}</strong><span>{project.year}</span></div>
+        </div></div></article>;
+      })}</div> : <p className="moving-empty">{tr ? "Yeni hareketli görüntü çalışmaları yakında burada olacak." : "New moving-image work is being prepared for this space."}</p>}
 
-    <section id="commission" className="moving-commission-panel"><div className="moving-shell moving-commission-panel__grid"><div><p className="moving-kicker">{tr ? "BİRLİKTE ÇALIŞALIM" : "WORK WITH ME"}</p><h2>{tr ? "Bir hareketli görüntü sipariş edin." : page.commissionHeading}</h2><p>{tr ? "Müzik, hafıza, karakterler, bir hikâyenin parçaları — ne yaptığınızı ve nasıl hissettirmesini istediğinizi anlatın." : page.commissionDescription}</p></div><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
+      {featured && <article className="moving-featured"><p className="moving-kicker">FEATURED PROJECT // {featured.title}</p><Link href={`/moving-image/${featured.slug}`} className="moving-featured__image">{projectCover(featured) && <img src={projectCover(featured)} alt={featured.title} loading="lazy" />}<span>VIEW PROJECT →</span></Link><div><strong>{featured.artistName || featured.client || featured.title}</strong><span>{featured.projectType} · {featured.year}</span></div></article>}
+    </div></section>
+
+    <section id="commission" className="moving-commission-panel"><div className="mi-container moving-commission-panel__box"><header><p className="moving-kicker">{tr ? "FİKRİNİZİ HAREKETE GEÇİRİN" : "BRING YOUR IDEA TO LIFE"}</p><h2>{tr ? "BİR HAREKETLİ GÖRÜNTÜ SİPARİŞ EDİN" : "COMMISSION A MOVING IMAGE"}</h2><p>{tr ? "Animasyon, müzik görselleri, döngüler ve sipariş üzerine hareketli dünyalar." : "Animation, music visuals, loops and commissioned moving worlds."}</p></header><EnquiryForm kind="moving_image" subjectName="Moving Image commission" variant="moving" /></div></section>
     {lightbox && <MediaLightbox project={lightbox} onClose={() => setLightbox(null)} />}
   </main>;
 }

@@ -27,7 +27,7 @@ import UnifiedShop from "@/pages/UnifiedShop";
 import FourthwallProductDetail from "@/pages/FourthwallProductDetail";
 import AceoDetail from "@/pages/AceoDetail";
 import { PaintingsIndex } from "@/pages/Collections";
-import { MovingImage, MovingImageDetail } from "@/pages/MovingImage";
+import { MovingImage, MovingImageDetail, MovingImageLayout } from "@/pages/MovingImage";
 import MovingCommission from "@/pages/MovingCommission";
 import Faq from "@/pages/Faq";
 import { Privacy, Terms } from "@/pages/Legal";
@@ -64,6 +64,12 @@ function Router() {
       <Route path="/admin/*" component={AdminRoute} />
       <Route path="/admin" component={AdminRoute} />
       <Route path="/links" component={Links} />
+      <Route path="/moving-image/:slug">
+        <MovingImageLayout><MovingImageDetail /></MovingImageLayout>
+      </Route>
+      <Route path="/moving-image">
+        <MovingImageLayout><MovingImage /></MovingImageLayout>
+      </Route>
       <Route>
         <Shell>
           <Switch>
@@ -84,8 +90,6 @@ function Router() {
             <Route path="/artworks/:slug">
               {() => <OriginalDetail market="international" />}
             </Route>
-            <Route path="/moving-image/:slug" component={MovingImageDetail} />
-            <Route path="/moving-image" component={MovingImage} />
             <Route
               path="/commissions/moving-image"
               component={MovingCommission}

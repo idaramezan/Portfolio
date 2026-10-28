@@ -40,7 +40,7 @@ export default function EnquiryForm({
         const form = new FormData(event.currentTarget);
         const body = Object.fromEntries(form.entries());
         if (body.website) return;
-        if (kind === "moving_image") {
+        if (kind === "moving_image" && (body.desiredDurationMinutes || body.desiredDurationSeconds)) {
           const minutes = Number(body.desiredDurationMinutes || 0);
           const seconds = Number(body.desiredDurationSeconds || 0);
           body.desiredDuration = `${minutes} min ${seconds} sec`;
@@ -103,43 +103,10 @@ export default function EnquiryForm({
           </>
         ) : (
           <>
-            <fieldset className="enquiry-form__duration">
-              <legend>Desired duration</legend>
-              <div>
-                <label>
-                  <span className="sr-only">Minutes</span>
-                  <span className="form-field-with-suffix">
-                    <input
-                      name="desiredDurationMinutes"
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max="999"
-                      step="1"
-                      defaultValue="0"
-                      aria-label="Desired duration minutes"
-                    />
-                    <span>min</span>
-                  </span>
-                </label>
-                <label>
-                  <span className="sr-only">Seconds</span>
-                  <span className="form-field-with-suffix">
-                    <input
-                      name="desiredDurationSeconds"
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      max="59"
-                      step="1"
-                      defaultValue="0"
-                      aria-label="Desired duration seconds"
-                    />
-                    <span>sec</span>
-                  </span>
-                </label>
-              </div>
-            </fieldset>
+            <label>
+              {tr ? "Hedef süre" : "Target duration"}
+              <input name="desiredDuration" placeholder={tr ? "örn. 30 saniye" : "e.g. 30 seconds"} />
+            </label>
             <label>
               {tr ? "Hedef tarih" : "Desired deadline"}
               <input name="deadline" type="date" />
