@@ -1,2 +1,15 @@
 User-agent: *
 Allow: /
+
+# Meta crawler used for AI model training and product indexing.
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+# Meta crawler used to build the index behind Meta AI search results.
+User-agent: Meta-WebIndexer
+Disallow: /
+
+# User-triggered Meta AI fetcher. Meta documents that this crawler may bypass
+# robots.txt, so the Express origin also rejects its documented user agent.
+User-agent: Meta-ExternalFetcher
+Disallow: /

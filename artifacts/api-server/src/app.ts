@@ -5,9 +5,14 @@ import path from "path";
 import fs from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { isBlockedMetaCrawler } from "./lib/meta-crawlers";
 
 const app: Express = express();
 
+// Meta documents these separately from facebookexternalhit, which is used for
+// social link previews and intentionally remains allowed. User-Agent matching
+// is enforceable at this Railway origin, but is not cryptographic identity
+// verification because Meta does not publish verifiable IP ranges here.
 app.use(
   pinoHttp({
     logger,
@@ -24,6 +29,16 @@ app.use(
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+app.use((request, response, next) => {
+  // Keep the policy itself public. Do not block facebookexternalhit, FacebookBot,
+  // or browser traffic, preserving Instagram/Facebook sharing and OG previews.
+  if (request.path !== "/robots.txt" && isBlockedMetaCrawler(request.get("user-agent") || "")) {
+    response.set("Cache-Control", "no-store");
+    response.set("Vary", "User-Agent");
+    return response.status(403).type("text/plain").send("Automated AI crawling is not permitted.");
+  }
+  return next();
+});
 
 app.get("/studio-letter", (request, response) => {
   const queryIndex = request.originalUrl.indexOf("?");
