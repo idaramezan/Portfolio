@@ -2584,6 +2584,7 @@
 @media(max-width:800px){.mi-world .moving-commission-panel{padding:100px 0}.mi-world .moving-commission-panel__box{min-height:0;background-image:linear-gradient(90deg,rgba(4,4,4,.9),rgba(4,4,4,.62)),url('/assets/moving-image/commission-cat.jpg');background-position:65% center;padding:32px 28px}.mi-world .moving-commission-panel__box>header,.mi-world .moving-commission-panel__box>.enquiry-form{width:100%}}
 @media(max-width:560px){.mi-world .moving-commission-panel__box .enquiry-form__grid--commission{grid-template-columns:1fr;gap:18px}.mi-world .moving-commission-panel__box .enquiry-form__grid--commission>label:nth-of-type(3){grid-column:1}.mi-world .moving-commission-panel__box .enquiry-form--moving .button-primary{width:100%;min-width:0}}
 
+@font-face{font-family:"Chalkduster";src:url('/assets/fonts/Chalkduster.ttf') format('truetype');font-display:swap;font-style:normal;font-weight:400 700}
 /* Figma-faithful Moving Image composition (7445px source coordinate system). */
 .mi-world{--figma-width:7445;--figma-edge:10.75vw;--figma-ui:"Geologica",sans-serif;--figma-body:"42dot Sans",sans-serif;--figma-display:"Chalkbuster","Courier New",monospace}
 .mi-world .figma-moving-page{overflow:visible;background:transparent;color:#f2f0ea;font-family:var(--figma-body)}
