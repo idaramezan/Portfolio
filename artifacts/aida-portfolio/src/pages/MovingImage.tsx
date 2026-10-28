@@ -95,7 +95,6 @@ function GallerySample({ src, index, tr }: { src: string; index: number; tr: boo
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("landscape");
   return <article className={`moving-card moving-card--sample moving-card--${orientation}`}><div className="moving-card__frame"><div className="moving-card__media">
     <img src={src} alt={`${tr ? "Animasyon çalışması" : "Animation study"} ${index + 1}`} loading="lazy" onLoad={(event) => setOrientation(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth ? "portrait" : "landscape")} />
-    <span className="moving-card__label">{normalizeMediaType("", src) === "gif" ? "GIF / LOOP" : "ANIMATION"}</span>
     <a className="moving-card__open" href={src} target="_blank" rel="noreferrer" aria-label={`${tr ? "Animasyon çalışmasını aç" : "Open animation study"} ${index + 1}`} />
   </div></div></article>;
 }
@@ -125,7 +124,7 @@ export function MovingImage() {
           const playable = mediaType === "video" || mediaType === "youtube";
           return <article className="moving-card" key={project.id}><div className="moving-card__frame"><div className="moving-card__media">
             {gifSource ? <img src={gifSource} alt={project.title} loading={index > 2 ? "lazy" : "eager"} /> : <div className="moving-card__placeholder" />}
-            <span className="moving-card__label">{mediaType === "gif" ? "GIF / LOOP" : project.category || project.mediaType || project.projectType}</span>
+            {mediaType !== "gif" && <span className="moving-card__label">{project.category || project.mediaType || project.projectType}</span>}
             {playable && <button className="moving-card__play" type="button" onClick={() => setLightbox(project)} aria-label={`Play ${project.title}`}>▶ PLAY</button>}
             <Link className="moving-card__open" href={`/moving-image/${project.slug}`} aria-label={`View ${project.title}`} />
             <div className="moving-card__title"><strong>{project.title}</strong><span>{project.year}</span></div>
