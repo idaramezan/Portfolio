@@ -6,7 +6,7 @@ import CartDrawer from "@/components/CartDrawer";
 import ShippingProgressTracker from "@/components/ShippingProgressTracker";
 import { getCartCount, loadShopSettings } from "@/lib/store";
 import { getFourthwallCartCount } from "@/lib/fourthwall-cart";
-import { useLocale } from "@/lib/locale";
+import { SUPPORT_AIDA_URL, supportAidaLabel, useLocale } from "@/lib/locale";
 import { trackAnalytics } from "@/lib/analytics";
 import {
   DestinationControl,
@@ -438,6 +438,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
           ))}
+          <div className="mobile-menu__row">
+            <a
+              href={SUPPORT_AIDA_URL}
+              onClick={() => closeMobileMenu()}
+              className="mobile-menu__link"
+            >
+              <span>{supportAidaLabel(locale)}</span>
+              <ArrowRight aria-hidden="true" />
+            </a>
+          </div>
         </div>
         <div className="mobile-menu__destination">
           <p className="mobile-menu__utility-label">
@@ -525,6 +535,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Link href="/about">
                   {locale === "tr" ? "Hakkında" : "About"}
                 </Link>
+                <a href={SUPPORT_AIDA_URL}>{supportAidaLabel(locale)}</a>
               </div>
             </nav>
 

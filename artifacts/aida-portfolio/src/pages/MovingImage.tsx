@@ -3,7 +3,7 @@ import { ArrowRight, Menu, Play, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useShopSettings } from "@/hooks/use-shop-settings";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { useLocale } from "@/lib/locale";
+import { SUPPORT_AIDA_URL, supportAidaLabel, useLocale } from "@/lib/locale";
 import EnquiryForm from "@/components/EnquiryForm";
 import type { MovingImageProject } from "@/lib/store";
 
@@ -50,6 +50,7 @@ function Background({ media, poster }: { media: string; poster: string }) {
 
 export function MovingImageLayout({ children }: { children: ReactNode }) {
   const settings = useShopSettings();
+  const { locale } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   return <div className="mi-world">
     <Background media={settings.movingImagePage.heroBackgroundMedia} poster={settings.movingImagePage.heroFallbackImage} />
@@ -60,12 +61,13 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
         <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Work</a>
         <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Animation</a>
         <a href="/animation#commission" onClick={() => setMenuOpen(false)}>Commission</a>
+        <a href={SUPPORT_AIDA_URL} onClick={() => setMenuOpen(false)}>{supportAidaLabel(locale)}</a>
         <Link href="/">← Aeda Art</Link>
       </nav>
     </header>
     <div className="mi-content">{children}</div>
     <footer className="mi-footer mi-footer--minimal">
-      <div className="mi-container">{settings.siteLinks.instagramUrl && <a href={settings.siteLinks.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>}<a href="mailto:aida@aedaart.com">Contact me · aida@aedaart.com</a></div>
+      <div className="mi-container">{settings.siteLinks.instagramUrl && <a href={settings.siteLinks.instagramUrl} target="_blank" rel="noreferrer">Instagram</a>}<a href={SUPPORT_AIDA_URL}>{supportAidaLabel(locale)}</a><a href="mailto:aida@aedaart.com">Contact me · aida@aedaart.com</a></div>
     </footer>
   </div>;
 }

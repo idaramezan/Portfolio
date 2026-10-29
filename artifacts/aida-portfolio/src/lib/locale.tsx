@@ -2,12 +2,18 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export type SiteLocale = "en" | "tr";
 
+export const SUPPORT_AIDA_URL = "https://checkout.aedaart.com/pages/donation";
+export const supportAidaLabel = (locale: SiteLocale) =>
+  locale === "tr" ? "Aida’ya Destek Ol" : "Support Aida";
+
 const STORAGE_KEY = "aida-site-language";
 
 const TR: Record<string, string> = {
   "Türkiye Shop": "Türkiye Mağazası",
   International: "Uluslararası",
   About: "Hakkında",
+  "Support Aida": "Aida’ya Destek Ol",
+  "Buy me a coffee ☕": "Bana bir kahve ısmarla ☕",
   Basket: "Sepet",
   "Display currency": "Para birimi",
   "Shop home": "Mağaza ana sayfası",
