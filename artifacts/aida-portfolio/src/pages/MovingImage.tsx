@@ -61,7 +61,7 @@ export function MovingImageLayout({ children }: { children: ReactNode }) {
         <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Work</a>
         <a href="/animation#archive" onClick={() => setMenuOpen(false)}>Animation</a>
         <a href="/animation#commission" onClick={() => setMenuOpen(false)}>Commission</a>
-        <a href={SUPPORT_AIDA_URL} onClick={() => setMenuOpen(false)}>{supportAidaLabel(locale)}</a>
+        <a className="mi-support-cta" href={SUPPORT_AIDA_URL} onClick={() => setMenuOpen(false)}>{supportAidaLabel(locale)}</a>
         <Link href="/">← Aeda Art</Link>
       </nav>
     </header>

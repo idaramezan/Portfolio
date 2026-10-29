@@ -254,7 +254,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
           <div className="site-header__utilities flex shrink-0 items-center">
             <div className="site-header__country">
-              <DestinationControl utility />
+              <a
+                href={SUPPORT_AIDA_URL}
+                className="site-header__support"
+              >
+                {supportAidaLabel(locale)}
+              </a>
             </div>
             <div
               ref={languagePickerRef}
@@ -438,16 +443,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               </Link>
             </div>
           ))}
-          <div className="mobile-menu__row">
-            <a
-              href={SUPPORT_AIDA_URL}
-              onClick={() => closeMobileMenu()}
-              className="mobile-menu__link"
-            >
-              <span>{supportAidaLabel(locale)}</span>
-              <ArrowRight aria-hidden="true" />
-            </a>
-          </div>
         </div>
         <div className="mobile-menu__destination">
           <p className="mobile-menu__utility-label">
