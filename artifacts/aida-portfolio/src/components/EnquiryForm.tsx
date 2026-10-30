@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale } from "@/lib/locale";
+import { COUNTRY_CODES } from "@/lib/shipping-destination";
 
 type Kind = "artwork" | "moving_image";
 
@@ -16,6 +17,13 @@ export default function EnquiryForm({
 }) {
   const { locale } = useLocale();
   const tr = locale === "tr";
+  const countries = useMemo(() => {
+    const names = new Intl.DisplayNames([locale], { type: "region" });
+    return COUNTRY_CODES.map((code) => ({
+      code,
+      name: names.of(code) || code,
+    })).sort((a, b) => a.name.localeCompare(b.name, locale));
+  }, [locale]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -25,7 +33,7 @@ export default function EnquiryForm({
         <h2>{kind === "moving_image" ? (tr ? "Projeniz stüdyoya ulaştı." : "Your project found its way to the studio.") : "Thank you."}</h2>
         <p>
           {kind === "artwork"
-            ? "Aida will get back to you personally with availability, shipping and collection details."
+            ? "The artist will contact you by email with availability and artwork details."
             : tr ? "Anlattığınız için teşekkürler. Verdiğiniz e-posta adresinden size dönüş yapacağım." : "Thanks for telling me about it. I’ll get back to you using the email you provided."}
         </p>
       </div>
@@ -77,29 +85,23 @@ export default function EnquiryForm({
         <label className="enquiry-form__message"><span className="sr-only">{tr ? "Projeyi anlatın" : "About project"}</span><textarea name="message" rows={6} required aria-label={tr ? "Projeyi anlatın" : "About project"} placeholder={tr ? "PROJE HAKKINDA" : "ABOUT PROJECT"} /></label>
       </> : <>
         <div className="enquiry-form__grid">
-          <label>{tr ? "Adınız" : "Name"}<input name="name" required autoComplete="name" /></label>
+          <label>{tr ? "Ad soyad" : "Full name"}<input name="name" required autoComplete="name" /></label>
           <label>{tr ? "E-posta" : "Email"}<input name="email" required type="email" autoComplete="email" /></label>
           {kind === "artwork" && (
-          <>
             <label>
-              {tr ? "Proje türü" : "Project type"}
-              <select name="projectType" required defaultValue="">
-                <option value="" disabled>{tr ? "Seçin" : "Choose one"}</option>
-                <option>Music video</option><option>Animated visual</option><option>Loop / GIF</option><option>Lyric visual</option><option>Short animation</option><option>Other</option>
+              {tr ? "Ülke" : "Country"}
+              <select name="country" required defaultValue="" autoComplete="country-name">
+                <option value="" disabled>{tr ? "Ülke seçin" : "Choose a country"}</option>
+                {countries.map((country) => (
+                  <option key={country.code} value={country.name}>
+                    {country.name}
+                  </option>
+                ))}
               </select>
             </label>
-            <label>
-              {tr ? "Sanatçı / Grup / Şirket" : "Artist / Band / Company"}
-              <input name="organisation" autoComplete="organization" />
-            </label>
-            <label>
-              Country
-              <input name="country" required autoComplete="country-name" />
-            </label>
-          </>
           )}
         </div>
-        <label className="enquiry-form__message">Message (optional)<textarea name="message" rows={6} /></label>
+        <label className="enquiry-form__message">{tr ? "Not (isteğe bağlı)" : "Note (optional)"}<textarea name="message" rows={6} /></label>
       </>}
       {error && (
         <p role="alert" className="enquiry-form__error">

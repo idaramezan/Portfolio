@@ -41,7 +41,7 @@ export default function EnquiryDialog({
             <Dialog.Description className="enquiry-modal__description">
               {moving
                 ? "Share the timing, budget and visual direction you have in mind."
-                : "Aida will reply personally with availability, shipping and collection details."}
+                : "The artist will contact you by email with availability and artwork details."}
             </Dialog.Description>
           </header>
           <EnquiryForm

@@ -60,6 +60,8 @@ router.post("/enquiries", async (req, res) => {
   const type = req.body?.type === "moving_image" ? "moving_image" : "artwork";
   const name = clean(req.body?.name, 120);
   const email = clean(req.body?.email, 200).toLowerCase();
+  const country = clean(req.body?.country, 100);
+  const message = clean(req.body?.message, 4000);
   const subjectName =
     clean(req.body?.subjectName, 200) ||
     (type === "moving_image" ? "Moving Image commission" : "Artwork enquiry");
@@ -67,7 +69,7 @@ router.post("/enquiries", async (req, res) => {
     return res
       .status(400)
       .json({ error: "Name and a valid email are required." });
-  if (type === "artwork" && !clean(req.body?.country, 100))
+  if (type === "artwork" && !country)
     return res.status(400).json({ error: "Country is required." });
   if (type === "moving_image" && (!clean(req.body?.projectType, 100) || !clean(req.body?.message, 4000)))
     return res.status(400).json({ error: "Project type and project description are required." });
@@ -84,7 +86,7 @@ router.post("/enquiries", async (req, res) => {
     clean(req.body?.subjectUrl, 500) || null,
     name,
     email,
-    clean(req.body?.country, 100) || null,
+    country || null,
     clean(req.body?.city, 100) || null,
     clean(req.body?.phone, 80) || null,
     clean(req.body?.organisation, 160) || null,
@@ -93,7 +95,7 @@ router.post("/enquiries", async (req, res) => {
     clean(req.body?.desiredDuration, 100) || null,
     clean(req.body?.deadline, 100) || null,
     clean(req.body?.budgetRange, 100) || null,
-    clean(req.body?.message, 4000) || null,
+    message || null,
     clean(req.body?.referenceLinks, 2000) || null,
   ];
   await pool.query(
@@ -115,14 +117,22 @@ router.post("/enquiries", async (req, res) => {
         : [OWNER_EMAIL, CONTACT_EMAIL],
     ),
   ];
+  const subjectId = clean(req.body?.subjectId, 200);
+  const subjectUrl = clean(req.body?.subjectUrl, 500);
+  const emailText = type === "artwork"
+    ? `Artwork: ${subjectName}\nArtwork ID: ${subjectId || "—"}\nArtwork page: ${subjectUrl || "—"}\n\nFull name: ${name}\nEmail: ${email}\nCountry: ${country}\nNote: ${message || "—"}`
+    : `${subjectName}\n\nName: ${name}\nEmail: ${email}\nProject type: ${clean(req.body?.projectType, 100)}\nArtist / client: ${clean(req.body?.organisation, 160)}\nDuration: ${clean(req.body?.desiredDuration, 100)}\nDeadline: ${clean(req.body?.deadline, 100)}\nBudget: ${clean(req.body?.budgetRange, 100)}\nReference: ${clean(req.body?.referenceLinks, 2000)}\n\n${message}\n\n${subjectUrl}`;
+  const emailHtml = type === "artwork"
+    ? `<h1>Artwork enquiry: ${escapeHtml(subjectName)}</h1><table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px 0"><strong>Artwork ID</strong></td><td>${escapeHtml(subjectId || "—")}</td></tr><tr><td style="padding:8px 0"><strong>Full name</strong></td><td>${escapeHtml(name)}</td></tr><tr><td style="padding:8px 0"><strong>Email</strong></td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr><tr><td style="padding:8px 0"><strong>Country</strong></td><td>${escapeHtml(country)}</td></tr></table><h2>Note</h2><p style="white-space:pre-wrap">${escapeHtml(message || "—")}</p>${subjectUrl ? `<p>Artwork page: ${escapeHtml(subjectUrl)}</p>` : ""}`
+    : `<h1>${escapeHtml(subjectName)}</h1><table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px 0"><strong>Name</strong></td><td>${escapeHtml(name)}</td></tr><tr><td style="padding:8px 0"><strong>Email</strong></td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr><tr><td style="padding:8px 0"><strong>Request</strong></td><td>${escapeHtml(clean(req.body?.projectType, 100))}</td></tr><tr><td style="padding:8px 0"><strong>Budget</strong></td><td>${escapeHtml(clean(req.body?.budgetRange, 100))}</td></tr></table><h2>About project</h2><p style="white-space:pre-wrap">${escapeHtml(message)}</p>${subjectUrl ? `<p>Submitted from: ${escapeHtml(subjectUrl)}</p>` : ""}`;
   try {
     await sendEmail({
       to: recipients,
       replyTo: email,
-      subject: `${type === "artwork" ? "New artwork request" : "New Moving Image Commission Enquiry"} · ${number}`,
-      text: `${subjectName}\n\nName: ${name}\nEmail: ${email}\nProject type: ${clean(req.body?.projectType, 100)}\nArtist / client: ${clean(req.body?.organisation, 160)}\nDuration: ${clean(req.body?.desiredDuration, 100)}\nDeadline: ${clean(req.body?.deadline, 100)}\nBudget: ${clean(req.body?.budgetRange, 100)}\nReference: ${clean(req.body?.referenceLinks, 2000)}\n\n${clean(req.body?.message, 4000)}\n\n${clean(req.body?.subjectUrl, 500)}`,
+      subject: `${type === "artwork" ? `New artwork enquiry · ${subjectName}` : "New Moving Image Commission Enquiry"} · ${number}`,
+      text: emailText,
       html: emailShell(
-        `<h1>${escapeHtml(subjectName)}</h1><table style="width:100%;border-collapse:collapse"><tr><td style="padding:8px 0"><strong>Name</strong></td><td>${escapeHtml(name)}</td></tr><tr><td style="padding:8px 0"><strong>Email</strong></td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr><tr><td style="padding:8px 0"><strong>Request</strong></td><td>${escapeHtml(clean(req.body?.projectType, 100))}</td></tr><tr><td style="padding:8px 0"><strong>Budget</strong></td><td>${escapeHtml(clean(req.body?.budgetRange, 100))}</td></tr></table><h2>About project</h2><p style="white-space:pre-wrap">${escapeHtml(clean(req.body?.message, 4000))}</p>${clean(req.body?.subjectUrl, 500) ? `<p>Submitted from: ${escapeHtml(clean(req.body?.subjectUrl, 500))}</p>` : ""}`,
+        emailHtml,
         { headerLabel: number, showSignature: false },
       ),
     });
