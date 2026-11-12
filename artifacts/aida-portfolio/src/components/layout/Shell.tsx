@@ -129,12 +129,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const sync = () =>
       setCartCount(getCartCount(activeRegion) + getFourthwallCartCount());
+    const openBasket = () => setCartOpen(true);
     sync();
     window.addEventListener("cart:updated", sync);
     window.addEventListener("fourthwall-cart:updated", sync);
+    window.addEventListener("basket:open", openBasket);
     return () => {
       window.removeEventListener("cart:updated", sync);
       window.removeEventListener("fourthwall-cart:updated", sync);
+      window.removeEventListener("basket:open", openBasket);
     };
   }, [activeRegion]);
 

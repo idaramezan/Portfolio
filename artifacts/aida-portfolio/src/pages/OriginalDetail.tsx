@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { useShopSettings } from "@/hooks/use-shop-settings";
@@ -13,6 +13,13 @@ import { isSafeFourthwallUrl } from "@/lib/fourthwall";
 import { trackAnalytics } from "@/lib/analytics";
 import ProductImageLightbox from "@/components/ProductImageLightbox";
 import EnquiryDialog from "@/components/EnquiryDialog";
+import { addItemToCart, loadCart } from "@/lib/store";
+import {
+  convertUsdCentsToTry,
+  formatCurrencyMinor,
+  useCurrency,
+} from "@/lib/currency";
+import { calculateProductSale } from "@/lib/product-sale";
 
 export default function OriginalDetail({
   market: _market,
@@ -26,6 +33,9 @@ export default function OriginalDetail({
   const international = useInternationalProducts();
   const { isTürkiye } = useShippingDestination();
   const { locale } = useLocale();
+  const { rate, rateDate, loading: currencyLoading } = useCurrency();
+  const [basketVersion, setBasketVersion] = useState(0);
+  const [purchaseMessage, setPurchaseMessage] = useState("");
   const slug = artworkMatch?.slug || canonicalMatch?.slug || params?.slug;
   const product = settings.originalProducts.find(
     (item) => (item.slug || item.id) === slug && isPubliclyVisible(item),
@@ -54,6 +64,11 @@ export default function OriginalDetail({
         metadata: { productId: product.id, productType: "original" },
       });
   }, [product?.id]);
+  useEffect(() => {
+    const sync = () => setBasketVersion((value) => value + 1);
+    window.addEventListener("cart:updated", sync);
+    return () => window.removeEventListener("cart:updated", sync);
+  }, []);
   if (!product)
     return (
       <section className="section-shell">
@@ -89,6 +104,70 @@ export default function OriginalDetail({
       highResolutionSrc: src,
       alt: product.altText || product.name,
     }));
+  const convertedPrice =
+    isTürkiye && rate
+      ? convertUsdCentsToTry(product.priceUsdCents, rate)
+      : null;
+  const salePricing =
+    convertedPrice == null
+      ? null
+      : calculateProductSale(convertedPrice, product.sale);
+  const basketLineId = `original-${product.id}`;
+  const inBasket = isTürkiye
+    ? loadCart("TR").some((item) => item.id === basketLineId)
+    : false;
+  void basketVersion;
+  const addOriginal = () => {
+    if (!rate || convertedPrice == null) {
+      setPurchaseMessage(
+        locale === "tr"
+          ? "Türkiye fiyatı şu anda kullanılamıyor. Lütfen kısa süre sonra tekrar deneyin."
+          : "Türkiye pricing is temporarily unavailable. Please try again shortly.",
+      );
+      return;
+    }
+    const result = addItemToCart(
+      {
+        id: basketLineId,
+        productId: product.id,
+        kind: "original",
+        title: product.name,
+        subtitle: [
+          product.artworkSurface === "canvas"
+            ? "Oil pastel on canvas"
+            : "Oil pastel on paper",
+          product.dimension,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        imageUrl: product.imageUrl,
+        priceUsdCents: convertedPrice,
+        market: "turkiye",
+        canonicalCurrency: "USD",
+        canonicalPriceMinor: product.priceUsdCents,
+        displayCurrency: "TRY",
+        convertedUnitPriceMinor: convertedPrice,
+        appliedExchangeRate: Number(rate),
+        exchangeRateDate: rateDate || undefined,
+        quantity: 1,
+        maxQuantity: 1,
+        artworkId: product.id,
+        artworkTitle: product.name,
+      },
+      1,
+      "TR",
+    );
+    setPurchaseMessage(
+      result.ok
+        ? locale === "tr"
+          ? `${product.name} koleksiyon sepetinize eklendi.`
+          : `${product.name} was added to your collection basket.`
+        : result.reason ||
+            (locale === "tr"
+              ? "Bu eser sepete eklenemedi."
+              : "This artwork could not be added."),
+    );
+  };
   return (
     <>
       <section className="section-shell original-unified-detail">
@@ -174,6 +253,77 @@ export default function OriginalDetail({
                     </a>
                   </>
                 )}
+              </div>
+            ) : isTürkiye ? (
+              <div className="original-purchase">
+                <div className="original-purchase__price">
+                  <small>{locale === "tr" ? "FİYAT" : "PRICE"}</small>
+                  {salePricing && salePricing.percentage > 0 ? (
+                    <>
+                      <strong>
+                        {formatCurrencyMinor(
+                          salePricing.finalPriceMinor,
+                          "TRY",
+                          locale,
+                        )}
+                      </strong>
+                      <p>
+                        <s>
+                          {formatCurrencyMinor(
+                            salePricing.regularPriceMinor,
+                            "TRY",
+                            locale,
+                          )}
+                        </s>{" "}
+                        · {salePricing.percentage}% {locale === "tr" ? "indirim" : "off"}
+                      </p>
+                    </>
+                  ) : (
+                    <strong>
+                      {convertedPrice == null
+                        ? locale === "tr"
+                          ? "Fiyat yükleniyor…"
+                          : "Loading price…"
+                        : formatCurrencyMinor(convertedPrice, "TRY", locale)}
+                    </strong>
+                  )}
+                </div>
+                <p className="original-purchase__availability">
+                  {locale === "tr" ? "Mevcut · Tek ve orijinal eser" : "Available · One-of-one original"}
+                </p>
+                <button
+                  type="button"
+                  className="button-primary original-purchase__button"
+                  disabled={currencyLoading || !rate || inBasket}
+                  onClick={addOriginal}
+                >
+                  {inBasket
+                    ? locale === "tr"
+                      ? "SEPETİNİZDE"
+                      : "IN YOUR BASKET"
+                    : locale === "tr"
+                      ? "SEPETE EKLE"
+                      : "ADD TO BASKET"}
+                </button>
+                {inBasket && (
+                  <button
+                    type="button"
+                    className="button-link"
+                    onClick={() =>
+                      window.dispatchEvent(new Event("basket:open"))
+                    }
+                  >
+                    {locale === "tr" ? "Sepeti görüntüle" : "View basket"}
+                  </button>
+                )}
+                <p className="original-purchase__shipping">
+                  {locale === "tr"
+                    ? "Türkiye içi standart kargo 50 TL'dir; 1.500 TL üzeri siparişlerde ücretsizdir. Sepete eklemek eseri rezerve etmez veya stok durumunu değiştirmez."
+                    : "Standard Türkiye shipping is 50 TL and free for orders over 1,500 TL. Adding this work to your basket does not reserve it or change inventory."}
+                </p>
+                <p aria-live="polite" className="original-purchase__message">
+                  {purchaseMessage}
+                </p>
               </div>
             ) : (
               <div className="artwork-enquiry">

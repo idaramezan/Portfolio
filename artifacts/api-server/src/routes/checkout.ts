@@ -283,6 +283,7 @@ async function calculate(body: any) {
   let printQuantity = 0,
     framedQuantity = 0,
     originalQuantity = 0;
+  const seenOriginals = new Set<string>();
   for (const input of requested) {
     const quantity = Number(input.quantity);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20)
@@ -362,6 +363,11 @@ async function calculate(body: any) {
           : product.availableInternationally === false))
     )
       throw new Error("An original is not available for this order.");
+    if (kind === "original") {
+      if (seenOriginals.has(product.id))
+        throw new Error("Only one of each original artwork may be ordered.");
+      seenOriginals.add(product.id);
+    }
     if (
       kind === "aceo" &&
       (market !== "turkiye" ||

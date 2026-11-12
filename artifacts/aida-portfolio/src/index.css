@@ -3342,6 +3342,37 @@
   font-size: 2rem;
   line-height: 1.05;
 }
+.original-purchase {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(23 60 50 / 0.2);
+}
+.original-purchase__price {
+  display: grid;
+  gap: 0.35rem;
+}
+.original-purchase__price small {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.original-purchase__price strong {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1;
+}
+.original-purchase__price p,
+.original-purchase__availability,
+.original-purchase__shipping,
+.original-purchase__message {
+  margin: 0;
+}
+.original-purchase__availability { font-weight: 700; }
+.original-purchase__button { width: 100%; }
+.original-purchase__shipping { color: rgb(23 60 50 / 0.68); font-size: 0.88rem; line-height: 1.65; }
+.original-purchase__message { min-height: 1.4em; color: var(--earth-500); font-size: 0.88rem; font-weight: 700; }
 .original-request-modal__fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
