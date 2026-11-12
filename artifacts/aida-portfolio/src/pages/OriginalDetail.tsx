@@ -21,6 +21,8 @@ import {
 } from "@/lib/currency";
 import { calculateProductSale } from "@/lib/product-sale";
 
+const ORIGINALS_LISTING_ROUTE = "/paintings";
+
 export default function OriginalDetail({
   market: _market,
 }: {
@@ -79,18 +81,10 @@ export default function OriginalDetail({
             : "This work is not currently available."}
         </h1>
         <Link
-          href={
-            isTürkiye ? "/shop?category=originals" : "/shop?category=prints"
-          }
+          href={ORIGINALS_LISTING_ROUTE}
           className="button-primary mt-7"
         >
-          {isTürkiye
-            ? locale === "tr"
-              ? "Orijinal eserlere dön"
-              : "Browse originals"
-            : locale === "tr"
-              ? "Baskıları gör"
-              : "View prints"}
+          {locale === "tr" ? "Orijinal eserlere dön" : "Browse originals"}
         </Link>
       </section>
     );
@@ -172,19 +166,11 @@ export default function OriginalDetail({
     <>
       <section className="section-shell original-unified-detail">
         <Link
-          href={
-            isTürkiye ? "/shop?category=originals" : "/shop?category=prints"
-          }
+          href={ORIGINALS_LISTING_ROUTE}
           className="button-link"
         >
           ←{" "}
-          {isTürkiye
-            ? locale === "tr"
-              ? "Orijinal eserlere dön"
-              : "Back to originals"
-            : locale === "tr"
-              ? "Baskılara dön"
-              : "Back to prints"}
+          {locale === "tr" ? "Orijinal eserlere dön" : "Back to originals"}
         </Link>
         <div className="product-detail-layout">
           <div className="product-detail-media">
