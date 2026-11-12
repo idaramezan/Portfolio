@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Check, Minus, PackageCheck, Plus, Ticket, X } from "lucide-react";
 import { Link } from "wouter";
 import {
-  getCanonicalCartItemPricing,
+  getBasketItemPricing,
   getCartItemDisplayName,
   isCartItemAvailable,
   loadCart,
@@ -187,14 +187,12 @@ export default function CartDrawer({
     if (saved && cart.length) void validateCoupon(saved, true);
   }, [region, destination?.countryCode, JSON.stringify(checkoutItems(cart))]);
   const canonicalUnitPrice = (item: (typeof cart)[number]) =>
-    getCanonicalCartItemPricing(item, settings)?.unitPriceCents ??
+    getBasketItemPricing(item, settings)?.unitPriceCents ??
     item.priceUsdCents;
   const canonicalPricing = (item: (typeof cart)[number]) =>
-    getCanonicalCartItemPricing(item, settings);
+    getBasketItemPricing(item, settings);
   const itemDisplayCurrency = (item: (typeof cart)[number]) =>
-    item.convertedUnitPriceMinor != null
-      ? item.displayCurrency || basketCurrency
-      : item.canonicalCurrency || basketCurrency;
+    canonicalPricing(item)?.currency || basketCurrency;
   const subtotal = cart.reduce(
     (total, item) =>
       total +
@@ -208,7 +206,7 @@ export default function CartDrawer({
     const pricing = canonicalPricing(item);
     return (
       total +
-      (pricing?.regularUnitPriceCents ?? canonicalUnitPrice(item)) *
+      (pricing?.originalUnitPriceCents ?? canonicalUnitPrice(item)) *
         item.quantity
     );
   }, 0);
@@ -385,13 +383,13 @@ export default function CartDrawer({
                   {(() => {
                     const itemPricing = canonicalPricing(x);
                     const itemSavings =
-                      itemPricing?.productDiscountAmountCents || 0;
+                      itemPricing?.discountAmountCents || 0;
                     return itemSavings > 0 ? (
                       <div className="mt-3 text-sm">
                         <p className="flex flex-wrap items-baseline gap-2">
                           <Money
                             baseAmountUsdCents={
-                              itemPricing!.regularUnitPriceCents
+                              itemPricing!.originalUnitPriceCents
                             }
                             canonicalCurrency={itemDisplayCurrency(x)}
                             className="text-ink/45 line-through"
@@ -402,7 +400,7 @@ export default function CartDrawer({
                             className="font-semibold text-green"
                           />
                           <span className="text-xs text-coral">
-                            {itemPricing!.productDiscountPercentage}%{" "}
+                            {itemPricing!.discountPercentage}%{" "}
                             {locale === "tr" ? "indirim" : "off"}
                           </span>
                         </p>

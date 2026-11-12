@@ -1418,6 +1418,7 @@ export function getCanonicalCartItemPricing(
     const salePricing = calculateProductSale(regular, sale);
     const final = salePricing.finalPriceMinor;
     return {
+      currency: (item.displayCurrency || item.canonicalCurrency || "TRY") as CurrencyCode,
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
       regularUnitPriceCents: regular,
@@ -1437,6 +1438,7 @@ export function getCanonicalCartItemPricing(
     );
     const final = salePricing.finalPriceMinor;
     return {
+      currency: "TRY" as const,
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
       regularUnitPriceCents: item.convertedUnitPriceMinor,
@@ -1466,6 +1468,11 @@ export function getCanonicalCartItemPricing(
     const salePricing = calculateProductSale(regular, product?.sale);
     const final = salePricing.finalPriceMinor;
     return {
+      currency: (
+        item.displayCurrency ||
+        item.canonicalCurrency ||
+        (item.kind === "original" ? "USD" : "TRY")
+      ) as CurrencyCode,
       unitPriceCents: final,
       lineTotalCents: final * item.quantity,
       regularUnitPriceCents: regular,
@@ -1507,12 +1514,33 @@ export function getCanonicalCartItemPricing(
   });
   return {
     ...pricing,
+    currency: "TRY" as const,
     regularUnitPriceCents:
       product.priceUsdCents +
       size.additionalPriceUsdCents +
       getFinishPriceDifference(product.printOptions, finish),
     productDiscountPercentage: salePricing.percentage,
     productDiscountAmountCents: salePricing.discountAmountMinor,
+  };
+}
+
+/**
+ * One normalized pricing result for basket rows and basket totals.
+ * Amounts are minor units in `currency`; consumers must not apply FX again.
+ */
+export function getBasketItemPricing(
+  item: CartItem,
+  settings: ShopSettings = loadShopSettings(),
+) {
+  const pricing = getCanonicalCartItemPricing(item, settings);
+  if (!pricing) return null;
+  return {
+    currency: pricing.currency,
+    unitPriceCents: pricing.unitPriceCents,
+    originalUnitPriceCents: pricing.regularUnitPriceCents,
+    discountPercentage: pricing.productDiscountPercentage,
+    discountAmountCents: pricing.productDiscountAmountCents,
+    lineTotalCents: pricing.lineTotalCents,
   };
 }
 
