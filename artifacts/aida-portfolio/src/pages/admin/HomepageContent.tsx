@@ -7,6 +7,7 @@ import {
   type ShopSettings,
 } from "@/lib/store";
 import { ADMIN_PASSWORD_SESSION_KEY } from "@/pages/Admin";
+import { isPurchasable } from "@/lib/product-status";
 
 const field = "mt-1 min-h-11 w-full border border-ink/20 bg-paper px-3";
 export default function HomepageContentAdmin() {
@@ -16,6 +17,19 @@ export default function HomepageContentAdmin() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const content = settings.homepageContent;
+  const eligibleOriginals = settings.originalProducts.filter(
+    (product) =>
+      product.kind === "original" &&
+      product.availableInTurkiye !== false &&
+      isPurchasable(product),
+  );
+  const eligiblePrints = settings.printProducts.filter(
+    (product) =>
+      product.kind === "print" &&
+      (product.category || "print") === "print" &&
+      product.availableInTurkiye !== false &&
+      isPurchasable(product),
+  );
   const setContent = async (next: HomepageContent, persist = false) => {
     const nextSettings = { ...settings, homepageContent: next };
     setSettings(nextSettings);
@@ -240,22 +254,36 @@ export default function HomepageContentAdmin() {
               setContent({ ...content, featuredMovingCover }, persist)
             }
           />
-          <Picker
-            title="Featured originals · maximum 3"
-            ids={content.featuredOriginalIds}
-            items={settings.originalProducts.map((x) => [x.id, x.name])}
-            max={3}
-            onChange={(featuredOriginalIds) =>
-              setContent({ ...content, featuredOriginalIds })
+          <ShowcasePicker
+            title="Originals showcase"
+            singular="Original"
+            featuredId={content.featuredOriginalId || ""}
+            supportingIds={
+              content.supportingOriginalIds || content.featuredOriginalIds
+            }
+            items={eligibleOriginals.map((x) => [x.id, x.name])}
+            onChange={(featuredOriginalId, supportingOriginalIds) =>
+              setContent({
+                ...content,
+                featuredOriginalId,
+                supportingOriginalIds,
+              })
             }
           />
-          <Picker
-            title="Featured prints · maximum 4"
-            ids={content.featuredPrintIds}
-            items={settings.printProducts.map((x) => [x.id, x.name])}
-            max={4}
-            onChange={(featuredPrintIds) =>
-              setContent({ ...content, featuredPrintIds })
+          <ShowcasePicker
+            title="Limited Prints showcase"
+            singular="Print"
+            featuredId={content.featuredPrintId || ""}
+            supportingIds={
+              content.supportingPrintIds || content.featuredPrintIds
+            }
+            items={eligiblePrints.map((x) => [x.id, x.name])}
+            onChange={(featuredPrintId, supportingPrintIds) =>
+              setContent({
+                ...content,
+                featuredPrintId,
+                supportingPrintIds,
+              })
             }
           />
         </Editor>
@@ -441,37 +469,72 @@ function Select({
     </label>
   );
 }
-function Picker({
+function ShowcasePicker({
   title,
-  ids,
+  singular,
+  featuredId,
+  supportingIds,
   items,
-  max,
   onChange,
 }: {
   title: string;
-  ids: string[];
+  singular: string;
+  featuredId: string;
+  supportingIds: string[];
   items: string[][];
-  max: number;
-  onChange: (x: string[]) => void;
+  onChange: (featuredId: string, supportingIds: string[]) => void;
 }) {
+  const featured = featuredId;
+  const supporting = supportingIds
+    .filter((id) => id !== featured)
+    .slice(0, 3);
   return (
-    <fieldset className="border border-ink/10 p-3">
+    <fieldset className="border border-ink/10 p-4">
       <legend className="font-semibold">{title}</legend>
-      {items.map(([id, name]) => (
-        <label className="mt-2 flex gap-2" key={id}>
-          <input
-            type="checkbox"
-            checked={ids.includes(id)}
-            disabled={!ids.includes(id) && ids.length >= max}
-            onChange={(e) =>
-              onChange(
-                e.target.checked ? [...ids, id] : ids.filter((x) => x !== id),
-              )
-            }
-          />
-          {name}
-        </label>
-      ))}
+      <label className="mt-2 block">
+        Featured {singular}
+        <select
+          className={field}
+          value={featured}
+          onChange={(event) => {
+            const next = event.target.value;
+            onChange(next, supporting.filter((id) => id !== next));
+          }}
+        >
+          <option value="">Automatic · newest available</option>
+          {items.map(([id, name]) => (
+            <option value={id} key={id}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="mt-4 text-sm font-semibold">
+        Supporting {singular}s · optional, maximum 3
+      </p>
+      <p className="mt-1 text-xs text-ink/50">
+        Empty spaces automatically use the next newest available works.
+      </p>
+      {items
+        .filter(([id]) => id !== featured)
+        .map(([id, name]) => (
+          <label className="mt-2 flex gap-2" key={id}>
+            <input
+              type="checkbox"
+              checked={supporting.includes(id)}
+              disabled={!supporting.includes(id) && supporting.length >= 3}
+              onChange={(event) =>
+                onChange(
+                  featured,
+                  event.target.checked
+                    ? [...supporting, id]
+                    : supporting.filter((item) => item !== id),
+                )
+              }
+            />
+            {name}
+          </label>
+        ))}
     </fieldset>
   );
 }

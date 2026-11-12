@@ -224,6 +224,10 @@ export interface HomepageContent {
   featuredMovingCover?: string;
   featuredOriginalIds: string[];
   featuredPrintIds: string[];
+  featuredOriginalId?: string;
+  supportingOriginalIds?: string[];
+  featuredPrintId?: string;
+  supportingPrintIds?: string[];
   studioLetter: {
     heading: string;
     body: string;

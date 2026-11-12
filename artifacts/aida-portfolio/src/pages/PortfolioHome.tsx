@@ -9,6 +9,7 @@ import type {
   ManagedProduct,
   WeeklyLimitedCollection,
 } from "@/lib/store";
+import { isPurchasable } from "@/lib/product-status";
 
 const fallbackHero = "/assets/aida-green-gallery-hero.png";
 
@@ -63,9 +64,31 @@ export default function PortfolioHome() {
         Boolean(x) && x?.editionEnabled !== false,
     )
     .slice(0, 3);
-  const eras = [...settings.artEras]
-    .filter((era) => era.status === "published" && era.featuredOnHomepage)
-    .sort((a, b) => a.displayOrder - b.displayOrder);
+  const originals = selectShowcaseProducts(
+    settings.originalProducts.filter(
+      (product) =>
+        product.kind === "original" &&
+        product.availableInTurkiye !== false &&
+        isPurchasable(product),
+    ),
+    [
+      ...(content.featuredOriginalId ? [content.featuredOriginalId] : []),
+      ...(content.supportingOriginalIds || content.featuredOriginalIds),
+    ],
+  );
+  const limitedPrints = selectShowcaseProducts(
+    settings.printProducts.filter(
+      (product) =>
+        product.kind === "print" &&
+        (product.category || "print") === "print" &&
+        product.availableInTurkiye !== false &&
+        isPurchasable(product),
+    ),
+    [
+      ...(content.featuredPrintId ? [content.featuredPrintId] : []),
+      ...(content.supportingPrintIds || content.featuredPrintIds),
+    ],
+  );
 
   return (
     <div className="weekly-home">
@@ -97,56 +120,30 @@ export default function PortfolioHome() {
           </div>
         </section>
       )}
-      {eras.length > 0 && (
-        <div className="home-eras">
-          {eras.map((era, index) => {
-            const previews = era.printIds
-              .map((id) =>
-                settings.printProducts.find((product) => product.id === id),
-              )
-              .filter((product): product is ManagedProduct => Boolean(product))
-              .slice(0, 3);
-            return (
-              <section
-                key={era.id}
-                className={`home-era section-shell ${index % 2 ? "home-era--reverse" : ""}`}
-              >
-                <Link className="home-era__media" href={`/eras/${era.slug}`}>
-                  <img src={era.heroImage} alt={era.title} loading="lazy" />
-                </Link>
-                <div className="home-era__copy">
-                  <p className="portfolio-kicker">
-                    {era.eyebrow || "AN ERA IN MY ART JOURNEY"}
-                  </p>
-                  <h2>{era.title}</h2>
-                  {era.shortDescription && <p>{era.shortDescription}</p>}
-                  {previews.length > 0 && (
-                    <div
-                      className="home-era__previews"
-                      aria-label={`Explore ${era.title}`}
-                    >
-                      {previews.map((product) => (
-                        <Link
-                          key={product.id}
-                          href={`/eras/${era.slug}`}
-                          aria-label={`View ${era.title}`}
-                        >
-                          <img
-                            src={product.imageUrl}
-                            alt={product.altText || product.name}
-                            loading="lazy"
-                          />
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  <Link className="home-era__cta" href={`/eras/${era.slug}`}>
-                    View era <ArrowRight />
-                  </Link>
-                </div>
-              </section>
-            );
-          })}
+      {(originals.length > 0 || limitedPrints.length > 0) && (
+        <div className="home-showcases">
+          {originals.length > 0 && (
+            <CommerceShowcase
+              kind="original"
+              eyebrow="ONE OF A KIND"
+              title="Originals"
+              description="One painting, one home. Original works made by Aida, available as individual pieces."
+              products={originals}
+              listingHref="/paintings"
+              cta="View originals"
+            />
+          )}
+          {limitedPrints.length > 0 && (
+            <CommerceShowcase
+              kind="print"
+              eyebrow="SIGNED ART PRINTS"
+              title="Limited Prints"
+              description="Signed prints made from Aida’s original work, produced in limited editions for collectors."
+              products={limitedPrints}
+              listingHref="/shop?category=prints"
+              cta="View limited prints"
+            />
+          )}
         </div>
       )}
       <section className="home-about-preview section-shell">
@@ -168,6 +165,105 @@ export default function PortfolioHome() {
         </div>
       </section>
     </div>
+  );
+}
+
+function newestFirst(a: ManagedProduct, b: ManagedProduct) {
+  const aDate = Date.parse(a.createdAt || a.updatedAt || "") || 0;
+  const bDate = Date.parse(b.createdAt || b.updatedAt || "") || 0;
+  return bDate - aDate || (a.displayOrder ?? 999) - (b.displayOrder ?? 999);
+}
+
+function selectShowcaseProducts(
+  available: ManagedProduct[],
+  selectedIds: string[],
+) {
+  const selected = selectedIds
+    .map((id) => available.find((product) => product.id === id))
+    .filter((product): product is ManagedProduct => Boolean(product))
+    .filter(
+      (product, index, all) =>
+        all.findIndex((item) => item.id === product.id) === index,
+    );
+  const candidates = [...available]
+    .sort(newestFirst)
+    .filter(
+      (product) =>
+        !selected.some((item) => item.id === product.id) &&
+        !selected.some((item) => item.imageUrl === product.imageUrl),
+    );
+  return [...selected, ...candidates].slice(0, 4);
+}
+
+function CommerceShowcase({
+  kind,
+  eyebrow,
+  title,
+  description,
+  products,
+  listingHref,
+  cta,
+}: {
+  kind: "original" | "print";
+  eyebrow: string;
+  title: string;
+  description: string;
+  products: ManagedProduct[];
+  listingHref: string;
+  cta: string;
+}) {
+  const featured = products[0];
+  const supporting = products.slice(1, 4);
+  const productHref = (product: ManagedProduct) =>
+    kind === "original"
+      ? `/artworks/${product.slug || product.id}`
+      : `/shop/prints/${product.slug || product.id}`;
+  return (
+    <section
+      className={`home-showcase home-showcase--${kind} section-shell`}
+    >
+      <div className="home-showcase__copy">
+        <p className="portfolio-kicker">{eyebrow}</p>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <Link
+        className="home-showcase__media"
+        href={productHref(featured)}
+        aria-label={`${title}: ${featured.name}`}
+      >
+        <img
+          src={featured.imageUrl}
+          alt={featured.altText || featured.name}
+          loading="lazy"
+        />
+      </Link>
+      <div className="home-showcase__footer">
+        {supporting.length > 0 && (
+          <div
+            className="home-showcase__previews"
+            aria-label={`${title} artwork previews`}
+          >
+            {supporting.map((product) => (
+              <Link
+                key={product.id}
+                href={productHref(product)}
+                aria-label={`View ${product.name}`}
+              >
+                <img
+                  src={product.imageUrl}
+                  alt={product.altText || product.name}
+                  loading="lazy"
+                />
+              </Link>
+            ))}
+          </div>
+        )}
+        <Link className="home-showcase__cta" href={listingHref}>
+          {cta} <ArrowRight />
+        </Link>
+      </div>
+    </section>
   );
 }
 
