@@ -22,7 +22,16 @@ const COUNTRY_CODES =
 type Quote = {
   market: string;
   currency: "TRY" | "USD";
-  items: Array<{ name: string; quantity: number; lineTotalMinor: number }>;
+  items: Array<{
+    name: string;
+    kind: string;
+    quantity: number;
+    unitPriceMinor: number;
+    lineTotalMinor: number;
+    regularUnitPriceMinor: number;
+    productDiscountPercentage: number;
+    productDiscountAmountMinor: number;
+  }>;
   subtotalMinor: number;
   shippingMinor: number;
   totalBeforeDiscountMinor: number;
@@ -724,6 +733,17 @@ export default function Checkout({
                   <li key={index}>
                     <span>
                       {item.name} × {item.quantity}
+                      {item.productDiscountPercentage > 0 && (
+                        <small className="mt-1 block text-ink/55">
+                          <s>
+                            {money(
+                              item.regularUnitPriceMinor * item.quantity,
+                              quote.currency,
+                            )}
+                          </s>{" "}
+                          · {item.productDiscountPercentage}% {locale === "tr" ? "indirim" : "off"}
+                        </small>
+                      )}
                     </span>
                     <strong>
                       {money(item.lineTotalMinor, quote.currency)}

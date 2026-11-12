@@ -191,6 +191,10 @@ export default function CartDrawer({
     item.priceUsdCents;
   const canonicalPricing = (item: (typeof cart)[number]) =>
     getCanonicalCartItemPricing(item, settings);
+  const itemDisplayCurrency = (item: (typeof cart)[number]) =>
+    item.convertedUnitPriceMinor != null
+      ? item.displayCurrency || basketCurrency
+      : item.canonicalCurrency || basketCurrency;
   const subtotal = cart.reduce(
     (total, item) =>
       total +
@@ -389,16 +393,12 @@ export default function CartDrawer({
                             baseAmountUsdCents={
                               itemPricing!.regularUnitPriceCents
                             }
-                            canonicalCurrency={
-                              x.canonicalCurrency || basketCurrency
-                            }
+                            canonicalCurrency={itemDisplayCurrency(x)}
                             className="text-ink/45 line-through"
                           />
                           <Money
                             baseAmountUsdCents={itemPricing!.unitPriceCents}
-                            canonicalCurrency={
-                              x.canonicalCurrency || basketCurrency
-                            }
+                            canonicalCurrency={itemDisplayCurrency(x)}
                             className="font-semibold text-green"
                           />
                           <span className="text-xs text-coral">
@@ -410,9 +410,7 @@ export default function CartDrawer({
                           {locale === "tr" ? "Tasarrufunuz" : "You save"}{" "}
                           <Money
                             baseAmountUsdCents={itemSavings * x.quantity}
-                            canonicalCurrency={
-                              x.canonicalCurrency || basketCurrency
-                            }
+                            canonicalCurrency={itemDisplayCurrency(x)}
                           />
                         </p>
                       </div>
@@ -420,9 +418,7 @@ export default function CartDrawer({
                       <p className="mt-3 text-sm text-ink/60">
                         <Money
                           baseAmountUsdCents={canonicalUnitPrice(x)}
-                          canonicalCurrency={
-                            x.canonicalCurrency || basketCurrency
-                          }
+                          canonicalCurrency={itemDisplayCurrency(x)}
                           className="font-semibold text-ink"
                         />{" "}
                         {locale === "tr" ? "adet" : "each"}
@@ -503,9 +499,7 @@ export default function CartDrawer({
                       </span>
                       <Money
                         baseAmountUsdCents={canonicalUnitPrice(x) * x.quantity}
-                        canonicalCurrency={
-                          x.canonicalCurrency || basketCurrency
-                        }
+                        canonicalCurrency={itemDisplayCurrency(x)}
                         className="font-bold"
                       />
                     </p>

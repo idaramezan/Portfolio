@@ -809,7 +809,12 @@ publicRouter.post(
       }
       await client.query("COMMIT");
       const rows = quote.items
-        .map((i) => `<li>${escapeHtml(i.name)} × ${i.quantity}${i.selectedOptions?.paletteTypeName ? `<br><strong>Palette type:</strong> ${escapeHtml(String(i.selectedOptions.paletteTypeName))}` : ""}${i.selectedOptions?.colorSelectionMode ? `<br><strong>Colour selection:</strong> ${i.selectedOptions.colorSelectionMode === "live" ? "To be chosen during TikTok Live" : escapeHtml((i.selectedOptions.selectedColorNames || []).join(", "))}` : ""}${i.selectedOptions?.paletteNotes ? `<br><strong>Customer note:</strong> ${escapeHtml(String(i.selectedOptions.paletteNotes))}` : ""}${i.selectedOptions?.tikTokUsername ? `<br><strong>TikTok:</strong> @${escapeHtml(String(i.selectedOptions.tikTokUsername))}` : ""}${i.selectedOptions?.editionTitle ? `<br><strong>Edition:</strong> ${escapeHtml(String(i.selectedOptions.editionTitle))}` : ""}</li>`)
+        .map((i) => {
+          const productDiscount = i.productDiscountPercentage > 0
+            ? `<br><span style="color:#756b70;text-decoration:line-through">${escapeHtml(formatMoney(i.regularUnitPriceMinor, quote.currency))}</span> · ${escapeHtml(String(i.productDiscountPercentage))}% product discount<br><strong>Paid: ${escapeHtml(formatMoney(i.unitPriceMinor, quote.currency))}</strong>`
+            : `<br><strong>${escapeHtml(formatMoney(i.unitPriceMinor, quote.currency))}</strong>`;
+          return `<li>${escapeHtml(i.name)} × ${i.quantity}${productDiscount}${i.selectedOptions?.paletteTypeName ? `<br><strong>Palette type:</strong> ${escapeHtml(String(i.selectedOptions.paletteTypeName))}` : ""}${i.selectedOptions?.colorSelectionMode ? `<br><strong>Colour selection:</strong> ${i.selectedOptions.colorSelectionMode === "live" ? "To be chosen during TikTok Live" : escapeHtml((i.selectedOptions.selectedColorNames || []).join(", "))}` : ""}${i.selectedOptions?.paletteNotes ? `<br><strong>Customer note:</strong> ${escapeHtml(String(i.selectedOptions.paletteNotes))}` : ""}${i.selectedOptions?.tikTokUsername ? `<br><strong>TikTok:</strong> @${escapeHtml(String(i.selectedOptions.tikTokUsername))}` : ""}${i.selectedOptions?.editionTitle ? `<br><strong>Edition:</strong> ${escapeHtml(String(i.selectedOptions.editionTitle))}` : ""}</li>`;
+        })
         .join("");
       const total = formatMoney(
         savedOrder.grand_total_minor,
