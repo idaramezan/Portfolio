@@ -2264,6 +2264,110 @@
 }
 
 /* Simplified catalog introductions and focused original-art presentation */
+[data-public-site] .originals-promotion {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid rgba(255, 255, 255, 0.42);
+  background: #070707;
+  color: #f8f5ef;
+}
+
+[data-public-site] .originals-promotion::before,
+[data-public-site] .originals-promotion::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 8px;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.32) 1px, transparent 1.3px);
+  background-size: 10px 6px;
+  content: "";
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+[data-public-site] .originals-promotion::before { top: 9px; }
+[data-public-site] .originals-promotion::after { bottom: 7px; }
+
+[data-public-site] .originals-promotion__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+  align-items: center;
+  padding-block: clamp(3rem, 5vw, 5.5rem);
+}
+
+[data-public-site] .originals-promotion__copy {
+  padding-right: clamp(2rem, 6vw, 7rem);
+}
+
+[data-public-site] .originals-promotion__copy p,
+[data-public-site] .originals-promotion__timer > p {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+[data-public-site] .originals-promotion__copy h2 {
+  margin: 0;
+  color: #fff;
+  font-family: "New York", "Iowan Old Style", "Times New Roman", serif;
+  font-size: clamp(3.2rem, 7vw, 7.6rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+}
+
+[data-public-site] .originals-promotion__copy span {
+  display: block;
+  margin-top: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(0.86rem, 1.15vw, 1rem);
+}
+
+[data-public-site] .originals-promotion__timer {
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: clamp(2rem, 5vw, 5.5rem);
+}
+
+[data-public-site] .originals-promotion__timer > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(56px, 1fr));
+  gap: 0;
+}
+
+[data-public-site] .originals-promotion__timer span {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+}
+
+[data-public-site] .originals-promotion__timer span:not(:last-child)::after {
+  position: absolute;
+  top: 0.25em;
+  right: -0.08em;
+  content: ":";
+  color: rgba(255, 255, 255, 0.45);
+  font-family: serif;
+  font-size: 1.8rem;
+}
+
+[data-public-site] .originals-promotion__timer strong {
+  color: #fff;
+  font-family: "New York", "Iowan Old Style", serif;
+  font-size: clamp(2rem, 3.6vw, 3.75rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+[data-public-site] .originals-promotion__timer small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
 [data-public-site] .catalog-title {
   display: flex;
   min-height: 0;
@@ -2327,6 +2431,61 @@
   text-transform: uppercase;
 }
 
+[data-public-site] .original-discount-badge {
+  display: inline-flex;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  padding: 0.45rem 0.65rem;
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+[data-public-site] .original-discount-badge--active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+  animation: original-discount-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes original-discount-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-public-site] .original-discount-badge--active { animation: none; }
+}
+
+[data-public-site] .originals-editorial-item__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 0.8rem;
+  margin-top: 1.4rem;
+}
+
+[data-public-site] .originals-editorial-item__price strong {
+  color: #111;
+  font-family: "New York", "Iowan Old Style", serif;
+  font-size: clamp(1.65rem, 2.7vw, 2.5rem);
+  font-weight: 400;
+}
+
+[data-public-site] .originals-editorial-item__price s {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+[data-public-site] .originals-editorial-item__price small {
+  color: #8f3e2f;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 [data-public-site] .originals-editorial-item__details p {
   margin: 0.45rem 0;
   color: #555;
@@ -2346,6 +2505,25 @@
 }
 
 @media (max-width: 760px) {
+  [data-public-site] .originals-promotion__inner {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+    padding-block: 3.5rem;
+  }
+
+  [data-public-site] .originals-promotion__copy { padding-right: 0; }
+  [data-public-site] .originals-promotion__copy h2 { font-size: clamp(3rem, 15vw, 5rem); }
+  [data-public-site] .originals-promotion__timer {
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 0;
+    padding-top: 1.75rem;
+    padding-left: 0;
+  }
+  [data-public-site] .originals-promotion__timer > div {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  [data-public-site] .originals-promotion__timer strong { font-size: clamp(1.75rem, 10vw, 2.6rem); }
+
   [data-public-site] .catalog-title {
     min-height: 0;
     padding-top: 2.5rem;
