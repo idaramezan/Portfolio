@@ -43,6 +43,7 @@ const groups = [
         CalendarDays,
       ],
       ["/admin/site-content/homepage", "Homepage", PanelsTopLeft],
+      ["/admin/site-content/homepage-settings", "Homepage Settings", Settings],
       ["/admin/moving-image", "Animation", Film],
       ["/admin/originals", "Originals", PanelsTopLeft],
       ["/admin/prints", "Prints & Goods", Images],

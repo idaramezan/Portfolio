@@ -117,7 +117,7 @@ const copy = {
   },
 } as const;
 
-export default function UnifiedShop() {
+export default function UnifiedShop({ embeddedAsHomepage = false }: { embeddedAsHomepage?: boolean } = {}) {
   const { locale } = useLocale();
   const t = copy[locale];
   const settings = useShopSettings();
@@ -173,6 +173,7 @@ export default function UnifiedShop() {
       ? "Atölyeyi keşfet | Aeda Art"
       : "Shop the Studio | Aeda Art",
     t.heroBody,
+    !embeddedAsHomepage,
   );
   useEffect(() => {
     trackAnalytics("shop_view", {

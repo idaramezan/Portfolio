@@ -15,7 +15,7 @@ import {
 
 const ORIGINALS_PROMOTION_END = Date.parse("2026-11-30T23:59:59+03:00");
 
-export function PaintingsIndex() {
+export function PaintingsIndex({ embeddedAsHomepage = false }: { embeddedAsHomepage?: boolean } = {}) {
   const settings = useShopSettings();
   const { isTürkiye } = useShippingDestination();
   const { rate } = useCurrency();
@@ -27,6 +27,7 @@ export function PaintingsIndex() {
   usePageMeta(
     "Available Original Paintings | Aeda Art",
     "Explore all currently available original paintings by Aida Ramezani.",
+    !embeddedAsHomepage,
   );
 
   return (

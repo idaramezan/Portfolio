@@ -6,7 +6,6 @@ import { Route, Switch, Router as WouterRouter, useLocation } from "wouter";
 import { lazy, Suspense, useEffect } from "react";
 
 import Shell from "@/components/layout/Shell";
-import PortfolioHome from "@/pages/PortfolioHome";
 import Gallery from "@/pages/Gallery";
 import PersonalAbout from "@/pages/PersonalAbout";
 import { CurrencyProvider } from "@/lib/currency";
@@ -34,6 +33,7 @@ import { Privacy, Terms } from "@/pages/Legal";
 import LimitedEditionDetail from "@/pages/LimitedEditionDetail";
 import ArtEraDetail from "@/pages/ArtEraDetail";
 import LimitedCollectionDetail from "@/pages/LimitedCollectionDetail";
+import HomepageEntry from "@/pages/HomepageEntry";
 
 const queryClient = new QueryClient();
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -72,10 +72,10 @@ function Router() {
       </Route>
       <Route path="/moving-image/:slug">{(params) => <RedirectTo to={`/animation/${params.slug}`} />}</Route>
       <Route path="/moving-image"><RedirectTo to="/animation" /></Route>
+      <Route path="/" component={HomepageEntry} />
       <Route>
         <Shell>
           <Switch>
-            <Route path="/" component={PortfolioHome} />
             <Route path="/eras/:slug" component={ArtEraDetail} />
             <Route
               path="/limited-collections/:slug"
@@ -84,7 +84,9 @@ function Router() {
             <Route path="/paintings/:slug">
               <RedirectTo to="/paintings" />
             </Route>
-            <Route path="/paintings" component={PaintingsIndex} />
+            <Route path="/paintings">
+              <PaintingsIndex />
+            </Route>
             <Route
               path="/limited-editions/:slug"
               component={LimitedEditionDetail}

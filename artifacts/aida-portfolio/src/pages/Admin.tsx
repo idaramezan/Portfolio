@@ -25,6 +25,7 @@ import Enquiries from "@/pages/admin/Enquiries";
 import HomepageContentAdmin from "@/pages/admin/HomepageContent";
 import WeeklyLimitedCollections from "@/pages/admin/WeeklyLimitedCollections";
 import ArtErasAdmin from "@/pages/admin/ArtEras";
+import HomepageSettings from "@/pages/admin/HomepageSettings";
 
 const USER = "thisisme";
 const PASS = "a0019280718";
@@ -155,6 +156,8 @@ export default function Admin() {
     return <WeeklyLimitedCollections />;
   if (location === "/admin/site-content/homepage")
     return <HomepageContentAdmin />;
+  if (location === "/admin/site-content/homepage-settings")
+    return <HomepageSettings />;
   if (location === "/admin/moving-image")
     return <PortfolioContent section="moving-image" />;
   if (location === "/admin/enquiries") return <Enquiries />;

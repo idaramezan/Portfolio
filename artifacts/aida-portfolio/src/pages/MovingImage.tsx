@@ -130,7 +130,7 @@ function MovingFrame({ src, alt }: { src: string; alt: string }) {
   </div>;
 }
 
-export function MovingImage() {
+export function MovingImage({ embeddedAsHomepage = false }: { embeddedAsHomepage?: boolean } = {}) {
   const settings = useShopSettings();
   const { locale } = useLocale();
   const tr = locale === "tr";
@@ -143,7 +143,7 @@ export function MovingImage() {
   const featuredSource = settings.movingImagePage.featuredBackgroundMedia || (featured ? (featured.primaryMedia || projectCover(featured)) : "");
   const featuredMediaType = featured ? normalizeMediaType(featured.mediaType || featured.projectType, featuredSource) : "image";
   const [lightbox, setLightbox] = useState<MovingImageProject | null>(null);
-  usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.");
+  usePageMeta("Moving Image | Aeda Art", "Animation, music visuals and moving worlds by Aida Ramezani.", !embeddedAsHomepage);
   return <main id="top" className="moving-page figma-moving-page">
     <section className="figma-moving-hero" aria-labelledby="moving-title"><div className="figma-moving-hero__content">
       <h1 id="moving-title">ARTWORK &amp;<br />ANIMATION<br />BY AEDA</h1><span>Animation, music visuals and hand-made moving worlds.</span><a href="#commission">REQUEST COMMISSION</a>

@@ -201,6 +201,7 @@ export interface WeeklyLimitedCollection {
 }
 
 export interface HomepageContent {
+  source: HomepageSourceSettings;
   hero: {
     image: string;
     eyebrow: string;
@@ -243,6 +244,16 @@ export interface HomepageContent {
     cta: string;
     ctaUrl: string;
   };
+}
+
+export type HomepagePage = "paintings" | "originals" | "prints" | "moving-image";
+
+export interface HomepageSourceSettings {
+  mode: "default" | "page";
+  page: HomepagePage;
+  scheduleEnabled: boolean;
+  startAt: string;
+  endAt: string;
 }
 
 export interface MovingImageProject {
@@ -704,6 +715,13 @@ export function getDefaultSettings(): ShopSettings {
     limitedEditionGroups: [],
     weeklyLimitedCollections: [],
     homepageContent: {
+      source: {
+        mode: "default",
+        page: "paintings",
+        scheduleEnabled: false,
+        startAt: "",
+        endAt: "",
+      },
       hero: {
         image: "",
         eyebrow: "AIDA RAMEZANI",
@@ -977,6 +995,10 @@ export function loadShopSettings(): ShopSettings {
         homepageContent: {
           ...defaults.homepageContent,
           ...(saved.homepageContent || {}),
+          source: {
+            ...defaults.homepageContent.source,
+            ...(saved.homepageContent?.source || {}),
+          },
           hero: {
             ...defaults.homepageContent.hero,
             ...(saved.homepageContent?.hero || {}),
